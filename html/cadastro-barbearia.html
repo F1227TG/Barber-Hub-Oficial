@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Barber Hub — plataforma de gestão, agenda e divulgação para barbearias e futuros salões de beleza.">
+    <title>Cadastrar estabelecimento | Barber Hub</title>
+    <link rel="shortcut icon" href="../img/favicon.ico" type="image/x-icon">
+    <link rel="apple-touch-icon" sizes="180x180" href="../img/apple-touch-icon.png">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/pages.css">
+<link rel="manifest" href="../manifest.webmanifest"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"></head>
+<body><header class="header">
+    <div class="container nav">
+        <a href="../index.html" class="logo">
+            <img src="../img/logomarcaTRANSPARENTE.png" alt="Barber Hub">
+            <span>Barber Hub<small>Gestão inteligente</small></span>
+        </a>
+        <nav class="menu" id="menuPrincipal">
+            <a href="../index.html" data-page="home">Início</a>
+            <a href="../html/portal.html" data-page="portal">Portal</a>
+            <a href="../html/agendamento.html" data-page="agendamento">Agendar</a>
+            <a href="../html/beauty-hub.html" data-page="beauty">Beauty Hub</a>
+            <a href="../html/contato.html" data-page="contato">Suporte</a>
+        </nav>
+        <div class="nav-actions">
+            <button class="btn-tema" id="btnTema" title="Alternar tema" aria-label="Alternar tema"><i class="bi bi-circle-half"></i></button>
+            <a class="btn btn-outline btn-small account-link" data-auth-link href="../html/login.html"><i class="bi bi-person-circle"></i> <span data-user-name>Entrar</span></a>
+            <button class="btn-menu" id="btnMenu" aria-label="Abrir menu lateral"><i class="bi bi-list"></i></button>
+        </div>
+    </div>
+</header>
+<main class="onboarding-page"><div class="container onboarding-container"><div class="onboarding-head"><span class="tag"><i class="bi bi-shop"></i> Cadastro profissional</span><h1>Prepare a presença digital do seu negócio.</h1><p>Preencha as quatro etapas. Tudo poderá ser editado depois no painel.</p></div>
+<div class="stepper"><div data-step-indicator="1" class="ativo"><span>1</span><strong>Identidade</strong></div><div data-step-indicator="2"><span>2</span><strong>Local e contato</strong></div><div data-step-indicator="3"><span>3</span><strong>Funcionamento</strong></div><div data-step-indicator="4"><span>4</span><strong>Serviço e imagens</strong></div></div>
+<form id="formOnboarding" class="form-card onboarding-form">
+<section class="step-panel ativo" data-step-panel="1"><h2>Identidade do estabelecimento</h2><p class="texto-section">O banco já está preparado para barbearias e para a futura expansão Beauty Hub.</p><div class="form-grid"><div class="campo"><label>Tipo</label><select id="tipoEstabelecimento" required><option value="barbearia">Barbearia</option><option value="salao">Salão de beleza / Beauty Hub</option></select></div><div class="campo"><label>Nome do estabelecimento</label><input id="nomeEstabelecimento" required placeholder="Ex: Central Barber Club"></div><div class="campo full"><label>Descrição pública</label><textarea id="descricao" required placeholder="Conte o estilo, diferenciais e proposta do seu espaço."></textarea></div><div class="campo"><label>Seu nome profissional</label><input id="profissionalNome" required></div><div class="campo"><label>Especialidade</label><input id="profissionalEspecialidade" required placeholder="Ex: degradê, barba, cortes sociais"></div></div></section>
+<section class="step-panel" data-step-panel="2"><h2>Localização e contato</h2><div class="form-grid"><div class="campo"><label>E-mail público</label><input id="emailPublico" type="email" required></div><div class="campo"><label>Telefone</label><input id="telefone" type="tel" required></div><div class="campo"><label>WhatsApp</label><input id="whatsapp" type="tel" required></div><div class="campo"><label>Instagram</label><input id="instagram" placeholder="@seuperfil"></div><div class="campo"><label>CEP</label><input id="cep"></div><div class="campo"><label>Cidade</label><input id="cidade" required></div><div class="campo"><label>Estado</label><input id="estado" maxlength="2" value="MG" required></div><div class="campo"><label>Bairro</label><input id="bairro" required></div><div class="campo"><label>Endereço</label><input id="endereco" required></div><div class="campo"><label>Número</label><input id="numero"></div><div class="campo full"><label>Complemento</label><input id="complemento"></div></div></section>
+<section class="step-panel" data-step-panel="3"><h2>Funcionamento e agenda</h2><label class="switch-card"><span><strong>Agendamento online</strong><small>Permitir que clientes escolham data, serviço e profissional.</small></span><input id="aceitaAgendamento" type="checkbox" checked><i></i></label><div class="hours-editor"><div class="horario-config" data-dia="0"><label class="day-toggle"><input type="checkbox" data-horario-aberto ><span>Domingo</span></label><input type="time" data-horario-abre value="08:00" disabled><span>até</span><input type="time" data-horario-fecha value="18:00" disabled></div><div class="horario-config" data-dia="1"><label class="day-toggle"><input type="checkbox" data-horario-aberto checked><span>Segunda</span></label><input type="time" data-horario-abre value="08:00" ><span>até</span><input type="time" data-horario-fecha value="18:00" ></div><div class="horario-config" data-dia="2"><label class="day-toggle"><input type="checkbox" data-horario-aberto checked><span>Terça</span></label><input type="time" data-horario-abre value="08:00" ><span>até</span><input type="time" data-horario-fecha value="18:00" ></div><div class="horario-config" data-dia="3"><label class="day-toggle"><input type="checkbox" data-horario-aberto checked><span>Quarta</span></label><input type="time" data-horario-abre value="08:00" ><span>até</span><input type="time" data-horario-fecha value="18:00" ></div><div class="horario-config" data-dia="4"><label class="day-toggle"><input type="checkbox" data-horario-aberto checked><span>Quinta</span></label><input type="time" data-horario-abre value="08:00" ><span>até</span><input type="time" data-horario-fecha value="18:00" ></div><div class="horario-config" data-dia="5"><label class="day-toggle"><input type="checkbox" data-horario-aberto checked><span>Sexta</span></label><input type="time" data-horario-abre value="08:00" ><span>até</span><input type="time" data-horario-fecha value="18:00" ></div><div class="horario-config" data-dia="6"><label class="day-toggle"><input type="checkbox" data-horario-aberto checked><span>Sábado</span></label><input type="time" data-horario-abre value="08:00" ><span>até</span><input type="time" data-horario-fecha value="13:00" ></div></div></section>
+<section class="step-panel" data-step-panel="4"><h2>Primeiro serviço e imagens</h2><div class="form-grid"><div class="campo"><label>Serviço principal</label><input id="servicoNome" required placeholder="Ex: Corte masculino"></div><div class="campo"><label>Categoria</label><input id="servicoCategoria" required value="Corte"></div><div class="campo"><label>Preço</label><input id="servicoPreco" type="number" min="0" step="0.01" required></div><div class="campo"><label>Duração em minutos</label><input id="servicoDuracao" type="number" min="5" value="30" required></div><div class="campo full"><label>Descrição do serviço</label><textarea id="servicoDescricao" required></textarea></div><div class="campo"><label>Foto ou logotipo</label><input id="fotoArquivo" type="file" accept="image/png,image/jpeg,image/webp"><img id="fotoPreview" class="upload-preview hidden" alt="Prévia"></div><div class="campo"><label>Imagem de capa</label><input id="capaArquivo" type="file" accept="image/png,image/jpeg,image/webp"><img id="capaPreview" class="upload-preview cover hidden" alt="Prévia"></div></div><div class="info-box"><i class="bi bi-cloud-check"></i><p>As imagens serão enviadas ao Supabase Storage. Formatos aceitos: PNG, JPG e WebP, até 5 MB.</p></div></section>
+<div class="onboarding-actions"><button type="button" id="btnVoltarStep" class="btn btn-outline hidden">Voltar</button><button type="button" id="btnAvancarStep" class="btn btn-primary">Continuar</button><button type="submit" id="btnFinalizarOnboarding" class="btn btn-primary hidden">Finalizar cadastro</button></div>
+</form></div></main><div id="toast" class="toast"></div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase-config.js"></script>
+<script src="../js/supabase-client.js"></script>
+<script src="../js/utils.js"></script>
+<script src="../js/toast.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/status.js"></script>
+<script src="../js/ia.js"></script>
+<script src="../js/ui.js"></script>
+<script src="../js/onboarding.js"></script></body></html>
