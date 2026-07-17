@@ -1,62 +1,88 @@
 # Barber Hub
 
-Plataforma web para divulgação, gestão e agendamento de barbearias, preparada também para a futura expansão **Beauty Hub**, voltada a salões de beleza e profissionais do público feminino.
+Plataforma web para descoberta, divulgação, gestão e agendamento de barbearias. O projeto também está preparado para a futura expansão **Beauty Hub**.
 
-A aplicação utiliza **HTML, CSS e JavaScript no front-end**, com **Supabase Auth, PostgreSQL, Row Level Security e Storage** para autenticação, banco de dados e imagens.
+Tecnologias principais:
+
+- HTML, CSS e JavaScript;
+- Supabase Auth e PostgreSQL;
+- Row Level Security;
+- Supabase Storage;
+- Supabase Realtime por WebSocket;
+- PWA e hospedagem estática no Vercel.
 
 ## Funcionalidades atuais
 
-### Acesso e contas
+### Contas e acesso
 
-- Cadastro real de cliente ou profissional;
-- Login por e-mail e senha;
-- Confirmação de e-mail configurável;
-- Recuperação e redefinição de senha;
-- Atualização de perfil, foto, e-mail, telefone e senha;
-- Redirecionamento por tipo de conta;
-- Administração sem credenciais fixas no código.
+- Cadastro de cliente ou profissional;
+- Login, recuperação e redefinição de senha;
+- Redirecionamento conforme o tipo da conta;
+- Proteção das áreas de cliente, profissional e administrador;
+- Menus desktop, menu lateral e navegação mobile personalizados por perfil;
+- Tema claro/escuro e preferências de acessibilidade.
 
 ### Clientes
 
-- Portal público de estabelecimentos;
-- Busca por nome, cidade e bairro;
-- Status aberto/fechado em tempo real;
+- Portal público com busca e filtros;
 - Página pública de cada estabelecimento;
-- Escolha de serviço, profissional, data e horário;
-- Bloqueio de conflitos de agenda;
+- Visualização de serviços, profissionais, horários e status;
+- Agendamento com proteção contra conflito de horário;
 - Histórico e cancelamento de agendamentos;
-- Tickets de suporte vinculados à conta.
+- Central persistente de notificações;
+- Curtidas em trabalhos da galeria para contas com mais de sete dias;
+- Denúncia de conteúdo da galeria.
 
 ### Profissionais
 
-- Cadastro detalhado do estabelecimento após o registro básico;
-- Upload de logotipo, foto e capa;
-- Configuração de endereço, contatos e horários;
-- Status automático, aberto manualmente ou fechado manualmente;
-- Bloqueio de feriados e datas especiais;
-- Ativação ou desativação do agendamento online;
-- Cadastro de serviços, duração e preços;
-- Cadastro de profissionais da equipe;
+- Cadastro e configuração do estabelecimento;
+- Horários de funcionamento, feriados e status manual;
+- Ativação ou desativação da agenda online;
+- Cadastro de serviços e equipe;
+- Agenda com contador de solicitações pendentes;
 - Confirmação, recusa, conclusão e cancelamento de atendimentos;
-- Relatórios semanais e recomendações baseadas nos dados.
+- Relatórios básicos;
+- Página pública;
+- Galeria de trabalhos com:
+  - até cinco imagens por publicação;
+  - compressão automática para WebP;
+  - categorias e até cinco tags;
+  - serviço relacionado opcional;
+  - modo antes e depois opcional;
+  - até três trabalhos em destaque;
+  - ordenação das imagens e escolha da capa;
+  - rascunho, publicação e arquivamento;
+  - confirmação de autorização de imagem;
+  - confirmação específica para menores de idade;
+  - limite inicial de 50 publicações.
+
+### Notificações internas
+
+- Notificações salvas no banco;
+- Contadores no menu e na navegação mobile;
+- Atualização em tempo real por Supabase Realtime;
+- Avisos de novo agendamento, alteração de status, suporte e moderação;
+- Marcar uma ou todas como lidas.
+
+> Esta versão possui notificações **dentro do Barber Hub** enquanto o navegador está conectado. Web Push do sistema operacional, capaz de avisar com o site fechado, permanece como uma etapa separada.
 
 ### Administração
 
 - Resumo de usuários, estabelecimentos, agendamentos e tickets;
 - Publicação ou ocultação de estabelecimentos;
-- Atendimento de tickets de suporte;
-- Conta administrativa criada no Supabase, sem senha exposta no front-end.
+- Atendimento de tickets;
+- Central de moderação da galeria;
+- Ocultação de publicação denunciada;
+- Notificações para administradores, autores das denúncias e proprietários afetados.
 
-### Interface
+## Correções importantes desta versão
 
-- Tema escuro e tema claro revisado;
-- Sombras douradas reduzidas no modo claro;
-- Menu lateral pelas três barras;
-- Acesso à conta, histórico, painel e suporte;
-- Aumento e redução de fonte;
-- Alto contraste;
-- Redução de movimento;
-- Layout responsivo.
+- Corrigida a mensagem falsa de erro ao adicionar um serviço: a inserção não depende mais de uma leitura posterior para ser considerada concluída;
+- Separadas as políticas públicas e autenticadas do Supabase, evitando erro `permission denied for function is_admin` para visitantes;
+- Removida a avaliação inicial fictícia de 5,0; estabelecimentos sem avaliações exibem “Ainda sem avaliações”;
+- Impedido que o proprietário republique conteúdo ocultado pela moderação;
+- Corrigido o contador de curtidas para funcionar sem conceder permissão indevida ao cliente;
+- Adicionada limpeza de arquivos quando um upload da galeria falha parcialmente.
 
 ## Estrutura principal
 
@@ -64,160 +90,98 @@ A aplicação utiliza **HTML, CSS e JavaScript no front-end**, com **Supabase Au
 Barber-Hub/
 ├── index.html
 ├── 404.html
-├── README.md
+├── manifest.webmanifest
+├── service-worker.js
 ├── vercel.json
 ├── css/
-│   ├── global.css
-│   ├── index.css
-│   └── pages.css
 ├── html/
-│   ├── login.html
-│   ├── cadastro.html
-│   ├── recuperar-senha.html
-│   ├── redefinir-senha.html
-│   ├── cadastro-barbearia.html
 │   ├── portal.html
 │   ├── barbearia.html
 │   ├── agendamento.html
 │   ├── cliente.html
 │   ├── painel.html
+│   ├── notificacoes.html
 │   ├── conta.html
-│   ├── admin.html
-│   ├── contato.html
-│   └── beauty-hub.html
+│   └── admin.html
 ├── js/
-│   ├── supabase-config.js
-│   ├── supabase-client.js
-│   ├── auth.js
-│   ├── api.js
-│   ├── status.js
-│   ├── ia.js
-│   ├── ui.js
-│   └── scripts de cada página
 ├── sql/
 │   ├── 01_barberhub_supabase.sql
-│   └── 02_promover_admin.sql
+│   ├── 02_promover_admin.sql
+│   ├── 03_experiencia_seguranca_realtime.sql
+│   ├── 04_corrigir_politicas_publicas.sql
+│   ├── 05_menus_notificacoes_portfolio.sql
+│   ├── 06_corrigir_contador_curtidas.sql
+│   ├── 07_avaliacao_sem_nota_ficticia.sql
+│   ├── 08_notificacoes_moderacao_portfolio.sql
+│   ├── 09_ordenacao_midias_portfolio.sql
+│   └── 10_reforco_seguranca_performance.sql
 └── docs/
     ├── CONFIGURACAO_SUPABASE.md
-    └── TESTES_INTEGRACAO.md
+    ├── TESTES_INTEGRACAO.md
+    └── ATUALIZACAO_1_1.md
 ```
 
-## Instalação do Supabase
+## Configuração do Supabase
 
-Siga o guia completo em:
+Leia `docs/CONFIGURACAO_SUPABASE.md`.
 
-```text
-docs/CONFIGURACAO_SUPABASE.md
-```
+Para um projeto novo, execute os arquivos SQL na ordem numérica. O arquivo `01_barberhub_supabase.sql` recria a estrutura central e apaga os dados correspondentes; não o execute novamente em produção apenas para atualizar o sistema.
 
-Resumo:
-
-1. Crie um projeto vazio no Supabase;
-2. Execute `sql/01_barberhub_supabase.sql` no SQL Editor;
-3. Copie a Project URL e a chave pública anon/publishable;
-4. Preencha `js/supabase-config.js`;
-5. Configure as URLs de autenticação;
-6. Crie sua conta administrativa e execute `sql/02_promover_admin.sql`;
-7. Faça os testes de `docs/TESTES_INTEGRACAO.md`.
-
-## Configuração pública
-
-Arquivo:
+Configuração pública do navegador:
 
 ```javascript
-// js/supabase-config.js
 const SUPABASE_URL = "https://SEU-PROJETO.supabase.co";
 const SUPABASE_ANON_KEY = "SUA_CHAVE_PUBLICA";
 ```
 
-Use apenas a chave pública. Nunca coloque `service_role`, secret key ou senha de banco no navegador.
+Nunca coloque no front-end:
 
-## Conta administrativa inicial
+- `service_role`;
+- secret key;
+- senha do banco;
+- URL de conexão PostgreSQL.
 
-Credenciais recomendadas para a primeira conta:
+## Conta administrativa
 
-```text
-E-mail: admin@barberhub.com
-Senha: BarberHub@2026!
-```
+Crie uma conta com uma senha forte e exclusiva. Depois, ajuste o e-mail em `sql/02_promover_admin.sql` e execute o arquivo.
 
-Essas credenciais **não ficam gravadas no código**. Crie a conta uma vez no Supabase ou pelo cadastro do site e, depois, execute `sql/02_promover_admin.sql`.
+Não utilize senhas de exemplo ou uma senha compartilhada em produção. Ative autenticação em dois fatores nas contas do GitHub, Supabase e Vercel.
 
-Troque a senha após o primeiro acesso caso o sistema seja publicado para uso real.
+## Testes
 
-## Banco de dados
-
-Tabelas principais:
-
-- `perfis`
-- `estabelecimentos`
-- `horarios_funcionamento`
-- `dias_bloqueados`
-- `profissionais`
-- `servicos`
-- `profissional_servicos`
-- `agendamentos`
-- `promocoes`
-- `favoritos`
-- `tickets_suporte`
-
-O campo `tipo_estabelecimento` já aceita:
+Use o roteiro:
 
 ```text
-barbearia
-salao
+docs/TESTES_INTEGRACAO.md
 ```
 
-Isso permite construir a Beauty Hub sobre a mesma base de autenticação e gestão, mantendo identidades visuais diferentes.
+Teste pelo menos:
 
-## Segurança
-
-- Senhas são gerenciadas pelo Supabase Auth;
-- O navegador usa somente a chave pública;
-- Todas as tabelas possuem Row Level Security;
-- Clientes acessam apenas seus próprios dados privados;
-- Proprietários gerenciam apenas o próprio estabelecimento;
-- Administradores possuem acesso por perfil promovido no banco;
-- Uploads são limitados à pasta do usuário autenticado;
-- Conflitos de agenda também são bloqueados no banco.
+- uma conta cliente;
+- uma conta profissional com estabelecimento;
+- uma conta administrativa;
+- computador e celular;
+- janela anônima para validar o acesso público.
 
 ## Deploy
 
-O projeto está pronto para hospedagem estática no Vercel.
-
-Depois de configurar o Supabase:
+O projeto não exige comando de build.
 
 ```bash
 git add .
-git commit -m "Integra Barber Hub ao Supabase"
+git commit -m "Atualiza menus, notificações e galeria"
 git push
 ```
 
-No Vercel, importe o repositório e publique sem comando de build.
+O Vercel conectado ao branch de produção publicará a alteração automaticamente.
 
-Depois, adicione o domínio final nas configurações de URL do Supabase Auth.
+## Próximas etapas planejadas
 
-## Funcionalidades futuras
-
-- Pagamentos online liberados após confirmação;
-- Notificações por WhatsApp e e-mail;
-- Planos de assinatura;
-- Avaliações verificadas;
-- Várias unidades por proprietário;
-- Profissionais com contas individuais;
-- IA com modelos externos;
+- Avaliações verificadas ligadas a atendimentos concluídos;
+- Web Push com o site fechado;
+- MFA obrigatório para administradores;
+- SMTP próprio;
+- Planos e pagamentos;
+- Exportação e exclusão completa de conta;
 - Aplicativo móvel;
-- Expansão completa Beauty Hub.
-
-
-## Experiência 1.0
-
-- Painel otimizado para celular e navegação inferior móvel.
-- Validação global, feedback de loading e mensagens de erro mais claras.
-- Estados vazios, animações com preferência de movimento reduzido e monitor de conexão.
-- PWA com página offline e instalação no celular.
-- SEO básico, sitemap, robots.txt, política de privacidade e termos de uso.
-- Atualizações em tempo real para agenda e suporte.
-- Fundos temáticos originais em SVG, sem dependência de imagens licenciadas.
-
-Antes do lançamento comercial, revise os textos legais e configure SMTP próprio no Supabase.
+- Expansão Beauty Hub.

@@ -32,16 +32,116 @@ function bhAplicarPreferencias() {
   document.body.classList.toggle("reduzir-movimento", reduzir);
 }
 
-function bhCriarDrawer(perfil) {
+function bhBadgeNavegacao(valor, atributo) {
+  const numero = Number(valor || 0);
+  return `<span class="nav-badge${numero ? " ativo" : ""}" ${atributo} aria-label="${numero} pendente(s)">${numero > 99 ? "99+" : numero}</span>`;
+}
+
+function bhLinksPorPerfil(perfil, contadores = {}) {
+  if (!perfil) return [
+    ["index.html", "home", "Início", "bi-house-door"],
+    ["html/portal.html", "portal", "Portal", "bi-shop"],
+    ["html/agendamento.html", "agendamento", "Agendar", "bi-calendar2-check"],
+    ["html/beauty-hub.html", "beauty", "Beauty Hub", "bi-stars"],
+    ["html/contato.html", "contato", "Suporte", "bi-headset"]
+  ];
+  if (perfil.tipo === "barbeiro") {
+    const pagina = contadores.estabelecimento?.id
+      ? `html/barbearia.html?id=${contadores.estabelecimento.id}`
+      : "html/painel.html#pagina";
+    return [
+      ["html/painel.html", "painel", "Dashboard", "bi-grid"],
+      [contadores.aceitaAgendamento ? "html/painel.html#agenda" : "html/painel.html#configuracoes", "agenda-profissional", contadores.aceitaAgendamento ? "Agenda" : "Ativar agenda", "bi-calendar-week", "agenda"],
+      ["html/painel.html#servicos", "servicos-profissional", "Serviços", "bi-scissors"],
+      ["html/painel.html#relatorios", "relatorios-profissional", "Relatórios", "bi-bar-chart"],
+      [pagina, "pagina-profissional", "Minha página", "bi-window"],
+      ["html/notificacoes.html", "notificacoes", "Notificações", "bi-bell", "notificacoes"]
+    ];
+  }
+  if (perfil.tipo === "admin") return [
+    ["html/admin.html", "admin", "Visão geral", "bi-shield-lock"],
+    ["html/admin.html#estabelecimentos", "admin-estabelecimentos", "Estabelecimentos", "bi-shop-window"],
+    ["html/admin.html#usuarios", "admin-usuarios", "Usuários", "bi-people"],
+    ["html/admin.html#moderacao", "admin-moderacao", "Moderação", "bi-flag", "moderacao"],
+    ["html/admin.html#tickets", "admin-tickets", "Tickets", "bi-headset", "tickets"],
+    ["html/notificacoes.html", "notificacoes", "Notificações", "bi-bell", "notificacoes"]
+  ];
+  return [
+    ["html/portal.html", "portal", "Explorar", "bi-shop"],
+    ["html/agendamento.html", "agendamento", "Agendar", "bi-calendar2-plus"],
+    ["html/cliente.html", "cliente", "Meus horários", "bi-calendar2-check", "agenda"],
+    ["html/notificacoes.html", "notificacoes", "Notificações", "bi-bell", "notificacoes"],
+    ["html/conta.html", "conta", "Conta", "bi-person-circle"]
+  ];
+}
+
+function bhRenderLinkNavegacao(link, contadores = {}, exibirIcone = false) {
+  const [url, pagina, texto, icone, badge] = link;
+  const contador = badge === "agenda"
+    ? contadores.agenda
+    : badge === "tickets"
+      ? contadores.tickets
+      : badge === "moderacao"
+        ? contadores.moderacao
+        : contadores.notificacoes;
+  const atributo = badge === "agenda"
+    ? "data-badge-agenda"
+    : badge === "tickets"
+      ? "data-badge-tickets"
+      : badge === "moderacao"
+        ? "data-badge-moderacao"
+        : "data-badge-notificacoes";
+  return `<a href="${bhUrl(url)}" data-page="${pagina}">${exibirIcone ? `<i class="bi ${icone}"></i>` : ""}<span>${escapeHTML(texto)}</span>${badge ? bhBadgeNavegacao(contador, atributo) : ""}</a>`;
+}
+
+function bhAplicarMenuPorPerfil(perfil, contadores = {}) {
+  const menu = document.getElementById("menuPrincipal");
+  if (!menu) return;
+  menu.innerHTML = bhLinksPorPerfil(perfil, contadores).map(link => bhRenderLinkNavegacao(link, contadores)).join("");
+  const arquivo = (location.pathname.split("/").pop() || "index.html").replace(".html", "");
+  menu.querySelectorAll("a").forEach(link => {
+    const destino = new URL(link.href, location.href);
+    const mesmoArquivo = destino.pathname === location.pathname || (arquivo === "index" && destino.pathname.endsWith("/index.html"));
+    link.classList.toggle("ativo", mesmoArquivo && (!destino.hash || destino.hash === location.hash));
+  });
+}
+
+function bhLinksExtrasDrawer(perfil, contadores = {}) {
+  if (perfil?.tipo === "barbeiro") return [
+    ["html/painel.html#equipe", "Equipe", "bi-people"],
+    ["html/painel.html#galeria", "Galeria de trabalhos", "bi-images"],
+    ["html/painel.html#configuracoes", "Horários e configurações", "bi-gear"]
+  ];
+  if (perfil?.tipo === "admin") return [
+    ["html/admin.html#usuarios", "Usuários", "bi-people"],
+    ["html/admin.html#moderacao", "Moderação", "bi-flag", "moderacao"],
+    ["html/conta.html", "Minha conta", "bi-person-gear"]
+  ];
+  if (perfil) return [
+    ["html/cliente.html", "Histórico e horários", "bi-clock-history"],
+    ["html/conta.html", "Minha conta", "bi-person-gear"]
+  ];
+  return [];
+}
+
+function bhRenderLinkExtraDrawer(link, contadores = {}) {
+  const [url, texto, icone, badge] = link;
+  const valor = badge === "moderacao" ? contadores.moderacao : 0;
+  return `<a href="${bhUrl(url)}"><i class="bi ${icone}"></i><span>${escapeHTML(texto)}</span>${badge ? bhBadgeNavegacao(valor, "data-badge-moderacao") : ""}</a>`;
+}
+
+function bhCriarDrawer(perfil, contadores = {}) {
   if (document.getElementById("appDrawer")) return;
   const drawer = document.createElement("div");
+  const links = bhLinksPorPerfil(perfil, contadores).map(link => bhRenderLinkNavegacao(link, contadores, true)).join("");
+  const extras = bhLinksExtrasDrawer(perfil, contadores).map(link => bhRenderLinkExtraDrawer(link, contadores)).join("");
   drawer.innerHTML = `
     <div class="drawer-overlay" id="drawerOverlay"></div>
     <aside class="app-drawer" id="appDrawer" aria-hidden="true">
       <div class="drawer-head">
         <a class="logo" href="${bhUrl("index.html")}">
           <img src="${bhUrl("img/logomarcaTRANSPARENTE.png")}" alt="Barber Hub">
-          <span>Barber Hub<small>Menu e acessibilidade</small></span>
+          <span>Barber Hub<small>${perfil?.tipo === "barbeiro" ? "Meu negócio" : perfil?.tipo === "admin" ? "Administração" : "Menu e acessibilidade"}</small></span>
         </a>
         <button class="icon-btn" id="fecharDrawer" aria-label="Fechar menu"><i class="bi bi-x-lg"></i></button>
       </div>
@@ -52,17 +152,9 @@ function bhCriarDrawer(perfil) {
           <span>${perfil ? escapeHTML(perfil.tipo) : "Entre para acessar sua conta"}</span>
         </div>
       </div>
-      <nav class="drawer-links">
-        <a href="${bhUrl("index.html")}"><i class="bi bi-house-door"></i> Início</a>
-        <a href="${bhUrl("html/portal.html")}"><i class="bi bi-shop"></i> Explorar estabelecimentos</a>
-        <a href="${bhUrl("html/agendamento.html")}"><i class="bi bi-calendar2-check"></i> Agendar horário</a>
-        ${perfil ? `<a href="${bhUrl("html/conta.html")}"><i class="bi bi-person-gear"></i> Minha conta</a>` : `<a href="${bhUrl("html/login.html")}"><i class="bi bi-box-arrow-in-right"></i> Entrar</a>`}
-        ${perfil ? `<a href="${perfil.tipo === "barbeiro" ? bhUrl("html/painel.html#agenda") : bhUrl("html/cliente.html#historico")}"><i class="bi bi-clock-history"></i> Histórico</a>` : ""}
-        ${perfil?.tipo === "barbeiro" ? `<a href="${bhUrl("html/painel.html")}"><i class="bi bi-speedometer2"></i> Painel da barbearia</a>` : ""}
-        ${perfil?.tipo === "admin" ? `<a href="${bhUrl("html/admin.html")}"><i class="bi bi-shield-lock"></i> Administração</a>` : ""}
-        <a href="${bhUrl("html/contato.html")}"><i class="bi bi-headset"></i> Suporte e tickets</a>
-        <a href="${bhUrl("html/beauty-hub.html")}"><i class="bi bi-stars"></i> Beauty Hub — futuro</a>
-      </nav>
+      <nav class="drawer-links">${links}</nav>
+      ${extras ? `<div class="drawer-section drawer-business-links"><h3>${perfil?.tipo === "barbeiro" ? "Gestão do negócio" : perfil?.tipo === "admin" ? "Administração" : "Sua conta"}</h3><nav class="drawer-links">${extras}</nav></div>` : ""}
+      <nav class="drawer-links drawer-support-link"><a href="${bhUrl("html/contato.html")}"><i class="bi bi-headset"></i><span>Suporte</span></a></nav>
       <div class="drawer-section">
         <h3>Acessibilidade</h3>
         <div class="a11y-grid">
@@ -120,15 +212,68 @@ function bhConfigurarAcessibilidade() {
   });
 }
 
+async function bhAtualizarNavegacao(perfil) {
+  let contadores = { notificacoes: 0, agenda: 0, tickets: 0, moderacao: 0, aceitaAgendamento: false, estabelecimento: null };
+  try { if (perfil) contadores = await bhObterContadoresNavegacao(perfil); } catch (erro) { console.warn("Contadores indisponíveis", erro); }
+  bhAplicarMenuPorPerfil(perfil, contadores);
+  bhAtualizarBadgesNavegacao(contadores);
+  return contadores;
+}
+
+function bhAtualizarBadgesNavegacao(contadores = {}) {
+  const atualizar = (seletor, valor) => document.querySelectorAll(seletor).forEach(elemento => {
+    const numero = Number(valor || 0);
+    elemento.textContent = numero > 99 ? "99+" : numero;
+    elemento.classList.toggle("ativo", numero > 0);
+    elemento.setAttribute("aria-label", `${numero} pendente(s)`);
+  });
+  atualizar("[data-badge-notificacoes]", contadores.notificacoes);
+  atualizar("[data-badge-agenda]", contadores.agenda);
+  atualizar("[data-badge-tickets]", contadores.tickets);
+  atualizar("[data-badge-moderacao]", contadores.moderacao);
+}
+
+function bhAssinarNavegacaoTempoReal(perfil, contadores) {
+  if (!perfil || !window.supabaseClient) return;
+  const atualizar = async () => bhAtualizarBadgesNavegacao(await bhObterContadoresNavegacao(perfil));
+  window.supabaseClient
+    .channel(`navegacao-notificacoes-${perfil.id}`)
+    .on("postgres_changes", { event: "*", schema: "public", table: "notificacoes", filter: `user_id=eq.${perfil.id}` }, async evento => {
+      await atualizar();
+      if (evento.eventType === "INSERT" && !location.pathname.endsWith("notificacoes.html")) {
+        mostrarToast("info", evento.new?.titulo || "Nova notificação", evento.new?.mensagem || "Você recebeu uma atualização.");
+      }
+    })
+    .subscribe();
+  const filtroAgenda = perfil.tipo === "barbeiro" && contadores.estabelecimento
+    ? `estabelecimento_id=eq.${contadores.estabelecimento.id}`
+    : perfil.tipo === "cliente" ? `cliente_id=eq.${perfil.id}` : null;
+  if (filtroAgenda) {
+    window.supabaseClient
+      .channel(`navegacao-agenda-${perfil.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "agendamentos", filter: filtroAgenda }, atualizar)
+      .subscribe();
+  }
+  if (perfil.tipo === "admin") {
+    window.supabaseClient
+      .channel(`navegacao-moderacao-${perfil.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "portfolio_denuncias" }, atualizar)
+      .on("postgres_changes", { event: "*", schema: "public", table: "tickets_suporte" }, atualizar)
+      .subscribe();
+  }
+}
+
 async function bhInicializarInterface() {
   bhAplicarPreferencias();
   let perfil = null;
   if (bhSupabasePronto()) {
     try { perfil = await bhGetPerfil(); } catch (erro) { console.warn(erro); }
   }
-
-  bhCriarDrawer(perfil);
+  const contadores = await bhAtualizarNavegacao(perfil);
+  bhCriarDrawer(perfil, contadores);
+  bhCriarDockMobile(perfil, contadores);
   bhConfigurarAcessibilidade();
+  bhAssinarNavegacaoTempoReal(perfil, contadores);
 
   const btnTema = document.getElementById("btnTema");
   btnTema?.addEventListener("click", () => {
@@ -141,25 +286,16 @@ async function bhInicializarInterface() {
   btnMenu?.addEventListener("click", bhAbrirDrawer);
   document.getElementById("fecharDrawer")?.addEventListener("click", bhFecharDrawer);
   document.getElementById("drawerOverlay")?.addEventListener("click", bhFecharDrawer);
-  document.addEventListener("keydown", evento => {
-    if (evento.key === "Escape") bhFecharDrawer();
-  });
+  document.addEventListener("keydown", evento => { if (evento.key === "Escape") bhFecharDrawer(); });
 
-  document.querySelectorAll("[data-user-name]").forEach(elemento => {
-    elemento.textContent = perfil?.nome?.split(" ")[0] || "Entrar";
-  });
-  document.querySelectorAll("[data-auth-link]").forEach(link => {
-    link.href = perfil ? bhUrl("html/conta.html") : bhUrl("html/login.html");
-  });
-
+  document.querySelectorAll("[data-user-name]").forEach(elemento => { elemento.textContent = perfil?.nome?.split(" ")[0] || "Entrar"; });
+  document.querySelectorAll("[data-auth-link]").forEach(link => { link.href = perfil ? bhUrl("html/conta.html") : bhUrl("html/login.html"); });
   document.getElementById("drawerLogout")?.addEventListener("click", async () => {
     try {
       await bhLogout();
       mostrarToast("sucesso", "Sessão encerrada", "Você saiu da sua conta.");
       setTimeout(() => { location.href = bhUrl("index.html"); }, 500);
-    } catch (erro) {
-      mostrarToast("erro", "Não foi possível sair", bhErroMensagem(erro));
-    }
+    } catch (erro) { mostrarToast("erro", "Não foi possível sair", bhErroMensagem(erro)); }
   });
 }
 
@@ -235,7 +371,7 @@ function bhAnimarConteudo(){
 }
 
 function bhAdicionarIdentidadePagina(){
-  const mapa={index:'HUB',portal:'EXPLORAR',barbearia:'PERFIL',agendamento:'AGENDA',painel:'GESTÃO',cliente:'CONTA',admin:'ADMIN',contato:'SUPORTE',login:'ENTRAR',cadastro:'CRIAR',servicos:'RECURSOS','beauty-hub':'BEAUTY'};
+  const mapa={index:'HUB',portal:'EXPLORAR',barbearia:'PERFIL',agendamento:'AGENDA',painel:'GESTÃO',cliente:'CONTA',admin:'ADMIN',contato:'SUPORTE',login:'ENTRAR',cadastro:'CRIAR',servicos:'RECURSOS','beauty-hub':'BEAUTY',notificacoes:'AVISOS'};
   const nome=(location.pathname.split('/').pop()||'index.html').replace('.html','');
   const hero=document.querySelector('.page-hero,.hero,.auth-wrap,.onboarding-page');
   if(hero&&mapa[nome]&&!hero.querySelector('.page-identity')){const el=document.createElement('span');el.className='page-identity';el.textContent=mapa[nome];hero.appendChild(el)}
@@ -246,16 +382,45 @@ function bhAdicionarRodapeLegal(){
   const links=document.createElement('div');links.className='footer-legal';links.innerHTML=`<a href="${bhUrl('html/privacidade.html')}">Política de privacidade</a><a href="${bhUrl('html/termos.html')}">Termos de uso</a><a href="${bhUrl('html/contato.html')}">Acessibilidade e suporte</a>`;copy.appendChild(links);
 }
 
-function bhCriarDockMobile(perfil){
+function bhCriarDockMobile(perfil, contadores = {}){
   if(document.querySelector('.mobile-dock'))return;
   const dock=document.createElement('nav');dock.className='mobile-dock';dock.setAttribute('aria-label','Navegação rápida');
-  const home=bhUrl('index.html'),portal=bhUrl('html/portal.html'),agenda=bhUrl('html/agendamento.html');
-  const conta=perfil?.tipo==='barbeiro'?bhUrl('html/painel.html'):perfil?bhUrl('html/cliente.html'):bhUrl('html/login.html');
-  dock.innerHTML=`<a href="${home}"><i class="bi bi-house-door"></i><span>Início</span></a><a href="${portal}"><i class="bi bi-shop"></i><span>Explorar</span></a><a href="${agenda}"><i class="bi bi-calendar2-check"></i><span>Agendar</span></a><a href="${conta}"><i class="bi bi-person-circle"></i><span>${perfil?.tipo==='barbeiro'?'Painel':'Conta'}</span></a>`;
+  let links;
+  if(perfil?.tipo==='barbeiro') links=[
+    ['html/painel.html','Painel','bi-grid'],
+    [contadores.aceitaAgendamento?'html/painel.html#agenda':'html/painel.html#configuracoes',contadores.aceitaAgendamento?'Agenda':'Ativar','bi-calendar-week','agenda'],
+    ['html/painel.html#servicos','Serviços','bi-scissors'],
+    ['html/notificacoes.html','Avisos','bi-bell','notificacoes'],
+    ['#menu','Mais','bi-grid-3x3-gap',null,'drawer']
+  ];
+  else if(perfil?.tipo==='admin') links=[
+    ['html/admin.html','Admin','bi-shield-lock'],
+    ['html/admin.html#moderacao','Moderação','bi-flag','moderacao'],
+    ['html/admin.html#tickets','Tickets','bi-headset','tickets'],
+    ['html/notificacoes.html','Avisos','bi-bell','notificacoes'],
+    ['#menu','Mais','bi-grid-3x3-gap',null,'drawer']
+  ];
+  else if(perfil) links=[
+    ['html/portal.html','Explorar','bi-shop'],
+    ['html/agendamento.html','Agendar','bi-calendar2-plus'],
+    ['html/cliente.html','Horários','bi-calendar2-check','agenda'],
+    ['html/notificacoes.html','Avisos','bi-bell','notificacoes'],
+    ['html/conta.html','Conta','bi-person-circle']
+  ];
+  else links=[
+    ['index.html','Início','bi-house-door'],['html/portal.html','Explorar','bi-shop'],
+    ['html/agendamento.html','Agendar','bi-calendar2-check'],['html/login.html','Entrar','bi-person-circle']
+  ];
+  dock.style.setProperty('--dock-items',links.length);
+  dock.innerHTML=links.map(([url,texto,icone,badge,acao])=>{
+    const valor=badge==='agenda'?contadores.agenda:badge==='tickets'?contadores.tickets:badge==='moderacao'?contadores.moderacao:contadores.notificacoes;
+    const atributo=badge==='agenda'?'data-badge-agenda':badge==='tickets'?'data-badge-tickets':badge==='moderacao'?'data-badge-moderacao':'data-badge-notificacoes';
+    return `<a href="${acao==='drawer'?'#menu':bhUrl(url)}" ${acao?`data-dock-action="${acao}"`:''}><i class="bi ${icone}"></i><span>${texto}</span>${badge?bhBadgeNavegacao(valor,atributo):''}</a>`;
+  }).join('');
   document.body.appendChild(dock);
-  [...dock.querySelectorAll('a')].forEach(a=>{if(new URL(a.href).pathname===location.pathname)a.classList.add('ativo')});
+  dock.querySelector('[data-dock-action="drawer"]')?.addEventListener('click',evento=>{evento.preventDefault();bhAbrirDrawer()});
+  [...dock.querySelectorAll('a:not([data-dock-action])')].forEach(a=>{const u=new URL(a.href);if(u.pathname===location.pathname&&(!u.hash||u.hash===location.hash))a.classList.add('ativo')});
 }
-
 function bhPrepararPWA(){
   if('serviceWorker' in navigator&&location.protocol.startsWith('http')) navigator.serviceWorker.register(bhUrl('service-worker.js')).catch(console.warn);
   let deferred;
@@ -272,6 +437,5 @@ function bhAplicarSEO(){
 async function bhIniciarExperiencia(){
   const main=document.querySelector('main');const alvoMain=main?.id||'conteudo-principal';if(main&&!main.id)main.id=alvoMain;const skip=document.createElement('a');skip.className='skip-link';skip.href=`#${alvoMain}`;skip.textContent='Pular para o conteúdo';document.body.prepend(skip);
   bhCriarProgressGlobal();bhConfigurarConexao();bhMelhorarFormularios();bhAnimarConteudo();bhAdicionarIdentidadePagina();bhAdicionarRodapeLegal();bhPrepararPWA();bhAplicarSEO();
-  let perfil=null;try{if(bhSupabasePronto())perfil=await bhGetPerfil()}catch(_){ } bhCriarDockMobile(perfil);
 }
 document.addEventListener('DOMContentLoaded',bhIniciarExperiencia);

@@ -64,7 +64,7 @@ function bhRenderPortal(lista) {
           <p>${escapeHTML(item.descricao || "Conheça os serviços disponíveis.")}</p>
           <div class="card-meta">
             <span class="badge"><i class="bi bi-geo-alt"></i> ${escapeHTML(item.bairro)}, ${escapeHTML(item.cidade)}</span>
-            <span class="badge"><i class="bi bi-star-fill"></i> ${Number(item.avaliacao || 5).toFixed(1)}</span>
+            <span class="badge"><i class="bi bi-star-fill"></i> ${Number(item.avaliacao || 0) > 0 ? Number(item.avaliacao).toFixed(1) : "Sem avaliações"}</span>
             <span class="badge">${item.aceitaAgendamento ? "Agenda online" : "Atendimento direto"}</span>
           </div>
           <div class="card-meta">${servicos}</div>

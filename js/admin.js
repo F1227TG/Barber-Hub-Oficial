@@ -1,7 +1,7 @@
 let bhAdminDados = null;
 
 function bhRenderAdmin() {
-  const { counts, perfis, estabelecimentos, tickets, agendamentos } = bhAdminDados;
+  const { counts, perfis, estabelecimentos, tickets, agendamentos, denuncias } = bhAdminDados;
   document.getElementById("adminUsuarios").textContent = counts.perfis;
   document.getElementById("adminEstabelecimentos").textContent = counts.estabelecimentos;
   document.getElementById("adminAgendamentos").textContent = counts.agendamentos;
@@ -14,6 +14,24 @@ function bhRenderAdmin() {
   document.getElementById("tbodyAdminEstabelecimentos").innerHTML = estabelecimentos.length ? estabelecimentos.map(item => `
     <tr><td>${escapeHTML(item.nome)}</td><td>${escapeHTML(item.tipo_estabelecimento)}</td><td>${escapeHTML(item.cidade)}</td><td>${item.aceita_agendamento ? "Sim" : "Não"}</td><td>${item.visivel ? "Visível" : "Oculto"}</td><td><button class="btn btn-outline btn-small" data-admin-visibilidade="${item.id}" data-visivel="${item.visivel}">${item.visivel ? "Ocultar" : "Publicar"}</button></td></tr>
   `).join("") : `<tr><td colspan="6">Nenhum estabelecimento.</td></tr>`;
+
+  const denunciasAbertas = denuncias.filter(item => ["aberta", "analisando"].includes(item.status));
+  document.getElementById("adminDenunciasBadge").textContent = `${denunciasAbertas.length} denúncia${denunciasAbertas.length === 1 ? "" : "s"} pendente${denunciasAbertas.length === 1 ? "" : "s"}`;
+  document.getElementById("listaAdminDenuncias").innerHTML = denuncias.length ? denuncias.map(item => {
+    const publicacao = item.portfolio_publicacoes;
+    return `<article class="ticket-admin card moderation-card">
+      <div class="card-body">
+        <div class="section-top compact"><div><span class="badge">${escapeHTML(item.motivo.replaceAll("_", " "))}</span><h3>${escapeHTML(publicacao?.titulo || "Publicação removida")}</h3><p>${escapeHTML(publicacao?.estabelecimentos?.nome || "Estabelecimento")} • denúncia de ${escapeHTML(item.perfis?.nome || "usuário")}</p></div><span class="status ${["resolvida", "rejeitada"].includes(item.status) ? "concluido" : "pendente"}">${escapeHTML(item.status)}</span></div>
+        <p class="ticket-message">${escapeHTML(item.detalhes || "Nenhum detalhe adicional informado.")}</p>
+        <div class="portfolio-card-stats"><span><i class="bi bi-calendar"></i> ${new Date(item.created_at).toLocaleDateString("pt-BR")}</span><span><i class="bi bi-envelope"></i> ${escapeHTML(item.perfis?.email || "")}</span><span><i class="bi bi-eye"></i> ${escapeHTML(publicacao?.status || "indisponível")}</span></div>
+        <div class="moderation-actions">
+          ${publicacao ? `<button class="btn btn-danger btn-small" data-denuncia-ocultar="${item.id}" data-publicacao-id="${publicacao.id}"><i class="bi bi-eye-slash"></i> Ocultar publicação</button>` : ""}
+          <button class="btn btn-outline btn-small" data-denuncia-analisar="${item.id}"><i class="bi bi-search"></i> Em análise</button>
+          <button class="btn btn-outline btn-small" data-denuncia-rejeitar="${item.id}"><i class="bi bi-x-circle"></i> Rejeitar denúncia</button>
+        </div>
+      </div>
+    </article>`;
+  }).join("") : `<div class="empty"><i class="bi bi-shield-check big"></i><h3>Nenhuma denúncia</h3><p>A galeria não possui conteúdo aguardando moderação.</p></div>`;
 
   document.getElementById("listaAdminTickets").innerHTML = tickets.length ? tickets.map(ticket => `
     <article class="ticket-admin card">
@@ -70,7 +88,31 @@ document.addEventListener("DOMContentLoaded", async () => {
       await bhRecarregarAdmin();
     } catch (erro) { mostrarToast("erro", "Falha ao responder", bhErroMensagem(erro)); }
   });
+
+  document.getElementById("listaAdminDenuncias").addEventListener("click", async evento => {
+    const ocultar = evento.target.closest("[data-denuncia-ocultar]");
+    const analisar = evento.target.closest("[data-denuncia-analisar]");
+    const rejeitar = evento.target.closest("[data-denuncia-rejeitar]");
+    if (!ocultar && !analisar && !rejeitar) return;
+    try {
+      if (ocultar) {
+        if (!confirm("Ocultar esta publicação da página pública?")) return;
+        await bhAtualizarPublicacaoPortfolio(ocultar.dataset.publicacaoId, { status: "ocultada" });
+        await bhAdminAtualizarDenunciaPortfolio(ocultar.dataset.denunciaOcultar, { status: "resolvida" });
+        mostrarToast("sucesso", "Publicação ocultada", "O conteúdo não aparece mais na página pública.");
+      }
+      if (analisar) {
+        await bhAdminAtualizarDenunciaPortfolio(analisar.dataset.denunciaAnalisar, { status: "analisando" });
+        mostrarToast("sucesso", "Denúncia em análise", "O status foi atualizado.");
+      }
+      if (rejeitar) {
+        await bhAdminAtualizarDenunciaPortfolio(rejeitar.dataset.denunciaRejeitar, { status: "rejeitada" });
+        mostrarToast("sucesso", "Denúncia rejeitada", "A publicação permanecerá visível se já estava publicada.");
+      }
+      await bhRecarregarAdmin();
+    } catch (erro) { mostrarToast("erro", "Falha na moderação", bhErroMensagem(erro)); }
+  });
 });
 
-function bhAssinarAdminTempoReal(){if(!window.supabaseClient)return;window.supabaseClient.channel('admin-live').on('postgres_changes',{event:'*',schema:'public',table:'tickets_suporte'},async()=>{await bhRecarregarAdmin();mostrarToast('info','Central atualizada','Chegou uma alteração de suporte.')}).subscribe()}
+function bhAssinarAdminTempoReal(){if(!window.supabaseClient)return;const atualizar=async()=>{await bhRecarregarAdmin()};window.supabaseClient.channel('admin-live').on('postgres_changes',{event:'*',schema:'public',table:'tickets_suporte'},async()=>{await atualizar();mostrarToast('info','Central atualizada','Chegou uma alteração de suporte.')}).on('postgres_changes',{event:'*',schema:'public',table:'portfolio_denuncias'},async()=>{await atualizar();mostrarToast('info','Nova moderação','A central de denúncias foi atualizada.')}).subscribe()}
 document.addEventListener('DOMContentLoaded',()=>setTimeout(bhAssinarAdminTempoReal,1800));

@@ -10,6 +10,11 @@ create extension if not exists btree_gist;
 -- Limpeza segura para permitir reinstalação durante o desenvolvimento.
 drop trigger if exists on_auth_user_created on auth.users;
 
+drop table if exists public.portfolio_denuncias cascade;
+drop table if exists public.portfolio_curtidas cascade;
+drop table if exists public.portfolio_midias cascade;
+drop table if exists public.portfolio_publicacoes cascade;
+drop table if exists public.notificacoes cascade;
 drop table if exists public.favoritos cascade;
 drop table if exists public.tickets_suporte cascade;
 drop table if exists public.promocoes cascade;
@@ -22,6 +27,16 @@ drop table if exists public.horarios_funcionamento cascade;
 drop table if exists public.estabelecimentos cascade;
 drop table if exists public.perfis cascade;
 
+drop function if exists public.reordenar_midias_portfolio(uuid,uuid[],uuid);
+drop function if exists public.notificar_autor_denuncia();
+drop function if exists public.notificar_resultado_moderacao();
+drop function if exists public.notificar_denuncia_portfolio();
+drop function if exists public.atualizar_contador_curtidas();
+drop function if exists public.validar_portfolio_midia();
+drop function if exists public.validar_portfolio_publicacao();
+drop function if exists public.notificar_ticket_suporte();
+drop function if exists public.notificar_agendamento();
+drop function if exists public.criar_notificacao_interna(uuid,text,text,text,text,jsonb);
 drop function if exists public.metricas_publicas();
 drop function if exists public.horarios_ocupados(uuid,date);
 drop function if exists public.cancelar_agendamento(uuid,text);
@@ -154,7 +169,7 @@ create table public.estabelecimentos (
   aceita_agendamento boolean not null default true,
   visivel boolean not null default true,
   onboarding_concluido boolean not null default false,
-  avaliacao numeric(2,1) not null default 5.0 check (avaliacao between 0 and 5),
+  avaliacao numeric(2,1) not null default 0 check (avaliacao between 0 and 5),
   intervalo_slots_min integer not null default 30 check (intervalo_slots_min between 10 and 180),
   antecedencia_min_horas integer not null default 1 check (antecedencia_min_horas between 0 and 168),
   limite_dias_agendamento integer not null default 30 check (limite_dias_agendamento between 1 and 365),
@@ -782,11 +797,9 @@ on conflict (id) do update set
   file_size_limit=excluded.file_size_limit,
   allowed_mime_types=excluded.allowed_mime_types;
 
+-- O bucket público entrega arquivos por URL pública. Não criamos uma policy
+-- SELECT ampla, pois ela permitiria listar todos os nomes dos arquivos.
 drop policy if exists barberhub_storage_public_read on storage.objects;
-create policy barberhub_storage_public_read
-on storage.objects for select
-to public
-using (bucket_id='barberhub-public');
 
 drop policy if exists barberhub_storage_user_insert on storage.objects;
 create policy barberhub_storage_user_insert

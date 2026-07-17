@@ -123,14 +123,9 @@ async function bhCriarEstabelecimentoInicial(payload) {
 
 async function bhAtualizarEstabelecimento(id, dados) {
   const client = bhExigirSupabase();
-  const { data, error } = await client
-    .from("estabelecimentos")
-    .update(dados)
-    .eq("id", id)
-    .select()
-    .single();
+  const { error } = await client.from("estabelecimentos").update(dados).eq("id", id);
   if (error) throw error;
-  return data;
+  return { id, ...dados };
 }
 
 async function bhSalvarHorarios(estabelecimentoId, horarios) {
@@ -249,20 +244,24 @@ async function bhAtualizarStatusAgendamento(id, status) {
 
 async function bhCriarServico(estabelecimentoId, dados) {
   const client = bhExigirSupabase();
-  const { data, error } = await client
-    .from("servicos")
-    .insert({ estabelecimento_id: estabelecimentoId, ...dados })
-    .select()
-    .single();
+  // O ID é criado no navegador para não depender do SELECT de retorno do
+  // PostgREST. Assim, um serviço salvo não gera uma falsa mensagem de erro
+  // caso apenas a leitura de atualização falhe depois da inserção.
+  const item = {
+    id: crypto.randomUUID(),
+    estabelecimento_id: estabelecimentoId,
+    ...dados
+  };
+  const { error } = await client.from("servicos").insert(item);
   if (error) throw error;
-  return data;
+  return item;
 }
 
 async function bhAtualizarServico(id, dados) {
   const client = bhExigirSupabase();
-  const { data, error } = await client.from("servicos").update(dados).eq("id", id).select().single();
+  const { error } = await client.from("servicos").update(dados).eq("id", id);
   if (error) throw error;
-  return data;
+  return { id, ...dados };
 }
 
 async function bhExcluirServico(id) {
@@ -273,20 +272,17 @@ async function bhExcluirServico(id) {
 
 async function bhCriarProfissional(estabelecimentoId, dados) {
   const client = bhExigirSupabase();
-  const { data, error } = await client
-    .from("profissionais")
-    .insert({ estabelecimento_id: estabelecimentoId, ...dados })
-    .select()
-    .single();
+  const item = { id: crypto.randomUUID(), estabelecimento_id: estabelecimentoId, ...dados };
+  const { error } = await client.from("profissionais").insert(item);
   if (error) throw error;
-  return data;
+  return item;
 }
 
 async function bhAtualizarProfissional(id, dados) {
   const client = bhExigirSupabase();
-  const { data, error } = await client.from("profissionais").update(dados).eq("id", id).select().single();
+  const { error } = await client.from("profissionais").update(dados).eq("id", id);
   if (error) throw error;
-  return data;
+  return { id, ...dados };
 }
 
 async function bhExcluirProfissional(id) {
@@ -297,11 +293,8 @@ async function bhExcluirProfissional(id) {
 
 async function bhAdicionarDiaBloqueado(estabelecimentoId, data, motivo) {
   const client = bhExigirSupabase();
-  const { data: item, error } = await client
-    .from("dias_bloqueados")
-    .insert({ estabelecimento_id: estabelecimentoId, data, motivo: motivo || null })
-    .select()
-    .single();
+  const item = { id: crypto.randomUUID(), estabelecimento_id: estabelecimentoId, data, motivo: motivo || null };
+  const { error } = await client.from("dias_bloqueados").insert(item);
   if (error) throw error;
   return item;
 }
@@ -354,13 +347,18 @@ async function bhMetricasPublicas() {
 
 async function bhAdminResumo() {
   const client = bhExigirSupabase();
-  const [perfis, estabelecimentos, agendamentos, tickets] = await Promise.all([
+  const [perfis, estabelecimentos, agendamentos, tickets, denuncias] = await Promise.all([
     client.from("perfis").select("*", { count: "exact" }).order("created_at", { ascending: false }).limit(100),
     client.from("estabelecimentos").select("*", { count: "exact" }).order("created_at", { ascending: false }).limit(100),
     client.from("agendamentos").select("*", { count: "exact" }).order("created_at", { ascending: false }).limit(100),
-    client.from("tickets_suporte").select("*", { count: "exact" }).order("created_at", { ascending: false }).limit(100)
+    client.from("tickets_suporte").select("*", { count: "exact" }).order("created_at", { ascending: false }).limit(100),
+    client.from("portfolio_denuncias").select(`
+      *,
+      perfis(nome,email),
+      portfolio_publicacoes(id,titulo,status,estabelecimento_id,estabelecimentos(nome))
+    `, { count: "exact" }).order("created_at", { ascending: false }).limit(100)
   ]);
-  [perfis, estabelecimentos, agendamentos, tickets].forEach(resultado => {
+  [perfis, estabelecimentos, agendamentos, tickets, denuncias].forEach(resultado => {
     if (resultado.error) throw resultado.error;
   });
   return {
@@ -368,11 +366,13 @@ async function bhAdminResumo() {
     estabelecimentos: estabelecimentos.data || [],
     agendamentos: agendamentos.data || [],
     tickets: tickets.data || [],
+    denuncias: denuncias.data || [],
     counts: {
       perfis: perfis.count || 0,
       estabelecimentos: estabelecimentos.count || 0,
       agendamentos: agendamentos.count || 0,
-      tickets: tickets.count || 0
+      tickets: tickets.count || 0,
+      denuncias: denuncias.count || 0
     }
   };
 }
@@ -393,4 +393,444 @@ async function bhAdminAtualizarTicket(id, dados) {
 
 async function bhAdminAlternarVisibilidade(id, visivel) {
   return bhAtualizarEstabelecimento(id, { visivel });
+}
+
+// ============================================================
+// NOTIFICAÇÕES E CONTADORES DE NAVEGAÇÃO
+// ============================================================
+async function bhListarNotificacoes({ somenteNaoLidas = false, tipo = null, limite = 100 } = {}) {
+  const perfil = await bhGetPerfil();
+  if (!perfil) return [];
+  const client = bhExigirSupabase();
+  let query = client
+    .from("notificacoes")
+    .select("*")
+    .eq("user_id", perfil.id)
+    .order("created_at", { ascending: false })
+    .limit(limite);
+  if (somenteNaoLidas) query = query.is("lida_em", null);
+  if (tipo && tipo !== "todas") query = query.eq("tipo", tipo);
+  const { data, error } = await query;
+  if (error) throw error;
+  return data || [];
+}
+
+async function bhContarNotificacoesNaoLidas() {
+  const perfil = await bhGetPerfil();
+  if (!perfil) return 0;
+  const client = bhExigirSupabase();
+  const { count, error } = await client
+    .from("notificacoes")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", perfil.id)
+    .is("lida_em", null);
+  if (error) throw error;
+  return count || 0;
+}
+
+async function bhMarcarNotificacaoLida(id) {
+  const client = bhExigirSupabase();
+  const { error } = await client
+    .from("notificacoes")
+    .update({ lida_em: new Date().toISOString() })
+    .eq("id", id)
+    .is("lida_em", null);
+  if (error) throw error;
+}
+
+async function bhMarcarTodasNotificacoesLidas() {
+  const perfil = await bhGetPerfil();
+  if (!perfil) return;
+  const client = bhExigirSupabase();
+  const { error } = await client
+    .from("notificacoes")
+    .update({ lida_em: new Date().toISOString() })
+    .eq("user_id", perfil.id)
+    .is("lida_em", null);
+  if (error) throw error;
+}
+
+async function bhObterContadoresNavegacao(perfil = null) {
+  perfil ||= await bhGetPerfil();
+  if (!perfil) return { notificacoes: 0, agenda: 0, tickets: 0, moderacao: 0, aceitaAgendamento: false, estabelecimento: null };
+  const client = bhExigirSupabase();
+  const resultado = {
+    notificacoes: await bhContarNotificacoesNaoLidas(),
+    agenda: 0,
+    tickets: 0,
+    moderacao: 0,
+    aceitaAgendamento: false,
+    estabelecimento: null
+  };
+
+  if (perfil.tipo === "barbeiro") {
+    const { data: estabelecimento, error: erroEst } = await client
+      .from("estabelecimentos")
+      .select("id,slug,nome,aceita_agendamento")
+      .eq("owner_id", perfil.id)
+      .maybeSingle();
+    if (erroEst) throw erroEst;
+    resultado.estabelecimento = estabelecimento;
+    resultado.aceitaAgendamento = Boolean(estabelecimento?.aceita_agendamento);
+    if (estabelecimento) {
+      const { count, error } = await client
+        .from("agendamentos")
+        .select("id", { count: "exact", head: true })
+        .eq("estabelecimento_id", estabelecimento.id)
+        .eq("status", "pendente");
+      if (error) throw error;
+      resultado.agenda = count || 0;
+    }
+  } else if (perfil.tipo === "cliente") {
+    const hoje = new Date().toISOString().slice(0, 10);
+    const { count, error } = await client
+      .from("agendamentos")
+      .select("id", { count: "exact", head: true })
+      .eq("cliente_id", perfil.id)
+      .gte("data", hoje)
+      .in("status", ["pendente", "confirmado"]);
+    if (error) throw error;
+    resultado.agenda = count || 0;
+  } else if (perfil.tipo === "admin") {
+    const { count, error } = await client
+      .from("tickets_suporte")
+      .select("id", { count: "exact", head: true })
+      .in("status", ["aberto", "em_atendimento"]);
+    if (error) throw error;
+    resultado.tickets = count || 0;
+    const { count: moderacao, error: erroModeracao } = await client
+      .from("portfolio_denuncias")
+      .select("id", { count: "exact", head: true })
+      .in("status", ["aberta", "analisando"]);
+    if (erroModeracao) throw erroModeracao;
+    resultado.moderacao = moderacao || 0;
+  }
+  return resultado;
+}
+
+// ============================================================
+// PORTFÓLIO / GALERIA
+// ============================================================
+const BH_PORTFOLIO_CATEGORIAS = [
+  "Corte masculino", "Barba", "Corte e barba", "Degradê / Fade",
+  "Freestyle / Desenho", "Tratamento capilar", "Corte infantil",
+  "Antes e depois", "Outros"
+];
+const BH_PORTFOLIO_MAX_FOTOS = 5;
+const BH_PORTFOLIO_MAX_ORIGINAL = 8 * 1024 * 1024;
+
+async function bhListarPortfolioPublico(estabelecimentoId) {
+  const client = bhExigirSupabase();
+  const { data, error } = await client
+    .from("portfolio_publicacoes")
+    .select(`
+      *,
+      portfolio_midias(*),
+      profissionais(id,nome,especialidade),
+      servicos(id,nome,categoria)
+    `)
+    .eq("estabelecimento_id", estabelecimentoId)
+    .eq("status", "publicada")
+    .order("destaque", { ascending: false })
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data || []).map(bhNormalizarPublicacaoPortfolio);
+}
+
+async function bhListarMeuPortfolio(estabelecimentoId) {
+  const client = bhExigirSupabase();
+  const { data, error } = await client
+    .from("portfolio_publicacoes")
+    .select(`
+      *,
+      portfolio_midias(*),
+      profissionais(id,nome,especialidade),
+      servicos(id,nome,categoria)
+    `)
+    .eq("estabelecimento_id", estabelecimentoId)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data || []).map(bhNormalizarPublicacaoPortfolio);
+}
+
+function bhNormalizarPublicacaoPortfolio(item) {
+  return {
+    ...item,
+    midias: [...(item.portfolio_midias || [])].sort((a, b) => a.ordem - b.ordem),
+    profissional: item.profissionais || null,
+    servico: item.servicos || null
+  };
+}
+
+async function bhComprimirImagemPortfolio(file) {
+  if (!file) throw new Error("Selecione uma imagem.");
+  if (!/^image\/(jpeg|png|webp)$/i.test(file.type)) throw new Error("Use imagens JPG, PNG ou WebP.");
+  if (file.size > BH_PORTFOLIO_MAX_ORIGINAL) throw new Error("Cada imagem original deve ter no máximo 8 MB.");
+
+  let fonte;
+  let urlTemporaria = null;
+  if (typeof createImageBitmap === "function") {
+    fonte = await createImageBitmap(file, { imageOrientation: "from-image" });
+  } else {
+    urlTemporaria = URL.createObjectURL(file);
+    fonte = await new Promise((resolve, reject) => {
+      const imagem = new Image();
+      imagem.onload = () => resolve(imagem);
+      imagem.onerror = () => reject(new Error("Não foi possível abrir esta imagem."));
+      imagem.src = urlTemporaria;
+    });
+  }
+
+  let largura = fonte.width || fonte.naturalWidth;
+  let altura = fonte.height || fonte.naturalHeight;
+  const maximo = 1600;
+  const escala = Math.min(1, maximo / Math.max(largura, altura));
+  largura = Math.max(1, Math.round(largura * escala));
+  altura = Math.max(1, Math.round(altura * escala));
+
+  let qualidade = .78;
+  let blob = null;
+  try {
+    for (let tentativa = 0; tentativa < 4; tentativa += 1) {
+      const canvas = document.createElement("canvas");
+      canvas.width = largura;
+      canvas.height = altura;
+      const contexto = canvas.getContext("2d", { alpha: false });
+      if (!contexto) throw new Error("Seu navegador não conseguiu preparar a imagem.");
+      contexto.drawImage(fonte, 0, 0, largura, altura);
+      blob = await new Promise(resolve => canvas.toBlob(resolve, "image/webp", qualidade));
+      if (!blob) throw new Error("Não foi possível processar esta imagem.");
+      if (blob.size <= 500 * 1024 || tentativa === 3) break;
+      qualidade = Math.max(.58, qualidade - .07);
+      largura = Math.max(1, Math.round(largura * .88));
+      altura = Math.max(1, Math.round(altura * .88));
+    }
+  } finally {
+    fonte.close?.();
+    if (urlTemporaria) URL.revokeObjectURL(urlTemporaria);
+  }
+  return new File([blob], `${bhSlug(file.name.replace(/\.[^.]+$/, "")) || "trabalho"}.webp`, { type: "image/webp" });
+}
+
+async function bhUploadImagemPortfolio(file, estabelecimentoId, publicacaoId) {
+  const comprimida = await bhComprimirImagemPortfolio(file);
+  const user = await bhGetAuthUser();
+  if (!user) throw new Error("Faça login para publicar imagens.");
+  const client = bhExigirSupabase();
+  const caminho = `${user.id}/portfolio/${estabelecimentoId}/${publicacaoId}/${crypto.randomUUID()}.webp`;
+  const { error } = await client.storage.from("barberhub-public").upload(caminho, comprimida, {
+    cacheControl: "31536000",
+    contentType: "image/webp",
+    upsert: false
+  });
+  if (error) throw error;
+  const { data } = client.storage.from("barberhub-public").getPublicUrl(caminho);
+  return { storage_path: caminho, public_url: data.publicUrl };
+}
+
+async function bhCriarPublicacaoPortfolio(estabelecimentoId, dados, arquivos = []) {
+  if (!arquivos.length) throw new Error("Adicione pelo menos uma foto.");
+  if (arquivos.length > BH_PORTFOLIO_MAX_FOTOS) throw new Error("Use no máximo 5 fotos por publicação.");
+  const perfil = await bhGetPerfil();
+  if (!perfil) throw new Error("Sessão não encontrada.");
+  const client = bhExigirSupabase();
+  const id = crypto.randomUUID();
+  const statusFinal = dados.status === "publicada" ? "publicada" : "rascunho";
+  const payload = {
+    id,
+    estabelecimento_id: estabelecimentoId,
+    autor_id: perfil.id,
+    profissional_id: dados.profissional_id || null,
+    servico_id: dados.servico_id || null,
+    titulo: dados.titulo,
+    descricao: dados.descricao || "",
+    categoria: dados.categoria,
+    tags: dados.tags || [],
+    modo: dados.modo || "galeria",
+    status: "rascunho",
+    destaque: Boolean(dados.destaque),
+    capa_ordem: Number(dados.capa_ordem || 1),
+    data_trabalho: dados.data_trabalho || null,
+    confirmou_autorizacao: Boolean(dados.confirmou_autorizacao),
+    possui_menor: Boolean(dados.possui_menor),
+    confirmou_responsavel: Boolean(dados.confirmou_responsavel)
+  };
+  const enviados = [];
+  try {
+    const { error: erroPublicacao } = await client.from("portfolio_publicacoes").insert(payload);
+    if (erroPublicacao) throw erroPublicacao;
+    for (let indice = 0; indice < arquivos.length; indice += 1) {
+      const upload = await bhUploadImagemPortfolio(arquivos[indice], estabelecimentoId, id);
+      enviados.push(upload.storage_path);
+      const tipo = payload.modo === "antes_depois" ? (indice === 0 ? "antes" : indice === 1 ? "depois" : "normal") : "normal";
+      const { error } = await client.from("portfolio_midias").insert({
+        publicacao_id: id,
+        ...upload,
+        ordem: indice + 1,
+        tipo,
+        texto_alternativo: `${dados.titulo} — foto ${indice + 1}`
+      });
+      if (error) throw error;
+    }
+    if (statusFinal === "publicada") {
+      const { error } = await client.from("portfolio_publicacoes").update({ status: "publicada" }).eq("id", id);
+      if (error) throw error;
+    }
+    return id;
+  } catch (erro) {
+    if (enviados.length) {
+      try { await client.storage.from("barberhub-public").remove(enviados); }
+      catch (erroLimpeza) { console.warn("Falha ao limpar uploads incompletos.", erroLimpeza); }
+    }
+    try { await client.from("portfolio_publicacoes").delete().eq("id", id); }
+    catch (erroLimpeza) { console.warn("Falha ao remover rascunho incompleto.", erroLimpeza); }
+    throw erro;
+  }
+}
+
+async function bhAtualizarPublicacaoPortfolio(id, dados) {
+  const client = bhExigirSupabase();
+  const { error } = await client.from("portfolio_publicacoes").update(dados).eq("id", id);
+  if (error) throw error;
+}
+
+async function bhAdicionarFotosPortfolio(publicacao, arquivos = []) {
+  if (!arquivos.length) return;
+  const existentes = publicacao.midias?.length || 0;
+  if (existentes + arquivos.length > BH_PORTFOLIO_MAX_FOTOS) throw new Error("A publicação pode ter no máximo 5 fotos.");
+  const client = bhExigirSupabase();
+  const enviados = [];
+  try {
+    for (let indice = 0; indice < arquivos.length; indice += 1) {
+      const ordem = existentes + indice + 1;
+      const upload = await bhUploadImagemPortfolio(arquivos[indice], publicacao.estabelecimento_id, publicacao.id);
+      enviados.push(upload.storage_path);
+      const tipo = publicacao.modo === "antes_depois" ? (ordem === 1 ? "antes" : ordem === 2 ? "depois" : "normal") : "normal";
+      const { error } = await client.from("portfolio_midias").insert({
+        publicacao_id: publicacao.id,
+        ...upload,
+        ordem,
+        tipo,
+        texto_alternativo: `${publicacao.titulo} — foto ${ordem}`
+      });
+      if (error) throw error;
+    }
+  } catch (erro) {
+    if (enviados.length) {
+      try { await client.from("portfolio_midias").delete().in("storage_path", enviados); }
+      catch (erroLimpeza) { console.warn("Falha ao limpar registros de mídia incompletos.", erroLimpeza); }
+      try { await client.storage.from("barberhub-public").remove(enviados); }
+      catch (erroLimpeza) { console.warn("Falha ao limpar arquivos incompletos.", erroLimpeza); }
+    }
+    throw erro;
+  }
+}
+
+async function bhReordenarMidiasPortfolio(publicacaoId, midiasOrdenadas, capaMidiaId = null) {
+  const ids = (midiasOrdenadas || []).map(item => typeof item === "string" ? item : item.id);
+  if (!ids.length) throw new Error("A publicação precisa manter pelo menos uma imagem.");
+  const client = bhExigirSupabase();
+  const { error } = await client.rpc("reordenar_midias_portfolio", {
+    p_publicacao_id: publicacaoId,
+    p_midias: ids,
+    p_capa_midia_id: capaMidiaId || ids[0]
+  });
+  if (error) throw error;
+}
+
+async function bhSincronizarTiposMidiaPortfolio(publicacaoId, capaOrdem = 1) {
+  const client = bhExigirSupabase();
+  const { data: midias, error: erroLeitura } = await client
+    .from("portfolio_midias")
+    .select("id,ordem")
+    .eq("publicacao_id", publicacaoId)
+    .order("ordem");
+  if (erroLeitura) throw erroLeitura;
+  if (!midias?.length) return;
+  // A função de reordenação também sincroniza os rótulos antes/depois.
+  const capa = midias.find(item => item.ordem === Number(capaOrdem)) || midias[0];
+  const { error } = await client.rpc("reordenar_midias_portfolio", {
+    p_publicacao_id: publicacaoId,
+    p_midias: midias.map(item => item.id),
+    p_capa_midia_id: capa.id
+  });
+  if (error) throw error;
+}
+
+async function bhRemoverMidiaPortfolio(midia, publicacao) {
+  if (publicacao.status === "publicada" && (publicacao.midias?.length || 0) <= 1) {
+    throw new Error("Uma publicação visível precisa manter pelo menos uma foto.");
+  }
+  const client = bhExigirSupabase();
+  const capaAtual = (publicacao.midias || []).find(item => item.ordem === publicacao.capa_ordem)?.id;
+  const { error } = await client.from("portfolio_midias").delete().eq("id", midia.id);
+  if (error) throw error;
+  const restantes = (publicacao.midias || []).filter(item => item.id !== midia.id);
+  if (restantes.length) {
+    await bhReordenarMidiasPortfolio(publicacao.id, restantes, capaAtual === midia.id ? restantes[0].id : capaAtual);
+  }
+  const { error: erroStorage } = await client.storage.from("barberhub-public").remove([midia.storage_path]);
+  if (erroStorage) console.warn("A mídia saiu da publicação, mas a limpeza do arquivo precisará ser repetida.", erroStorage);
+}
+
+async function bhExcluirPublicacaoPortfolio(publicacao) {
+  const client = bhExigirSupabase();
+  const caminhos = (publicacao.midias || []).map(item => item.storage_path).filter(Boolean);
+  const { error } = await client.from("portfolio_publicacoes").delete().eq("id", publicacao.id);
+  if (error) throw error;
+  if (caminhos.length) {
+    const { error: erroStorage } = await client.storage.from("barberhub-public").remove(caminhos);
+    if (erroStorage) console.warn("Publicação removida; alguns arquivos podem precisar de limpeza no Storage.", erroStorage);
+  }
+}
+
+async function bhObterCurtidasMinhas(publicacaoIds = []) {
+  const perfil = await bhGetPerfil();
+  if (!perfil || !publicacaoIds.length) return new Set();
+  const client = bhExigirSupabase();
+  const { data, error } = await client
+    .from("portfolio_curtidas")
+    .select("publicacao_id")
+    .eq("user_id", perfil.id)
+    .in("publicacao_id", publicacaoIds);
+  if (error) throw error;
+  return new Set((data || []).map(item => item.publicacao_id));
+}
+
+async function bhAlternarCurtidaPortfolio(publicacaoId, curtida) {
+  const perfil = await bhGetPerfil();
+  if (!perfil) throw new Error("Entre na sua conta para curtir.");
+  const idadeMs = Date.now() - new Date(perfil.created_at).getTime();
+  if (idadeMs < 7 * 24 * 60 * 60 * 1000) throw new Error("Curtidas ficam disponíveis após 7 dias de conta.");
+  const client = bhExigirSupabase();
+  if (curtida) {
+    const { error } = await client.from("portfolio_curtidas").delete().eq("publicacao_id", publicacaoId).eq("user_id", perfil.id);
+    if (error) throw error;
+    return false;
+  }
+  const { error } = await client.from("portfolio_curtidas").insert({ publicacao_id: publicacaoId, user_id: perfil.id });
+  if (error) throw error;
+  return true;
+}
+
+async function bhDenunciarPublicacaoPortfolio(publicacaoId, motivo, detalhes = "") {
+  const perfil = await bhGetPerfil();
+  if (!perfil) throw new Error("Entre na sua conta para denunciar conteúdo.");
+  const client = bhExigirSupabase();
+  const { error } = await client.from("portfolio_denuncias").insert({
+    publicacao_id: publicacaoId,
+    user_id: perfil.id,
+    motivo,
+    detalhes: detalhes || null,
+    status: "aberta"
+  });
+  if (error?.code === "23505") throw new Error("Você já denunciou esta publicação.");
+  if (error) throw error;
+}
+
+async function bhAdminAtualizarDenunciaPortfolio(id, dados) {
+  const client = bhExigirSupabase();
+  const { data, error } = await client.from("portfolio_denuncias").update(dados).eq("id", id).select().single();
+  if (error) throw error;
+  return data;
 }
