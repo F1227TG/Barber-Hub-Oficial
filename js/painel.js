@@ -352,7 +352,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   document.getElementById("formServico").addEventListener("submit", async evento => {
     evento.preventDefault();
-    const botao = evento.currentTarget.querySelector("button[type='submit']");
+    const form = evento.currentTarget;
+    const botao = form.querySelector("button[type='submit']");
     bhSetButtonLoading(botao, true, "Salvando...");
     let salvo = false;
     try {
@@ -366,7 +367,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         publico: true
       });
       salvo = true;
-      evento.currentTarget.reset();
+      form.reset();
       mostrarToast("sucesso", "Serviço adicionado", "O serviço foi salvo corretamente.");
     } catch (erro) {
       mostrarToast("erro", "Falha ao salvar serviço", bhErroMensagem(erro));
@@ -392,7 +393,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   document.getElementById("formBarbeiro").addEventListener("submit", async evento => {
     evento.preventDefault();
-    const botao = evento.currentTarget.querySelector("button[type='submit']");
+    const form = evento.currentTarget;
+    const botao = form.querySelector("button[type='submit']");
     bhSetButtonLoading(botao, true, "Salvando...");
     try {
       await bhCriarProfissional(bhPainelEstabelecimento.id, {
@@ -403,7 +405,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         ativo: true,
         aceita_agendamento: document.getElementById("barbAgenda").checked
       });
-      evento.currentTarget.reset();
+      form.reset();
       document.getElementById("barbAgenda").checked = true;
       mostrarToast("sucesso", "Profissional adicionado", "A equipe já aparece na página pública.");
       await bhRecarregarPainel();
@@ -602,9 +604,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   document.getElementById("formFechado").addEventListener("submit", async evento => {
     evento.preventDefault();
+    const form = evento.currentTarget;
     try {
       await bhAdicionarDiaBloqueado(bhPainelEstabelecimento.id, document.getElementById("fechadoData").value, document.getElementById("fechadoMotivo").value.trim());
-      evento.currentTarget.reset();
+      form.reset();
       mostrarToast("sucesso", "Data bloqueada", "Não será possível agendar nesse dia.");
       await bhRecarregarPainel();
     } catch (erro) { mostrarToast("erro", "Falha ao bloquear data", bhErroMensagem(erro)); }

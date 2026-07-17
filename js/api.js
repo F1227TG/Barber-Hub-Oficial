@@ -834,3 +834,72 @@ async function bhAdminAtualizarDenunciaPortfolio(id, dados) {
   if (error) throw error;
   return data;
 }
+
+// ============================================================
+// PLANOS / ASSINATURAS
+// ============================================================
+async function bhListarPlanos() {
+  const client = bhExigirSupabase();
+  const { data, error } = await client
+    .from("planos")
+    .select("*")
+    .eq("ativo", true)
+    .order("ordenacao", { ascending: true });
+  if (error) throw error;
+  return data || [];
+}
+
+async function bhObterMinhaAssinatura() {
+  const perfil = await bhGetPerfil();
+  if (!perfil) return null;
+  const estabelecimento = await bhObterMeuEstabelecimento();
+  if (!estabelecimento) return null;
+  const client = bhExigirSupabase();
+  const { data, error } = await client
+    .from("assinaturas")
+    .select(`
+      *,
+      planos(*)
+    `)
+    .eq("estabelecimento_id", estabelecimento.id)
+    .maybeSingle();
+  if (error) throw error;
+  return data ? { ...data, estabelecimento } : null;
+}
+
+async function bhObterResumoAssinaturaBarbeiro() {
+  const estabelecimento = await bhObterMeuEstabelecimento();
+  if (!estabelecimento) return null;
+  let assinatura = null;
+  try { assinatura = await bhObterMinhaAssinatura(); }
+  catch (erro) { console.warn("Assinatura indisponível, usando plano gratuito como fallback.", erro); }
+
+  const client = bhExigirSupabase();
+  const { count: totalPublicacoes } = await client
+    .from("portfolio_publicacoes")
+    .select("id", { count: "exact", head: true })
+    .eq("estabelecimento_id", estabelecimento.id);
+
+  const resumo = assinatura?.planos || {
+    nome: "Perfil gratuito",
+    slug: "gratuito",
+    preco_semanal: 0,
+    preco_mensal: 0,
+    limite_profissionais: 1,
+    limite_publicacoes: 10,
+    permite_agenda: false,
+    permite_relatorios: false,
+    permite_equipe: false
+  };
+
+  return {
+    assinatura,
+    estabelecimento,
+    plano: resumo,
+    uso: {
+      profissionais: estabelecimento.barbeiros?.length || 0,
+      publicacoes: totalPublicacoes || 0,
+      aceitaAgendamento: Boolean(estabelecimento.aceitaAgendamento)
+    }
+  };
+}

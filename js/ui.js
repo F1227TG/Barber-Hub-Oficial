@@ -34,7 +34,8 @@ function bhAplicarPreferencias() {
 
 function bhBadgeNavegacao(valor, atributo) {
   const numero = Number(valor || 0);
-  return `<span class="nav-badge${numero ? " ativo" : ""}" ${atributo} aria-label="${numero} pendente(s)">${numero > 99 ? "99+" : numero}</span>`;
+  const extra = numero ? '' : 'aria-hidden="true"';
+  return `<span class="nav-badge${numero ? " ativo" : ""}" ${atributo} aria-label="${numero} pendente(s)" ${extra}>${numero > 99 ? "99+" : (numero || "")}</span>`;
 }
 
 function bhLinksPorPerfil(perfil, contadores = {}) {
@@ -42,6 +43,7 @@ function bhLinksPorPerfil(perfil, contadores = {}) {
     ["index.html", "home", "Início", "bi-house-door"],
     ["html/portal.html", "portal", "Portal", "bi-shop"],
     ["html/agendamento.html", "agendamento", "Agendar", "bi-calendar2-check"],
+    ["html/planos.html", "planos", "Planos", "bi-wallet2"],
     ["html/beauty-hub.html", "beauty", "Beauty Hub", "bi-stars"],
     ["html/contato.html", "contato", "Suporte", "bi-headset"]
   ];
@@ -54,6 +56,7 @@ function bhLinksPorPerfil(perfil, contadores = {}) {
       [contadores.aceitaAgendamento ? "html/painel.html#agenda" : "html/painel.html#configuracoes", "agenda-profissional", contadores.aceitaAgendamento ? "Agenda" : "Ativar agenda", "bi-calendar-week", "agenda"],
       ["html/painel.html#servicos", "servicos-profissional", "Serviços", "bi-scissors"],
       ["html/painel.html#relatorios", "relatorios-profissional", "Relatórios", "bi-bar-chart"],
+      ["html/planos.html", "planos", "Planos", "bi-wallet2"],
       [pagina, "pagina-profissional", "Minha página", "bi-window"],
       ["html/notificacoes.html", "notificacoes", "Notificações", "bi-bell", "notificacoes"]
     ];
@@ -64,11 +67,13 @@ function bhLinksPorPerfil(perfil, contadores = {}) {
     ["html/admin.html#usuarios", "admin-usuarios", "Usuários", "bi-people"],
     ["html/admin.html#moderacao", "admin-moderacao", "Moderação", "bi-flag", "moderacao"],
     ["html/admin.html#tickets", "admin-tickets", "Tickets", "bi-headset", "tickets"],
+    ["html/planos.html", "planos", "Planos", "bi-wallet2"],
     ["html/notificacoes.html", "notificacoes", "Notificações", "bi-bell", "notificacoes"]
   ];
   return [
     ["html/portal.html", "portal", "Explorar", "bi-shop"],
     ["html/agendamento.html", "agendamento", "Agendar", "bi-calendar2-plus"],
+    ["html/planos.html", "planos", "Planos", "bi-wallet2"],
     ["html/cliente.html", "cliente", "Meus horários", "bi-calendar2-check", "agenda"],
     ["html/notificacoes.html", "notificacoes", "Notificações", "bi-bell", "notificacoes"],
     ["html/conta.html", "conta", "Conta", "bi-person-circle"]
@@ -223,9 +228,10 @@ async function bhAtualizarNavegacao(perfil) {
 function bhAtualizarBadgesNavegacao(contadores = {}) {
   const atualizar = (seletor, valor) => document.querySelectorAll(seletor).forEach(elemento => {
     const numero = Number(valor || 0);
-    elemento.textContent = numero > 99 ? "99+" : numero;
+    elemento.textContent = numero > 0 ? (numero > 99 ? "99+" : numero) : "";
     elemento.classList.toggle("ativo", numero > 0);
     elemento.setAttribute("aria-label", `${numero} pendente(s)`);
+    elemento.setAttribute("aria-hidden", numero > 0 ? "false" : "true");
   });
   atualizar("[data-badge-notificacoes]", contadores.notificacoes);
   atualizar("[data-badge-agenda]", contadores.agenda);
@@ -371,7 +377,7 @@ function bhAnimarConteudo(){
 }
 
 function bhAdicionarIdentidadePagina(){
-  const mapa={index:'HUB',portal:'EXPLORAR',barbearia:'PERFIL',agendamento:'AGENDA',painel:'GESTÃO',cliente:'CONTA',admin:'ADMIN',contato:'SUPORTE',login:'ENTRAR',cadastro:'CRIAR',servicos:'RECURSOS','beauty-hub':'BEAUTY',notificacoes:'AVISOS'};
+  const mapa={index:'HUB',portal:'EXPLORAR',barbearia:'PERFIL',agendamento:'AGENDA',painel:'GESTÃO',cliente:'CONTA',admin:'ADMIN',contato:'SUPORTE',login:'ENTRAR',cadastro:'CRIAR',servicos:'RECURSOS',planos:'PLANOS','beauty-hub':'BEAUTY',notificacoes:'AVISOS'};
   const nome=(location.pathname.split('/').pop()||'index.html').replace('.html','');
   const hero=document.querySelector('.page-hero,.hero,.auth-wrap,.onboarding-page');
   if(hero&&mapa[nome]&&!hero.querySelector('.page-identity')){const el=document.createElement('span');el.className='page-identity';el.textContent=mapa[nome];hero.appendChild(el)}

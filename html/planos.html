@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Planos do Barber Hub para barbearias e futuros salões: gratuito, essencial, profissional e elite.">
+    <title>Planos | Barber Hub</title>
+    <link rel="shortcut icon" href="../img/favicon.ico" type="image/x-icon">
+    <link rel="apple-touch-icon" sizes="180x180" href="../img/apple-touch-icon.png">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/pages.css">
+    <link rel="manifest" href="../manifest.webmanifest"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+</head>
+<body>
+<header class="header">
+    <div class="container nav">
+        <a href="../index.html" class="logo">
+            <img src="../img/logomarcaTRANSPARENTE.png" alt="Barber Hub">
+            <span>Barber Hub<small>Gestão inteligente</small></span>
+        </a>
+        <nav class="menu" id="menuPrincipal">
+            <a href="../index.html" data-page="home">Início</a>
+            <a href="../html/portal.html" data-page="portal">Portal</a>
+            <a href="../html/agendamento.html" data-page="agendamento">Agendar</a>
+            <a href="../html/planos.html" data-page="planos">Planos</a>
+            <a href="../html/beauty-hub.html" data-page="beauty">Beauty Hub</a>
+            <a href="../html/contato.html" data-page="contato">Suporte</a>
+        </nav>
+        <div class="nav-actions">
+            <button class="btn-tema" id="btnTema" title="Alternar tema" aria-label="Alternar tema"><i class="bi bi-circle-half"></i></button>
+            <a class="btn btn-outline btn-small account-link" data-auth-link href="../html/login.html"><i class="bi bi-person-circle"></i> <span data-user-name>Entrar</span></a>
+            <button class="btn-menu" id="btnMenu" aria-label="Abrir menu lateral"><i class="bi bi-list"></i></button>
+        </div>
+    </div>
+</header>
+<main>
+  <section class="page-hero plans-hero">
+    <div class="container">
+      <div class="breadcrumb">Assinaturas e crescimento</div>
+      <span class="tag"><i class="bi bi-wallet2"></i> Planos preparados para o lançamento</span>
+      <h1>Comece grátis no portal e evolua quando o seu negócio precisar de mais gestão.</h1>
+      <p>O Barber Hub já está preparado para trabalhar com plano gratuito, agenda online, relatórios, equipe e evolução futura de assinatura. Nesta página você apresenta o modelo comercial de forma profissional, mesmo antes de ativar a cobrança real.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="../html/cadastro.html"><i class="bi bi-shop"></i> Criar perfil grátis</a>
+        <a class="btn btn-outline" href="#programa-fundador"><i class="bi bi-stars"></i> Programa fundador</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="plan-current card" id="cardPlanoAtual">
+        <div>
+          <span class="tag">Meu plano atual</span>
+          <h2 id="planoAtualTitulo">Entre com uma conta de barbeiro para ver o seu plano.</h2>
+          <p id="planoAtualTexto" class="texto-section">Quando você estiver logado com um estabelecimento, esta área mostrará seu plano atual, limites de uso e possibilidade de upgrade.</p>
+        </div>
+        <div class="plan-current-stats" id="planoAtualStats">
+          <div class="summary-item"><strong>—</strong><span>Publicações</span></div>
+          <div class="summary-item"><strong>—</strong><span>Profissionais</span></div>
+          <div class="summary-item"><strong>—</strong><span>Agenda online</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section pricing-section">
+    <div class="container">
+      <div class="section-top compact">
+        <div>
+          <span class="tag">Estrutura comercial</span>
+          <h2 class="titulo-section">Planos pensados para cada fase da barbearia.</h2>
+          <p class="texto-section">Você pode iniciar com uma presença gratuita no portal e, conforme o negócio crescer, migrar para recursos de agenda, relatórios e equipe.</p>
+        </div>
+        <div class="billing-toggle" id="billingToggle" aria-label="Alternar forma de cobrança">
+          <button class="ativo" type="button" data-billing="semanal">Semanal</button>
+          <button type="button" data-billing="mensal">Mensal</button>
+        </div>
+      </div>
+
+      <div class="pricing-grid" id="pricingGrid">
+        <article class="plan-card">
+          <span class="plan-eyebrow">Entrada</span>
+          <h3>Perfil gratuito</h3>
+          <p class="plan-description">Ideal para aparecer no portal e começar a validar sua presença digital sem pagar nada.</p>
+          <div class="plan-price"><strong>Grátis</strong><span>para sempre</span></div>
+          <ul class="plan-list">
+            <li><i class="bi bi-check2"></i> Página pública no portal</li>
+            <li><i class="bi bi-check2"></i> Horários, contatos e status aberto/fechado</li>
+            <li><i class="bi bi-check2"></i> Até 10 publicações</li>
+            <li><i class="bi bi-check2"></i> 1 profissional</li>
+            <li><i class="bi bi-check2"></i> Avaliações e botão de WhatsApp</li>
+          </ul>
+          <a class="btn btn-outline" href="cadastro.html">Criar perfil grátis</a>
+        </article>
+
+        <article class="plan-card featured">
+          <span class="plan-ribbon">Mais escolhido</span>
+          <span class="plan-eyebrow">Autônomos</span>
+          <h3>Essencial</h3>
+          <p class="plan-description">Para o barbeiro que trabalha sozinho e quer agenda online, notificações e organização real.</p>
+          <div class="plan-price"><strong data-price-semanal="R$ 15" data-price-mensal="R$ 49">R$ 15</strong><span data-price-label>por semana</span></div>
+          <ul class="plan-list">
+            <li><i class="bi bi-check2"></i> Tudo do gratuito</li>
+            <li><i class="bi bi-check2"></i> Agenda online e confirmações</li>
+            <li><i class="bi bi-check2"></i> Notificações e histórico de clientes</li>
+            <li><i class="bi bi-check2"></i> Até 50 publicações</li>
+            <li><i class="bi bi-check2"></i> Relatório semanal básico</li>
+          </ul>
+          <a class="btn btn-primary" href="#programa-fundador">Começar teste</a>
+        </article>
+
+        <article class="plan-card">
+          <span class="plan-eyebrow">Equipe</span>
+          <h3>Profissional</h3>
+          <p class="plan-description">Para espaços com equipe, relatórios mais completos e gestão por profissional.</p>
+          <div class="plan-price"><strong data-price-semanal="R$ 29" data-price-mensal="R$ 89">R$ 29</strong><span data-price-label>por semana</span></div>
+          <ul class="plan-list">
+            <li><i class="bi bi-check2"></i> Tudo do Essencial</li>
+            <li><i class="bi bi-check2"></i> Até 3 profissionais</li>
+            <li><i class="bi bi-check2"></i> Relatórios por profissional</li>
+            <li><i class="bi bi-check2"></i> Comissões e metas</li>
+            <li><i class="bi bi-check2"></i> Até 150 publicações</li>
+          </ul>
+          <a class="btn btn-outline" href="contato.html">Falar com o Barber Hub</a>
+        </article>
+
+        <article class="plan-card muted">
+          <span class="plan-eyebrow">Expansão</span>
+          <h3>Elite</h3>
+          <p class="plan-description">Múltiplas unidades, estoque, personalização e maior destaque no portal.</p>
+          <div class="plan-price"><strong data-price-semanal="Em breve" data-price-mensal="A partir de R$ 129">Em breve</strong><span data-price-label>lançamento futuro</span></div>
+          <ul class="plan-list">
+            <li><i class="bi bi-check2"></i> Gestão avançada</li>
+            <li><i class="bi bi-check2"></i> Mais profissionais e unidades</li>
+            <li><i class="bi bi-check2"></i> Estoque e automações</li>
+            <li><i class="bi bi-check2"></i> Personalização visual</li>
+            <li><i class="bi bi-check2"></i> Prioridade no portal</li>
+          </ul>
+          <button class="btn btn-dark" type="button" disabled>Em breve</button>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section plans-table-section">
+    <div class="container">
+      <div class="section-top compact">
+        <div>
+          <span class="tag">Comparação</span>
+          <h2 class="titulo-section">O que cada plano libera.</h2>
+          <p class="texto-section">Esta tabela ajuda o barbeiro a entender claramente a diferença entre presença no portal e gestão profissional.</p>
+        </div>
+      </div>
+      <div class="table-wrap plans-table-wrap">
+        <table class="plans-table">
+          <thead>
+            <tr>
+              <th>Recurso</th>
+              <th>Gratuito</th>
+              <th>Essencial</th>
+              <th>Profissional</th>
+              <th>Elite</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Página pública no portal</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+            <tr><td>Agenda online</td><td>—</td><td>✓</td><td>✓</td><td>✓</td></tr>
+            <tr><td>Publicações da galeria</td><td>10</td><td>50</td><td>150</td><td>ampliado</td></tr>
+            <tr><td>Profissionais</td><td>1</td><td>1</td><td>até 3</td><td>ampliado</td></tr>
+            <tr><td>Relatórios</td><td>básico</td><td>✓</td><td>avançado</td><td>avançado</td></tr>
+            <tr><td>Comissão e metas</td><td>—</td><td>—</td><td>✓</td><td>✓</td></tr>
+            <tr><td>Suporte prioritário</td><td>—</td><td>—</td><td>✓</td><td>✓</td></tr>
+            <tr><td>Destaque no portal</td><td>—</td><td>—</td><td>limitado</td><td>máximo</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="section founder-section" id="programa-fundador">
+    <div class="container">
+      <div class="cta-box founder-box">
+        <div>
+          <span class="tag"><i class="bi bi-stars"></i> Programa Fundadores Barber Hub</span>
+          <h2>Traga as primeiras barbearias e valide o sistema com apoio real.</h2>
+          <p>Para as primeiras parceiras selecionadas, o Barber Hub pode oferecer período gratuito, implantação assistida e contato direto com a evolução da plataforma. É uma forma de gerar adesão no começo sem cobrar imediatamente.</p>
+          <div class="founder-benefits">
+            <span><i class="bi bi-check2-circle"></i> 90 dias gratuitos</span>
+            <span><i class="bi bi-check2-circle"></i> Suporte de implantação</span>
+            <span><i class="bi bi-check2-circle"></i> Acesso antecipado a recursos</span>
+          </div>
+        </div>
+        <div class="cta-actions">
+          <a class="btn btn-primary" href="contato.html">Quero participar</a>
+          <a class="btn btn-outline" href="cadastro.html">Criar conta agora</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section faq-section">
+    <div class="container">
+      <div class="section-top compact">
+        <div>
+          <span class="tag">Perguntas frequentes</span>
+          <h2 class="titulo-section">Dúvidas comuns sobre os planos.</h2>
+        </div>
+      </div>
+      <div class="faq-grid">
+        <details class="faq-item" open>
+          <summary>Posso começar gratuitamente?</summary>
+          <p>Sim. O Perfil gratuito serve para colocar a barbearia no portal, exibir horários, serviços e contatos e começar a receber visibilidade.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Preciso de cartão para testar?</summary>
+          <p>Não. Neste momento a estrutura de planos é de apresentação e preparação comercial. A cobrança real ficará para a fase de ativação financeira.</p>
+        </details>
+        <details class="faq-item">
+          <summary>O que acontece se eu parar de pagar?</summary>
+          <p>Os recursos pagos podem ser pausados, mas a recomendação é manter a página pública no plano gratuito para que o negócio não desapareça do portal.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Posso mudar de plano depois?</summary>
+          <p>Sim. A estrutura já foi pensada para upgrade e downgrade, preservando histórico, dados e conteúdo sempre que possível.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+</main>
+<footer class="footer">
+    <div class="container">
+        <div class="footer-grid">
+            <div>
+                <a href="../index.html" class="logo"><img src="../img/logomarcaTRANSPARENTE.png" alt="Barber Hub"><span>Barber Hub<small>Plataforma profissional</small></span></a>
+                <p style="margin-top:16px">Gestão, divulgação, agenda online e inteligência de dados para profissionais de beleza.</p>
+            </div>
+            <div><h4>Plataforma</h4><p><a href="../html/portal.html">Explorar locais</a></p><p><a href="../html/agendamento.html">Agendar horário</a></p><p><a href="../html/planos.html">Ver planos</a></p><p><a href="../html/cadastro.html">Criar conta</a></p></div>
+            <div><h4>Profissionais</h4><p><a href="../html/cadastro.html">Cadastrar negócio</a></p><p><a href="../html/login.html">Entrar no painel</a></p><p><a href="../html/contato.html">Abrir ticket</a></p></div>
+            <div><h4>Expansão</h4><p><a href="../html/beauty-hub.html">Beauty Hub</a></p><p>Pagamentos futuros</p><p>Recomendações inteligentes</p></div>
+        </div>
+        <div class="copy">© 2026 Barber Hub. Plataforma em desenvolvimento com HTML, CSS, JavaScript e Supabase.</div>
+    </div>
+</footer>
+<div id="toast" class="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase-config.js"></script>
+<script src="../js/supabase-client.js"></script>
+<script src="../js/utils.js"></script>
+<script src="../js/toast.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/status.js"></script>
+<script src="../js/ia.js"></script>
+<script src="../js/ui.js"></script>
+<script src="../js/planos.js"></script>
+</body>
+</html>

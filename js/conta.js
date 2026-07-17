@@ -13,7 +13,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   document.getElementById("formConta").addEventListener("submit", async evento => {
     evento.preventDefault();
-    const botao = evento.currentTarget.querySelector("button[type='submit']");
+    const form = evento.currentTarget;
+    const botao = form.querySelector("button[type='submit']");
     bhSetButtonLoading(botao, true, "Salvando...");
     try {
       const arquivo = document.getElementById("contaAvatar").files?.[0];
@@ -48,11 +49,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       mostrarToast("erro", "Senhas diferentes", "A confirmação precisa ser igual à nova senha.");
       return;
     }
-    const botao = evento.currentTarget.querySelector("button[type='submit']");
+    const form = evento.currentTarget;
+    const botao = form.querySelector("button[type='submit']");
     bhSetButtonLoading(botao, true, "Atualizando...");
     try {
       await bhAtualizarSenha(senha);
-      evento.currentTarget.reset();
+      form.reset();
       mostrarToast("sucesso", "Senha atualizada", "Sua nova senha já está ativa.");
     } catch (erro) {
       mostrarToast("erro", "Falha ao alterar senha", bhErroMensagem(erro));

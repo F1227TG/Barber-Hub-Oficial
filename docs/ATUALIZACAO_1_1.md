@@ -1,6 +1,6 @@
 # Atualização 1.1 — Menus, notificações e galeria
 
-## O que foi feito
+## Entregue
 
 - Navegação personalizada por perfil no desktop, drawer e celular;
 - Badges de agenda, notificações, tickets e moderação;
