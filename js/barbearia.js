@@ -2,7 +2,41 @@ let bhPortfolioPublico = [];
 let bhCurtidasPortfolio = new Set();
 let bhPerfilPortfolio = null;
 let bhEstabelecimentoPortfolio = null;
+let bhAvaliacoesPublicas = [];
+let bhFavoritoAtual = false;
 let bhFiltroPortfolio = { categoria: "todas", profissional: "todos", servico: "todos", modo: "todos", ordem: "recentes" };
+
+
+function bhUrlRedeSocial(valor, rede) {
+  const texto = String(valor || "").trim();
+  if (!texto) return null;
+  if (/^https?:\/\//i.test(texto)) return texto;
+  const usuario = texto.replace(/^@/, "").replace(/^.*(?:instagram\.com|tiktok\.com)\/@?/i, "").replace(/\/$/, "");
+  return rede === "tiktok" ? `https://www.tiktok.com/@${usuario}` : `https://www.instagram.com/${usuario}`;
+}
+
+function bhRenderRedesSociais(item) {
+  const instagram = bhUrlRedeSocial(item.instagram, "instagram");
+  const tiktok = bhUrlRedeSocial(item.tiktok, "tiktok");
+  if (!instagram && !tiktok) return "";
+  return `<div class="business-socials" aria-label="Redes sociais do estabelecimento">
+    ${instagram ? `<a href="${escapeHTML(instagram)}" target="_blank" rel="noopener noreferrer" class="social-chip instagram"><i class="bi bi-instagram"></i><span>Instagram</span></a>` : ""}
+    ${tiktok ? `<a href="${escapeHTML(tiktok)}" target="_blank" rel="noopener noreferrer" class="social-chip tiktok"><i class="bi bi-tiktok"></i><span>TikTok</span></a>` : ""}
+  </div>`;
+}
+
+function bhRenderAvaliacoesPublicas() {
+  if (!bhAvaliacoesPublicas.length) return `<section class="card reviews-public-card"><div class="card-body"><div class="section-top compact"><div><span class="tag"><i class="bi bi-patch-check"></i> Avaliações verificadas</span><h2>Ainda sem avaliações</h2><p class="texto-section">Somente clientes com atendimento concluído podem avaliar.</p></div></div></div></section>`;
+  const media = bhAvaliacoesPublicas.reduce((soma, item) => soma + Number(item.nota || 0), 0) / bhAvaliacoesPublicas.length;
+  return `<section class="card reviews-public-card" id="avaliacoes"><div class="card-body">
+    <div class="section-top compact"><div><span class="tag"><i class="bi bi-patch-check"></i> Avaliações verificadas</span><h2>Experiências de clientes reais</h2><p class="texto-section">Cada avaliação está vinculada a um atendimento concluído no Barber Hub.</p></div><div class="rating-summary"><strong>${media.toFixed(1).replace(".", ",")}</strong><span>${bhAvaliacoesPublicas.length} avaliação${bhAvaliacoesPublicas.length === 1 ? "" : "ões"}</span></div></div>
+    <div class="reviews-public-list">${bhAvaliacoesPublicas.slice(0, 12).map(item => `<article class="review-public-item">
+      <div class="review-public-head"><div class="review-avatar">${escapeHTML((item.perfis?.nome || "C").slice(0,1).toUpperCase())}</div><div><strong>${escapeHTML(item.perfis?.nome || "Cliente")}</strong><span class="review-stars" aria-label="${item.nota} de 5 estrelas">${"★".repeat(Number(item.nota || 0))}${"☆".repeat(5 - Number(item.nota || 0))}</span></div><time>${new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium" }).format(new Date(item.created_at))}</time></div>
+      ${item.comentario ? `<p>${escapeHTML(item.comentario)}</p>` : `<p class="muted">Avaliação sem comentário.</p>`}
+      ${item.resposta_estabelecimento ? `<div class="business-reply"><strong><i class="bi bi-reply"></i> Resposta do estabelecimento</strong><p>${escapeHTML(item.resposta_estabelecimento)}</p></div>` : ""}
+    </article>`).join("")}</div>
+  </div></section>`;
+}
 
 function bhFotosPublicacaoPortfolio(item) {
   const midias = item.midias || [];
@@ -136,11 +170,12 @@ function bhRenderDetalheEstabelecimento(item) {
       <div class="container">
         <div class="breadcrumb">Portal / ${escapeHTML(item.cidade)} / ${escapeHTML(item.nome)}</div>
         <div class="card-meta">${bhRenderStatus(item)} <span class="badge">${tipoLabel}</span></div>
-        <h1>${escapeHTML(item.nome)}</h1>
+        <h1>${escapeHTML(item.nome)} ${item.verificado ? `<span class="verified-badge" title="Estabelecimento verificado"><i class="bi bi-patch-check-fill"></i> Verificado</span>` : ""}</h1>
         <p>${escapeHTML(item.descricao)}</p>
         <div class="hero-actions">
           ${item.aceitaAgendamento ? `<a href="agendamento.html?barbearia=${item.id}" class="btn btn-primary">Agendar horário</a>` : ""}
           ${whatsapp ? `<a href="https://wa.me/${whatsapp}" target="_blank" rel="noopener" class="btn btn-outline"><i class="bi bi-whatsapp"></i> WhatsApp</a>` : ""}
+          ${bhPerfilPortfolio?.tipo === "cliente" ? `<button type="button" class="btn btn-outline favorite-business-btn ${bhFavoritoAtual ? "ativo" : ""}" data-favoritar-estabelecimento><i class="bi ${bhFavoritoAtual ? "bi-heart-fill" : "bi-heart"}"></i> ${bhFavoritoAtual ? "Favoritado" : "Favoritar"}</button>` : !bhPerfilPortfolio ? `<a class="btn btn-outline" href="login.html?next=${encodeURIComponent(location.pathname + location.search)}"><i class="bi bi-heart"></i> Entrar para favoritar</a>` : ""}
         </div>
       </div>
     </section>
@@ -154,6 +189,7 @@ function bhRenderDetalheEstabelecimento(item) {
             <p><strong><i class="bi bi-telephone"></i> Telefone</strong><br>${escapeHTML(item.telefone || "Não informado")}</p><br>
             <p><strong><i class="bi bi-star-fill"></i> Avaliação</strong><br>${Number(item.avaliacao || 0) > 0 ? `<span class="rating">${Number(item.avaliacao).toFixed(1)}</span>` : `<span class="no-rating">Ainda sem avaliações</span>`}</p><br>
             <p><strong>Status</strong><br><span class="status ${status.classe}">${status.texto}</span><br><small>${escapeHTML(status.detalhe)}</small></p>
+            ${bhRenderRedesSociais(item)}
             <div class="divisor"></div>
             <h3>Horários</h3>
             <div class="hours-list">${horarios}</div>
@@ -163,6 +199,7 @@ function bhRenderDetalheEstabelecimento(item) {
           <div class="card"><div class="card-body"><h2>Serviços e preços</h2><div class="divisor"></div><div class="service-list">${servicos}</div></div></div>
           <div class="card"><div class="card-body"><h2>Profissionais</h2><div class="divisor"></div><div class="barber-list">${profissionais}</div></div></div>
           ${bhRenderSecaoPortfolioPublico()}
+          ${bhRenderAvaliacoesPublicas()}
           <div class="card"><div class="card-body"><h2>Promoções</h2><div class="divisor"></div>${promocoes}</div></div>
         </div>
       </div>
@@ -178,8 +215,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!id) throw new Error("Estabelecimento não informado.");
     bhEstabelecimentoPortfolio = await bhObterEstabelecimento(id);
     if (!bhEstabelecimentoPortfolio) throw new Error("Estabelecimento não encontrado ou indisponível.");
-    bhPortfolioPublico = await bhListarPortfolioPublico(bhEstabelecimentoPortfolio.id);
+    [bhPortfolioPublico, bhAvaliacoesPublicas] = await Promise.all([
+      bhListarPortfolioPublico(bhEstabelecimentoPortfolio.id),
+      bhListarAvaliacoesEstabelecimento(bhEstabelecimentoPortfolio.id).catch(erro => { console.warn("Avaliações ainda não disponíveis.", erro); return []; })
+    ]);
     try { bhPerfilPortfolio = await bhGetPerfil(); } catch (_) { bhPerfilPortfolio = null; }
+    if (bhPerfilPortfolio?.tipo === "cliente") {
+      try { bhFavoritoAtual = await bhEstaFavorito(bhEstabelecimentoPortfolio.id); } catch (_) { bhFavoritoAtual = false; }
+    }
     if (bhPerfilPortfolio && bhPortfolioPublico.length) {
       try { bhCurtidasPortfolio = await bhObterCurtidasMinhas(bhPortfolioPublico.map(item => item.id)); } catch (_) { bhCurtidasPortfolio = new Set(); }
     }
@@ -197,6 +240,16 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   main.addEventListener("click", async evento => {
+    const favorito = evento.target.closest("[data-favoritar-estabelecimento]");
+    if (favorito) {
+      try {
+        favorito.disabled = true;
+        bhFavoritoAtual = await bhAlternarFavorito(bhEstabelecimentoPortfolio.id, bhFavoritoAtual);
+        mostrarToast("sucesso", bhFavoritoAtual ? "Adicionado aos favoritos" : "Removido dos favoritos", bhFavoritoAtual ? "Você encontra este estabelecimento rapidamente na sua área." : "O estabelecimento foi removido da sua lista.");
+        bhRenderDetalheEstabelecimento(bhEstabelecimentoPortfolio);
+      } catch (erro) { mostrarToast("erro", "Não foi possível atualizar favoritos", bhErroMensagem(erro)); favorito.disabled = false; }
+      return;
+    }
     const card = evento.target.closest("[data-publicacao-id]");
     const publicacao = card ? bhPortfolioPublico.find(item => item.id === card.dataset.publicacaoId) : null;
     const foto = evento.target.closest("[data-portfolio-foto]");

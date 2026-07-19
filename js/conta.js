@@ -64,3 +64,41 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
 });
+
+document.addEventListener("DOMContentLoaded", () => {
+  const abrir = document.getElementById("abrirExclusaoConta");
+  const cancelar = document.getElementById("cancelarExclusaoConta");
+  const form = document.getElementById("formExcluirConta");
+  abrir?.addEventListener("click", () => {
+    form.hidden = false;
+    abrir.hidden = true;
+    document.getElementById("excluirSenhaAtual")?.focus();
+  });
+  cancelar?.addEventListener("click", () => {
+    form.reset();
+    form.hidden = true;
+    abrir.hidden = false;
+  });
+  form?.addEventListener("submit", async evento => {
+    evento.preventDefault();
+    const confirmacao = document.getElementById("excluirConfirmacao").value.trim();
+    const senha = document.getElementById("excluirSenhaAtual").value;
+    const ciente = document.getElementById("excluirCiente").checked;
+    if (confirmacao !== "EXCLUIR" || !ciente) {
+      mostrarToast("erro", "Confirmação incompleta", "Digite EXCLUIR e marque a confirmação antes de continuar.");
+      return;
+    }
+    if (!confirm("Última confirmação: deseja excluir sua conta permanentemente?")) return;
+    const botao = form.querySelector("button[type='submit']");
+    bhSetButtonLoading(botao, true, "Excluindo...");
+    try {
+      await bhExcluirMinhaConta(senha);
+      localStorage.removeItem("bh_tema");
+      mostrarToast("sucesso", "Conta excluída", "Seus dados de acesso foram removidos.");
+      setTimeout(() => { location.href = bhUrl("index.html?conta=excluida"); }, 900);
+    } catch (erro) {
+      mostrarToast("erro", "Não foi possível excluir", bhErroMensagem(erro));
+      bhSetButtonLoading(botao, false);
+    }
+  });
+});

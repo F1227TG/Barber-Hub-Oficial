@@ -1,16 +1,3 @@
-function bhAplicarModoCobranca(modo = "semanal") {
-  document.querySelectorAll("[data-billing]").forEach(botao => botao.classList.toggle("ativo", botao.dataset.billing === modo));
-  document.querySelectorAll("[data-price-semanal]").forEach(elemento => {
-    const valor = modo === "mensal" ? elemento.dataset.priceMensal : elemento.dataset.priceSemanal;
-    const rotulo = elemento.parentElement?.querySelector("[data-price-label]");
-    elemento.textContent = valor;
-    if (rotulo) {
-      if (/em breve/i.test(valor)) rotulo.textContent = "lançamento futuro";
-      else rotulo.textContent = modo === "mensal" ? "por mês" : "por semana";
-    }
-  });
-}
-
 function bhRenderizarStatsPlano(stats = []) {
   const alvo = document.getElementById("planoAtualStats");
   if (!alvo) return;
@@ -92,9 +79,6 @@ async function bhCarregarPlanoAtual() {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
-  bhAplicarModoCobranca("semanal");
-  document.querySelectorAll("[data-billing]").forEach(botao => {
-    botao.addEventListener("click", () => bhAplicarModoCobranca(botao.dataset.billing));
-  });
+  marcarMenuAtivo("planos");
   await bhCarregarPlanoAtual();
 });

@@ -80,6 +80,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       document.getElementById("barbearia").value = parametro;
     }
     bhAtualizarEstabelecimentoAgenda();
+    const servicoParametro = bhQueryParam("servico");
+    const profissionalParametro = bhQueryParam("profissional");
+    if (servicoParametro && [...document.getElementById("servico").options].some(item => item.value === servicoParametro)) document.getElementById("servico").value = servicoParametro;
+    if (profissionalParametro && [...document.getElementById("barbeiro").options].some(item => item.value === profissionalParametro)) document.getElementById("barbeiro").value = profissionalParametro;
+    if (servicoParametro || profissionalParametro) bhRenderSlots();
   } catch (erro) {
     mostrarToast("erro", "Falha ao carregar agenda", bhErroMensagem(erro));
   }

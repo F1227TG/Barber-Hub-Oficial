@@ -347,32 +347,37 @@ async function bhMetricasPublicas() {
 
 async function bhAdminResumo() {
   const client = bhExigirSupabase();
-  const [perfis, estabelecimentos, agendamentos, tickets, denuncias] = await Promise.all([
-    client.from("perfis").select("*", { count: "exact" }).order("created_at", { ascending: false }).limit(100),
-    client.from("estabelecimentos").select("*", { count: "exact" }).order("created_at", { ascending: false }).limit(100),
-    client.from("agendamentos").select("*", { count: "exact" }).order("created_at", { ascending: false }).limit(100),
-    client.from("tickets_suporte").select("*", { count: "exact" }).order("created_at", { ascending: false }).limit(100),
+  const resultados = await Promise.all([
+    client.from("perfis").select("*", { count: "exact" }).order("created_at", { ascending: false }).limit(250),
+    client.from("estabelecimentos").select("*", { count: "exact" }).order("created_at", { ascending: false }).limit(250),
+    client.from("agendamentos").select("*", { count: "exact" }).order("created_at", { ascending: false }).limit(250),
+    client.from("tickets_suporte").select("*", { count: "exact" }).order("created_at", { ascending: false }).limit(250),
     client.from("portfolio_denuncias").select(`
       *,
       perfis(nome,email),
       portfolio_publicacoes(id,titulo,status,estabelecimento_id,estabelecimentos(nome))
-    `, { count: "exact" }).order("created_at", { ascending: false }).limit(100)
+    `, { count: "exact" }).order("created_at", { ascending: false }).limit(250),
+    client.from("avaliacoes").select(`*, perfis(nome,email), estabelecimentos(nome)`, { count: "exact" }).order("created_at", { ascending: false }).limit(250)
   ]);
+  const [perfis, estabelecimentos, agendamentos, tickets, denuncias, avaliacoesResultado] = resultados;
   [perfis, estabelecimentos, agendamentos, tickets, denuncias].forEach(resultado => {
     if (resultado.error) throw resultado.error;
   });
+  const avaliacoes = avaliacoesResultado.error ? { data: [], count: 0 } : avaliacoesResultado;
   return {
     perfis: perfis.data || [],
     estabelecimentos: estabelecimentos.data || [],
     agendamentos: agendamentos.data || [],
     tickets: tickets.data || [],
     denuncias: denuncias.data || [],
+    avaliacoes: avaliacoes.data || [],
     counts: {
       perfis: perfis.count || 0,
       estabelecimentos: estabelecimentos.count || 0,
       agendamentos: agendamentos.count || 0,
       tickets: tickets.count || 0,
-      denuncias: denuncias.count || 0
+      denuncias: denuncias.count || 0,
+      avaliacoes: avaliacoes.count || 0
     }
   };
 }
@@ -902,4 +907,157 @@ async function bhObterResumoAssinaturaBarbeiro() {
       aceitaAgendamento: Boolean(estabelecimento.aceitaAgendamento)
     }
   };
+}
+
+// ============================================================
+// BARBER HUB 1.3 — FAVORITOS, AVALIAÇÕES E ADMINISTRAÇÃO
+// ============================================================
+async function bhEstaFavorito(estabelecimentoId) {
+  const perfil = await bhGetPerfil();
+  if (!perfil || perfil.tipo !== "cliente") return false;
+  const client = bhExigirSupabase();
+  const { data, error } = await client
+    .from("favoritos")
+    .select("estabelecimento_id")
+    .eq("cliente_id", perfil.id)
+    .eq("estabelecimento_id", estabelecimentoId)
+    .maybeSingle();
+  if (error) throw error;
+  return Boolean(data);
+}
+
+async function bhAlternarFavorito(estabelecimentoId, favoritoAtual = false) {
+  const perfil = await bhGetPerfil();
+  if (!perfil || perfil.tipo !== "cliente") throw new Error("Entre com uma conta de cliente para usar favoritos.");
+  const client = bhExigirSupabase();
+  if (favoritoAtual) {
+    const { error } = await client.from("favoritos").delete()
+      .eq("cliente_id", perfil.id).eq("estabelecimento_id", estabelecimentoId);
+    if (error) throw error;
+    return false;
+  }
+  const { error } = await client.from("favoritos").insert({ cliente_id: perfil.id, estabelecimento_id: estabelecimentoId });
+  if (error) throw error;
+  return true;
+}
+
+async function bhListarFavoritosCliente() {
+  const perfil = await bhGetPerfil();
+  if (!perfil || perfil.tipo !== "cliente") return [];
+  const client = bhExigirSupabase();
+  const { data, error } = await client
+    .from("favoritos")
+    .select(`created_at, estabelecimentos(${BH_ESTABELECIMENTO_SELECT})`)
+    .eq("cliente_id", perfil.id)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data || []).map(item => bhNormalizarEstabelecimento(item.estabelecimentos)).filter(Boolean);
+}
+
+async function bhListarAvaliacoesEstabelecimento(estabelecimentoId) {
+  const client = bhExigirSupabase();
+  const { data, error } = await client
+    .from("avaliacoes")
+    .select(`*, perfis(nome,avatar_url), agendamentos(servicos(nome),profissionais(nome))`)
+    .eq("estabelecimento_id", estabelecimentoId)
+    .eq("status", "publicada")
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data || [];
+}
+
+async function bhListarMinhasAvaliacoes() {
+  const perfil = await bhGetPerfil();
+  if (!perfil) return [];
+  const client = bhExigirSupabase();
+  const { data, error } = await client
+    .from("avaliacoes")
+    .select(`*, estabelecimentos(nome,slug), agendamentos(data,hora_inicio,servicos(nome),profissionais(nome))`)
+    .eq("cliente_id", perfil.id)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data || [];
+}
+
+async function bhCriarOuAtualizarAvaliacao({ agendamentoId, nota, comentario }) {
+  const perfil = await bhGetPerfil();
+  if (!perfil || perfil.tipo !== "cliente") throw new Error("Somente clientes podem avaliar atendimentos.");
+  const client = bhExigirSupabase();
+  const payload = {
+    agendamento_id: agendamentoId,
+    cliente_id: perfil.id,
+    nota: Number(nota),
+    comentario: String(comentario || "").trim()
+  };
+  const { data, error } = await client
+    .from("avaliacoes")
+    .upsert(payload, { onConflict: "agendamento_id" })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+async function bhResponderAvaliacao(id, resposta) {
+  const client = bhExigirSupabase();
+  const { data, error } = await client
+    .from("avaliacoes")
+    .update({ resposta_estabelecimento: String(resposta || "").trim() || null })
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+async function bhListarAvaliacoesMeuEstabelecimento(estabelecimentoId) {
+  const client = bhExigirSupabase();
+  const { data, error } = await client
+    .from("avaliacoes")
+    .select(`*, perfis(nome,avatar_url), agendamentos(data,hora_inicio,servicos(nome),profissionais(nome))`)
+    .eq("estabelecimento_id", estabelecimentoId)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data || [];
+}
+
+async function bhExcluirMinhaConta(senhaAtual) {
+  const perfil = await bhGetPerfil();
+  if (!perfil) throw new Error("Sessão não encontrada.");
+  const client = bhExigirSupabase();
+  const { error: erroLogin } = await client.auth.signInWithPassword({ email: perfil.email, password: senhaAtual });
+  if (erroLogin) throw new Error("Senha atual incorreta.");
+  const { error } = await client.rpc("excluir_minha_conta");
+  if (error) throw error;
+  bhPerfilCache = null;
+  try { await client.auth.signOut(); } catch (_) {}
+}
+
+async function bhAdminAtualizarPerfil(id, dados) {
+  const client = bhExigirSupabase();
+  const permitido = {};
+  ["tipo", "ativo"].forEach(chave => { if (dados[chave] !== undefined) permitido[chave] = dados[chave]; });
+  const { data, error } = await client.from("perfis").update(permitido).eq("id", id).select().single();
+  if (error) throw error;
+  return data;
+}
+
+async function bhAdminAtualizarEstabelecimento(id, dados) {
+  const client = bhExigirSupabase();
+  const permitido = {};
+  ["visivel", "verificado", "destaque", "suspenso_motivo"].forEach(chave => { if (dados[chave] !== undefined) permitido[chave] = dados[chave]; });
+  if (dados.verificado === true) permitido.verificado_em = new Date().toISOString();
+  if (dados.verificado === false) permitido.verificado_em = null;
+  const perfil = await bhGetPerfil();
+  if (dados.verificado !== undefined) permitido.verificado_por = dados.verificado ? perfil?.id : null;
+  const { data, error } = await client.from("estabelecimentos").update(permitido).eq("id", id).select().single();
+  if (error) throw error;
+  return data;
+}
+
+async function bhAdminAtualizarAvaliacao(id, dados) {
+  const client = bhExigirSupabase();
+  const { data, error } = await client.from("avaliacoes").update(dados).eq("id", id).select().single();
+  if (error) throw error;
+  return data;
 }

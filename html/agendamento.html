@@ -1,53 +1,54 @@
 <!DOCTYPE html>
+
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Barber Hub — plataforma de gestão, agenda e divulgação para barbearias e futuros salões de beleza.">
-    <title>Agendamento | Barber Hub</title>
-    <link rel="shortcut icon" href="../img/favicon.ico" type="image/x-icon">
-    <link rel="apple-touch-icon" sizes="180x180" href="../img/apple-touch-icon.png">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../css/global.css">
-    <link rel="stylesheet" href="../css/pages.css">
-<link rel="manifest" href="../manifest.webmanifest"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"></head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="Barber Hub — plataforma de gestão, agenda e divulgação para barbearias e futuros salões de beleza." name="description"/>
+<title>Agendamento | Barber Hub</title>
+<link href="../img/favicon.ico" rel="shortcut icon" type="image/x-icon"/>
+<link href="../img/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="../css/global.css" rel="stylesheet"/>
+<link href="../css/pages.css" rel="stylesheet"/>
+<link href="../manifest.webmanifest" rel="manifest"/><meta content="yes" name="apple-mobile-web-app-capable"/><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/></head>
 <body><header class="header">
-    <div class="container nav">
-        <a href="../index.html" class="logo">
-            <img src="../img/logomarcaTRANSPARENTE.png" alt="Barber Hub">
-            <span>Barber Hub<small>Gestão inteligente</small></span>
-        </a>
-        <nav class="menu" id="menuPrincipal">
-            <a href="../index.html" data-page="home">Início</a>
-            <a href="../html/portal.html" data-page="portal">Portal</a>
-            <a href="../html/agendamento.html" data-page="agendamento">Agendar</a>
-            <a href="../html/planos.html" data-page="planos">Planos</a>
-            <a href="../html/beauty-hub.html" data-page="beauty">Beauty Hub</a>
-            <a href="../html/contato.html" data-page="contato">Suporte</a>
-        </nav>
-        <div class="nav-actions">
-            <button class="btn-tema" id="btnTema" title="Alternar tema" aria-label="Alternar tema"><i class="bi bi-circle-half"></i></button>
-            <a class="btn btn-outline btn-small account-link" data-auth-link href="../html/login.html"><i class="bi bi-person-circle"></i> <span data-user-name>Entrar</span></a>
-            <button class="btn-menu" id="btnMenu" aria-label="Abrir menu lateral"><i class="bi bi-list"></i></button>
-        </div>
-    </div>
-</header><main><section class="page-hero"><div class="container"><div class="breadcrumb">Início / Agendamento</div><span class="tag"><i class="bi bi-calendar-check"></i> Agenda conectada</span><h1>Escolha um horário realmente disponível.</h1><p>O sistema consulta o Supabase e impede conflito entre atendimentos do mesmo profissional.</p></div></section><section class="section"><div class="container detail-grid"><div><form class="form-card" id="formAgendamento"><div class="form-grid"><div class="campo"><label>Nome da conta</label><input id="nome" readonly placeholder="Entre na conta para preencher"></div><div class="campo"><label>Telefone</label><input id="telefone" readonly></div><div class="campo full"><label>E-mail</label><input id="email" readonly></div><div class="campo full"><label>Estabelecimento</label><select id="barbearia" required></select></div><div class="campo"><label>Serviço</label><select id="servico" required></select></div><div class="campo"><label>Profissional</label><select id="barbeiro" required></select></div><div class="campo"><label>Data</label><input id="data" type="date" required></div><div class="campo"><label>Pagamento</label><select disabled><option>Pagamento online — fase futura</option></select></div><div class="campo full"><label>Horários disponíveis</label><div id="slots"><p class="texto-section">Selecione as opções acima.</p></div></div><div class="campo full"><label>Observação</label><textarea id="observacao" placeholder="Preferências ou informações importantes"></textarea></div></div><button class="btn btn-primary full" type="submit"><i class="bi bi-calendar-check"></i> Enviar agendamento</button></form></div><aside class="grid side-info"><div id="statusBarbearia"></div><div id="iaAgendamento"></div><div class="pagamento-box"><strong>Pagamento futuro</strong><p>Uma integração poderá enviar o valor diretamente ao profissional após confirmação do atendimento, usando um provedor financeiro adequado.</p></div></aside></div></section></main><footer class="footer">
-    <div class="container">
-        <div class="footer-grid">
-            <div>
-                <a href="../index.html" class="logo"><img src="../img/logomarcaTRANSPARENTE.png" alt="Barber Hub"><span>Barber Hub<small>Plataforma profissional</small></span></a>
-                <p style="margin-top:16px">Gestão, divulgação, agenda online e inteligência de dados para profissionais de beleza.</p>
-            </div>
-            <div><h4>Plataforma</h4><p><a href="../html/portal.html">Explorar locais</a></p><p><a href="../html/agendamento.html">Agendar horário</a></p><p><a href="../html/planos.html">Ver planos</a></p><p><a href="../html/cadastro.html">Criar conta</a></p></div>
-            <div><h4>Profissionais</h4><p><a href="../html/cadastro.html">Cadastrar negócio</a></p><p><a href="../html/login.html">Entrar no painel</a></p><p><a href="../html/contato.html">Abrir ticket</a></p></div>
-            <div><h4>Expansão</h4><p><a href="../html/beauty-hub.html">Beauty Hub</a></p><p>Pagamentos futuros</p><p>Recomendações inteligentes</p></div>
-        </div>
-        <div class="copy">© 2026 Barber Hub. Plataforma em desenvolvimento com HTML, CSS, JavaScript e Supabase.</div>
-    </div>
-</footer><div id="toast" class="toast"></div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<div class="container nav">
+<a class="logo" href="../index.html">
+<img alt="Barber Hub" src="../img/logomarcaTRANSPARENTE.png"/>
+<span>Barber Hub<small>Gestão inteligente</small></span>
+</a>
+<nav class="menu" id="menuPrincipal">
+<a data-page="home" href="../index.html">Início</a>
+<a data-page="portal" href="../html/portal.html">Portal</a>
+<a data-page="agendamento" href="../html/agendamento.html">Agendar</a>
+<a data-page="planos" href="../html/planos.html">Planos</a>
+<a data-page="beauty" href="../html/beauty-hub.html">Beauty Hub</a>
+<a data-page="contato" href="../html/contato.html">Suporte</a>
+</nav>
+<div class="nav-actions">
+<button aria-label="Alternar tema" class="btn-tema" id="btnTema" title="Alternar tema"><i class="bi bi-circle-half"></i></button>
+<a class="btn btn-outline btn-small account-link" data-auth-link="" href="../html/login.html"><i class="bi bi-person-circle"></i> <span data-user-name="">Entrar</span></a>
+<button aria-label="Abrir menu lateral" class="btn-menu" id="btnMenu"><i class="bi bi-list"></i></button>
+</div>
+</div>
+</header><main><section class="page-hero"><div class="container"><div class="breadcrumb">Início / Agendamento</div><span class="tag"><i class="bi bi-calendar-check"></i> Agenda conectada</span><h1>Escolha um horário realmente disponível.</h1><p>O sistema consulta o Supabase e impede conflito entre atendimentos do mesmo profissional.</p></div></section><section class="section"><div class="container detail-grid"><div><form class="form-card" id="formAgendamento"><div class="form-grid"><div class="campo"><label>Nome da conta</label><input id="nome" placeholder="Entre na conta para preencher" readonly=""/></div><div class="campo"><label>Telefone</label><input id="telefone" readonly=""/></div><div class="campo full"><label>E-mail</label><input id="email" readonly=""/></div><div class="campo full"><label>Estabelecimento</label><select id="barbearia" required=""></select></div><div class="campo"><label>Serviço</label><select id="servico" required=""></select></div><div class="campo"><label>Profissional</label><select id="barbeiro" required=""></select></div><div class="campo"><label>Data</label><input id="data" required="" type="date"/></div><div class="campo"><label>Pagamento</label><select disabled=""><option>Pagamento online — fase futura</option></select></div><div class="campo full"><label>Horários disponíveis</label><div id="slots"><p class="texto-section">Selecione as opções acima.</p></div></div><div class="campo full"><label>Observação</label><textarea id="observacao" placeholder="Preferências ou informações importantes"></textarea></div></div><button class="btn btn-primary full" type="submit"><i class="bi bi-calendar-check"></i> Enviar agendamento</button></form></div><aside class="grid side-info"><div id="statusBarbearia"></div><div id="iaAgendamento"></div><div class="pagamento-box"><strong>Pagamento futuro</strong><p>Uma integração poderá enviar o valor diretamente ao profissional após confirmação do atendimento, usando um provedor financeiro adequado.</p></div></aside></div></section></main><footer class="footer">
+<div class="container">
+<div class="footer-grid">
+<div>
+<a class="logo" href="../index.html"><img alt="Barber Hub" src="../img/logomarcaTRANSPARENTE.png"/><span>Barber Hub<small>Uma plataforma de The Gamers Tech</small></span></a>
+<p style="margin-top:16px">Gestão, divulgação, agenda online e inteligência de dados para profissionais de beleza.</p>
+</div>
+<div><h4>Plataforma</h4><p><a href="../html/portal.html">Explorar locais</a></p><p><a href="../html/agendamento.html">Agendar horário</a></p><p><a href="../html/planos.html">Ver planos</a></p><p><a href="../html/cadastro.html">Criar conta</a></p></div>
+<div><p><a href="sobre.html">Sobre</a></p><h4>Profissionais</h4><p><a href="../html/cadastro.html">Cadastrar negócio</a></p><p><a href="../html/login.html">Entrar no painel</a></p><p><a href="../html/contato.html">Abrir ticket</a></p></div>
+<div><h4>Expansão</h4><p><a href="../html/beauty-hub.html">Beauty Hub</a></p><p>Pagamentos futuros</p><p>Recomendações inteligentes</p></div>
+</div>
+<div class="copy">© 2026 Barber Hub. Uma plataforma de The Gamers Tech. </div>
+</div>
+</footer><div class="toast" id="toast"></div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/supabase-config.js"></script>
 <script src="../js/supabase-client.js"></script>
 <script src="../js/utils.js"></script>

@@ -44,6 +44,7 @@ function bhLinksPorPerfil(perfil, contadores = {}) {
     ["html/portal.html", "portal", "Portal", "bi-shop"],
     ["html/agendamento.html", "agendamento", "Agendar", "bi-calendar2-check"],
     ["html/planos.html", "planos", "Planos", "bi-wallet2"],
+    ["html/sobre.html", "sobre", "Sobre", "bi-compass"],
     ["html/beauty-hub.html", "beauty", "Beauty Hub", "bi-stars"],
     ["html/contato.html", "contato", "Suporte", "bi-headset"]
   ];
@@ -102,12 +103,34 @@ function bhRenderLinkNavegacao(link, contadores = {}, exibirIcone = false) {
 function bhAplicarMenuPorPerfil(perfil, contadores = {}) {
   const menu = document.getElementById("menuPrincipal");
   if (!menu) return;
-  menu.innerHTML = bhLinksPorPerfil(perfil, contadores).map(link => bhRenderLinkNavegacao(link, contadores)).join("");
+  const links = bhLinksPorPerfil(perfil, contadores);
+  const principais = links.slice(0, 4);
+  const extras = links.slice(4);
+  menu.innerHTML = principais.map(link => bhRenderLinkNavegacao(link, contadores)).join("") + (extras.length ? `
+    <div class="nav-more">
+      <button type="button" class="nav-more-button" aria-expanded="false" aria-haspopup="true"><span>Mais</span><i class="bi bi-chevron-down"></i></button>
+      <div class="nav-more-menu" role="menu">${extras.map(link => bhRenderLinkNavegacao(link, contadores, true)).join("")}</div>
+    </div>` : "");
   const arquivo = (location.pathname.split("/").pop() || "index.html").replace(".html", "");
   menu.querySelectorAll("a").forEach(link => {
     const destino = new URL(link.href, location.href);
     const mesmoArquivo = destino.pathname === location.pathname || (arquivo === "index" && destino.pathname.endsWith("/index.html"));
     link.classList.toggle("ativo", mesmoArquivo && (!destino.hash || destino.hash === location.hash));
+  });
+  const mais = menu.querySelector(".nav-more");
+  const botao = mais?.querySelector(".nav-more-button");
+  const temAtivo = Boolean(mais?.querySelector("a.ativo"));
+  botao?.classList.toggle("ativo", temAtivo);
+  botao?.addEventListener("click", evento => {
+    evento.stopPropagation();
+    const aberto = mais.classList.toggle("aberto");
+    botao.setAttribute("aria-expanded", String(aberto));
+  });
+  document.addEventListener("click", evento => {
+    if (mais && !mais.contains(evento.target)) {
+      mais.classList.remove("aberto");
+      botao?.setAttribute("aria-expanded", "false");
+    }
   });
 }
 
@@ -115,16 +138,21 @@ function bhLinksExtrasDrawer(perfil, contadores = {}) {
   if (perfil?.tipo === "barbeiro") return [
     ["html/painel.html#equipe", "Equipe", "bi-people"],
     ["html/painel.html#galeria", "Galeria de trabalhos", "bi-images"],
-    ["html/painel.html#configuracoes", "Horários e configurações", "bi-gear"]
+    ["html/painel.html#avaliacoes", "Avaliações", "bi-star"],
+    ["html/painel.html#configuracoes", "Horários e configurações", "bi-gear"],
+    ["html/contato.html", "Suporte", "bi-headset"]
   ];
   if (perfil?.tipo === "admin") return [
-    ["html/admin.html#usuarios", "Usuários", "bi-people"],
+    ["html/admin.html#agendamentos", "Agendamentos", "bi-calendar2-check"],
+    ["html/admin.html#avaliacoes", "Avaliações", "bi-star"],
     ["html/admin.html#moderacao", "Moderação", "bi-flag", "moderacao"],
     ["html/conta.html", "Minha conta", "bi-person-gear"]
   ];
   if (perfil) return [
+    ["html/cliente.html#favoritos", "Favoritos", "bi-heart"],
     ["html/cliente.html", "Histórico e horários", "bi-clock-history"],
-    ["html/conta.html", "Minha conta", "bi-person-gear"]
+    ["html/conta.html", "Minha conta", "bi-person-gear"],
+    ["html/contato.html", "Suporte", "bi-headset"]
   ];
   return [];
 }
@@ -146,7 +174,7 @@ function bhCriarDrawer(perfil, contadores = {}) {
       <div class="drawer-head">
         <a class="logo" href="${bhUrl("index.html")}">
           <img src="${bhUrl("img/logomarcaTRANSPARENTE.png")}" alt="Barber Hub">
-          <span>Barber Hub<small>${perfil?.tipo === "barbeiro" ? "Meu negócio" : perfil?.tipo === "admin" ? "Administração" : "Menu e acessibilidade"}</small></span>
+          <span>Barber Hub<small>${perfil?.tipo === "barbeiro" ? "Meu negócio" : perfil?.tipo === "admin" ? "Administração" : "The Gamers Tech"}</small></span>
         </a>
         <button class="icon-btn" id="fecharDrawer" aria-label="Fechar menu"><i class="bi bi-x-lg"></i></button>
       </div>
@@ -159,7 +187,6 @@ function bhCriarDrawer(perfil, contadores = {}) {
       </div>
       <nav class="drawer-links">${links}</nav>
       ${extras ? `<div class="drawer-section drawer-business-links"><h3>${perfil?.tipo === "barbeiro" ? "Gestão do negócio" : perfil?.tipo === "admin" ? "Administração" : "Sua conta"}</h3><nav class="drawer-links">${extras}</nav></div>` : ""}
-      <nav class="drawer-links drawer-support-link"><a href="${bhUrl("html/contato.html")}"><i class="bi bi-headset"></i><span>Suporte</span></a></nav>
       <div class="drawer-section">
         <h3>Acessibilidade</h3>
         <div class="a11y-grid">
@@ -377,10 +404,44 @@ function bhAnimarConteudo(){
 }
 
 function bhAdicionarIdentidadePagina(){
-  const mapa={index:'HUB',portal:'EXPLORAR',barbearia:'PERFIL',agendamento:'AGENDA',painel:'GESTÃO',cliente:'CONTA',admin:'ADMIN',contato:'SUPORTE',login:'ENTRAR',cadastro:'CRIAR',servicos:'RECURSOS',planos:'PLANOS','beauty-hub':'BEAUTY',notificacoes:'AVISOS'};
+  const mapa={index:'HUB',portal:'EXPLORAR',barbearia:'PERFIL',agendamento:'AGENDA',painel:'GESTÃO',cliente:'CONTA',admin:'ADMIN',contato:'SUPORTE',login:'ENTRAR',cadastro:'CRIAR',servicos:'RECURSOS',planos:'PLANOS','beauty-hub':'BEAUTY',notificacoes:'AVISOS',sobre:'SOBRE',conta:'CONTA'};
   const nome=(location.pathname.split('/').pop()||'index.html').replace('.html','');
   const hero=document.querySelector('.page-hero,.hero,.auth-wrap,.onboarding-page');
   if(hero&&mapa[nome]&&!hero.querySelector('.page-identity')){const el=document.createElement('span');el.className='page-identity';el.textContent=mapa[nome];hero.appendChild(el)}
+}
+
+
+function bhPrepararTabelasMobile(raiz = document) {
+  raiz.querySelectorAll("table").forEach(tabela => {
+    const titulos = [...tabela.querySelectorAll("thead th")].map(th => th.textContent.trim());
+    tabela.querySelectorAll("tbody tr").forEach(linha => {
+      [...linha.children].forEach((celula, indice) => {
+        if (!celula.dataset.label) celula.dataset.label = titulos[indice] || "Informação";
+      });
+    });
+  });
+}
+
+function bhObservarTabelasDinamicas() {
+  bhPrepararTabelasMobile();
+  let agendado = false;
+  const observer = new MutationObserver(() => {
+    if (agendado) return;
+    agendado = true;
+    requestAnimationFrame(() => {
+      bhPrepararTabelasMobile();
+      agendado = false;
+    });
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
+}
+
+function bhAplicarMarcaTheGamers(){
+  document.querySelectorAll('.footer .logo small').forEach(el=>el.textContent='Uma plataforma de The Gamers Tech');
+  document.querySelectorAll('.footer .copy').forEach(el=>{
+    const texto=el.childNodes[0];
+    if(texto&&texto.nodeType===Node.TEXT_NODE) texto.textContent='© 2026 Barber Hub. Uma plataforma de The Gamers Tech. ';
+  });
 }
 
 function bhAdicionarRodapeLegal(){
@@ -442,6 +503,6 @@ function bhAplicarSEO(){
 
 async function bhIniciarExperiencia(){
   const main=document.querySelector('main');const alvoMain=main?.id||'conteudo-principal';if(main&&!main.id)main.id=alvoMain;const skip=document.createElement('a');skip.className='skip-link';skip.href=`#${alvoMain}`;skip.textContent='Pular para o conteúdo';document.body.prepend(skip);
-  bhCriarProgressGlobal();bhConfigurarConexao();bhMelhorarFormularios();bhAnimarConteudo();bhAdicionarIdentidadePagina();bhAdicionarRodapeLegal();bhPrepararPWA();bhAplicarSEO();
+  bhCriarProgressGlobal();bhConfigurarConexao();bhMelhorarFormularios();bhObservarTabelasDinamicas();bhAnimarConteudo();bhAdicionarIdentidadePagina();bhAplicarMarcaTheGamers();bhAdicionarRodapeLegal();bhPrepararPWA();bhAplicarSEO();
 }
 document.addEventListener('DOMContentLoaded',bhIniciarExperiencia);

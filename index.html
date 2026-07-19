@@ -1,105 +1,86 @@
 <!DOCTYPE html>
+
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Barber Hub — plataforma de gestão, agenda e divulgação para barbearias e futuros salões de beleza.">
-    <title>Plataforma inteligente | Barber Hub</title>
-    <link rel="shortcut icon" href="./img/favicon.ico" type="image/x-icon">
-    <link rel="apple-touch-icon" sizes="180x180" href="./img/apple-touch-icon.png">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="./css/global.css">
-    <link rel="stylesheet" href="./css/pages.css">
-    <link rel="stylesheet" href="./css/index.css">
-<link rel="manifest" href="./manifest.webmanifest"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"></head>
-<body>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="Barber Hub une portal, presença digital, avaliações verificadas, agenda online e gestão para barbearias e clientes." name="description"/>
+<title>Barber Hub | Gestão para quem atende. Facilidade para quem procura.</title>
+<link href="./img/favicon.ico" rel="shortcut icon" type="image/x-icon"/>
+<link href="./img/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="./css/global.css" rel="stylesheet"/>
+<link href="./css/pages.css" rel="stylesheet"/>
+<link href="./css/index.css" rel="stylesheet"/>
+<link href="./manifest.webmanifest" rel="manifest"/>
+</head>
+<body class="home-redesign">
 <header class="header">
-    <div class="container nav">
-        <a href="./index.html" class="logo">
-            <img src="./img/logomarcaTRANSPARENTE.png" alt="Barber Hub">
-            <span>Barber Hub<small>Gestão inteligente</small></span>
-        </a>
-        <nav class="menu" id="menuPrincipal">
-            <a href="./index.html" data-page="home">Início</a>
-            <a href="./html/portal.html" data-page="portal">Portal</a>
-            <a href="./html/agendamento.html" data-page="agendamento">Agendar</a>
-            <a href="./html/planos.html" data-page="planos">Planos</a>
-            <a href="./html/beauty-hub.html" data-page="beauty">Beauty Hub</a>
-            <a href="./html/contato.html" data-page="contato">Suporte</a>
-        </nav>
-        <div class="nav-actions">
-            <button class="btn-tema" id="btnTema" title="Alternar tema" aria-label="Alternar tema"><i class="bi bi-circle-half"></i></button>
-            <a class="btn btn-outline btn-small account-link" data-auth-link href="./html/login.html"><i class="bi bi-person-circle"></i> <span data-user-name>Entrar</span></a>
-            <button class="btn-menu" id="btnMenu" aria-label="Abrir menu lateral"><i class="bi bi-list"></i></button>
-        </div>
-    </div>
+<div class="container nav">
+<a class="logo" href="./index.html"><img alt="Barber Hub" src="./img/logomarcaTRANSPARENTE.png"/><span>Barber Hub<small>Gestão inteligente</small></span></a>
+<nav class="menu" id="menuPrincipal">
+<a data-page="home" href="./index.html">Início</a><a data-page="portal" href="./html/portal.html">Portal</a><a data-page="agendamento" href="./html/agendamento.html">Agendar</a><a data-page="planos" href="./html/planos.html">Planos</a><a data-page="sobre" href="./html/sobre.html">Sobre</a><a data-page="contato" href="./html/contato.html">Suporte</a>
+</nav>
+<div class="nav-actions"><button aria-label="Alternar tema" class="btn-tema" id="btnTema" title="Alternar tema"><i class="bi bi-circle-half"></i></button><a class="btn btn-outline btn-small account-link" data-auth-link="" href="./html/login.html"><i class="bi bi-person-circle"></i> <span data-user-name="">Entrar</span></a><button aria-label="Abrir menu lateral" class="btn-menu" id="btnMenu"><i class="bi bi-list"></i></button></div>
+</div>
 </header>
 <main>
-<section class="hero">
-  <div class="container hero-grid">
-    <div>
-      <span class="tag"><i class="bi bi-stars"></i> Gestão, agenda e presença digital</span>
-      <h1>Mais organização para o profissional. <span class="gradiente-texto">Mais facilidade para o cliente.</span></h1>
-      <p>O Barber Hub integra página pública, status aberto ou fechado, agendamento, serviços, equipe, histórico e relatórios em uma única plataforma conectada ao Supabase.</p>
-      <div class="hero-actions"><a href="./html/portal.html" class="btn btn-primary"><i class="bi bi-search"></i> Explorar estabelecimentos</a><a href="./html/cadastro.html" class="btn btn-outline"><i class="bi bi-shop"></i> Cadastrar meu negócio</a></div>
-      <div class="hero-stats">
-        <div class="stat"><strong data-stat="estabelecimentos">0</strong><span>Estabelecimentos</span></div>
-        <div class="stat"><strong data-stat="agendamentos">0</strong><span>Com agenda online</span></div>
-        <div class="stat"><strong data-stat="abertos">0</strong><span>Abertos agora</span></div>
-      </div>
-    </div>
-    <div class="hero-visual">
-      <div class="phone-card">
-        <div class="phone-top"><div class="phone-logo"><img src="./img/logomarcaTRANSPARENTE.png" alt=""><strong>Barber Hub</strong></div><span class="status aberta">Conectado</span></div>
-        <div class="phone-banner"></div>
-        <div class="mini-list">
-          <div class="mini-item"><div class="mini-avatar"><i class="bi bi-broadcast"></i></div><div><strong>Status em tempo real</strong><span>Horários, feriados e controle manual.</span></div></div>
-          <div class="mini-item"><div class="mini-avatar"><i class="bi bi-calendar-check"></i></div><div><strong>Agenda sem conflitos</strong><span>Horários ocupados são bloqueados no banco.</span></div></div>
-          <div class="mini-item"><div class="mini-avatar"><i class="bi bi-graph-up-arrow"></i></div><div><strong>Gestão do negócio</strong><span>Equipe, serviços, fotos e relatórios.</span></div></div>
-        </div>
-      </div>
-      <div class="float-card"><span class="status aberta">Dados reais</span><p>Autenticação e armazenamento com Supabase.</p></div>
-    </div>
-  </div>
+<section class="hero home-hero-new">
+<div class="container home-hero-layout">
+<div class="home-hero-copy">
+<span class="tag"><i class="bi bi-stars"></i> Portal + gestão no mesmo ecossistema</span>
+<h1>Seu próximo atendimento começa com uma <span class="gradiente-texto">conexão melhor.</span></h1>
+<p>O Barber Hub ajuda clientes a encontrar, conhecer e agendar. Ao mesmo tempo, dá aos profissionais uma página pública, agenda, portfólio, avaliações e controle do negócio.</p>
+<div class="hero-actions"><a class="btn btn-primary" href="./html/portal.html"><i class="bi bi-search"></i> Encontrar uma barbearia</a><a class="btn btn-outline" href="./html/cadastro.html"><i class="bi bi-shop-window"></i> Cadastrar meu negócio</a></div>
+<div class="home-proof-line"><span><i class="bi bi-patch-check"></i> Avaliações verificadas</span><span><i class="bi bi-calendar-check"></i> Agenda sem conflito</span><span><i class="bi bi-phone"></i> Experiência de aplicativo</span></div>
+</div>
+<div aria-label="Prévia da experiência Barber Hub" class="home-experience-preview">
+<div class="preview-glow"></div>
+<div class="app-preview-shell">
+<div class="app-preview-top"><img alt="" src="./img/logomarcaTRANSPARENTE.png"/><div><strong>Barber Hub</strong><span>Explore perto de você</span></div><i class="bi bi-bell"></i></div>
+<div class="app-search"><i class="bi bi-search"></i><span>Barbearia, bairro ou cidade</span></div>
+<article class="app-business-card"><div class="app-business-image"><span class="status aberta">Aberto agora</span><span class="verified-mini"><i class="bi bi-patch-check-fill"></i> Verificado</span></div><div><div class="app-business-title"><strong>Seu estilo, seu horário</strong><span>4,9 ★</span></div><p>Serviços, equipe, trabalhos e redes sociais em um só lugar.</p><button>Agendar horário</button></div></article>
+<div class="app-bottom-nav"><i class="bi bi-house-door-fill"></i><i class="bi bi-shop"></i><i class="bi bi-calendar2-plus"></i><i class="bi bi-heart"></i><i class="bi bi-person"></i></div>
+</div>
+<div class="floating-proof proof-one"><i class="bi bi-heart-fill"></i><div><strong>Favoritos</strong><span>Volte em poucos toques</span></div></div>
+<div class="floating-proof proof-two"><i class="bi bi-arrow-repeat"></i><div><strong>Agendar novamente</strong><span>Mesmo serviço e profissional</span></div></div>
+</div>
+</div>
 </section>
-<section class="section recursos"><div class="container"><div class="section-top"><div><span class="tag">Plataforma completa</span><h2 class="titulo-section">Não é apenas uma vitrine.</h2><p class="texto-section">Cada profissional recebe uma página pública e um ambiente privado para administrar o próprio negócio.</p></div><a href="./html/cadastro.html" class="btn btn-outline">Começar cadastro</a></div><div class="grid grid-4">
-<div class="feature"><div class="icon"><i class="bi bi-broadcast"></i></div><h3>Online ou offline</h3><p>O sistema considera funcionamento, datas bloqueadas e decisão manual do responsável.</p></div>
-<div class="feature"><div class="icon"><i class="bi bi-calendar2-check"></i></div><h3>Agenda inteligente</h3><p>Clientes autenticados agendam e o banco impede sobreposição de horários.</p></div>
-<div class="feature"><div class="icon"><i class="bi bi-speedometer2"></i></div><h3>Painel próprio</h3><p>Altere fotos, serviços, equipe, horários, status e acompanhe atendimentos.</p></div>
-<div class="feature"><div class="icon"><i class="bi bi-headset"></i></div><h3>Suporte por tickets</h3><p>Solicitações ficam registradas e podem ser respondidas pela administração.</p></div>
-</div></div></section>
-<section class="section workflow"><div class="container"><span class="tag">Fluxo real</span><h2 class="titulo-section">Do cadastro ao atendimento.</h2><div class="timeline"><div class="step"><h3>Crie sua conta</h3><p>Cliente ou profissional entra com autenticação segura por e-mail e senha.</p></div><div class="step"><h3>Cadastre o negócio</h3><p>O profissional completa informações, horários, serviço inicial e imagens.</p></div><div class="step"><h3>Receba agendamentos</h3><p>O cliente escolhe local, serviço, profissional, data e horário disponível.</p></div><div class="step"><h3>Acompanhe resultados</h3><p>O painel mostra agenda, faturamento estimado, serviços e horários fortes.</p></div></div></div></section>
-<section class="section"><div class="container"><div class="section-top"><div><span class="tag">Planos prontos</span><h2 class="titulo-section">Uma assinatura para cada fase do negócio.</h2><p class="texto-section">Comece no gratuito para ganhar presença e evolua para agenda, relatórios e equipe conforme a barbearia crescer.</p></div><a href="./html/planos.html" class="btn btn-outline">Ver todos os planos</a></div><div class="grid grid-3 mini-plan-grid"><div class="feature"><div class="icon"><i class="bi bi-shop"></i></div><h3>Perfil gratuito</h3><p>Divulgação no portal, status aberto/fechado, contatos e até 10 publicações.</p></div><div class="feature"><div class="icon"><i class="bi bi-calendar2-check"></i></div><h3>Essencial</h3><p>Agenda online, notificações, histórico e organização para barbeiros autônomos.</p></div><div class="feature"><div class="icon"><i class="bi bi-bar-chart"></i></div><h3>Profissional</h3><p>Equipe, relatórios por profissional e recursos de gestão para crescer com consistência.</p></div></div></div></section>
-<section class="section beauty-preview"><div class="container cta-box beauty-card"><div><span class="tag"><i class="bi bi-stars"></i> Próxima expansão</span><h2>Beauty Hub: a mesma tecnologia para salões de beleza.</h2><p>O banco e a arquitetura já aceitam barbearias e salões. A futura co-plataforma terá identidade visual própria, mantendo agenda, gestão, serviços e suporte integrados.</p></div><a href="./html/beauty-hub.html" class="btn btn-primary">Conhecer a proposta</a></div></section>
-<section class="cta"><div class="container"><div class="cta-box"><div><span class="tag">Infraestrutura preparada</span><h2>HTML, CSS, JavaScript e Supabase.</h2><p>Contas reais, regras de segurança por usuário, armazenamento de imagens e dados persistentes em qualquer dispositivo.</p></div><div class="cta-actions"><a class="btn btn-primary" href="./html/cadastro.html">Criar conta</a><a class="btn btn-outline" href="./html/login.html">Entrar</a></div></div></div></section>
+<section class="home-metrics-strip">
+<div class="container home-metrics"><div><strong data-stat="estabelecimentos">0</strong><span>estabelecimentos cadastrados</span></div><div><strong data-stat="agendamentos">0</strong><span>negócios com agenda online</span></div><div><strong data-stat="abertos">0</strong><span>abertos neste momento</span></div><p>Dados atualizados pela plataforma.</p></div>
+</section>
+<section class="section home-problem-solution">
+<div class="container split-story">
+<div class="story-copy"><span class="tag">O diferencial</span><h2>Não somos apenas um portal. Nem apenas um sistema interno.</h2><p>O cliente enxerga o trabalho. O profissional controla a operação. O Barber Hub conecta os dois lados sem obrigar cada um a usar uma experiência complicada.</p><a class="text-link" href="./html/sobre.html">Entender nosso objetivo <i class="bi bi-arrow-right"></i></a></div>
+<div class="story-flow"><div class="flow-node client-node"><i class="bi bi-person"></i><div><span>Cliente</span><strong>Descobre, compara e agenda</strong></div></div><div class="flow-connector"><span></span><b>BARBER HUB</b><span></span></div><div class="flow-node pro-node"><i class="bi bi-scissors"></i><div><span>Profissional</span><strong>Divulga, organiza e cresce</strong></div></div></div>
+</div>
+</section>
+<section class="section home-journey">
+<div class="container">
+<div class="section-top"><div><span class="tag">Uma jornada completa</span><h2 class="titulo-section">Do primeiro contato ao próximo atendimento.</h2><p class="texto-section">Menos etapas soltas, mais continuidade para quem procura e para quem atende.</p></div></div>
+<div class="journey-track">
+<article><span>01</span><i class="bi bi-geo-alt"></i><h3>Descobrir</h3><p>Encontre estabelecimentos por localização, serviços, status e reputação.</p></article>
+<article><span>02</span><i class="bi bi-images"></i><h3>Conhecer</h3><p>Veja portfólio, equipe, preços, Instagram, TikTok e avaliações verificadas.</p></article>
+<article><span>03</span><i class="bi bi-calendar2-check"></i><h3>Agendar</h3><p>Escolha serviço, profissional, data e horário sem sobreposição.</p></article>
+<article><span>04</span><i class="bi bi-arrow-repeat"></i><h3>Voltar</h3><p>Favorite, acompanhe notificações e repita seu atendimento rapidamente.</p></article>
+</div>
+</div>
+</section>
+<section class="section home-business-showcase">
+<div class="container business-showcase-grid">
+<div class="showcase-dashboard"><div class="dashboard-top"><span>Visão da semana</span><span class="status aberta">Operação ativa</span></div><div class="dashboard-number"><strong>24</strong><span>agendamentos</span></div><div class="dashboard-bars"><span style="--h:42%"></span><span style="--h:70%"></span><span style="--h:58%"></span><span style="--h:88%"></span><span style="--h:65%"></span><span style="--h:94%"></span><span style="--h:48%"></span></div><div class="dashboard-mini"><div><i class="bi bi-star-fill"></i><strong>4,8</strong><span>avaliação</span></div><div><i class="bi bi-person-check"></i><strong>68%</strong><span>recorrência</span></div><div><i class="bi bi-cash-coin"></i><strong>R$ 1.420</strong><span>estimado</span></div></div></div>
+<div class="showcase-copy"><span class="tag">Para o negócio</span><h2 class="titulo-section">Um painel que ajuda na rotina, não que cria mais trabalho.</h2><p class="texto-section">Agenda, serviços, equipe, página pública, portfólio, respostas a avaliações e relatórios ficam no mesmo ambiente. No celular, os acessos principais aparecem como em um aplicativo.</p><ul class="check-list"><li><i class="bi bi-check2"></i> Controle de status e funcionamento</li><li><i class="bi bi-check2"></i> Indicadores de ocupação e receita estimada</li><li><i class="bi bi-check2"></i> Perfil verificado e presença digital</li><li><i class="bi bi-check2"></i> Notificações em tempo real</li></ul><a class="btn btn-primary" href="./html/cadastro.html">Criar perfil profissional</a></div>
+</div>
+</section>
+<section class="section home-plans-teaser"><div class="container"><div class="plans-teaser"><div><span class="tag"><i class="bi bi-stars"></i> Programa Fundadores</span><h2>Comece com acompanhamento próximo e ajude a construir o Barber Hub.</h2><p>As primeiras barbearias selecionadas poderão testar recursos, receber apoio de implantação e participar da evolução da plataforma.</p><div class="founder-mini-benefits"><span>90 dias gratuitos</span><span>Implantação assistida</span><span>Acesso antecipado</span></div></div><div><strong>R$ 0</strong><span>para começar</span><a class="btn btn-primary" href="./html/planos.html#programa-fundador">Conhecer o programa</a></div></div></div></section>
+<section class="section home-brand-signature"><div class="container"><div class="brand-signature"><div><span>BARBER HUB</span><h2>Gestão para quem atende.<br/>Facilidade para quem procura.</h2></div><div><p>Uma plataforma de</p><strong>The Gamers Tech</strong><a href="./html/sobre.html">Conheça a visão por trás do projeto <i class="bi bi-arrow-right"></i></a></div></div></div></section>
 </main>
-<footer class="footer">
-    <div class="container">
-        <div class="footer-grid">
-            <div>
-                <a href="./index.html" class="logo"><img src="./img/logomarcaTRANSPARENTE.png" alt="Barber Hub"><span>Barber Hub<small>Plataforma profissional</small></span></a>
-                <p style="margin-top:16px">Gestão, divulgação, agenda online e inteligência de dados para profissionais de beleza.</p>
-            </div>
-            <div><h4>Plataforma</h4><p><a href="./html/portal.html">Explorar locais</a></p><p><a href="./html/agendamento.html">Agendar horário</a></p><p><a href="./html/planos.html">Ver planos</a></p><p><a href="./html/cadastro.html">Criar conta</a></p></div>
-            <div><h4>Profissionais</h4><p><a href="./html/cadastro.html">Cadastrar negócio</a></p><p><a href="./html/login.html">Entrar no painel</a></p><p><a href="./html/contato.html">Abrir ticket</a></p></div>
-            <div><h4>Expansão</h4><p><a href="./html/beauty-hub.html">Beauty Hub</a></p><p>Pagamentos futuros</p><p>Recomendações inteligentes</p></div>
-        </div>
-        <div class="copy">© 2026 Barber Hub. Plataforma em desenvolvimento com HTML, CSS, JavaScript e Supabase.</div>
-    </div>
-</footer>
-<div id="toast" class="toast"></div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="./js/supabase-config.js"></script>
-<script src="./js/supabase-client.js"></script>
-<script src="./js/utils.js"></script>
-<script src="./js/toast.js"></script>
-<script src="./js/auth.js"></script>
-<script src="./js/api.js"></script>
-<script src="./js/status.js"></script>
-<script src="./js/ia.js"></script>
-<script src="./js/ui.js"></script>
-<script src="./js/home.js"></script>
-</body></html>
+<footer class="footer"><div class="container"><div class="footer-grid"><div><a class="logo" href="./index.html"><img alt="Barber Hub" src="./img/logomarcaTRANSPARENTE.png"/><span>Barber Hub<small>Uma plataforma de The Gamers Tech</small></span></a><p style="margin-top:16px">Gestão, divulgação e conexão entre profissionais e clientes.</p></div><div><h4>Plataforma</h4><p><a href="./html/portal.html">Explorar locais</a></p><p><a href="./html/agendamento.html">Agendar horário</a></p><p><a href="./html/planos.html">Ver planos</a></p></div><div><h4>Institucional</h4><p><a href="./html/sobre.html">Sobre o Barber Hub</a></p><p><a href="./html/contato.html">Suporte</a></p><p><a href="./html/privacidade.html">Privacidade</a></p></div><div><h4>Ecossistema</h4><p>The Gamers Tech</p><p><a href="./html/beauty-hub.html">Beauty Hub</a></p></div></div><div class="copy">© 2026 Barber Hub. Uma plataforma de The Gamers Tech. </div></div></footer>
+<div class="toast" id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./js/supabase-config.js"></script><script src="./js/supabase-client.js"></script><script src="./js/utils.js"></script><script src="./js/toast.js"></script><script src="./js/auth.js"></script><script src="./js/api.js"></script><script src="./js/status.js"></script><script src="./js/ia.js"></script><script src="./js/ui.js"></script><script src="./js/home.js"></script>
+</body>
+</html>

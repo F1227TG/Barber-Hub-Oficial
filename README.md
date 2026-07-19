@@ -185,3 +185,8 @@ O Vercel conectado ao branch de produção publicará a alteração automaticame
 - Exportação e exclusão completa de conta;
 - Aplicativo móvel;
 - Expansão Beauty Hub.
+
+
+## Versão 1.3.0
+
+A versão 1.3 adiciona avaliações verificadas, favoritos, reagendamento, redes sociais, exclusão de conta, administração ampliada, nova página Sobre, página inicial redesenhada, planos mensais e experiência mobile em formato de aplicativo. Antes dos testes, aplique `sql/12_comunidade_conta_admin_mobile.sql`.

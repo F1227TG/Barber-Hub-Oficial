@@ -2,6 +2,7 @@ let bhPainelPerfil = null;
 let bhPainelEstabelecimento = null;
 let bhPainelAgendamentos = [];
 let bhPainelPortfolio = [];
+let bhPainelAvaliacoes = [];
 let bhPortfolioFiltro = "todas";
 let bhPortfolioArquivos = [];
 let bhPortfolioSubmitStatus = "rascunho";
@@ -97,6 +98,7 @@ function bhRenderConfiguracoesPainel() {
   document.getElementById("configTelefone").value = b.telefone || "";
   document.getElementById("configWhatsapp").value = b.whatsapp || "";
   document.getElementById("configInstagram").value = b.instagram || "";
+  document.getElementById("configTiktok").value = b.tiktok || "";
   document.getElementById("configEndereco").value = b.endereco || "";
   document.getElementById("configDescricao").value = b.descricao || "";
   document.getElementById("configStatus").value = b.statusManual || "automatico";
@@ -124,6 +126,32 @@ function bhRenderConfiguracoesPainel() {
   dias.innerHTML = b.diasFechados.length ? b.diasFechados.map(item => `
     <div class="simple-item"><div><strong>${bhFormatarData(item.data)}</strong><span>${escapeHTML(item.motivo || "Data bloqueada")}</span></div><button class="icon-btn danger" data-bloqueio-delete="${item.id}"><i class="bi bi-trash"></i></button></div>
   `).join("") : `<div class="empty compact">Nenhuma data bloqueada.</div>`;
+}
+
+function bhRenderAvaliacoesPainel() {
+  const lista = document.getElementById("listaAvaliacoesPainel");
+  const resumo = document.getElementById("painelRatingResumo");
+  if (!lista || !resumo) return;
+  const publicadas = bhPainelAvaliacoes.filter(item => item.status === "publicada");
+  const media = publicadas.length ? publicadas.reduce((total, item) => total + Number(item.nota || 0), 0) / publicadas.length : 0;
+  resumo.innerHTML = `<strong>${media.toFixed(1).replace(".", ",")}</strong><span>${publicadas.length} avaliação${publicadas.length === 1 ? "" : "ões"}</span>`;
+  if (!bhPainelAvaliacoes.length) {
+    lista.innerHTML = `<div class="empty compact"><i class="bi bi-star big"></i><p>Ainda não há avaliações verificadas.</p></div>`;
+    return;
+  }
+  lista.innerHTML = bhPainelAvaliacoes.map(item => `
+    <article class="review-manage-card" data-avaliacao-id="${item.id}">
+      <div class="review-manage-head">
+        <div><strong>${escapeHTML(item.perfis?.nome || "Cliente")}</strong><span>${"★".repeat(Number(item.nota || 0))}${"☆".repeat(5 - Number(item.nota || 0))}</span></div>
+        <small>${new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium" }).format(new Date(item.created_at))}</small>
+      </div>
+      <p>${escapeHTML(item.comentario || "Cliente avaliou sem comentário.")}</p>
+      <form class="review-reply-form" data-responder-avaliacao="${item.id}">
+        <label for="resposta-${item.id}">Resposta pública</label>
+        <textarea id="resposta-${item.id}" maxlength="1200" placeholder="Agradeça ou esclareça com respeito.">${escapeHTML(item.resposta_estabelecimento || "")}</textarea>
+        <button class="btn btn-outline btn-small" type="submit"><i class="bi bi-reply"></i> Salvar resposta</button>
+      </form>
+    </article>`).join("");
 }
 
 function bhRenderPaginaPublicaPreview() {
@@ -296,9 +324,10 @@ async function bhRecarregarPainel() {
     location.href = "cadastro-barbearia.html";
     return;
   }
-  [bhPainelAgendamentos, bhPainelPortfolio] = await Promise.all([
+  [bhPainelAgendamentos, bhPainelPortfolio, bhPainelAvaliacoes] = await Promise.all([
     bhListarAgendamentosEstabelecimento(bhPainelEstabelecimento.id),
-    bhListarMeuPortfolio(bhPainelEstabelecimento.id)
+    bhListarMeuPortfolio(bhPainelEstabelecimento.id),
+    bhListarAvaliacoesMeuEstabelecimento(bhPainelEstabelecimento.id).catch(erro => { console.warn("Avaliações ainda não disponíveis.", erro); return []; })
   ]);
   document.getElementById("painelUserNome").textContent = bhPainelPerfil.nome;
   document.getElementById("painelUserTipo").textContent = bhPainelPerfil.tipo === "admin" ? "Administrador" : "Proprietário";
@@ -311,6 +340,7 @@ async function bhRecarregarPainel() {
   bhRenderConfiguracoesPainel();
   bhRenderPaginaPublicaPreview();
   bhRenderPortfolioPainel();
+  bhRenderAvaliacoesPainel();
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -331,7 +361,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   document.querySelectorAll("[data-panel]").forEach(botao => botao.addEventListener("click", () => bhAtivarSecaoPainel(botao.dataset.panel)));
   const hash = location.hash.replace("#", "");
-  const mapaHash = { agenda: "secAgenda", servicos: "secServicos", equipe: "secBarbeiros", relatorios: "secRelatorios", galeria: "secGaleria", configuracoes: "secConfig", pagina: "secPagina" };
+  const mapaHash = { agenda: "secAgenda", servicos: "secServicos", equipe: "secBarbeiros", relatorios: "secRelatorios", galeria: "secGaleria", avaliacoes: "secAvaliacoes", configuracoes: "secConfig", pagina: "secPagina" };
   if (mapaHash[hash]) bhAtivarSecaoPainel(mapaHash[hash]);
 
   document.querySelectorAll("[data-horario-aberto]").forEach(check => check.addEventListener("change", () => {
@@ -557,6 +587,20 @@ document.addEventListener("DOMContentLoaded", async () => {
     } catch (erro) { mostrarToast("erro", "Ação não concluída", bhErroMensagem(erro)); }
   });
 
+  document.getElementById("listaAvaliacoesPainel")?.addEventListener("submit", async evento => {
+    const form = evento.target.closest("[data-responder-avaliacao]");
+    if (!form) return;
+    evento.preventDefault();
+    const botao = form.querySelector("button[type='submit']");
+    bhSetButtonLoading(botao, true, "Salvando...");
+    try {
+      await bhResponderAvaliacao(form.dataset.responderAvaliacao, form.querySelector("textarea").value);
+      mostrarToast("sucesso", "Resposta publicada", "O cliente receberá uma notificação.");
+      await bhRecarregarPainel();
+    } catch (erro) { mostrarToast("erro", "Não foi possível responder", bhErroMensagem(erro)); }
+    finally { bhSetButtonLoading(botao, false); }
+  });
+
   document.getElementById("formConfig").addEventListener("submit", async evento => {
     evento.preventDefault();
     const botao = evento.currentTarget.querySelector("button[type='submit']");
@@ -573,6 +617,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         telefone: document.getElementById("configTelefone").value.trim(),
         whatsapp: bhNormalizarWhatsApp(document.getElementById("configWhatsapp").value),
         instagram: document.getElementById("configInstagram").value.trim(),
+        tiktok: document.getElementById("configTiktok").value.trim(),
         endereco: document.getElementById("configEndereco").value.trim(),
         descricao: document.getElementById("configDescricao").value.trim(),
         status_manual: document.getElementById("configStatus").value,
@@ -631,7 +676,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 window.addEventListener("hashchange", () => {
-  const mapa = { agenda: "secAgenda", servicos: "secServicos", equipe: "secBarbeiros", relatorios: "secRelatorios", galeria: "secGaleria", configuracoes: "secConfig", pagina: "secPagina" };
+  const mapa = { agenda: "secAgenda", servicos: "secServicos", equipe: "secBarbeiros", relatorios: "secRelatorios", galeria: "secGaleria", avaliacoes: "secAvaliacoes", configuracoes: "secConfig", pagina: "secPagina" };
   const alvo = mapa[location.hash.replace("#", "")];
   if (alvo) bhAtivarSecaoPainel(alvo);
 });
