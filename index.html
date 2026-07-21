@@ -2,6 +2,7 @@
 <html lang="pt-BR">
  <head>
   <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
   <meta content="Barber Hub une portal, presença digital, avaliações verificadas, agenda online e gestão para barbearias e clientes." name="description"/>
   <title>
@@ -18,7 +19,8 @@
   <link href="./css/pages.css" rel="stylesheet"/>
   <link href="./css/index.css" rel="stylesheet"/>
   <link href="./manifest.webmanifest" rel="manifest"/>
- </head>
+   <link rel="stylesheet" href="./css/mobile-app.css">
+</head>
  <body class="home-redesign">
   <!-- Cabeçalho e navegação principal -->
   <header class="header">
@@ -212,37 +214,38 @@
      </div>
     </div>
    </section>
-   <section class="home-metrics-strip">
-    <div class="container home-metrics">
-     <div>
-      <strong data-stat="estabelecimentos">
-       0
-      </strong>
-      <span>
-       estabelecimentos cadastrados
-      </span>
-     </div>
-     <div>
-      <strong data-stat="agendamentos">
-       0
-      </strong>
-      <span>
-       negócios com agenda online
-      </span>
-     </div>
-     <div>
-      <strong data-stat="abertos">
-       0
-      </strong>
-      <span>
-       abertos neste momento
-      </span>
-     </div>
-     <p>
-      Dados atualizados pela plataforma.
-     </p>
+   <section class="home-metrics-strip" aria-label="Indicadores atualizados da plataforma">
+    <div class="container home-metrics-shell">
+      <div class="home-metrics-intro">
+        <span class="home-live-pill">Dados ao vivo</span>
+        <strong>O Barber Hub em movimento</strong>
+        <p>Números atualizados automaticamente pela plataforma.</p>
+      </div>
+      <div class="home-metrics">
+        <article class="home-metric-card">
+          <span class="home-metric-icon"><i class="bi bi-shop-window"></i></span>
+          <div class="home-metric-copy">
+            <strong data-stat="estabelecimentos">0</strong>
+            <span>estabelecimentos cadastrados</span>
+          </div>
+        </article>
+        <article class="home-metric-card">
+          <span class="home-metric-icon"><i class="bi bi-calendar2-check"></i></span>
+          <div class="home-metric-copy">
+            <strong data-stat="agendamentos">0</strong>
+            <span>negócios com agenda online</span>
+          </div>
+        </article>
+        <article class="home-metric-card">
+          <span class="home-metric-icon"><i class="bi bi-door-open"></i></span>
+          <div class="home-metric-copy">
+            <strong data-stat="abertos">0</strong>
+            <span>abertos neste momento</span>
+          </div>
+        </article>
+      </div>
     </div>
-   </section>
+  </section>
    <section class="section home-problem-solution">
     <div class="container split-story">
      <div class="story-copy">
@@ -650,6 +653,7 @@
   </script>
   <script src="./js/home.js">
   </script>
- </body>
+   <script src="./js/mobile-app.js"></script>
+</body>
 </html>
 

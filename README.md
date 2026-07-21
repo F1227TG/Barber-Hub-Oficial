@@ -1,4 +1,4 @@
-# Barber Hub — versão 1.3.2
+# Barber Hub — versão 1.4.0
 
 Plataforma web para descoberta, divulgação, gestão e agendamento de barbearias. O projeto também está preparado para a futura expansão **Beauty Hub**.
 
@@ -10,6 +10,21 @@ Tecnologias principais:
 - Supabase Storage;
 - Supabase Realtime por WebSocket;
 - PWA e hospedagem estática no Vercel.
+
+
+## Experiência mobile 1.4.0
+
+- interface mobile inspirada na praticidade de aplicativos de serviços;
+- cabeçalho contextual e dock inferior por perfil;
+- filtros do portal em folha inferior;
+- cartões compactos e tabelas convertidas em cards;
+- ações rápidas para cliente, profissional e administrador;
+- página pública com agendamento fixo e conteúdo reorganizado;
+- suporte a notch, áreas seguras e PWA standalone;
+- estilos concentrados em `css/mobile-app.css`;
+- comportamentos concentrados em `js/mobile-app.js`.
+
+> A versão 1.4.0 não exige migration SQL nova.
 
 ## Funcionalidades atuais
 

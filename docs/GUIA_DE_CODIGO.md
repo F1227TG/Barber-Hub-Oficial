@@ -1,4 +1,4 @@
-# Guia de código — Barber Hub 1.3.2
+# Guia de código — Barber Hub 1.4.0
 
 Este documento explica onde cada parte do sistema deve ser alterada. O objetivo é evitar regras duplicadas e facilitar a manutenção.
 
@@ -45,3 +45,13 @@ O cartão de plano atual possui espaçamento interno próprio, colunas flexívei
 - Testar larguras de 390 px, 768 px e 1366 px.
 - Confirmar que textos longos não saem dos cartões.
 - Atualizar o nome do cache no `service-worker.js` quando arquivos estáticos mudarem.
+
+
+## Experiência responsiva 1.4.0
+
+- `css/mobile-app.css`: contém somente a camada de adaptação para tablet e celular.
+- `js/mobile-app.js`: adiciona cabeçalho contextual, atalhos, filtros mobile e ações fixas.
+- `js/ui.js`: cria menu por perfil, drawer, badges e dock inferior.
+- `js/home.js`: carrega e anima os indicadores públicos da página inicial.
+
+Ao corrigir um problema exclusivamente mobile, prefira alterar `mobile-app.css` ou `mobile-app.js`, evitando espalhar regras responsivas em vários arquivos.

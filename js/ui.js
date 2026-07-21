@@ -312,10 +312,12 @@ async function bhInicializarInterface() {
     try { perfil = await bhGetPerfil(); } catch (erro) { console.warn(erro); }
   }
   const contadores = await bhAtualizarNavegacao(perfil);
+  document.body.dataset.userType = perfil?.tipo || "visitante";
   bhCriarDrawer(perfil, contadores);
   bhCriarDockMobile(perfil, contadores);
   bhConfigurarAcessibilidade();
   bhAssinarNavegacaoTempoReal(perfil, contadores);
+  document.dispatchEvent(new CustomEvent("bh:interface-ready", { detail: { perfil, contadores } }));
 
   const btnTema = document.getElementById("btnTema");
   btnTema?.addEventListener("click", () => {
@@ -459,43 +461,86 @@ function bhAdicionarRodapeLegal(){
 }
 
 function bhCriarDockMobile(perfil, contadores = {}){
-  if(document.querySelector('.mobile-dock'))return;
-  const dock=document.createElement('nav');dock.className='mobile-dock';dock.setAttribute('aria-label','Navegação rápida');
+  if(document.querySelector(".mobile-dock")) return;
+
+  const dock = document.createElement("nav");
+  dock.className = "mobile-dock";
+  dock.setAttribute("aria-label", "Navegação rápida");
+
   let links;
-  if(perfil?.tipo==='barbeiro') links=[
-    ['html/painel.html','Painel','bi-grid'],
-    [contadores.aceitaAgendamento?'html/painel.html#agenda':'html/painel.html#configuracoes',contadores.aceitaAgendamento?'Agenda':'Ativar','bi-calendar-week','agenda'],
-    ['html/painel.html#servicos','Serviços','bi-scissors'],
-    ['html/notificacoes.html','Avisos','bi-bell','notificacoes'],
-    ['#menu','Mais','bi-grid-3x3-gap',null,'drawer']
-  ];
-  else if(perfil?.tipo==='admin') links=[
-    ['html/admin.html','Admin','bi-shield-lock'],
-    ['html/admin.html#moderacao','Moderação','bi-flag','moderacao'],
-    ['html/admin.html#tickets','Tickets','bi-headset','tickets'],
-    ['html/notificacoes.html','Avisos','bi-bell','notificacoes'],
-    ['#menu','Mais','bi-grid-3x3-gap',null,'drawer']
-  ];
-  else if(perfil) links=[
-    ['html/portal.html','Explorar','bi-shop'],
-    ['html/agendamento.html','Agendar','bi-calendar2-plus'],
-    ['html/cliente.html','Horários','bi-calendar2-check','agenda'],
-    ['html/notificacoes.html','Avisos','bi-bell','notificacoes'],
-    ['html/conta.html','Conta','bi-person-circle']
-  ];
-  else links=[
-    ['index.html','Início','bi-house-door'],['html/portal.html','Explorar','bi-shop'],
-    ['html/agendamento.html','Agendar','bi-calendar2-check'],['html/login.html','Entrar','bi-person-circle']
-  ];
-  dock.style.setProperty('--dock-items',links.length);
-  dock.innerHTML=links.map(([url,texto,icone,badge,acao])=>{
-    const valor=badge==='agenda'?contadores.agenda:badge==='tickets'?contadores.tickets:badge==='moderacao'?contadores.moderacao:contadores.notificacoes;
-    const atributo=badge==='agenda'?'data-badge-agenda':badge==='tickets'?'data-badge-tickets':badge==='moderacao'?'data-badge-moderacao':'data-badge-notificacoes';
-    return `<a href="${acao==='drawer'?'#menu':bhUrl(url)}" ${acao?`data-dock-action="${acao}"`:''}><i class="bi ${icone}"></i><span>${texto}</span>${badge?bhBadgeNavegacao(valor,atributo):''}</a>`;
-  }).join('');
+  let primaryIndex = 1;
+
+  if(perfil?.tipo === "barbeiro"){
+    links = [
+      ["html/painel.html", "Painel", "bi-grid"],
+      [contadores.aceitaAgendamento ? "html/painel.html#agenda" : "html/painel.html#configuracoes", contadores.aceitaAgendamento ? "Agenda" : "Ativar", "bi-calendar-week", "agenda"],
+      ["html/painel.html#servicos", "Serviços", "bi-scissors"],
+      ["html/notificacoes.html", "Avisos", "bi-bell", "notificacoes"],
+      ["#menu", "Mais", "bi-grid-3x3-gap", null, "drawer"]
+    ];
+  } else if(perfil?.tipo === "admin"){
+    links = [
+      ["html/admin.html", "Resumo", "bi-shield-lock"],
+      ["html/admin.html#moderacao", "Moderação", "bi-flag", "moderacao"],
+      ["html/admin.html#estabelecimentos", "Negócios", "bi-shop-window"],
+      ["html/notificacoes.html", "Avisos", "bi-bell", "notificacoes"],
+      ["#menu", "Mais", "bi-grid-3x3-gap", null, "drawer"]
+    ];
+  } else if(perfil){
+    links = [
+      ["html/portal.html", "Explorar", "bi-shop"],
+      ["html/agendamento.html", "Agendar", "bi-calendar2-plus"],
+      ["html/cliente.html", "Horários", "bi-calendar2-check", "agenda"],
+      ["html/notificacoes.html", "Avisos", "bi-bell", "notificacoes"],
+      ["html/conta.html", "Conta", "bi-person-circle"]
+    ];
+  } else {
+    primaryIndex = 2;
+    links = [
+      ["index.html", "Início", "bi-house-door"],
+      ["html/portal.html", "Explorar", "bi-shop"],
+      ["html/agendamento.html", "Agendar", "bi-calendar2-plus"],
+      ["html/planos.html", "Planos", "bi-wallet2"],
+      ["#menu", "Mais", "bi-grid-3x3-gap", null, "drawer"]
+    ];
+  }
+
+  dock.style.setProperty("--dock-items", links.length);
+  dock.innerHTML = links.map(([url,texto,icone,badge,acao]) => {
+    const valor = badge === "agenda"
+      ? contadores.agenda
+      : badge === "tickets"
+        ? contadores.tickets
+        : badge === "moderacao"
+          ? contadores.moderacao
+          : contadores.notificacoes;
+    const atributo = badge === "agenda"
+      ? "data-badge-agenda"
+      : badge === "tickets"
+        ? "data-badge-tickets"
+        : badge === "moderacao"
+          ? "data-badge-moderacao"
+          : "data-badge-notificacoes";
+    return `<a href="${acao === "drawer" ? "#menu" : bhUrl(url)}" ${acao ? `data-dock-action="${acao}"` : ""}><i class="bi ${icone}"></i><span>${texto}</span>${badge ? bhBadgeNavegacao(valor, atributo) : ""}</a>`;
+  }).join("");
+
   document.body.appendChild(dock);
-  dock.querySelector('[data-dock-action="drawer"]')?.addEventListener('click',evento=>{evento.preventDefault();bhAbrirDrawer()});
-  [...dock.querySelectorAll('a:not([data-dock-action])')].forEach(a=>{const u=new URL(a.href);if(u.pathname===location.pathname&&(!u.hash||u.hash===location.hash))a.classList.add('ativo')});
+  dock.querySelectorAll("a")[primaryIndex]?.classList.add("dock-primary");
+  dock.querySelector('[data-dock-action="drawer"]')?.addEventListener("click", evento => {
+    evento.preventDefault();
+    bhAbrirDrawer();
+  });
+
+  const marcarAtivo = () => {
+    [...dock.querySelectorAll("a:not([data-dock-action])")].forEach(link => {
+      const url = new URL(link.href);
+      const mesmoArquivo = url.pathname === location.pathname
+        || (location.pathname.endsWith("/") && url.pathname.endsWith("/index.html"));
+      link.classList.toggle("ativo", mesmoArquivo && (!url.hash || url.hash === location.hash));
+    });
+  };
+  marcarAtivo();
+  window.addEventListener("hashchange", marcarAtivo);
 }
 function bhPrepararPWA(){
   if('serviceWorker' in navigator&&location.protocol.startsWith('http')) navigator.serviceWorker.register(bhUrl('service-worker.js')).catch(console.warn);
