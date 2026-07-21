@@ -1,6 +1,7 @@
--- Barber Hub 1.3.1
+-- Barber Hub 1.3.1 — migration corrigida
 -- Modais, avaliações da comunidade e avaliações vinculadas a publicações.
 -- Execute após a migration 12_comunidade_conta_admin_mobile.sql.
+-- Correção: pausa o gatilho de validação durante a conversão das avaliações existentes.
 
 begin;
 
@@ -12,9 +13,40 @@ alter table public.avaliacoes
   add column if not exists origem text not null default 'agendamento',
   add column if not exists verificada boolean not null default false;
 
+-- A migration 12 já possui um gatilho que protege alterações nas avaliações.
+-- Durante a conversão dos registros antigos, ele precisa ser pausado temporariamente.
+do $$
+begin
+  if exists (
+    select 1
+    from pg_trigger
+    where tgrelid = 'public.avaliacoes'::regclass
+      and tgname = 'avaliacoes_validar'
+      and not tgisinternal
+  ) then
+    alter table public.avaliacoes disable trigger avaliacoes_validar;
+  end if;
+end
+$$;
+
 update public.avaliacoes
-set origem = 'agendamento', verificada = true
+set origem = 'agendamento',
+    verificada = true
 where agendamento_id is not null;
+
+do $$
+begin
+  if exists (
+    select 1
+    from pg_trigger
+    where tgrelid = 'public.avaliacoes'::regclass
+      and tgname = 'avaliacoes_validar'
+      and not tgisinternal
+  ) then
+    alter table public.avaliacoes enable trigger avaliacoes_validar;
+  end if;
+end
+$$;
 
 alter table public.avaliacoes
   drop constraint if exists avaliacoes_origem_check;
