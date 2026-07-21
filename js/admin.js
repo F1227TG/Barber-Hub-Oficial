@@ -1,3 +1,11 @@
+/**
+ * admin.js
+ * Painel administrativo: métricas, usuários, estabelecimentos, moderação e tickets.
+ *
+ * Organização: constantes e estado local → funções de renderização →
+ * operações assíncronas → eventos e inicialização da página.
+ */
+
 let bhAdminDados = null;
 let bhAdminPerfil = null;
 
@@ -76,8 +84,19 @@ function bhRenderAdminAgendamentos() {
 
 function bhRenderAdminAvaliacoes() {
   const itens = bhAdminDados.avaliacoes;
-  document.getElementById("adminAvaliacoesBadge").textContent = `${itens.length} avaliação${itens.length===1?"":"ões"}`;
-  document.getElementById("listaAdminAvaliacoes").innerHTML = itens.length ? itens.map(item => `<article class="admin-review-card"><div class="review-manage-head"><div><strong>${escapeHTML(item.estabelecimentos?.nome||"Estabelecimento")}</strong><span>${"★".repeat(Number(item.nota||0))}${"☆".repeat(5-Number(item.nota||0))}</span></div><span class="status ${item.status==="publicada"?"concluido":item.status==="ocultada"?"cancelado":"pendente"}">${escapeHTML(item.status.replace("_"," "))}</span></div><p>${escapeHTML(item.comentario||"Avaliação sem comentário.")}</p><small>${escapeHTML(item.perfis?.nome||"Conta excluída")} • ${new Date(item.created_at).toLocaleDateString("pt-BR")}</small>${item.resposta_estabelecimento?`<div class="business-reply"><strong>Resposta do estabelecimento</strong><p>${escapeHTML(item.resposta_estabelecimento)}</p></div>`:""}<div class="moderation-actions"><button class="btn btn-outline btn-small" data-admin-avaliacao-status="${item.id}" data-status="publicada"><i class="bi bi-eye"></i> Publicar</button><button class="btn btn-outline btn-small" data-admin-avaliacao-status="${item.id}" data-status="em_analise"><i class="bi bi-search"></i> Analisar</button><button class="btn btn-danger btn-small" data-admin-avaliacao-status="${item.id}" data-status="ocultada"><i class="bi bi-eye-slash"></i> Ocultar</button></div></article>`).join("") : `<div class="empty full-grid"><i class="bi bi-star big"></i><p>Nenhuma avaliação registrada.</p></div>`;
+  const verificadas = itens.filter(item => item.verificada || item.origem === "agendamento").length;
+  const comunidade = itens.length - verificadas;
+  const badge = document.getElementById("adminAvaliacoesBadge");
+  if (badge) badge.textContent = `${itens.length} avaliação${itens.length===1?"":"ões"} · ${verificadas} verificadas · ${comunidade} comunidade`;
+  document.getElementById("listaAdminAvaliacoes").innerHTML = itens.length ? itens.map(item => {
+    const verificada = Boolean(item.verificada || item.origem === "agendamento");
+    const contexto = item.portfolio_publicacoes?.titulo
+      ? `<span class="review-context"><i class="bi bi-images"></i> Publicação: ${escapeHTML(item.portfolio_publicacoes.titulo)}</span>`
+      : item.agendamentos?.servicos?.nome
+        ? `<span class="review-context"><i class="bi bi-scissors"></i> Atendimento: ${escapeHTML(item.agendamentos.servicos.nome)}</span>`
+        : "";
+    return `<article class="admin-review-card"><div class="review-manage-head"><div><strong>${escapeHTML(item.estabelecimentos?.nome||"Estabelecimento")}</strong><span>${"★".repeat(Number(item.nota||0))}${"☆".repeat(5-Number(item.nota||0))}</span></div><div class="review-meta-stack"><span class="review-source-badge ${verificada ? "verified" : "community"}"><i class="bi ${verificada ? "bi-patch-check-fill" : "bi-people-fill"}"></i> ${verificada ? "Verificada" : "Comunidade"}</span><span class="status ${item.status==="publicada"?"concluido":item.status==="ocultada"?"cancelado":"pendente"}">${escapeHTML(item.status.replace("_"," "))}</span></div></div>${contexto}<p>${escapeHTML(item.comentario||"Avaliação sem comentário.")}</p><small>${escapeHTML(item.perfis?.nome||"Conta excluída")} • ${new Date(item.created_at).toLocaleDateString("pt-BR")}</small>${item.resposta_estabelecimento?`<div class="business-reply"><strong>Resposta do estabelecimento</strong><p>${escapeHTML(item.resposta_estabelecimento)}</p></div>`:""}<div class="moderation-actions"><button class="btn btn-outline btn-small" data-admin-avaliacao-status="${item.id}" data-status="publicada"><i class="bi bi-eye"></i> Publicar</button><button class="btn btn-outline btn-small" data-admin-avaliacao-status="${item.id}" data-status="em_analise"><i class="bi bi-search"></i> Analisar</button><button class="btn btn-danger btn-small" data-admin-avaliacao-status="${item.id}" data-status="ocultada"><i class="bi bi-eye-slash"></i> Ocultar</button></div></article>`;
+  }).join("") : `<div class="empty full-grid"><i class="bi bi-star big"></i><p>Nenhuma avaliação registrada.</p></div>`;
 }
 
 function bhRenderAdminDenuncias() {
@@ -111,7 +130,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   document.body.addEventListener("change", async evento => {
     const role = evento.target.closest("[data-admin-role]"); if (!role) return;
-    if (!confirm(`Alterar este usuário para ${role.value}?`)) { await bhRecarregarAdmin(); return; }
+    if (!await bhConfirmar({ titulo: "Alterar permissão", mensagem: `Alterar este usuário para ${role.value}? O acesso ao sistema será atualizado imediatamente.`, confirmarTexto: "Alterar permissão", trigger: role })) { await bhRecarregarAdmin(); return; }
     try { await bhAdminAtualizarPerfil(role.dataset.adminRole,{tipo:role.value}); mostrarToast("sucesso","Perfil atualizado","A permissão foi alterada."); await bhRecarregarAdmin(); } catch(erro){ mostrarToast("erro","Falha ao alterar perfil",bhErroMensagem(erro)); await bhRecarregarAdmin(); }
   });
 
@@ -121,11 +140,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (vis) { await bhAdminAtualizarEstabelecimento(vis.dataset.adminVisibilidade,{visivel:vis.dataset.valor!=="true"}); mostrarToast("sucesso","Visibilidade atualizada","A alteração já está ativa no portal."); await bhRecarregarAdmin(); return; }
       if (ver) { await bhAdminAtualizarEstabelecimento(ver.dataset.adminVerificar,{verificado:ver.dataset.valor!=="true"}); mostrarToast("sucesso","Verificação atualizada","O selo foi ajustado."); await bhRecarregarAdmin(); return; }
       if (dest) { await bhAdminAtualizarEstabelecimento(dest.dataset.adminDestaque,{destaque:dest.dataset.valor!=="true"}); mostrarToast("sucesso","Destaque atualizado","A prioridade do portal foi ajustada."); await bhRecarregarAdmin(); return; }
-      if (ativo) { if(!confirm(`${ativo.dataset.valor==="true"?"Desativar":"Ativar"} esta conta?`)) return; await bhAdminAtualizarPerfil(ativo.dataset.adminAtivo,{ativo:ativo.dataset.valor!=="true"}); mostrarToast("sucesso","Conta atualizada","O status de acesso foi alterado."); await bhRecarregarAdmin(); return; }
+      if (ativo) { if(!await bhConfirmar({ titulo: `${ativo.dataset.valor==="true"?"Desativar":"Ativar"} conta`, mensagem: `${ativo.dataset.valor==="true"?"A pessoa perderá o acesso até que a conta seja reativada.":"A pessoa recuperará o acesso ao sistema."}`, confirmarTexto: ativo.dataset.valor==="true"?"Desativar":"Ativar", perigo: ativo.dataset.valor==="true", trigger: ativo })) return; await bhAdminAtualizarPerfil(ativo.dataset.adminAtivo,{ativo:ativo.dataset.valor!=="true"}); mostrarToast("sucesso","Conta atualizada","O status de acesso foi alterado."); await bhRecarregarAdmin(); return; }
       if (av) { await bhAdminAtualizarAvaliacao(av.dataset.adminAvaliacaoStatus,{status:av.dataset.status,motivo_moderacao:av.dataset.status==="ocultada"?"Ocultada pela administração":null}); mostrarToast("sucesso","Avaliação moderada","O estado público foi atualizado."); await bhRecarregarAdmin(); return; }
       const ticket=evento.target.closest("[data-ticket-salvar]"); if(ticket){const id=ticket.dataset.ticketSalvar; const status=document.querySelector(`[data-ticket-status="${id}"]`).value; const resposta=document.querySelector(`[data-ticket-resposta="${id}"]`).value.trim(); await bhAdminAtualizarTicket(id,{status,resposta:resposta||null}); mostrarToast("sucesso","Ticket atualizado","O usuário poderá visualizar a resposta."); await bhRecarregarAdmin(); return;}
       const ocultar=evento.target.closest("[data-denuncia-ocultar]"); const analisar=evento.target.closest("[data-denuncia-analisar]"); const rejeitar=evento.target.closest("[data-denuncia-rejeitar]");
-      if(ocultar){if(!confirm("Ocultar esta publicação?"))return;await bhAtualizarPublicacaoPortfolio(ocultar.dataset.publicacaoId,{status:"ocultada"});await bhAdminAtualizarDenunciaPortfolio(ocultar.dataset.denunciaOcultar,{status:"resolvida"});}
+      if(ocultar){if(!await bhConfirmar({ titulo: "Ocultar publicação", mensagem: "O conteúdo deixará de aparecer no perfil público enquanto a denúncia será marcada como resolvida.", confirmarTexto: "Ocultar publicação", perigo: true, trigger: ocultar }))return;await bhAtualizarPublicacaoPortfolio(ocultar.dataset.publicacaoId,{status:"ocultada"});await bhAdminAtualizarDenunciaPortfolio(ocultar.dataset.denunciaOcultar,{status:"resolvida"});}
       if(analisar)await bhAdminAtualizarDenunciaPortfolio(analisar.dataset.denunciaAnalisar,{status:"analisando"});
       if(rejeitar)await bhAdminAtualizarDenunciaPortfolio(rejeitar.dataset.denunciaRejeitar,{status:"rejeitada"});
       if(ocultar||analisar||rejeitar){mostrarToast("sucesso","Moderação atualizada","O estado foi salvo.");await bhRecarregarAdmin();}

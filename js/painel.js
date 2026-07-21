@@ -1,3 +1,11 @@
+/**
+ * painel.js
+ * Painel profissional: agenda, serviços, equipe, página, status e relatórios.
+ *
+ * Organização: constantes e estado local → funções de renderização →
+ * operações assíncronas → eventos e inicialização da página.
+ */
+
 let bhPainelPerfil = null;
 let bhPainelEstabelecimento = null;
 let bhPainelAgendamentos = [];
@@ -6,6 +14,45 @@ let bhPainelAvaliacoes = [];
 let bhPortfolioFiltro = "todas";
 let bhPortfolioArquivos = [];
 let bhPortfolioSubmitStatus = "rascunho";
+
+
+function bhSincronizarControlesPainel() {
+  if (!bhPainelEstabelecimento) return;
+  const modo = document.getElementById("configStatus")?.value || bhPainelEstabelecimento.statusManual || "automatico";
+  const agenda = document.getElementById("configAgenda")?.value || (bhPainelEstabelecimento.aceitaAgendamento ? "sim" : "nao");
+  document.querySelectorAll("[data-status-mode],[data-status-quick]").forEach(botao => botao.classList.toggle("ativo", (botao.dataset.statusMode || botao.dataset.statusQuick) === modo));
+  document.querySelectorAll("[data-agenda-mode]").forEach(botao => botao.classList.toggle("ativo", botao.dataset.agendaMode === agenda));
+  const status = bhCalcularStatus(bhPainelEstabelecimento);
+  const texto = document.getElementById("quickStatusTexto");
+  const detalhe = document.getElementById("quickStatusDetalhe");
+  const lateral = document.getElementById("sidebarStatusTexto");
+  if (texto) texto.textContent = status.texto;
+  if (detalhe) detalhe.textContent = status.detalhe;
+  if (lateral) lateral.textContent = status.texto;
+}
+
+function bhMotivoStatusRapido(modo) {
+  if (modo === "automatico") return null;
+  const automatico = bhCalcularStatus({ ...bhPainelEstabelecimento, statusManual: "automatico", motivoStatus: null });
+  if (modo === "aberto") return automatico.aberta ? "Aberto manualmente pelo estabelecimento." : "Aberto antecipadamente pelo estabelecimento.";
+  return automatico.aberta ? "Fechado mais cedo pelo estabelecimento." : "Fechado temporariamente pelo estabelecimento.";
+}
+
+async function bhAplicarStatusRapido(modo, botao) {
+  if (!bhPainelEstabelecimento || !["automatico", "aberto", "fechado"].includes(modo)) return;
+  document.querySelectorAll("[data-status-quick]").forEach(item => item.disabled = true);
+  bhSetButtonLoading(botao, true, "Atualizando...");
+  try {
+    await bhAtualizarEstabelecimento(bhPainelEstabelecimento.id, { status_manual: modo, motivo_status: bhMotivoStatusRapido(modo) });
+    mostrarToast("sucesso", "Status atualizado", modo === "automatico" ? "O catálogo voltou a seguir os horários cadastrados." : modo === "aberto" ? "O estabelecimento aparece como aberto antecipadamente." : "O estabelecimento aparece como fechado mais cedo.");
+    await bhRecarregarPainel();
+  } catch (erro) {
+    mostrarToast("erro", "Não foi possível alterar o status", bhErroMensagem(erro));
+  } finally {
+    bhSetButtonLoading(botao, false);
+    document.querySelectorAll("[data-status-quick]").forEach(item => item.disabled = false);
+  }
+}
 
 function bhAtivarSecaoPainel(id) {
   document.querySelectorAll(".panel-section").forEach(secao => secao.classList.toggle("ativo", secao.id === id));
@@ -104,6 +151,7 @@ function bhRenderConfiguracoesPainel() {
   document.getElementById("configStatus").value = b.statusManual || "automatico";
   document.getElementById("configMotivoStatus").value = b.motivoStatus || "";
   document.getElementById("configAgenda").value = b.aceitaAgendamento ? "sim" : "nao";
+  bhSincronizarControlesPainel();
   document.getElementById("configFotoPreview").src = b.fotoUrl || "../img/logomarcaTRANSPARENTE.png";
   document.getElementById("configCapaPreview").src = b.capaUrl || "../img/logoblack.png";
 
@@ -133,25 +181,36 @@ function bhRenderAvaliacoesPainel() {
   const resumo = document.getElementById("painelRatingResumo");
   if (!lista || !resumo) return;
   const publicadas = bhPainelAvaliacoes.filter(item => item.status === "publicada");
+  const verificadas = publicadas.filter(item => item.verificada || item.origem === "agendamento");
+  const comunidade = publicadas.filter(item => !(item.verificada || item.origem === "agendamento"));
   const media = publicadas.length ? publicadas.reduce((total, item) => total + Number(item.nota || 0), 0) / publicadas.length : 0;
-  resumo.innerHTML = `<strong>${media.toFixed(1).replace(".", ",")}</strong><span>${publicadas.length} avaliação${publicadas.length === 1 ? "" : "ões"}</span>`;
+  resumo.innerHTML = `<strong>${media.toFixed(1).replace(".", ",")}</strong><span>${publicadas.length} avaliação${publicadas.length === 1 ? "" : "ões"} · ${verificadas.length} verificadas · ${comunidade.length} comunidade</span>`;
   if (!bhPainelAvaliacoes.length) {
-    lista.innerHTML = `<div class="empty compact"><i class="bi bi-star big"></i><p>Ainda não há avaliações verificadas.</p></div>`;
+    lista.innerHTML = `<div class="empty compact"><i class="bi bi-star big"></i><p>Ainda não há avaliações publicadas.</p></div>`;
     return;
   }
-  lista.innerHTML = bhPainelAvaliacoes.map(item => `
+  lista.innerHTML = bhPainelAvaliacoes.map(item => {
+    const verificada = Boolean(item.verificada || item.origem === "agendamento");
+    const contexto = item.portfolio_publicacoes?.titulo
+      ? `<span class="review-context"><i class="bi bi-images"></i> Sobre a publicação: ${escapeHTML(item.portfolio_publicacoes.titulo)}</span>`
+      : item.agendamentos?.servicos?.nome
+        ? `<span class="review-context"><i class="bi bi-scissors"></i> Atendimento: ${escapeHTML(item.agendamentos.servicos.nome)}</span>`
+        : "";
+    return `
     <article class="review-manage-card" data-avaliacao-id="${item.id}">
       <div class="review-manage-head">
         <div><strong>${escapeHTML(item.perfis?.nome || "Cliente")}</strong><span>${"★".repeat(Number(item.nota || 0))}${"☆".repeat(5 - Number(item.nota || 0))}</span></div>
-        <small>${new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium" }).format(new Date(item.created_at))}</small>
+        <div class="review-meta-stack"><span class="review-source-badge ${verificada ? "verified" : "community"}"><i class="bi ${verificada ? "bi-patch-check-fill" : "bi-people-fill"}"></i> ${verificada ? "Verificada" : "Comunidade"}</span><small>${new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium" }).format(new Date(item.created_at))}</small></div>
       </div>
+      ${contexto}
       <p>${escapeHTML(item.comentario || "Cliente avaliou sem comentário.")}</p>
       <form class="review-reply-form" data-responder-avaliacao="${item.id}">
         <label for="resposta-${item.id}">Resposta pública</label>
         <textarea id="resposta-${item.id}" maxlength="1200" placeholder="Agradeça ou esclareça com respeito.">${escapeHTML(item.resposta_estabelecimento || "")}</textarea>
         <button class="btn btn-outline btn-small" type="submit"><i class="bi bi-reply"></i> Salvar resposta</button>
       </form>
-    </article>`).join("");
+    </article>`;
+  }).join("");
 }
 
 function bhRenderPaginaPublicaPreview() {
@@ -370,6 +429,24 @@ document.addEventListener("DOMContentLoaded", async () => {
     row.classList.toggle("fechado", !check.checked);
   }));
 
+
+  document.querySelectorAll("[data-status-mode]").forEach(botao => botao.addEventListener("click", () => {
+    const modo = botao.dataset.statusMode;
+    document.getElementById("configStatus").value = modo;
+    const motivo = document.getElementById("configMotivoStatus");
+    if (modo === "automatico") motivo.value = "";
+    else if (!motivo.value.trim()) motivo.value = bhMotivoStatusRapido(modo) || "";
+    document.querySelectorAll("[data-status-mode]").forEach(item => item.classList.toggle("ativo", item.dataset.statusMode === modo));
+  }));
+
+  document.querySelectorAll("[data-agenda-mode]").forEach(botao => botao.addEventListener("click", () => {
+    const modo = botao.dataset.agendaMode;
+    document.getElementById("configAgenda").value = modo;
+    document.querySelectorAll("[data-agenda-mode]").forEach(item => item.classList.toggle("ativo", item.dataset.agendaMode === modo));
+  }));
+
+  document.querySelectorAll("[data-status-quick]").forEach(botao => botao.addEventListener("click", () => bhAplicarStatusRapido(botao.dataset.statusQuick, botao)));
+
   document.getElementById("tbodyAgendamentos").addEventListener("click", async evento => {
     const botao = evento.target.closest("[data-agenda-status]");
     if (!botao) return;
@@ -416,7 +493,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const excluir = evento.target.closest("[data-servico-delete]");
     try {
       if (toggle) await bhAtualizarServico(toggle.dataset.servicoToggle, { ativo: toggle.dataset.ativo !== "true" });
-      if (excluir && confirm("Excluir este serviço? Agendamentos antigos continuarão preservados.")) await bhExcluirServico(excluir.dataset.servicoDelete);
+      if (excluir && await bhConfirmar({ titulo: "Excluir serviço", mensagem: "O serviço será removido da página e da agenda. Agendamentos antigos continuarão preservados.", confirmarTexto: "Excluir serviço", perigo: true, trigger: excluir })) await bhExcluirServico(excluir.dataset.servicoDelete);
       if (toggle || excluir) await bhRecarregarPainel();
     } catch (erro) { mostrarToast("erro", "Ação não concluída", bhErroMensagem(erro)); }
   });
@@ -448,7 +525,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const excluir = evento.target.closest("[data-profissional-delete]");
     try {
       if (toggle) await bhAtualizarProfissional(toggle.dataset.profissionalToggle, { ativo: toggle.dataset.ativo !== "true" });
-      if (excluir && confirm("Excluir este profissional?")) await bhExcluirProfissional(excluir.dataset.profissionalDelete);
+      if (excluir && await bhConfirmar({ titulo: "Excluir profissional", mensagem: "O profissional será removido da equipe e deixará de aparecer para novos agendamentos.", confirmarTexto: "Excluir profissional", perigo: true, trigger: excluir })) await bhExcluirProfissional(excluir.dataset.profissionalDelete);
       if (toggle || excluir) await bhRecarregarPainel();
     } catch (erro) { mostrarToast("erro", "Ação não concluída", bhErroMensagem(erro)); }
   });
@@ -539,7 +616,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     try {
       if (remover) {
         const midia = publicacao.midias.find(item => item.id === remover.dataset.removerMidia);
-        if (!midia || !confirm("Excluir esta foto permanentemente?")) return;
+        if (!midia || !await bhConfirmar({ titulo: "Excluir foto", mensagem: "A imagem será removida permanentemente do portfólio e do armazenamento.", confirmarTexto: "Excluir foto", perigo: true, trigger: remover })) return;
         await bhRemoverMidiaPortfolio(midia, publicacao);
         mostrarToast("sucesso", "Foto removida", "O arquivo também foi removido do armazenamento.");
       }
@@ -579,7 +656,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
       if (excluir) {
         const item = bhPortfolioItemPorId(excluir.dataset.portfolioExcluir);
-        if (!item || !confirm("Esta ação excluirá permanentemente a publicação, as fotos e suas interações. Deseja continuar?")) return;
+        if (!item || !await bhConfirmar({ titulo: "Excluir publicação", mensagem: "A publicação, as fotos e suas interações serão excluídas permanentemente.", confirmarTexto: "Excluir publicação", perigo: true, trigger: excluir })) return;
         await bhExcluirPublicacaoPortfolio(item);
         mostrarToast("sucesso", "Publicação excluída", "As fotos foram removidas do Storage.");
       }

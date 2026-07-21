@@ -1,3 +1,11 @@
+/**
+ * contato.js
+ * Formulário e abertura de tickets de suporte.
+ *
+ * Organização: constantes e estado local → funções de renderização →
+ * operações assíncronas → eventos e inicialização da página.
+ */
+
 async function bhRenderMeusTickets() {
   const box = document.getElementById("meusTickets");
   if (!box) return;

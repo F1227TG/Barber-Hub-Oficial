@@ -1,3 +1,11 @@
+/**
+ * home.js
+ * Interações e métricas apresentadas na página inicial.
+ *
+ * Organização: constantes e estado local → funções de renderização →
+ * operações assíncronas → eventos e inicialização da página.
+ */
+
 document.addEventListener("DOMContentLoaded", async () => {
   marcarMenuAtivo("home");
   if (!bhSupabasePronto()) return;

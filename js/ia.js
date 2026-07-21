@@ -1,3 +1,11 @@
+/**
+ * ia.js
+ * Recomendações locais e textos inteligentes sem expor chaves privadas.
+ *
+ * Organização: constantes e estado local → funções de renderização →
+ * operações assíncronas → eventos e inicialização da página.
+ */
+
 function bhGerarSlots(estabelecimento, dataISO, duracao = 30) {
   if (!estabelecimento || !dataISO || dataISO < bhHojeISO()) return [];
   if (!estabelecimento.aceitaAgendamento || estabelecimento.statusManual === "fechado") return [];

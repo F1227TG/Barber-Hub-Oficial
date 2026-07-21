@@ -1,3 +1,11 @@
+/**
+ * conta.js
+ * Configurações de perfil, acessibilidade e exclusão de conta.
+ *
+ * Organização: constantes e estado local → funções de renderização →
+ * operações assíncronas → eventos e inicialização da página.
+ */
+
 document.addEventListener("DOMContentLoaded", async () => {
   const perfil = await bhRequireAuth(["cliente", "barbeiro", "admin"]);
   if (!perfil) return;
@@ -88,7 +96,7 @@ document.addEventListener("DOMContentLoaded", () => {
       mostrarToast("erro", "Confirmação incompleta", "Digite EXCLUIR e marque a confirmação antes de continuar.");
       return;
     }
-    if (!confirm("Última confirmação: deseja excluir sua conta permanentemente?")) return;
+    if (!await bhConfirmar({ titulo: "Excluir conta permanentemente", mensagem: "Esta ação remove seu acesso e seus dados pessoais. Ela não poderá ser desfeita.", confirmarTexto: "Excluir minha conta", perigo: true, trigger: form.querySelector("button[type=\'submit\']") })) return;
     const botao = form.querySelector("button[type='submit']");
     bhSetButtonLoading(botao, true, "Excluindo...");
     try {

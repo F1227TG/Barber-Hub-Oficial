@@ -1,3 +1,11 @@
+/**
+ * portal.js
+ * Busca, filtros e listagem pública de estabelecimentos.
+ *
+ * Organização: constantes e estado local → funções de renderização →
+ * operações assíncronas → eventos e inicialização da página.
+ */
+
 let bhPortalTodos = [];
 
 function bhRenderResumoPortal(lista) {

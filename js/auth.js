@@ -1,3 +1,11 @@
+/**
+ * auth.js
+ * Sessão, perfil autenticado, proteção de rotas e redirecionamentos.
+ *
+ * Organização: constantes e estado local → funções de renderização →
+ * operações assíncronas → eventos e inicialização da página.
+ */
+
 let bhPerfilCache = null;
 
 async function bhGetSession() {

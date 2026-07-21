@@ -1,3 +1,11 @@
+/**
+ * utils.js
+ * Funções utilitárias de formatação, validação, escape e estados de carregamento.
+ *
+ * Organização: constantes e estado local → funções de renderização →
+ * operações assíncronas → eventos e inicialização da página.
+ */
+
 function bhBasePath() {
   return location.pathname.includes("/html/") ? ".." : ".";
 }

@@ -1,3 +1,11 @@
+/**
+ * status.js
+ * Cálculo do estado aberto, fechado, automático e exceções de horário.
+ *
+ * Organização: constantes e estado local → funções de renderização →
+ * operações assíncronas → eventos e inicialização da página.
+ */
+
 const BH_DIAS = ["domingo", "segunda", "terca", "quarta", "quinta", "sexta", "sabado"];
 const BH_DIA_LABEL = {
   domingo: "Domingo",
@@ -38,20 +46,24 @@ function bhCalcularStatus(estabelecimento, data = new Date()) {
   }
 
   if (estabelecimento.statusManual === "aberto") {
+    const motivo = estabelecimento.motivoStatus || "Aberto manualmente pelo responsável.";
+    const antecipado = /antecip/i.test(motivo);
     return {
       aberta: true,
       classe: "aberta",
-      texto: "Aberto agora",
-      detalhe: estabelecimento.motivoStatus || "Aberto manualmente pelo responsável."
+      texto: antecipado ? "Aberto antecipadamente" : "Aberto agora",
+      detalhe: motivo
     };
   }
 
   if (estabelecimento.statusManual === "fechado") {
+    const motivo = estabelecimento.motivoStatus || "Fechado manualmente pelo responsável.";
+    const cedo = /mais cedo|antecip/i.test(motivo);
     return {
       aberta: false,
       classe: "fechada",
-      texto: "Fechado",
-      detalhe: estabelecimento.motivoStatus || "Fechado manualmente pelo responsável."
+      texto: cedo ? "Fechado mais cedo" : "Fechado temporariamente",
+      detalhe: motivo
     };
   }
 

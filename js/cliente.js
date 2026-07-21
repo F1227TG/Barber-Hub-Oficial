@@ -1,3 +1,11 @@
+/**
+ * cliente.js
+ * Área do cliente: agendamentos, histórico, favoritos e avaliações verificadas.
+ *
+ * Organização: constantes e estado local → funções de renderização →
+ * operações assíncronas → eventos e inicialização da página.
+ */
+
 let bhClienteAgendamentos = [];
 let bhClienteFavoritos = [];
 let bhClienteAvaliacoes = [];
@@ -82,16 +90,11 @@ function bhAbrirModalAvaliacao(agendamento) {
   document.getElementById("avaliacaoComentario").value = avaliacao?.comentario || "";
   document.getElementById("descricaoModalAvaliacao").textContent = `${agendamento.estabelecimentos?.nome || "Estabelecimento"} • ${agendamento.servicos?.nome || "Serviço"} • ${bhFormatarData(agendamento.data)}`;
   document.querySelectorAll("#avaliacaoEstrelas [data-nota]").forEach(botao => botao.classList.toggle("ativo", Number(botao.dataset.nota) <= Number(avaliacao?.nota || 0)));
-  modal.classList.add("aberto");
-  modal.setAttribute("aria-hidden", "false");
-  document.body.classList.add("modal-open");
+  bhAbrirModal(modal, document.activeElement);
 }
 
 function bhFecharModalAvaliacao() {
-  const modal = document.getElementById("modalAvaliacao");
-  modal?.classList.remove("aberto");
-  modal?.setAttribute("aria-hidden", "true");
-  document.body.classList.remove("modal-open");
+  bhFecharModal("modalAvaliacao");
 }
 
 async function bhRecarregarCliente() {
@@ -115,7 +118,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.body.addEventListener("click", async evento => {
     const cancelar = evento.target.closest("[data-cancelar-agendamento]");
     if (cancelar) {
-      if (!confirm("Deseja cancelar este agendamento?")) return;
+      if (!await bhConfirmar({ titulo: "Cancelar agendamento", mensagem: "O horário voltará a ficar disponível para outros clientes.", confirmarTexto: "Cancelar agendamento", perigo: true, trigger: cancelar })) return;
       try { await bhCancelarAgendamento(cancelar.dataset.cancelarAgendamento); mostrarToast("sucesso", "Agendamento cancelado", "O horário voltou a ficar disponível."); await bhRecarregarCliente(); }
       catch (erro) { mostrarToast("erro", "Não foi possível cancelar", bhErroMensagem(erro)); }
       return;
@@ -145,7 +148,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     evento.preventDefault();
     const nota = Number(document.getElementById("avaliacaoNota").value);
     if (!nota) { mostrarToast("erro", "Escolha uma nota", "Selecione de 1 a 5 estrelas."); return; }
-    const botao = evento.currentTarget.querySelector("button[type='submit']");
+    const botao = document.querySelector('[form="formAvaliacaoCliente"][type="submit"]') || evento.currentTarget.querySelector("button[type='submit']");
     bhSetButtonLoading(botao, true, "Publicando...");
     try {
       await bhCriarOuAtualizarAvaliacao({ agendamentoId: document.getElementById("avaliacaoAgendamentoId").value, nota, comentario: document.getElementById("avaliacaoComentario").value });

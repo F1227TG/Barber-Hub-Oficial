@@ -1,3 +1,11 @@
+/**
+ * toast.js
+ * Mensagens temporárias de sucesso, aviso e erro.
+ *
+ * Organização: constantes e estado local → funções de renderização →
+ * operações assíncronas → eventos e inicialização da página.
+ */
+
 let bhToastTimer;
 
 function mostrarToast(tipo = "info", titulo = "Barber Hub", mensagem = "") {

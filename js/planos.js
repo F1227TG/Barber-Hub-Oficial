@@ -1,3 +1,11 @@
+/**
+ * planos.js
+ * Leitura do plano atual e apresentação dos limites comerciais.
+ *
+ * Organização: constantes e estado local → funções de renderização →
+ * operações assíncronas → eventos e inicialização da página.
+ */
+
 function bhRenderizarStatsPlano(stats = []) {
   const alvo = document.getElementById("planoAtualStats");
   if (!alvo) return;

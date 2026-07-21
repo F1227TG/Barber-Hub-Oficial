@@ -1,36 +1,628 @@
 <!DOCTYPE html>
-
 <html lang="pt-BR">
-<head>
-<meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<meta content="Administração central do Barber Hub para usuários, estabelecimentos, avaliações, agendamentos, moderação e suporte." name="description"/>
-<title>Administração | Barber Hub</title>
-<link href="../img/favicon.ico" rel="shortcut icon" type="image/x-icon"/><link href="../img/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
-<link href="../css/global.css" rel="stylesheet"/><link href="../css/pages.css" rel="stylesheet"/><link href="../manifest.webmanifest" rel="manifest"/>
-</head>
-<body class="admin-page">
-<header class="header"><div class="container nav"><a class="logo" href="../index.html"><img alt="Barber Hub" src="../img/logomarcaTRANSPARENTE.png"/><span>Barber Hub<small>Administração</small></span></a><nav class="menu" id="menuPrincipal"></nav><div class="nav-actions"><button aria-label="Alternar tema" class="btn-tema" id="btnTema" title="Alternar tema"><i class="bi bi-circle-half"></i></button><a class="btn btn-outline btn-small account-link" data-auth-link="" href="conta.html"><i class="bi bi-person-circle"></i> <span data-user-name="">Conta</span></a><button aria-label="Abrir menu lateral" class="btn-menu" id="btnMenu"><i class="bi bi-list"></i></button></div></div></header>
-<main>
-<section class="page-hero admin-hero admin-hero-new"><div class="container admin-hero-grid"><div><div class="breadcrumb">Administração / Visão geral</div><span class="tag"><i class="bi bi-shield-lock"></i> Central de controle</span><h1>Visão completa da operação.</h1><p>Olá, <strong id="adminNome">administrador</strong>. Acompanhe crescimento, segurança, conteúdo e atendimento em um só lugar.</p></div><div class="admin-health-card"><span>Estado da plataforma</span><strong><i class="bi bi-check-circle-fill"></i> Operacional</strong><small id="adminUltimaAtualizacao">Atualizando dados...</small><button class="btn btn-outline btn-small" id="adminAtualizar" type="button"><i class="bi bi-arrow-clockwise"></i> Atualizar</button></div></div></section>
-<section class="section admin-overview-section"><div class="container">
-<div class="admin-kpi-grid">
-<article class="admin-kpi"><i class="bi bi-people"></i><div><span>Usuários</span><strong id="adminUsuarios">0</strong><small id="adminUsuariosAtivos">0 ativos</small></div></article>
-<article class="admin-kpi"><i class="bi bi-shop-window"></i><div><span>Estabelecimentos</span><strong id="adminEstabelecimentos">0</strong><small id="adminEstabelecimentosVisiveis">0 visíveis</small></div></article>
-<article class="admin-kpi"><i class="bi bi-calendar2-check"></i><div><span>Agendamentos</span><strong id="adminAgendamentos">0</strong><small id="adminAgendamentosConcluidos">0 concluídos</small></div></article>
-<article class="admin-kpi"><i class="bi bi-headset"></i><div><span>Tickets</span><strong id="adminTickets">0</strong><small id="adminTicketsPendentes">0 pendentes</small></div></article>
-<article class="admin-kpi"><i class="bi bi-star"></i><div><span>Avaliações</span><strong id="adminAvaliacoes">0</strong><small id="adminAvaliacaoMedia">média 0,0</small></div></article>
-<article class="admin-kpi"><i class="bi bi-flag"></i><div><span>Moderação</span><strong id="adminModeracao">0</strong><small>itens aguardando</small></div></article>
-</div>
-<div class="admin-insights-grid"><article class="recommend-card"><h3><i class="bi bi-activity"></i> Resumo operacional</h3><p id="adminResumoTexto">Carregando dados...</p></article><article class="recommend-card"><h3><i class="bi bi-graph-up-arrow"></i> Receita estimada concluída</h3><strong class="admin-revenue" id="adminReceita">R$ 0,00</strong><p>Baseada nos valores dos atendimentos concluídos, sem representar pagamento processado.</p></article><article class="recommend-card"><h3><i class="bi bi-patch-check"></i> Verificação</h3><p id="adminVerificacaoResumo">Nenhum perfil verificado.</p></article></div>
-</div></section>
-<section class="section admin-section" id="estabelecimentos"><div class="container"><div class="section-top"><div><span class="tag"><i class="bi bi-shop-window"></i> Negócios</span><h2 class="titulo-section">Estabelecimentos</h2><p class="texto-section">Controle visibilidade, verificação e destaque no portal.</p></div><div class="admin-toolbar"><div class="admin-search"><i class="bi bi-search"></i><input id="buscarAdminEstabelecimentos" placeholder="Buscar nome ou cidade"/></div><select id="filtroAdminEstabelecimentos"><option value="todos">Todos</option><option value="visiveis">Visíveis</option><option value="ocultos">Ocultos</option><option value="verificados">Verificados</option><option value="destaques">Em destaque</option></select></div></div><div class="table-wrap"><table><thead><tr><th>Estabelecimento</th><th>Local</th><th>Agenda</th><th>Reputação</th><th>Estado</th><th>Controles</th></tr></thead><tbody id="tbodyAdminEstabelecimentos"></tbody></table></div></div></section>
-<section class="section admin-section alternate" id="usuarios"><div class="container"><div class="section-top"><div><span class="tag"><i class="bi bi-people"></i> Acessos</span><h2 class="titulo-section">Usuários e permissões</h2><p class="texto-section">Ative, desative e ajuste perfis com cuidado. Sua própria conta administrativa é protegida na interface.</p></div><div class="admin-toolbar"><div class="admin-search"><i class="bi bi-search"></i><input id="buscarAdminUsuarios" placeholder="Buscar nome ou e-mail"/></div><select id="filtroAdminUsuarios"><option value="todos">Todos os perfis</option><option value="cliente">Clientes</option><option value="barbeiro">Barbeiros</option><option value="admin">Administradores</option><option value="inativo">Inativos</option></select></div></div><div class="table-wrap"><table><thead><tr><th>Usuário</th><th>Perfil</th><th>Status</th><th>Cadastro</th><th>Controle</th></tr></thead><tbody id="tbodyAdminUsuarios"></tbody></table></div></div></section>
-<section class="section admin-section" id="agendamentos"><div class="container"><div class="section-top"><div><span class="tag"><i class="bi bi-calendar2-check"></i> Operação</span><h2 class="titulo-section">Agendamentos recentes</h2><p class="texto-section">Acompanhe estados, origem e valor estimado dos atendimentos.</p></div><select id="filtroAdminAgendamentos"><option value="todos">Todos os status</option><option value="pendente">Pendentes</option><option value="confirmado">Confirmados</option><option value="concluido">Concluídos</option><option value="cancelado">Cancelados</option><option value="recusado">Recusados</option></select></div><div class="table-wrap"><table><thead><tr><th>Cliente</th><th>Data</th><th>Status</th><th>Origem</th><th>Valor</th></tr></thead><tbody id="tbodyAdminAgendamentos"></tbody></table></div></div></section>
-<section class="section admin-section alternate" id="avaliacoes"><div class="container"><div class="section-top"><div><span class="tag"><i class="bi bi-star"></i> Reputação</span><h2 class="titulo-section">Avaliações verificadas</h2><p class="texto-section">Modere comentários sem apagar o histórico do atendimento.</p></div><span class="badge" id="adminAvaliacoesBadge">0 avaliações</span></div><div class="admin-review-grid" id="listaAdminAvaliacoes"></div></div></section>
-<section class="section admin-section" id="moderacao"><div class="container"><div class="section-top"><div><span class="tag"><i class="bi bi-flag"></i> Conteúdo</span><h2 class="titulo-section">Denúncias da galeria</h2><p class="texto-section">Analise conteúdo denunciado e oculte publicações quando necessário.</p></div><span class="badge" id="adminDenunciasBadge">0 denúncias</span></div><div class="grid" id="listaAdminDenuncias"></div></div></section>
-<section class="section admin-section alternate" id="tickets"><div class="container"><div class="section-top"><div><span class="tag"><i class="bi bi-headset"></i> Atendimento</span><h2 class="titulo-section">Tickets de suporte</h2><p class="texto-section">Responda solicitações e acompanhe prioridades.</p></div><select id="filtroAdminTickets"><option value="todos">Todos</option><option value="aberto">Abertos</option><option value="em_atendimento">Em atendimento</option><option value="respondido">Respondidos</option><option value="fechado">Fechados</option></select></div><div class="grid" id="listaAdminTickets"></div></div></section>
-</main>
-<footer class="footer"><div class="container"><div class="footer-grid"><div><a class="logo" href="../index.html"><img alt="Barber Hub" src="../img/logomarcaTRANSPARENTE.png"/><span>Barber Hub<small>Uma plataforma de The Gamers Tech</small></span></a><p style="margin-top:16px">Administração segura do ecossistema Barber Hub.</p></div><div><h4>Administração</h4><p><a href="#estabelecimentos">Estabelecimentos</a></p><p><a href="#usuarios">Usuários</a></p><p><a href="#tickets">Suporte</a></p></div><div><h4>Plataforma</h4><p><a href="portal.html">Portal</a></p><p><a href="planos.html">Planos</a></p><p><a href="sobre.html">Sobre</a></p></div><div><h4>Conta</h4><p><a href="conta.html">Minha conta</a></p><p><a href="notificacoes.html">Notificações</a></p></div></div><div class="copy">© 2026 Barber Hub. Uma plataforma de The Gamers Tech. </div></div></footer>
-<div class="toast" id="toast"></div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../js/supabase-config.js"></script><script src="../js/supabase-client.js"></script><script src="../js/utils.js"></script><script src="../js/toast.js"></script><script src="../js/auth.js"></script><script src="../js/api.js"></script><script src="../js/status.js"></script><script src="../js/ia.js"></script><script src="../js/ui.js"></script><script src="../js/admin.js"></script>
-</body></html>
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <meta content="Administração central do Barber Hub para usuários, estabelecimentos, avaliações, agendamentos, moderação e suporte." name="description"/>
+  <title>
+   Administração | Barber Hub
+  </title>
+  <link href="../img/favicon.ico" rel="shortcut icon" type="image/x-icon"/>
+  <link href="../img/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+  <link href="../css/framework.css" rel="stylesheet"/>
+  <link href="../css/global.css" rel="stylesheet"/>
+  <link href="../css/pages.css" rel="stylesheet"/>
+  <link href="../manifest.webmanifest" rel="manifest"/>
+ </head>
+ <body class="admin-page">
+  <!-- Cabeçalho e navegação principal -->
+  <header class="header">
+   <div class="container nav">
+    <a class="logo" href="../index.html">
+     <img alt="Barber Hub" src="../img/logomarcaTRANSPARENTE.png"/>
+     <span>
+      Barber Hub
+      <small>
+       Administração
+      </small>
+     </span>
+    </a>
+    <nav class="menu" id="menuPrincipal">
+    </nav>
+    <div class="nav-actions">
+     <button aria-label="Alternar tema" class="btn-tema" id="btnTema" title="Alternar tema">
+      <i class="bi bi-circle-half">
+      </i>
+     </button>
+     <a class="btn btn-outline btn-small account-link" data-auth-link="" href="conta.html">
+      <i class="bi bi-person-circle">
+      </i>
+      <span data-user-name="">
+       Conta
+      </span>
+     </a>
+     <button aria-label="Abrir menu lateral" class="btn-menu" id="btnMenu">
+      <i class="bi bi-list">
+      </i>
+     </button>
+    </div>
+   </div>
+  </header>
+  <!-- Conteúdo principal da página -->
+  <main>
+   <section class="page-hero admin-hero admin-hero-new">
+    <div class="container admin-hero-grid">
+     <div>
+      <div class="breadcrumb">
+       Administração / Visão geral
+      </div>
+      <span class="tag">
+       <i class="bi bi-shield-lock">
+       </i>
+       Central de controle
+      </span>
+      <h1>
+       Visão completa da operação.
+      </h1>
+      <p>
+       Olá,
+       <strong id="adminNome">
+        administrador
+       </strong>
+       . Acompanhe crescimento, segurança, conteúdo e atendimento em um só lugar.
+      </p>
+     </div>
+     <div class="admin-health-card">
+      <span>
+       Estado da plataforma
+      </span>
+      <strong>
+       <i class="bi bi-check-circle-fill">
+       </i>
+       Operacional
+      </strong>
+      <small id="adminUltimaAtualizacao">
+       Atualizando dados...
+      </small>
+      <button class="btn btn-outline btn-small" id="adminAtualizar" type="button">
+       <i class="bi bi-arrow-clockwise">
+       </i>
+       Atualizar
+      </button>
+     </div>
+    </div>
+   </section>
+   <section class="section admin-overview-section">
+    <div class="container">
+     <div class="admin-kpi-grid">
+      <article class="admin-kpi">
+       <i class="bi bi-people">
+       </i>
+       <div>
+        <span>
+         Usuários
+        </span>
+        <strong id="adminUsuarios">
+         0
+        </strong>
+        <small id="adminUsuariosAtivos">
+         0 ativos
+        </small>
+       </div>
+      </article>
+      <article class="admin-kpi">
+       <i class="bi bi-shop-window">
+       </i>
+       <div>
+        <span>
+         Estabelecimentos
+        </span>
+        <strong id="adminEstabelecimentos">
+         0
+        </strong>
+        <small id="adminEstabelecimentosVisiveis">
+         0 visíveis
+        </small>
+       </div>
+      </article>
+      <article class="admin-kpi">
+       <i class="bi bi-calendar2-check">
+       </i>
+       <div>
+        <span>
+         Agendamentos
+        </span>
+        <strong id="adminAgendamentos">
+         0
+        </strong>
+        <small id="adminAgendamentosConcluidos">
+         0 concluídos
+        </small>
+       </div>
+      </article>
+      <article class="admin-kpi">
+       <i class="bi bi-headset">
+       </i>
+       <div>
+        <span>
+         Tickets
+        </span>
+        <strong id="adminTickets">
+         0
+        </strong>
+        <small id="adminTicketsPendentes">
+         0 pendentes
+        </small>
+       </div>
+      </article>
+      <article class="admin-kpi">
+       <i class="bi bi-star">
+       </i>
+       <div>
+        <span>
+         Avaliações
+        </span>
+        <strong id="adminAvaliacoes">
+         0
+        </strong>
+        <small id="adminAvaliacaoMedia">
+         média 0,0
+        </small>
+       </div>
+      </article>
+      <article class="admin-kpi">
+       <i class="bi bi-flag">
+       </i>
+       <div>
+        <span>
+         Moderação
+        </span>
+        <strong id="adminModeracao">
+         0
+        </strong>
+        <small>
+         itens aguardando
+        </small>
+       </div>
+      </article>
+     </div>
+     <div class="admin-insights-grid">
+      <article class="recommend-card">
+       <h3>
+        <i class="bi bi-activity">
+        </i>
+        Resumo operacional
+       </h3>
+       <p id="adminResumoTexto">
+        Carregando dados...
+       </p>
+      </article>
+      <article class="recommend-card">
+       <h3>
+        <i class="bi bi-graph-up-arrow">
+        </i>
+        Receita estimada concluída
+       </h3>
+       <strong class="admin-revenue" id="adminReceita">
+        R$ 0,00
+       </strong>
+       <p>
+        Baseada nos valores dos atendimentos concluídos, sem representar pagamento processado.
+       </p>
+      </article>
+      <article class="recommend-card">
+       <h3>
+        <i class="bi bi-patch-check">
+        </i>
+        Verificação
+       </h3>
+       <p id="adminVerificacaoResumo">
+        Nenhum perfil verificado.
+       </p>
+      </article>
+     </div>
+    </div>
+   </section>
+   <section class="section admin-section" id="estabelecimentos">
+    <div class="container">
+     <div class="section-top">
+      <div>
+       <span class="tag">
+        <i class="bi bi-shop-window">
+        </i>
+        Negócios
+       </span>
+       <h2 class="titulo-section">
+        Estabelecimentos
+       </h2>
+       <p class="texto-section">
+        Controle visibilidade, verificação e destaque no portal.
+       </p>
+      </div>
+      <div class="admin-toolbar">
+       <div class="admin-search">
+        <i class="bi bi-search">
+        </i>
+        <input id="buscarAdminEstabelecimentos" placeholder="Buscar nome ou cidade"/>
+       </div>
+       <select id="filtroAdminEstabelecimentos">
+        <option value="todos">
+         Todos
+        </option>
+        <option value="visiveis">
+         Visíveis
+        </option>
+        <option value="ocultos">
+         Ocultos
+        </option>
+        <option value="verificados">
+         Verificados
+        </option>
+        <option value="destaques">
+         Em destaque
+        </option>
+       </select>
+      </div>
+     </div>
+     <div class="table-wrap">
+      <table>
+       <thead>
+        <tr>
+         <th>
+          Estabelecimento
+         </th>
+         <th>
+          Local
+         </th>
+         <th>
+          Agenda
+         </th>
+         <th>
+          Reputação
+         </th>
+         <th>
+          Estado
+         </th>
+         <th>
+          Controles
+         </th>
+        </tr>
+       </thead>
+       <tbody id="tbodyAdminEstabelecimentos">
+       </tbody>
+      </table>
+     </div>
+    </div>
+   </section>
+   <section class="section admin-section alternate" id="usuarios">
+    <div class="container">
+     <div class="section-top">
+      <div>
+       <span class="tag">
+        <i class="bi bi-people">
+        </i>
+        Acessos
+       </span>
+       <h2 class="titulo-section">
+        Usuários e permissões
+       </h2>
+       <p class="texto-section">
+        Ative, desative e ajuste perfis com cuidado. Sua própria conta administrativa é protegida na interface.
+       </p>
+      </div>
+      <div class="admin-toolbar">
+       <div class="admin-search">
+        <i class="bi bi-search">
+        </i>
+        <input id="buscarAdminUsuarios" placeholder="Buscar nome ou e-mail"/>
+       </div>
+       <select id="filtroAdminUsuarios">
+        <option value="todos">
+         Todos os perfis
+        </option>
+        <option value="cliente">
+         Clientes
+        </option>
+        <option value="barbeiro">
+         Barbeiros
+        </option>
+        <option value="admin">
+         Administradores
+        </option>
+        <option value="inativo">
+         Inativos
+        </option>
+       </select>
+      </div>
+     </div>
+     <div class="table-wrap">
+      <table>
+       <thead>
+        <tr>
+         <th>
+          Usuário
+         </th>
+         <th>
+          Perfil
+         </th>
+         <th>
+          Status
+         </th>
+         <th>
+          Cadastro
+         </th>
+         <th>
+          Controle
+         </th>
+        </tr>
+       </thead>
+       <tbody id="tbodyAdminUsuarios">
+       </tbody>
+      </table>
+     </div>
+    </div>
+   </section>
+   <section class="section admin-section" id="agendamentos">
+    <div class="container">
+     <div class="section-top">
+      <div>
+       <span class="tag">
+        <i class="bi bi-calendar2-check">
+        </i>
+        Operação
+       </span>
+       <h2 class="titulo-section">
+        Agendamentos recentes
+       </h2>
+       <p class="texto-section">
+        Acompanhe estados, origem e valor estimado dos atendimentos.
+       </p>
+      </div>
+      <select id="filtroAdminAgendamentos">
+       <option value="todos">
+        Todos os status
+       </option>
+       <option value="pendente">
+        Pendentes
+       </option>
+       <option value="confirmado">
+        Confirmados
+       </option>
+       <option value="concluido">
+        Concluídos
+       </option>
+       <option value="cancelado">
+        Cancelados
+       </option>
+       <option value="recusado">
+        Recusados
+       </option>
+      </select>
+     </div>
+     <div class="table-wrap">
+      <table>
+       <thead>
+        <tr>
+         <th>
+          Cliente
+         </th>
+         <th>
+          Data
+         </th>
+         <th>
+          Status
+         </th>
+         <th>
+          Origem
+         </th>
+         <th>
+          Valor
+         </th>
+        </tr>
+       </thead>
+       <tbody id="tbodyAdminAgendamentos">
+       </tbody>
+      </table>
+     </div>
+    </div>
+   </section>
+   <section class="section admin-section alternate" id="avaliacoes">
+    <div class="container">
+     <div class="section-top">
+      <div>
+       <span class="tag">
+        <i class="bi bi-star">
+        </i>
+        Reputação
+       </span>
+       <h2 class="titulo-section">
+        Avaliações e reputação
+       </h2>
+       <p class="texto-section">
+        Modere avaliações verificadas, opiniões da comunidade e comentários ligados a publicações.
+       </p>
+      </div>
+      <span class="badge" id="adminAvaliacoesBadge">
+       0 avaliações
+      </span>
+     </div>
+     <div class="admin-review-grid" id="listaAdminAvaliacoes">
+     </div>
+    </div>
+   </section>
+   <section class="section admin-section" id="moderacao">
+    <div class="container">
+     <div class="section-top">
+      <div>
+       <span class="tag">
+        <i class="bi bi-flag">
+        </i>
+        Conteúdo
+       </span>
+       <h2 class="titulo-section">
+        Denúncias da galeria
+       </h2>
+       <p class="texto-section">
+        Analise conteúdo denunciado e oculte publicações quando necessário.
+       </p>
+      </div>
+      <span class="badge" id="adminDenunciasBadge">
+       0 denúncias
+      </span>
+     </div>
+     <div class="grid" id="listaAdminDenuncias">
+     </div>
+    </div>
+   </section>
+   <section class="section admin-section alternate" id="tickets">
+    <div class="container">
+     <div class="section-top">
+      <div>
+       <span class="tag">
+        <i class="bi bi-headset">
+        </i>
+        Atendimento
+       </span>
+       <h2 class="titulo-section">
+        Tickets de suporte
+       </h2>
+       <p class="texto-section">
+        Responda solicitações e acompanhe prioridades.
+       </p>
+      </div>
+      <select id="filtroAdminTickets">
+       <option value="todos">
+        Todos
+       </option>
+       <option value="aberto">
+        Abertos
+       </option>
+       <option value="em_atendimento">
+        Em atendimento
+       </option>
+       <option value="respondido">
+        Respondidos
+       </option>
+       <option value="fechado">
+        Fechados
+       </option>
+      </select>
+     </div>
+     <div class="grid" id="listaAdminTickets">
+     </div>
+    </div>
+   </section>
+  </main>
+  <!-- Rodapé institucional -->
+  <footer class="footer">
+   <div class="container">
+    <div class="footer-grid">
+     <div>
+      <a class="logo" href="../index.html">
+       <img alt="Barber Hub" src="../img/logomarcaTRANSPARENTE.png"/>
+       <span>
+        Barber Hub
+        <small>
+         Uma plataforma de The Gamers Tech
+        </small>
+       </span>
+      </a>
+      <p style="margin-top:16px">
+       Administração segura do ecossistema Barber Hub.
+      </p>
+     </div>
+     <div>
+      <h4>
+       Administração
+      </h4>
+      <p>
+       <a href="#estabelecimentos">
+        Estabelecimentos
+       </a>
+      </p>
+      <p>
+       <a href="#usuarios">
+        Usuários
+       </a>
+      </p>
+      <p>
+       <a href="#tickets">
+        Suporte
+       </a>
+      </p>
+     </div>
+     <div>
+      <h4>
+       Plataforma
+      </h4>
+      <p>
+       <a href="portal.html">
+        Portal
+       </a>
+      </p>
+      <p>
+       <a href="planos.html">
+        Planos
+       </a>
+      </p>
+      <p>
+       <a href="sobre.html">
+        Sobre
+       </a>
+      </p>
+     </div>
+     <div>
+      <h4>
+       Conta
+      </h4>
+      <p>
+       <a href="conta.html">
+        Minha conta
+       </a>
+      </p>
+      <p>
+       <a href="notificacoes.html">
+        Notificações
+       </a>
+      </p>
+     </div>
+    </div>
+    <div class="copy">
+     © 2026 Barber Hub. Uma plataforma de The Gamers Tech.
+    </div>
+   </div>
+  </footer>
+  <div class="toast" id="toast">
+  </div>
+  <!-- Scripts compartilhados e específicos da página -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+  </script>
+  <script src="../js/supabase-config.js">
+  </script>
+  <script src="../js/supabase-client.js">
+  </script>
+  <script src="../js/utils.js">
+  </script>
+  <script src="../js/toast.js">
+  </script>
+  <script src="../js/auth.js">
+  </script>
+  <script src="../js/api.js">
+  </script>
+  <script src="../js/status.js">
+  </script>
+  <script src="../js/ia.js">
+  </script>
+  <script src="../vendor/bootstrap.bundle.min.js">
+  </script>
+  <script src="../js/ui.js">
+  </script>
+  <script src="../js/admin.js">
+  </script>
+ </body>
+</html>
+

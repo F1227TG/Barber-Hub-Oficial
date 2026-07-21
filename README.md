@@ -1,4 +1,4 @@
-# Barber Hub
+# Barber Hub — versão 1.3.2
 
 Plataforma web para descoberta, divulgação, gestão e agendamento de barbearias. O projeto também está preparado para a futura expansão **Beauty Hub**.
 
@@ -114,11 +114,18 @@ Barber-Hub/
 │   ├── 07_avaliacao_sem_nota_ficticia.sql
 │   ├── 08_notificacoes_moderacao_portfolio.sql
 │   ├── 09_ordenacao_midias_portfolio.sql
-│   └── 10_reforco_seguranca_performance.sql
+│   ├── 10_reforco_seguranca_performance.sql
+│   ├── 11_planos_assinaturas.sql
+│   ├── 12_comunidade_conta_admin_mobile.sql
+│   └── 13_modais_status_avaliacoes_comunidade.sql
+├── vendor/
+│   ├── bootstrap.min.css
+│   └── bootstrap.bundle.min.js
 └── docs/
     ├── CONFIGURACAO_SUPABASE.md
     ├── TESTES_INTEGRACAO.md
-    └── ATUALIZACAO_1_1.md
+    ├── ATUALIZACAO_1_3.md
+    └── ATUALIZACAO_1_3_1.md
 ```
 
 ## Configuração do Supabase
@@ -177,12 +184,12 @@ O Vercel conectado ao branch de produção publicará a alteração automaticame
 
 ## Próximas etapas planejadas
 
-- Avaliações verificadas ligadas a atendimentos concluídos;
+- Notificações push com o aplicativo fechado;
 - Web Push com o site fechado;
 - MFA obrigatório para administradores;
 - SMTP próprio;
 - Planos e pagamentos;
-- Exportação e exclusão completa de conta;
+- Exportação de dados da conta;
 - Aplicativo móvel;
 - Expansão Beauty Hub.
 
@@ -190,3 +197,13 @@ O Vercel conectado ao branch de produção publicará a alteração automaticame
 ## Versão 1.3.0
 
 A versão 1.3 adiciona avaliações verificadas, favoritos, reagendamento, redes sociais, exclusão de conta, administração ampliada, nova página Sobre, página inicial redesenhada, planos mensais e experiência mobile em formato de aplicativo. Antes dos testes, aplique `sql/12_comunidade_conta_admin_mobile.sql`.
+
+
+## Versão 1.3.1
+
+A versão 1.3.1 corrige a página Sobre, transforma avaliações e denúncias em modais, adiciona avaliações da comunidade e de publicações, inclui controles rápidos de status no painel, oculta badges zerados e integra Bootstrap localmente. Após a migration 12, execute `sql/13_modais_status_avaliacoes_comunidade.sql`.
+
+
+## Organização do código
+
+Consulte `docs/GUIA_DE_CODIGO.md` para entender a responsabilidade de cada arquivo e o padrão de manutenção.

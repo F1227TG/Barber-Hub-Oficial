@@ -1,3 +1,11 @@
+/**
+ * onboarding.js
+ * Cadastro guiado do estabelecimento, horários e identidade pública.
+ *
+ * Organização: constantes e estado local → funções de renderização →
+ * operações assíncronas → eventos e inicialização da página.
+ */
+
 let bhOnboardingStep = 1;
 const BH_TOTAL_STEPS = 4;
 

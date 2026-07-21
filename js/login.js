@@ -1,3 +1,11 @@
+/**
+ * login.js
+ * Autenticação e redirecionamento após entrada.
+ *
+ * Organização: constantes e estado local → funções de renderização →
+ * operações assíncronas → eventos e inicialização da página.
+ */
+
 document.addEventListener("DOMContentLoaded", async () => {
   marcarMenuAtivo("login");
   const form = document.getElementById("formLogin");

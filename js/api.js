@@ -1,3 +1,11 @@
+/**
+ * api.js
+ * Camada central de acesso ao Supabase e funções de dados do Barber Hub.
+ *
+ * Organização: constantes e estado local → funções de renderização →
+ * operações assíncronas → eventos e inicialização da página.
+ */
+
 const BH_ESTABELECIMENTO_SELECT = `
   *,
   horarios_funcionamento(*),
@@ -357,7 +365,7 @@ async function bhAdminResumo() {
       perfis(nome,email),
       portfolio_publicacoes(id,titulo,status,estabelecimento_id,estabelecimentos(nome))
     `, { count: "exact" }).order("created_at", { ascending: false }).limit(250),
-    client.from("avaliacoes").select(`*, perfis(nome,email), estabelecimentos(nome)`, { count: "exact" }).order("created_at", { ascending: false }).limit(250)
+    client.from("avaliacoes").select(`*, perfis(nome,email), estabelecimentos(nome), agendamentos(data,hora_inicio,servicos(nome),profissionais(nome)), portfolio_publicacoes(id,titulo)`, { count: "exact" }).order("created_at", { ascending: false }).limit(250)
   ]);
   const [perfis, estabelecimentos, agendamentos, tickets, denuncias, avaliacoesResultado] = resultados;
   [perfis, estabelecimentos, agendamentos, tickets, denuncias].forEach(resultado => {
@@ -958,7 +966,7 @@ async function bhListarAvaliacoesEstabelecimento(estabelecimentoId) {
   const client = bhExigirSupabase();
   const { data, error } = await client
     .from("avaliacoes")
-    .select(`*, perfis(nome,avatar_url), agendamentos(servicos(nome),profissionais(nome))`)
+    .select(`*, perfis(nome,avatar_url), agendamentos(servicos(nome),profissionais(nome)), portfolio_publicacoes(id,titulo)`)
     .eq("estabelecimento_id", estabelecimentoId)
     .eq("status", "publicada")
     .order("created_at", { ascending: false });
@@ -972,7 +980,7 @@ async function bhListarMinhasAvaliacoes() {
   const client = bhExigirSupabase();
   const { data, error } = await client
     .from("avaliacoes")
-    .select(`*, estabelecimentos(nome,slug), agendamentos(data,hora_inicio,servicos(nome),profissionais(nome))`)
+    .select(`*, estabelecimentos(nome,slug), agendamentos(data,hora_inicio,servicos(nome),profissionais(nome)), portfolio_publicacoes(id,titulo)`)
     .eq("cliente_id", perfil.id)
     .order("created_at", { ascending: false });
   if (error) throw error;
@@ -998,6 +1006,46 @@ async function bhCriarOuAtualizarAvaliacao({ agendamentoId, nota, comentario }) 
   return data;
 }
 
+
+async function bhBuscarMinhaAvaliacaoComunidade(estabelecimentoId, publicacaoId = null) {
+  const perfil = await bhGetPerfil();
+  if (!perfil || perfil.tipo !== "cliente") return null;
+  const client = bhExigirSupabase();
+  let query = client
+    .from("avaliacoes")
+    .select("*")
+    .eq("cliente_id", perfil.id)
+    .eq("estabelecimento_id", estabelecimentoId)
+    .eq("origem", "comunidade");
+  query = publicacaoId ? query.eq("publicacao_id", publicacaoId) : query.is("publicacao_id", null);
+  const { data, error } = await query.maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+async function bhCriarOuAtualizarAvaliacaoComunidade({ estabelecimentoId, publicacaoId = null, nota, comentario }) {
+  const perfil = await bhGetPerfil();
+  if (!perfil || perfil.tipo !== "cliente") throw new Error("Entre com uma conta de cliente para avaliar.");
+  const client = bhExigirSupabase();
+  const existente = await bhBuscarMinhaAvaliacaoComunidade(estabelecimentoId, publicacaoId);
+  const payload = {
+    estabelecimento_id: estabelecimentoId,
+    publicacao_id: publicacaoId || null,
+    cliente_id: perfil.id,
+    agendamento_id: null,
+    origem: "comunidade",
+    verificada: false,
+    nota: Number(nota),
+    comentario: String(comentario || "").trim()
+  };
+  const query = existente
+    ? client.from("avaliacoes").update({ nota: payload.nota, comentario: payload.comentario }).eq("id", existente.id)
+    : client.from("avaliacoes").insert(payload);
+  const { data, error } = await query.select().single();
+  if (error) throw error;
+  return data;
+}
+
 async function bhResponderAvaliacao(id, resposta) {
   const client = bhExigirSupabase();
   const { data, error } = await client
@@ -1014,7 +1062,7 @@ async function bhListarAvaliacoesMeuEstabelecimento(estabelecimentoId) {
   const client = bhExigirSupabase();
   const { data, error } = await client
     .from("avaliacoes")
-    .select(`*, perfis(nome,avatar_url), agendamentos(data,hora_inicio,servicos(nome),profissionais(nome))`)
+    .select(`*, perfis(nome,avatar_url), agendamentos(data,hora_inicio,servicos(nome),profissionais(nome)), portfolio_publicacoes(id,titulo)`)
     .eq("estabelecimento_id", estabelecimentoId)
     .order("created_at", { ascending: false });
   if (error) throw error;

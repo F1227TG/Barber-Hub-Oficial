@@ -1,3 +1,11 @@
+/**
+ * ui.js
+ * Navegação, tema, menu lateral, modais, acessibilidade e interface compartilhada.
+ *
+ * Organização: constantes e estado local → funções de renderização →
+ * operações assíncronas → eventos e inicialização da página.
+ */
+
 function marcarMenuAtivo(nome) {
   document.querySelectorAll(".menu a").forEach(link => {
     link.classList.toggle("ativo", link.dataset.page === nome);
@@ -34,8 +42,8 @@ function bhAplicarPreferencias() {
 
 function bhBadgeNavegacao(valor, atributo) {
   const numero = Number(valor || 0);
-  const extra = numero ? '' : 'aria-hidden="true"';
-  return `<span class="nav-badge${numero ? " ativo" : ""}" ${atributo} aria-label="${numero} pendente(s)" ${extra}>${numero > 99 ? "99+" : (numero || "")}</span>`;
+  const extra = numero ? 'aria-hidden="false"' : 'aria-hidden="true" hidden';
+  return `<span class="nav-badge${numero ? " ativo" : ""}" ${atributo} ${numero ? `aria-label="${numero} pendente(s)"` : ""} ${extra}>${numero > 99 ? "99+" : (numero || "")}</span>`;
 }
 
 function bhLinksPorPerfil(perfil, contadores = {}) {
@@ -257,7 +265,8 @@ function bhAtualizarBadgesNavegacao(contadores = {}) {
     const numero = Number(valor || 0);
     elemento.textContent = numero > 0 ? (numero > 99 ? "99+" : numero) : "";
     elemento.classList.toggle("ativo", numero > 0);
-    elemento.setAttribute("aria-label", `${numero} pendente(s)`);
+    elemento.hidden = numero <= 0;
+    if (numero > 0) elemento.setAttribute("aria-label", `${numero} pendente(s)`); else elemento.removeAttribute("aria-label");
     elemento.setAttribute("aria-hidden", numero > 0 ? "false" : "true");
   });
   atualizar("[data-badge-notificacoes]", contadores.notificacoes);
@@ -506,3 +515,64 @@ async function bhIniciarExperiencia(){
   bhCriarProgressGlobal();bhConfigurarConexao();bhMelhorarFormularios();bhObservarTabelasDinamicas();bhAnimarConteudo();bhAdicionarIdentidadePagina();bhAplicarMarcaTheGamers();bhAdicionarRodapeLegal();bhPrepararPWA();bhAplicarSEO();
 }
 document.addEventListener('DOMContentLoaded',bhIniciarExperiencia);
+
+/* ===== Modais reutilizáveis (Bootstrap com fallback nativo) ===== */
+const bhModalTriggers = new WeakMap();
+function bhResolverModal(alvo){return typeof alvo==='string'?document.getElementById(alvo):alvo}
+function bhAbrirModal(alvo,trigger=null){
+  const modal=bhResolverModal(alvo);if(!modal)return null;
+  if(trigger)bhModalTriggers.set(modal,trigger);
+  if(window.bootstrap?.Modal){const instancia=window.bootstrap.Modal.getOrCreateInstance(modal,{backdrop:true,keyboard:true,focus:true});instancia.show();return instancia}
+  modal.classList.add('aberto','show');modal.style.display='block';modal.removeAttribute('aria-hidden');document.body.classList.add('modal-open');
+  requestAnimationFrame(()=>modal.querySelector('button,input,select,textarea,[tabindex]:not([tabindex="-1"])')?.focus());
+  return null;
+}
+function bhFecharModal(alvo){
+  const modal=bhResolverModal(alvo);if(!modal)return;
+  if(window.bootstrap?.Modal){window.bootstrap.Modal.getOrCreateInstance(modal).hide();return}
+  modal.classList.remove('aberto','show');modal.style.display='none';modal.setAttribute('aria-hidden','true');document.body.classList.remove('modal-open');bhModalTriggers.get(modal)?.focus?.();
+}
+window.bhAbrirModal=bhAbrirModal;window.bhFecharModal=bhFecharModal;
+
+let bhConfirmacaoPendente = null;
+function bhObterModalConfirmacao(){
+  let modal=document.getElementById('modalConfirmacaoGlobal');
+  if(modal)return modal;
+  modal=document.createElement('div');
+  modal.id='modalConfirmacaoGlobal';
+  modal.className='modal fade bh-modal confirm-modal';
+  modal.tabIndex=-1;
+  modal.setAttribute('aria-hidden','true');
+  modal.setAttribute('aria-labelledby','tituloConfirmacaoGlobal');
+  modal.innerHTML=`<div class="modal-dialog modal-dialog-centered modal-sm"><div class="modal-content"><div class="modal-header"><div><span class="tag" id="tagConfirmacaoGlobal"><i class="bi bi-question-circle"></i> Confirmação</span><h2 class="modal-title" id="tituloConfirmacaoGlobal">Confirmar ação</h2></div><button type="button" class="icon-btn" data-confirmar-cancelar aria-label="Fechar"><i class="bi bi-x-lg"></i></button></div><div class="modal-body"><p id="mensagemConfirmacaoGlobal" class="confirm-message"></p></div><div class="modal-footer"><button type="button" class="btn btn-outline" data-confirmar-cancelar>Cancelar</button><button type="button" class="btn btn-primary" data-confirmar-aceitar>Confirmar</button></div></div></div>`;
+  document.body.appendChild(modal);
+  modal.querySelectorAll('[data-confirmar-cancelar]').forEach(botao=>botao.addEventListener('click',()=>bhFinalizarConfirmacao(false)));
+  modal.querySelector('[data-confirmar-aceitar]')?.addEventListener('click',()=>bhFinalizarConfirmacao(true));
+  modal.addEventListener('hidden.bs.modal',()=>{if(bhConfirmacaoPendente)bhFinalizarConfirmacao(false,false)});
+  return modal;
+}
+function bhFinalizarConfirmacao(resultado,fechar=true){
+  if(!bhConfirmacaoPendente)return;
+  const {resolve,modal}=bhConfirmacaoPendente;bhConfirmacaoPendente=null;
+  if(fechar)bhFecharModal(modal);
+  resolve(Boolean(resultado));
+}
+function bhConfirmar(opcoes={}){
+  const dados=typeof opcoes==='string'?{mensagem:opcoes}:opcoes;
+  if(bhConfirmacaoPendente)bhFinalizarConfirmacao(false);
+  const modal=bhObterModalConfirmacao();
+  const titulo=modal.querySelector('#tituloConfirmacaoGlobal');
+  const mensagem=modal.querySelector('#mensagemConfirmacaoGlobal');
+  const tag=modal.querySelector('#tagConfirmacaoGlobal');
+  const aceitar=modal.querySelector('[data-confirmar-aceitar]');
+  titulo.textContent=dados.titulo||'Confirmar ação';
+  mensagem.textContent=dados.mensagem||'Deseja continuar?';
+  tag.innerHTML=`<i class="bi ${dados.perigo?'bi-exclamation-triangle':'bi-question-circle'}"></i> ${dados.perigo?'Atenção':'Confirmação'}`;
+  aceitar.textContent=dados.confirmarTexto||'Confirmar';
+  aceitar.className=`btn ${dados.perigo?'btn-danger':'btn-primary'}`;
+  return new Promise(resolve=>{bhConfirmacaoPendente={resolve,modal};bhAbrirModal(modal,dados.trigger||document.activeElement)});
+}
+window.bhConfirmar=bhConfirmar;
+document.addEventListener('hidden.bs.modal',evento=>{const modal=evento.target;bhModalTriggers.get(modal)?.focus?.();bhModalTriggers.delete(modal)});
+document.addEventListener('keydown',evento=>{if(evento.key==='Escape'&&!window.bootstrap?.Modal){document.querySelectorAll('.modal.aberto').forEach(bhFecharModal)}});
+document.addEventListener('click',evento=>{if(window.bootstrap?.Modal)return;const fechar=evento.target.closest('[data-bs-dismiss="modal"]');if(fechar)bhFecharModal(fechar.closest('.modal'))});

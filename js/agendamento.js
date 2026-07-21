@@ -1,3 +1,11 @@
+/**
+ * agendamento.js
+ * Fluxo público de escolha de serviço, profissional, data e horário.
+ *
+ * Organização: constantes e estado local → funções de renderização →
+ * operações assíncronas → eventos e inicialização da página.
+ */
+
 let bhAgendaEstabelecimentos = [];
 let bhAgendaAtual = null;
 let bhSlotSelecionado = null;

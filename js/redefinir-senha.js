@@ -1,3 +1,11 @@
+/**
+ * redefinir-senha.js
+ * Definição segura de uma nova senha.
+ *
+ * Organização: constantes e estado local → funções de renderização →
+ * operações assíncronas → eventos e inicialização da página.
+ */
+
 document.addEventListener("DOMContentLoaded", async () => {
   const form = document.getElementById("formRedefinirSenha");
   let sessao = null;

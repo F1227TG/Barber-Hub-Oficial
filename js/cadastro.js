@@ -1,3 +1,11 @@
+/**
+ * cadastro.js
+ * Cadastro de clientes e profissionais.
+ *
+ * Organização: constantes e estado local → funções de renderização →
+ * operações assíncronas → eventos e inicialização da página.
+ */
+
 document.addEventListener("DOMContentLoaded", () => {
   marcarMenuAtivo("cadastro");
   const form = document.getElementById("formCadastro");

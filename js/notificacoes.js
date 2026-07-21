@@ -1,3 +1,11 @@
+/**
+ * notificacoes.js
+ * Listagem, leitura e atualização das notificações.
+ *
+ * Organização: constantes e estado local → funções de renderização →
+ * operações assíncronas → eventos e inicialização da página.
+ */
+
 let bhNotificacoes = [];
 let bhFiltroNotificacoes = "todas";
 let bhPerfilNotificacoes = null;

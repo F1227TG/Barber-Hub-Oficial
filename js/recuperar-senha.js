@@ -1,3 +1,11 @@
+/**
+ * recuperar-senha.js
+ * Solicitação de recuperação de senha.
+ *
+ * Organização: constantes e estado local → funções de renderização →
+ * operações assíncronas → eventos e inicialização da página.
+ */
+
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("formRecuperarSenha");
   form.addEventListener("submit", async evento => {
