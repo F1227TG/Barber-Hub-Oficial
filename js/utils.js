@@ -121,6 +121,16 @@ function bhSetButtonLoading(botao, carregando, texto = "Aguarde...") {
 }
 
 function bhErroMensagem(erro, fallback = "Não foi possível concluir a operação.") {
+  const codigosApi = {
+    RATE_LIMITED: "Aguarde um minuto antes de tentar novamente.",
+    INVALID_SESSION: "Sua sessão expirou. Entre novamente para continuar.",
+    UNAUTHORIZED: "Entre na conta para continuar.",
+    FORBIDDEN: "Sua conta não possui permissão para esta ação.",
+    BACKEND_NOT_CONFIGURED: "O backend ainda precisa ser configurado na Vercel.",
+    API_TIMEOUT: "O servidor demorou para responder. Tente novamente."
+  };
+  if (erro?.code && codigosApi[erro.code]) return codigosApi[erro.code];
+
   const mensagem = erro?.message || erro?.error_description || fallback;
   const mapa = [
     ["Invalid login credentials", "E-mail ou senha incorretos."],

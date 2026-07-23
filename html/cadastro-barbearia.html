@@ -1,461 +1,457 @@
 <!DOCTYPE html>
+
 <html lang="pt-BR">
- <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-  <meta content="Barber Hub — plataforma de gestão, agenda e divulgação para barbearias e futuros salões de beleza." name="description"/>
-  <title>
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="Barber Hub — plataforma de gestão, agenda e divulgação para barbearias e futuros salões de beleza." name="description">
+<title>
    Cadastrar estabelecimento | Barber Hub
   </title>
-  <link href="../img/favicon.ico" rel="shortcut icon" type="image/x-icon"/>
-  <link href="../img/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
-  <link href="https://fonts.googleapis.com" rel="preconnect"/>
-  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
-  <link href="../css/framework.css" rel="stylesheet"/>
-  <link href="../css/global.css" rel="stylesheet"/>
-  <link href="../css/pages.css" rel="stylesheet"/>
-  <link href="../manifest.webmanifest" rel="manifest"/>
-  <meta content="yes" name="apple-mobile-web-app-capable"/>
-  <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
-   <link rel="stylesheet" href="../css/mobile-app.css">
-</head>
- <body>
-  <!-- Cabeçalho e navegação principal -->
-  <header class="header">
-   <div class="container nav">
-    <a class="logo" href="../index.html">
-     <img alt="Barber Hub" src="../img/logomarcaTRANSPARENTE.png"/>
-     <span>
+<link href="../img/favicon.ico" rel="shortcut icon" type="image/x-icon"/>
+<link href="../img/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="../css/framework.css" rel="stylesheet"/>
+<link href="../css/global.css" rel="stylesheet"/>
+<link href="../css/pages.css" rel="stylesheet"/>
+<link href="../manifest.webmanifest" rel="manifest"/>
+<meta content="yes" name="apple-mobile-web-app-capable"/>
+<meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
+<link href="../css/mobile-app.css" rel="stylesheet"/><link href="../css/release-1.4.1.css" rel="stylesheet"/>
+</meta></head>
+<body>
+<!-- Cabeçalho e navegação principal -->
+<header class="header">
+<div class="container nav">
+<a class="logo" href="../index.html">
+<img alt="Barber Hub" src="../img/logomarcaTRANSPARENTE.png"/>
+<span>
       Barber Hub
-      <small>
-       Gestão inteligente
-      </small>
-     </span>
-    </a>
-    <nav class="menu" id="menuPrincipal">
-     <a data-page="home" href="../index.html">
+      <small>The Gamers Tech</small>
+</span>
+</a>
+<nav class="menu" id="menuPrincipal">
+<a data-page="home" href="../index.html">
       Início
      </a>
-     <a data-page="portal" href="../html/portal.html">
-      Portal
-     </a>
-     <a data-page="agendamento" href="../html/agendamento.html">
+<a data-page="portal" href="../html/portal.html">Explorar</a>
+<a data-page="agendamento" href="../html/agendamento.html">
       Agendar
      </a>
-     <a data-page="planos" href="../html/planos.html">
+<a data-page="planos" href="../html/planos.html">
       Planos
      </a>
-     <a data-page="beauty" href="../html/beauty-hub.html">
+<a data-page="beauty" href="../html/beauty-hub.html">
       Beauty Hub
      </a>
-     <a data-page="contato" href="../html/contato.html">
+<a data-page="contato" href="../html/contato.html">
       Suporte
      </a>
-    </nav>
-    <div class="nav-actions">
-     <button aria-label="Alternar tema" class="btn-tema" id="btnTema" title="Alternar tema">
-      <i class="bi bi-circle-half">
-      </i>
-     </button>
-     <a class="btn btn-outline btn-small account-link" data-auth-link="" href="../html/login.html">
-      <i class="bi bi-person-circle">
-      </i>
-      <span data-user-name="">
+</nav>
+<div class="nav-actions">
+<button aria-label="Alternar tema" class="btn-tema" id="btnTema" title="Alternar tema">
+<i class="bi bi-circle-half">
+</i>
+</button>
+<a class="btn btn-outline btn-small account-link" data-auth-link="" href="../html/login.html">
+<i class="bi bi-person-circle">
+</i>
+<span data-user-name="">
        Entrar
       </span>
-     </a>
-     <button aria-label="Abrir menu lateral" class="btn-menu" id="btnMenu">
-      <i class="bi bi-list">
-      </i>
-     </button>
-    </div>
-   </div>
-  </header>
-  <!-- Conteúdo principal da página -->
-  <main class="onboarding-page">
-   <div class="container onboarding-container">
-    <div class="onboarding-head">
-     <span class="tag">
-      <i class="bi bi-shop">
-      </i>
+</a>
+<button aria-label="Abrir menu lateral" class="btn-menu" id="btnMenu">
+<i class="bi bi-list">
+</i>
+</button>
+</div>
+</div>
+</header>
+<!-- Conteúdo principal da página -->
+<main class="onboarding-page">
+<div class="container onboarding-container">
+<div class="onboarding-head">
+<span class="tag">
+<i class="bi bi-shop">
+</i>
       Cadastro profissional
      </span>
-     <h1>
+<h1>
       Prepare a presença digital do seu negócio.
      </h1>
-     <p>
+<p>
       Preencha as quatro etapas. Tudo poderá ser editado depois no painel.
      </p>
-    </div>
-    <div class="stepper">
-     <div class="ativo" data-step-indicator="1">
-      <span>
+</div>
+<div class="stepper">
+<div class="ativo" data-step-indicator="1">
+<span>
        1
       </span>
-      <strong>
+<strong>
        Identidade
       </strong>
-     </div>
-     <div data-step-indicator="2">
-      <span>
+</div>
+<div data-step-indicator="2">
+<span>
        2
       </span>
-      <strong>
+<strong>
        Local e contato
       </strong>
-     </div>
-     <div data-step-indicator="3">
-      <span>
+</div>
+<div data-step-indicator="3">
+<span>
        3
       </span>
-      <strong>
+<strong>
        Funcionamento
       </strong>
-     </div>
-     <div data-step-indicator="4">
-      <span>
+</div>
+<div data-step-indicator="4">
+<span>
        4
       </span>
-      <strong>
+<strong>
        Serviço e imagens
       </strong>
-     </div>
-    </div>
-    <form class="form-card onboarding-form" id="formOnboarding">
-     <section class="step-panel ativo" data-step-panel="1">
-      <h2>
+</div>
+</div>
+<form class="form-card onboarding-form" id="formOnboarding">
+<section class="step-panel ativo" data-step-panel="1">
+<h2>
        Identidade do estabelecimento
       </h2>
-      <p class="texto-section">
+<p class="texto-section">
        O banco já está preparado para barbearias e para a futura expansão Beauty Hub.
       </p>
-      <div class="form-grid">
-       <div class="campo">
-        <label>
+<div class="form-grid">
+<div class="campo">
+<label>
          Tipo
         </label>
-        <select id="tipoEstabelecimento" required="">
-         <option value="barbearia">
+<select id="tipoEstabelecimento" required="">
+<option value="barbearia">
           Barbearia
          </option>
-         <option value="salao">
+<option value="salao">
           Salão de beleza / Beauty Hub
          </option>
-        </select>
-       </div>
-       <div class="campo">
-        <label>
+</select>
+</div>
+<div class="campo">
+<label>
          Nome do estabelecimento
         </label>
-        <input id="nomeEstabelecimento" placeholder="Ex: Central Barber Club" required=""/>
-       </div>
-       <div class="campo full">
-        <label>
+<input id="nomeEstabelecimento" placeholder="Ex: Central Barber Club" required=""/>
+</div>
+<div class="campo full">
+<label>
          Descrição pública
         </label>
-        <textarea id="descricao" placeholder="Conte o estilo, diferenciais e proposta do seu espaço." required=""></textarea>
-       </div>
-       <div class="campo">
-        <label>
+<textarea id="descricao" placeholder="Conte o estilo, diferenciais e proposta do seu espaço." required=""></textarea>
+</div>
+<div class="campo">
+<label>
          Seu nome profissional
         </label>
-        <input id="profissionalNome" required=""/>
-       </div>
-       <div class="campo">
-        <label>
+<input id="profissionalNome" required=""/>
+</div>
+<div class="campo">
+<label>
          Especialidade
         </label>
-        <input id="profissionalEspecialidade" placeholder="Ex: degradê, barba, cortes sociais" required=""/>
-       </div>
-      </div>
-     </section>
-     <section class="step-panel" data-step-panel="2">
-      <h2>
+<input id="profissionalEspecialidade" placeholder="Ex: degradê, barba, cortes sociais" required=""/>
+</div>
+</div>
+</section>
+<section class="step-panel" data-step-panel="2">
+<h2>
        Localização e contato
       </h2>
-      <div class="form-grid">
-       <div class="campo">
-        <label>
+<div class="form-grid">
+<div class="campo">
+<label>
          E-mail público
         </label>
-        <input id="emailPublico" required="" type="email"/>
-       </div>
-       <div class="campo">
-        <label>
+<input id="emailPublico" required="" type="email"/>
+</div>
+<div class="campo">
+<label>
          Telefone
         </label>
-        <input id="telefone" required="" type="tel"/>
-       </div>
-       <div class="campo">
-        <label>
+<input id="telefone" required="" type="tel"/>
+</div>
+<div class="campo">
+<label>
          WhatsApp
         </label>
-        <input id="whatsapp" required="" type="tel"/>
-       </div>
-       <div class="campo">
-        <label>
+<input id="whatsapp" required="" type="tel"/>
+</div>
+<div class="campo">
+<label>
          Instagram
         </label>
-        <input id="instagram" placeholder="@seuperfil"/>
-       </div>
-       <div class="campo">
-        <label>
+<input id="instagram" placeholder="@seuperfil"/>
+</div>
+<div class="campo">
+<label>
          CEP
         </label>
-        <input id="cep"/>
-       </div>
-       <div class="campo">
-        <label>
+<input id="cep"/>
+</div>
+<div class="campo">
+<label>
          Cidade
         </label>
-        <input id="cidade" required=""/>
-       </div>
-       <div class="campo">
-        <label>
+<input id="cidade" required=""/>
+</div>
+<div class="campo">
+<label>
          Estado
         </label>
-        <input id="estado" maxlength="2" required="" value="MG"/>
-       </div>
-       <div class="campo">
-        <label>
+<input id="estado" maxlength="2" required="" value="MG"/>
+</div>
+<div class="campo">
+<label>
          Bairro
         </label>
-        <input id="bairro" required=""/>
-       </div>
-       <div class="campo">
-        <label>
+<input id="bairro" required=""/>
+</div>
+<div class="campo">
+<label>
          Endereço
         </label>
-        <input id="endereco" required=""/>
-       </div>
-       <div class="campo">
-        <label>
+<input id="endereco" required=""/>
+</div>
+<div class="campo">
+<label>
          Número
         </label>
-        <input id="numero"/>
-       </div>
-       <div class="campo full">
-        <label>
+<input id="numero"/>
+</div>
+<div class="campo full">
+<label>
          Complemento
         </label>
-        <input id="complemento"/>
-       </div>
-      </div>
-     </section>
-     <section class="step-panel" data-step-panel="3">
-      <h2>
+<input id="complemento"/>
+</div>
+</div>
+</section>
+<section class="step-panel" data-step-panel="3">
+<h2>
        Funcionamento e agenda
       </h2>
-      <label class="switch-card">
-       <span>
-        <strong>
+<label class="switch-card">
+<span>
+<strong>
          Agendamento online
         </strong>
-        <small>
+<small>
          Permitir que clientes escolham data, serviço e profissional.
         </small>
-       </span>
-       <input checked="" id="aceitaAgendamento" type="checkbox"/>
-       <i>
-       </i>
-      </label>
-      <div class="hours-editor">
-       <div class="horario-config" data-dia="0">
-        <label class="day-toggle">
-         <input data-horario-aberto="" type="checkbox"/>
-         <span>
+</span>
+<input checked="" id="aceitaAgendamento" type="checkbox"/>
+<i>
+</i>
+</label>
+<div class="hours-editor">
+<div class="horario-config" data-dia="0">
+<label class="day-toggle">
+<input data-horario-aberto="" type="checkbox"/>
+<span>
           Domingo
          </span>
-        </label>
-        <input data-horario-abre="" disabled="" type="time" value="08:00"/>
-        <span>
+</label>
+<input data-horario-abre="" disabled="" type="time" value="08:00"/>
+<span>
          até
         </span>
-        <input data-horario-fecha="" disabled="" type="time" value="18:00"/>
-       </div>
-       <div class="horario-config" data-dia="1">
-        <label class="day-toggle">
-         <input checked="" data-horario-aberto="" type="checkbox"/>
-         <span>
+<input data-horario-fecha="" disabled="" type="time" value="18:00"/>
+</div>
+<div class="horario-config" data-dia="1">
+<label class="day-toggle">
+<input checked="" data-horario-aberto="" type="checkbox"/>
+<span>
           Segunda
          </span>
-        </label>
-        <input data-horario-abre="" type="time" value="08:00"/>
-        <span>
+</label>
+<input data-horario-abre="" type="time" value="08:00"/>
+<span>
          até
         </span>
-        <input data-horario-fecha="" type="time" value="18:00"/>
-       </div>
-       <div class="horario-config" data-dia="2">
-        <label class="day-toggle">
-         <input checked="" data-horario-aberto="" type="checkbox"/>
-         <span>
+<input data-horario-fecha="" type="time" value="18:00"/>
+</div>
+<div class="horario-config" data-dia="2">
+<label class="day-toggle">
+<input checked="" data-horario-aberto="" type="checkbox"/>
+<span>
           Terça
          </span>
-        </label>
-        <input data-horario-abre="" type="time" value="08:00"/>
-        <span>
+</label>
+<input data-horario-abre="" type="time" value="08:00"/>
+<span>
          até
         </span>
-        <input data-horario-fecha="" type="time" value="18:00"/>
-       </div>
-       <div class="horario-config" data-dia="3">
-        <label class="day-toggle">
-         <input checked="" data-horario-aberto="" type="checkbox"/>
-         <span>
+<input data-horario-fecha="" type="time" value="18:00"/>
+</div>
+<div class="horario-config" data-dia="3">
+<label class="day-toggle">
+<input checked="" data-horario-aberto="" type="checkbox"/>
+<span>
           Quarta
          </span>
-        </label>
-        <input data-horario-abre="" type="time" value="08:00"/>
-        <span>
+</label>
+<input data-horario-abre="" type="time" value="08:00"/>
+<span>
          até
         </span>
-        <input data-horario-fecha="" type="time" value="18:00"/>
-       </div>
-       <div class="horario-config" data-dia="4">
-        <label class="day-toggle">
-         <input checked="" data-horario-aberto="" type="checkbox"/>
-         <span>
+<input data-horario-fecha="" type="time" value="18:00"/>
+</div>
+<div class="horario-config" data-dia="4">
+<label class="day-toggle">
+<input checked="" data-horario-aberto="" type="checkbox"/>
+<span>
           Quinta
          </span>
-        </label>
-        <input data-horario-abre="" type="time" value="08:00"/>
-        <span>
+</label>
+<input data-horario-abre="" type="time" value="08:00"/>
+<span>
          até
         </span>
-        <input data-horario-fecha="" type="time" value="18:00"/>
-       </div>
-       <div class="horario-config" data-dia="5">
-        <label class="day-toggle">
-         <input checked="" data-horario-aberto="" type="checkbox"/>
-         <span>
+<input data-horario-fecha="" type="time" value="18:00"/>
+</div>
+<div class="horario-config" data-dia="5">
+<label class="day-toggle">
+<input checked="" data-horario-aberto="" type="checkbox"/>
+<span>
           Sexta
          </span>
-        </label>
-        <input data-horario-abre="" type="time" value="08:00"/>
-        <span>
+</label>
+<input data-horario-abre="" type="time" value="08:00"/>
+<span>
          até
         </span>
-        <input data-horario-fecha="" type="time" value="18:00"/>
-       </div>
-       <div class="horario-config" data-dia="6">
-        <label class="day-toggle">
-         <input checked="" data-horario-aberto="" type="checkbox"/>
-         <span>
+<input data-horario-fecha="" type="time" value="18:00"/>
+</div>
+<div class="horario-config" data-dia="6">
+<label class="day-toggle">
+<input checked="" data-horario-aberto="" type="checkbox"/>
+<span>
           Sábado
          </span>
-        </label>
-        <input data-horario-abre="" type="time" value="08:00"/>
-        <span>
+</label>
+<input data-horario-abre="" type="time" value="08:00"/>
+<span>
          até
         </span>
-        <input data-horario-fecha="" type="time" value="13:00"/>
-       </div>
-      </div>
-     </section>
-     <section class="step-panel" data-step-panel="4">
-      <h2>
+<input data-horario-fecha="" type="time" value="13:00"/>
+</div>
+</div>
+</section>
+<section class="step-panel" data-step-panel="4">
+<h2>
        Primeiro serviço e imagens
       </h2>
-      <div class="form-grid">
-       <div class="campo">
-        <label>
+<div class="form-grid">
+<div class="campo">
+<label>
          Serviço principal
         </label>
-        <input id="servicoNome" placeholder="Ex: Corte masculino" required=""/>
-       </div>
-       <div class="campo">
-        <label>
+<input id="servicoNome" placeholder="Ex: Corte masculino" required=""/>
+</div>
+<div class="campo">
+<label>
          Categoria
         </label>
-        <input id="servicoCategoria" required="" value="Corte"/>
-       </div>
-       <div class="campo">
-        <label>
+<input id="servicoCategoria" required="" value="Corte"/>
+</div>
+<div class="campo">
+<label>
          Preço
         </label>
-        <input id="servicoPreco" min="0" required="" step="0.01" type="number"/>
-       </div>
-       <div class="campo">
-        <label>
+<input id="servicoPreco" min="0" required="" step="0.01" type="number"/>
+</div>
+<div class="campo">
+<label>
          Duração em minutos
         </label>
-        <input id="servicoDuracao" min="5" required="" type="number" value="30"/>
-       </div>
-       <div class="campo full">
-        <label>
+<input id="servicoDuracao" min="5" required="" type="number" value="30"/>
+</div>
+<div class="campo full">
+<label>
          Descrição do serviço
         </label>
-        <textarea id="servicoDescricao" required=""></textarea>
-       </div>
-       <div class="campo">
-        <label>
+<textarea id="servicoDescricao" required=""></textarea>
+</div>
+<div class="campo">
+<label>
          Foto ou logotipo
         </label>
-        <input accept="image/png,image/jpeg,image/webp" id="fotoArquivo" type="file"/>
-        <img alt="Prévia" class="upload-preview hidden" id="fotoPreview"/>
-       </div>
-       <div class="campo">
-        <label>
+<input accept="image/png,image/jpeg,image/webp" id="fotoArquivo" type="file"/>
+<img alt="Prévia" class="upload-preview hidden" id="fotoPreview"/>
+</div>
+<div class="campo">
+<label>
          Imagem de capa
         </label>
-        <input accept="image/png,image/jpeg,image/webp" id="capaArquivo" type="file"/>
-        <img alt="Prévia" class="upload-preview cover hidden" id="capaPreview"/>
-       </div>
-      </div>
-      <div class="info-box">
-       <i class="bi bi-cloud-check">
-       </i>
-       <p>
+<input accept="image/png,image/jpeg,image/webp" id="capaArquivo" type="file"/>
+<img alt="Prévia" class="upload-preview cover hidden" id="capaPreview"/>
+</div>
+</div>
+<div class="info-box">
+<i class="bi bi-cloud-check">
+</i>
+<p>
         As imagens serão enviadas ao Supabase Storage. Formatos aceitos: PNG, JPG e WebP, até 5 MB.
        </p>
-      </div>
-     </section>
-     <div class="onboarding-actions">
-      <button class="btn btn-outline hidden" id="btnVoltarStep" type="button">
+</div>
+</section>
+<div class="onboarding-actions">
+<button class="btn btn-outline hidden" id="btnVoltarStep" type="button">
        Voltar
       </button>
-      <button class="btn btn-primary" id="btnAvancarStep" type="button">
+<button class="btn btn-primary" id="btnAvancarStep" type="button">
        Continuar
       </button>
-      <button class="btn btn-primary hidden" id="btnFinalizarOnboarding" type="submit">
+<button class="btn btn-primary hidden" id="btnFinalizarOnboarding" type="submit">
        Finalizar cadastro
       </button>
-     </div>
-    </form>
-   </div>
-  </main>
-  <div class="toast" id="toast">
-  </div>
-  <!-- Scripts compartilhados e específicos da página -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
-  </script>
-  <script src="../js/supabase-config.js">
-  </script>
-  <script src="../js/supabase-client.js">
-  </script>
-  <script src="../js/utils.js">
-  </script>
-  <script src="../js/toast.js">
-  </script>
-  <script src="../js/auth.js">
-  </script>
-  <script src="../js/api.js">
-  </script>
-  <script src="../js/status.js">
-  </script>
-  <script src="../js/ia.js">
-  </script>
-  <script src="../vendor/bootstrap.bundle.min.js">
-  </script>
-  <script src="../js/ui.js">
-  </script>
-  <script src="../js/onboarding.js">
-  </script>
-   <script src="../js/mobile-app.js"></script>
+</div>
+</form>
+</div>
+</main>
+<div class="toast" id="toast">
+</div>
+<!-- Scripts compartilhados e específicos da página -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+</script>
+<script src="../js/supabase-config.js">
+</script>
+<script src="../js/supabase-client.js">
+</script><script src="../js/backend-api.js"></script>
+<script src="../js/utils.js">
+</script>
+<script src="../js/toast.js">
+</script>
+<script src="../js/auth.js">
+</script>
+<script src="../js/api.js">
+</script>
+<script src="../js/status.js">
+</script>
+<script src="../js/ia.js">
+</script>
+<script src="../vendor/bootstrap.bundle.min.js">
+</script>
+<script src="../js/ui.js">
+</script>
+<script src="../js/onboarding.js">
+</script>
+<script src="../js/mobile-app.js"></script>
 </body>
 </html>
-

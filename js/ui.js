@@ -49,7 +49,7 @@ function bhBadgeNavegacao(valor, atributo) {
 function bhLinksPorPerfil(perfil, contadores = {}) {
   if (!perfil) return [
     ["index.html", "home", "Início", "bi-house-door"],
-    ["html/portal.html", "portal", "Portal", "bi-shop"],
+    ["html/portal.html", "portal", "Explorar", "bi-shop"],
     ["html/agendamento.html", "agendamento", "Agendar", "bi-calendar2-check"],
     ["html/planos.html", "planos", "Planos", "bi-wallet2"],
     ["html/sobre.html", "sobre", "Sobre", "bi-compass"],

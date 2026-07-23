@@ -30,12 +30,16 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (!bhSupabasePronto()) return;
 
   try {
-    const estabelecimentos = await bhListarEstabelecimentos();
+    // As contagens gerais vêm da API própria. A lista pública permanece no
+    // frontend para calcular o status em tempo real conforme o horário local.
+    const [metricas, estabelecimentos] = await Promise.all([
+      bhMetricasPublicas(),
+      bhListarEstabelecimentos()
+    ]);
     const abertos = estabelecimentos.filter(item => bhCalcularStatus(item).aberta).length;
-    const comAgenda = estabelecimentos.filter(item => item.aceitaAgendamento).length;
     const valores = {
-      estabelecimentos: estabelecimentos.length,
-      agendamentos: comAgenda,
+      estabelecimentos: Number(metricas?.estabelecimentos ?? estabelecimentos.length),
+      agendamentos: Number(metricas?.agendamentos ?? metricas?.com_agenda ?? 0),
       abertos
     };
 

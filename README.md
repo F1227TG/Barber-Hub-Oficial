@@ -222,3 +222,33 @@ A versão 1.3.1 corrige a página Sobre, transforma avaliações e denúncias em
 ## Organização do código
 
 Consulte `docs/GUIA_DE_CODIGO.md` para entender a responsabilidade de cada arquivo e o padrão de manutenção.
+
+---
+
+## API própria — versão 1.4.1
+
+O projeto agora possui uma camada de backend em `api/v1/`, publicada como
+Vercel Functions. Ela valida dados e protege operações sensíveis antes de
+acessar o Supabase.
+
+Rotas iniciais:
+
+```text
+GET    /api/v1/health
+GET    /api/v1/catalog/summary
+GET    /api/v1/support/tickets
+POST   /api/v1/support/tickets
+DELETE /api/v1/account/delete
+GET    /api/v1/admin/overview
+```
+
+Configure na Vercel:
+
+```text
+SUPABASE_URL
+SUPABASE_PUBLISHABLE_KEY
+SUPABASE_SECRET_KEY
+```
+
+A chave `secret` — ou `service_role` legada — é secreta e nunca deve ser enviada ao GitHub ou colocada
+nos arquivos JavaScript do navegador. Consulte `docs/API_BARBER_HUB_V1.md`.

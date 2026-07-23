@@ -1,0 +1,13 @@
+{
+  "name": "barber-hub-oficial",
+  "version": "1.4.1",
+  "private": true,
+  "description": "Portal, gestão e API própria do Barber Hub.",
+  "scripts": {
+    "dev": "vercel dev",
+    "check": "node scripts/check-project.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

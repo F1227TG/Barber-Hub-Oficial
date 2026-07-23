@@ -1,6 +1,7 @@
 /**
  * api.js
- * Camada central de acesso ao Supabase e funções de dados do Barber Hub.
+ * Camada central de dados do Barber Hub. Consultas públicas usam o Supabase e
+ * operações sensíveis priorizam a API própria hospedada na Vercel.
  *
  * Organização: constantes e estado local → funções de renderização →
  * operações assíncronas → eventos e inicialização da página.
@@ -16,6 +17,13 @@ const BH_ESTABELECIMENTO_SELECT = `
 `;
 
 const BH_DIAS_CHAVE = ["domingo", "segunda", "terca", "quarta", "quinta", "sexta", "sabado"];
+
+/** Retorna true quando o backend próprio ainda não está disponível no ambiente local. */
+function bhBackendPodeUsarFallback(erro) {
+  return !window.bhBackendApi || [404, 405, 503].includes(Number(erro?.status)) ||
+    ["BACKEND_NOT_CONFIGURED", "API_TIMEOUT"].includes(erro?.code) ||
+    erro instanceof TypeError;
+}
 
 function bhNormalizarEstabelecimento(row) {
   if (!row) return null;
@@ -314,6 +322,17 @@ async function bhExcluirDiaBloqueado(id) {
 }
 
 async function bhCriarTicket(dados) {
+  // Produção: usa a API própria para validar e registrar o ticket.
+  // Desenvolvimento com Live Server: mantém fallback temporário no Supabase.
+  if (window.bhBackendApi) {
+    try {
+      return await window.bhBackendApi.createSupportTicket(dados);
+    } catch (erro) {
+      if (!bhBackendPodeUsarFallback(erro)) throw erro;
+      console.warn("[Barber Hub] API de suporte indisponível; usando fallback local.", erro);
+    }
+  }
+
   const client = bhExigirSupabase();
   let perfil = null;
   try { perfil = await bhGetPerfil(); } catch (_) { perfil = null; }
@@ -336,6 +355,16 @@ async function bhCriarTicket(dados) {
 async function bhListarMeusTickets() {
   const perfil = await bhGetPerfil();
   if (!perfil) return [];
+
+  if (window.bhBackendApi) {
+    try {
+      return await window.bhBackendApi.listSupportTickets();
+    } catch (erro) {
+      if (!bhBackendPodeUsarFallback(erro)) throw erro;
+      console.warn("[Barber Hub] API de tickets indisponível; usando fallback local.", erro);
+    }
+  }
+
   const client = bhExigirSupabase();
   const { data, error } = await client
     .from("tickets_suporte")
@@ -347,6 +376,15 @@ async function bhListarMeusTickets() {
 }
 
 async function bhMetricasPublicas() {
+  if (window.bhBackendApi) {
+    try {
+      return await window.bhBackendApi.catalogSummary();
+    } catch (erro) {
+      if (!bhBackendPodeUsarFallback(erro)) throw erro;
+      console.warn("[Barber Hub] API de métricas indisponível; usando fallback local.", erro);
+    }
+  }
+
   const client = bhExigirSupabase();
   const { data, error } = await client.rpc("metricas_publicas");
   if (error) throw error;
@@ -1073,8 +1111,29 @@ async function bhExcluirMinhaConta(senhaAtual) {
   const perfil = await bhGetPerfil();
   if (!perfil) throw new Error("Sessão não encontrada.");
   const client = bhExigirSupabase();
-  const { error: erroLogin } = await client.auth.signInWithPassword({ email: perfil.email, password: senhaAtual });
+
+  // A senha é conferida pelo Supabase Auth; a chave secreta nunca sai do backend.
+  const { data: login, error: erroLogin } = await client.auth.signInWithPassword({
+    email: perfil.email,
+    password: senhaAtual
+  });
   if (erroLogin) throw new Error("Senha atual incorreta.");
+
+  if (window.bhBackendApi) {
+    try {
+      await window.bhBackendApi.deleteAccount("EXCLUIR");
+      bhPerfilCache = null;
+      try { await client.auth.signOut(); } catch (_) {}
+      return;
+    } catch (erro) {
+      if (!bhBackendPodeUsarFallback(erro)) throw erro;
+      console.warn("[Barber Hub] API de exclusão indisponível; usando RPC local.", erro);
+    }
+  }
+
+  // Fallback de desenvolvimento. Em produção, a chamada passa por /api/v1.
+  const token = login?.session?.access_token;
+  if (!token) throw new Error("Não foi possível renovar sua sessão.");
   const { error } = await client.rpc("excluir_minha_conta");
   if (error) throw error;
   bhPerfilCache = null;
