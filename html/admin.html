@@ -4,8 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<meta content="Administração central do Barber Hub para usuários, estabelecimentos, avaliações, agendamentos, moderação e suporte." name="description">
+<meta content="Administração central do Barber Hub para usuários, estabelecimentos, avaliações, agendamentos, moderação e suporte." name="description"/>
 <title>
    Administração | Barber Hub
   </title>
@@ -20,7 +19,7 @@
 <link href="../css/pages.css" rel="stylesheet"/>
 <link href="../manifest.webmanifest" rel="manifest"/>
 <link href="../css/mobile-app.css" rel="stylesheet"/><link href="../css/release-1.4.1.css" rel="stylesheet"/>
-</meta></head>
+<link href="../css/product-redesign.css" rel="stylesheet"/></head>
 <body class="admin-page">
 <!-- Cabeçalho e navegação principal -->
 <header class="header">
@@ -94,7 +93,7 @@
 </i>
        Atualizar
       </button>
-</div>
+<a class="btn btn-outline btn-small" href="mapa-sistema.html"><i class="bi bi-diagram-3"></i> Mapa do sistema</a></div>
 </div>
 </section>
 <section class="section admin-overview-section">
@@ -248,9 +247,9 @@
 <div class="admin-search">
 <i class="bi bi-search">
 </i>
-<input id="buscarAdminEstabelecimentos" placeholder="Buscar nome ou cidade"/>
+<input aria-label="Buscar nome ou cidade" id="buscarAdminEstabelecimentos" placeholder="Buscar nome ou cidade"/>
 </div>
-<select id="filtroAdminEstabelecimentos">
+<select aria-label="Todos" id="filtroAdminEstabelecimentos">
 <option value="todos">
          Todos
         </option>
@@ -319,9 +318,9 @@
 <div class="admin-search">
 <i class="bi bi-search">
 </i>
-<input id="buscarAdminUsuarios" placeholder="Buscar nome ou e-mail"/>
+<input aria-label="Buscar nome ou e-mail" id="buscarAdminUsuarios" placeholder="Buscar nome ou e-mail"/>
 </div>
-<select id="filtroAdminUsuarios">
+<select aria-label="Todos os perfis" id="filtroAdminUsuarios">
 <option value="todos">
          Todos os perfis
         </option>
@@ -340,7 +339,13 @@
 </select>
 </div>
 </div>
-<div class="table-wrap">
+<div class="admin-password-note">
+<i class="bi bi-shield-lock"></i>
+<div>
+<strong>Senhas não podem ser visualizadas</strong>
+<p>O Supabase armazena somente hashes. Para ajudar uma conta, use “Enviar redefinição”: o usuário recebe um link seguro e escolhe uma nova senha.</p>
+</div>
+</div><div class="table-wrap">
 <table>
 <thead>
 <tr>
@@ -383,7 +388,7 @@
         Acompanhe estados, origem e valor estimado dos atendimentos.
        </p>
 </div>
-<select id="filtroAdminAgendamentos">
+<select aria-label="Todos os status" id="filtroAdminAgendamentos">
 <option value="todos">
         Todos os status
        </option>
@@ -495,7 +500,7 @@
         Responda solicitações e acompanhe prioridades.
        </p>
 </div>
-<select id="filtroAdminTickets">
+<select aria-label="Todos" id="filtroAdminTickets">
 <option value="todos">
         Todos
        </option>
@@ -522,74 +527,33 @@
 <footer class="footer">
 <div class="container">
 <div class="footer-grid">
-<div>
+<div class="footer-brand">
 <a class="logo" href="../index.html">
 <img alt="Barber Hub" src="../img/logomarcaTRANSPARENTE.png"/>
-<span>
-        Barber Hub
-        <small>
-         Uma plataforma de The Gamers Tech
-        </small>
-</span>
+<span>Barber Hub<small>Uma plataforma de The Gamers Tech</small></span>
 </a>
-<p style="margin-top:16px">
-       Administração segura do ecossistema Barber Hub.
-      </p>
+<p>Descoberta, agenda e gestão para conectar clientes e negócios de beleza.</p>
 </div>
 <div>
-<h4>
-       Administração
-      </h4>
-<p>
-<a href="#estabelecimentos">
-        Estabelecimentos
-       </a>
-</p>
-<p>
-<a href="#usuarios">
-        Usuários
-       </a>
-</p>
-<p>
-<a href="#tickets">
-        Suporte
-       </a>
-</p>
+<h4>Plataforma</h4>
+<p><a href="../html/portal.html">Explorar locais</a></p>
+<p><a href="../html/agendamento.html">Agendar horário</a></p>
+<p><a href="../html/planos.html">Planos</a></p>
+<p><a href="../html/sobre.html">Sobre</a></p>
 </div>
 <div>
-<h4>
-       Plataforma
-      </h4>
-<p>
-<a href="portal.html">
-        Portal
-       </a>
-</p>
-<p>
-<a href="planos.html">
-        Planos
-       </a>
-</p>
-<p>
-<a href="sobre.html">
-        Sobre
-       </a>
-</p>
+<h4>Para profissionais</h4>
+<p><a href="../html/cadastro.html">Cadastrar negócio</a></p>
+<p><a href="../html/login.html">Entrar no painel</a></p>
+<p><a href="../html/contato.html">Central de suporte</a></p>
+<p><a href="../html/beauty-hub.html">Beauty Hub</a></p>
 </div>
 <div>
-<h4>
-       Conta
-      </h4>
-<p>
-<a href="conta.html">
-        Minha conta
-       </a>
-</p>
-<p>
-<a href="notificacoes.html">
-        Notificações
-       </a>
-</p>
+<h4>Confiança</h4>
+<p><a href="../html/privacidade.html">Privacidade</a></p>
+<p><a href="../html/termos.html">Termos de uso</a></p>
+<p><a href="../html/conta.html">Conta e segurança</a></p>
+<p><a href="../html/contato.html#support-faq-title">Perguntas frequentes</a></p>
 </div>
 </div>
 <div class="copy">
@@ -625,5 +589,5 @@
 <script src="../js/admin.js">
 </script>
 <script src="../js/mobile-app.js"></script>
-</body>
+<script src="../js/product-redesign.js"></script></body>
 </html>

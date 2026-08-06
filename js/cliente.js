@@ -51,7 +51,8 @@ function bhRenderCliente(perfil) {
     }
     tbody.innerHTML = itens.map(item => {
       const avaliacao = bhAvaliacaoDoAgendamento(item.id);
-      const repetir = `agendamento.html?barbearia=${item.estabelecimento_id}&servico=${item.servico_id}&profissional=${item.profissional_id}`;
+      const servicosQuery = encodeURIComponent(bhAgendamentoServicoIds(item).join(","));
+      const repetir = `agendamento.html?barbearia=${item.estabelecimento_id}&servicos=${servicosQuery}&profissional=${item.profissional_id}`;
       let acoes = "—";
       if (["pendente", "confirmado"].includes(item.status)) {
         acoes = `<button class="btn btn-danger btn-small" data-cancelar-agendamento="${item.id}">Cancelar</button>`;
@@ -62,7 +63,7 @@ function bhRenderCliente(perfil) {
       }
       return `<tr>
         <td>${escapeHTML(item.estabelecimentos?.nome || "Estabelecimento")}</td>
-        <td>${escapeHTML(item.servicos?.nome || "Serviço")}</td>
+        <td>${escapeHTML(bhAgendamentoServicosTexto(item))}</td>
         <td>${escapeHTML(item.profissionais?.nome || "Profissional")}</td>
         <td>${bhFormatarData(item.data)}</td>
         <td>${bhHoraCurta(item.hora_inicio)}</td>
@@ -88,7 +89,7 @@ function bhAbrirModalAvaliacao(agendamento) {
   document.getElementById("avaliacaoAgendamentoId").value = agendamento.id;
   document.getElementById("avaliacaoNota").value = avaliacao?.nota || "";
   document.getElementById("avaliacaoComentario").value = avaliacao?.comentario || "";
-  document.getElementById("descricaoModalAvaliacao").textContent = `${agendamento.estabelecimentos?.nome || "Estabelecimento"} • ${agendamento.servicos?.nome || "Serviço"} • ${bhFormatarData(agendamento.data)}`;
+  document.getElementById("descricaoModalAvaliacao").textContent = `${agendamento.estabelecimentos?.nome || "Estabelecimento"} • ${bhAgendamentoServicosTexto(agendamento)} • ${bhFormatarData(agendamento.data)}`;
   document.querySelectorAll("#avaliacaoEstrelas [data-nota]").forEach(botao => botao.classList.toggle("ativo", Number(botao.dataset.nota) <= Number(avaliacao?.nota || 0)));
   bhAbrirModal(modal, document.activeElement);
 }

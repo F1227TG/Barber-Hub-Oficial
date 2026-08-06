@@ -90,7 +90,7 @@ function bhRenderAgendaPainel() {
       <td><strong>${escapeHTML(item.cliente_nome)}</strong><br><small>${escapeHTML(item.cliente_telefone || item.cliente_email)}</small></td>
       <td>${bhFormatarData(item.data)}</td>
       <td>${bhHoraCurta(item.hora_inicio)}</td>
-      <td>${escapeHTML(item.servicos?.nome || "Serviço")}</td>
+      <td>${escapeHTML(bhAgendamentoServicosTexto(item))}</td>
       <td>${escapeHTML(item.profissionais?.nome || "Profissional")}</td>
       <td><span class="status ${item.status}">${escapeHTML(item.status)}</span></td>
       <td><div class="table-actions">
@@ -193,8 +193,8 @@ function bhRenderAvaliacoesPainel() {
     const verificada = Boolean(item.verificada || item.origem === "agendamento");
     const contexto = item.portfolio_publicacoes?.titulo
       ? `<span class="review-context"><i class="bi bi-images"></i> Sobre a publicação: ${escapeHTML(item.portfolio_publicacoes.titulo)}</span>`
-      : item.agendamentos?.servicos?.nome
-        ? `<span class="review-context"><i class="bi bi-scissors"></i> Atendimento: ${escapeHTML(item.agendamentos.servicos.nome)}</span>`
+      : (item.agendamentos?.agendamento_servicos?.length || item.agendamentos?.servicos?.nome)
+        ? `<span class="review-context"><i class="bi bi-scissors"></i> Atendimento: ${escapeHTML(bhAgendamentoServicosTexto(item.agendamentos))}</span>`
         : "";
     return `
     <article class="review-manage-card" data-avaliacao-id="${item.id}">

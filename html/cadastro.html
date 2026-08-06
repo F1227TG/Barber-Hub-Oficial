@@ -4,8 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<meta content="Barber Hub — plataforma de gestão, agenda e divulgação para barbearias e futuros salões de beleza." name="description">
+<meta content="Barber Hub — plataforma de gestão, agenda e divulgação para barbearias e futuros salões de beleza." name="description"/>
 <title>
    Criar conta | Barber Hub
   </title>
@@ -22,7 +21,7 @@
 <meta content="yes" name="apple-mobile-web-app-capable"/>
 <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
 <link href="../css/mobile-app.css" rel="stylesheet"/><link href="../css/release-1.4.1.css" rel="stylesheet"/>
-</meta></head>
+<link href="../css/product-redesign.css" rel="stylesheet"/></head>
 <body>
 <!-- Cabeçalho e navegação principal -->
 <header class="header">
@@ -115,31 +114,31 @@
 <input id="tipo" type="hidden" value="cliente"/>
 <div class="form-grid">
 <div class="campo">
-<label>
+<label for="nome">
         Nome completo
        </label>
 <input autocomplete="name" id="nome" required="" type="text"/>
 </div>
 <div class="campo">
-<label>
+<label for="telefone">
         Telefone
        </label>
 <input autocomplete="tel" id="telefone" required="" type="tel"/>
 </div>
 <div class="campo full">
-<label>
+<label for="email">
         E-mail
        </label>
 <input autocomplete="email" id="email" required="" type="email"/>
 </div>
 <div class="campo">
-<label>
+<label for="senha">
         Senha
        </label>
 <input autocomplete="new-password" id="senha" minlength="8" required="" type="password"/>
 </div>
 <div class="campo">
-<label>
+<label for="confirmarSenha">
         Confirmar senha
        </label>
 <input autocomplete="new-password" id="confirmarSenha" minlength="8" required="" type="password"/>
@@ -153,7 +152,7 @@
       </p>
 </div>
 <label class="check-line">
-<input id="termos" type="checkbox"/>
+<input aria-label="Confirmo que as informações são verdadeiras e aceito o uso dos dados para funcionamento da plataforma." id="termos" type="checkbox"/>
 <span>
        Confirmo que as informações são verdadeiras e aceito o uso dos dados para funcionamento da plataforma.
       </span>
@@ -214,5 +213,5 @@
 <script src="../js/cadastro.js">
 </script>
 <script src="../js/mobile-app.js"></script>
-</body>
+<script src="../js/product-redesign.js"></script></body>
 </html>

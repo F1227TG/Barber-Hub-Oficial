@@ -4,8 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<meta content="Barber Hub — plataforma de gestão, agenda e divulgação para barbearias e futuros salões de beleza." name="description">
+<meta content="Barber Hub — plataforma de gestão, agenda e divulgação para barbearias e futuros salões de beleza." name="description"/>
 <title>
    Cadastrar estabelecimento | Barber Hub
   </title>
@@ -22,7 +21,7 @@
 <meta content="yes" name="apple-mobile-web-app-capable"/>
 <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
 <link href="../css/mobile-app.css" rel="stylesheet"/><link href="../css/release-1.4.1.css" rel="stylesheet"/>
-</meta></head>
+<link href="../css/product-redesign.css" rel="stylesheet"/></head>
 <body>
 <!-- Cabeçalho e navegação principal -->
 <header class="header">
@@ -131,7 +130,7 @@
       </p>
 <div class="form-grid">
 <div class="campo">
-<label>
+<label for="tipoEstabelecimento">
          Tipo
         </label>
 <select id="tipoEstabelecimento" required="">
@@ -144,25 +143,25 @@
 </select>
 </div>
 <div class="campo">
-<label>
+<label for="nomeEstabelecimento">
          Nome do estabelecimento
         </label>
 <input id="nomeEstabelecimento" placeholder="Ex: Central Barber Club" required=""/>
 </div>
 <div class="campo full">
-<label>
+<label for="descricao">
          Descrição pública
         </label>
 <textarea id="descricao" placeholder="Conte o estilo, diferenciais e proposta do seu espaço." required=""></textarea>
 </div>
 <div class="campo">
-<label>
+<label for="profissionalNome">
          Seu nome profissional
         </label>
 <input id="profissionalNome" required=""/>
 </div>
 <div class="campo">
-<label>
+<label for="profissionalEspecialidade">
          Especialidade
         </label>
 <input id="profissionalEspecialidade" placeholder="Ex: degradê, barba, cortes sociais" required=""/>
@@ -175,67 +174,67 @@
       </h2>
 <div class="form-grid">
 <div class="campo">
-<label>
+<label for="emailPublico">
          E-mail público
         </label>
 <input id="emailPublico" required="" type="email"/>
 </div>
 <div class="campo">
-<label>
+<label for="telefone">
          Telefone
         </label>
 <input id="telefone" required="" type="tel"/>
 </div>
 <div class="campo">
-<label>
+<label for="whatsapp">
          WhatsApp
         </label>
 <input id="whatsapp" required="" type="tel"/>
 </div>
 <div class="campo">
-<label>
+<label for="instagram">
          Instagram
         </label>
 <input id="instagram" placeholder="@seuperfil"/>
 </div>
 <div class="campo">
-<label>
+<label for="cep">
          CEP
         </label>
 <input id="cep"/>
 </div>
 <div class="campo">
-<label>
+<label for="cidade">
          Cidade
         </label>
 <input id="cidade" required=""/>
 </div>
 <div class="campo">
-<label>
+<label for="estado">
          Estado
         </label>
 <input id="estado" maxlength="2" required="" value="MG"/>
 </div>
 <div class="campo">
-<label>
+<label for="bairro">
          Bairro
         </label>
 <input id="bairro" required=""/>
 </div>
 <div class="campo">
-<label>
+<label for="endereco">
          Endereço
         </label>
 <input id="endereco" required=""/>
 </div>
 <div class="campo">
-<label>
+<label for="numero">
          Número
         </label>
 <input id="numero"/>
 </div>
 <div class="campo full">
-<label>
+<label for="complemento">
          Complemento
         </label>
 <input id="complemento"/>
@@ -255,7 +254,7 @@
          Permitir que clientes escolham data, serviço e profissional.
         </small>
 </span>
-<input checked="" id="aceitaAgendamento" type="checkbox"/>
+<input aria-label="Agendamento online Permitir que clientes escolham data, serviço e profissional." checked="" id="aceitaAgendamento" type="checkbox"/>
 <i>
 </i>
 </label>
@@ -359,44 +358,44 @@
       </h2>
 <div class="form-grid">
 <div class="campo">
-<label>
+<label for="servicoNome">
          Serviço principal
         </label>
 <input id="servicoNome" placeholder="Ex: Corte masculino" required=""/>
 </div>
 <div class="campo">
-<label>
+<label for="servicoCategoria">
          Categoria
         </label>
 <input id="servicoCategoria" required="" value="Corte"/>
 </div>
 <div class="campo">
-<label>
+<label for="servicoPreco">
          Preço
         </label>
 <input id="servicoPreco" min="0" required="" step="0.01" type="number"/>
 </div>
 <div class="campo">
-<label>
+<label for="servicoDuracao">
          Duração em minutos
         </label>
 <input id="servicoDuracao" min="5" required="" type="number" value="30"/>
 </div>
 <div class="campo full">
-<label>
+<label for="servicoDescricao">
          Descrição do serviço
         </label>
 <textarea id="servicoDescricao" required=""></textarea>
 </div>
 <div class="campo">
-<label>
+<label for="fotoArquivo">
          Foto ou logotipo
         </label>
 <input accept="image/png,image/jpeg,image/webp" id="fotoArquivo" type="file"/>
 <img alt="Prévia" class="upload-preview hidden" id="fotoPreview"/>
 </div>
 <div class="campo">
-<label>
+<label for="capaArquivo">
          Imagem de capa
         </label>
 <input accept="image/png,image/jpeg,image/webp" id="capaArquivo" type="file"/>
@@ -453,5 +452,5 @@
 <script src="../js/onboarding.js">
 </script>
 <script src="../js/mobile-app.js"></script>
-</body>
+<script src="../js/product-redesign.js"></script></body>
 </html>

@@ -59,31 +59,35 @@ function bhRenderPortal(lista) {
 
   grid.innerHTML = lista.map(item => {
     const status = bhCalcularStatus(item);
-    const servicos = item.servicos.filter(servico => servico.ativo).slice(0, 3)
-      .map(servico => `<span class="badge">${escapeHTML(servico.nome)}</span>`).join("");
+    const servicos = item.servicos.filter(servico => servico.ativo).slice(0, 2)
+      .map(servico => `<span>${escapeHTML(servico.nome)}</span>`).join("");
     const imagem = item.capaUrl || item.fotoUrl || "../img/logoblack.png";
-    const tipoLabel = item.tipoEstabelecimento === "salao" ? "Salão de beleza" : "Barbearia";
+    const tipoLabel = item.tipoEstabelecimento === "salao" ? "Salão" : "Barbearia";
+    const avaliacao = Number(item.avaliacao || 0);
     return `
-      <article class="card barbearia-card">
-        <div class="barbearia-cover" style="background-image:linear-gradient(135deg,rgba(212,175,55,.2),rgba(0,0,0,.45)),url('${escapeHTML(imagem)}')"></div>
-        <div class="barbearia-info">
-          <div class="card-meta" style="margin-top:0">${bhRenderStatus(item)} <span class="badge">${tipoLabel}</span></div>
-          <h3>${escapeHTML(item.nome)}</h3>
-          <p>${escapeHTML(item.descricao || "Conheça os serviços disponíveis.")}</p>
-          <div class="card-meta">
-            <span class="badge"><i class="bi bi-geo-alt"></i> ${escapeHTML(item.bairro)}, ${escapeHTML(item.cidade)}</span>
-            <span class="badge"><i class="bi bi-star-fill"></i> ${Number(item.avaliacao || 0) > 0 ? Number(item.avaliacao).toFixed(1) : "Sem avaliações"}</span>
-            <span class="badge">${item.aceitaAgendamento ? "Agenda online" : "Atendimento direto"}</span>
+      <article class="card barbearia-card portal-business-card">
+        <a class="portal-business-cover" href="barbearia.html?id=${item.id}"
+          style="background-image:linear-gradient(180deg,rgba(0,0,0,.04),rgba(0,0,0,.64)),url('${escapeHTML(imagem)}')">
+          <span class="portal-business-type">${escapeHTML(tipoLabel)}</span>
+          ${bhRenderStatus(item)}
+        </a>
+        <div class="barbearia-info portal-business-info">
+          <div class="portal-business-heading">
+            <div>
+              <h3><a href="barbearia.html?id=${item.id}">${escapeHTML(item.nome)}</a></h3>
+              <p><i class="bi bi-geo-alt"></i> ${escapeHTML(item.bairro)}, ${escapeHTML(item.cidade)}</p>
+            </div>
+            <span class="portal-rating"><i class="bi bi-star-fill"></i> ${avaliacao > 0 ? avaliacao.toFixed(1) : "Novo"}</span>
           </div>
-          <div class="card-meta">${servicos}</div>
-          <p><strong>${escapeHTML(status.detalhe)}</strong></p>
-          <div class="card-actions">
-            <a class="btn btn-primary btn-small" href="barbearia.html?id=${item.id}">Ver página</a>
-            <a class="btn btn-outline btn-small" href="agendamento.html?barbearia=${item.id}">${item.aceitaAgendamento ? "Agendar" : "Ver atendimento"}</a>
+          <div class="portal-service-preview">${servicos || "<span>Consulte os serviços</span>"}</div>
+          <div class="portal-business-footer">
+            <span class="portal-agenda-state"><i class="bi ${item.aceitaAgendamento ? "bi-calendar2-check" : "bi-chat-dots"}"></i> ${item.aceitaAgendamento ? "Agenda online" : "Contato direto"}</span>
+            <a class="btn btn-primary btn-small" href="${item.aceitaAgendamento ? `agendamento.html?barbearia=${item.id}` : `barbearia.html?id=${item.id}`}">${item.aceitaAgendamento ? "Agendar" : "Ver perfil"}</a>
           </div>
         </div>
       </article>`;
   }).join("");
+
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -94,6 +98,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     bhRenderPortal(bhPortalTodos);
     ["pesquisa", "filtroStatus", "filtroAgendamento", "filtroTipo"].forEach(id => {
       document.getElementById(id)?.addEventListener(id === "pesquisa" ? "input" : "change", bhDebounce(bhFiltrarPortal, 120));
+    });
+    document.querySelector("[data-portal-search-clear]")?.addEventListener("click", () => {
+      const pesquisa = document.getElementById("pesquisa");
+      if (!pesquisa) return;
+      pesquisa.value = "";
+      pesquisa.dispatchEvent(new Event("input", { bubbles: true }));
+      pesquisa.focus();
     });
   } catch (erro) {
     if (grid) grid.innerHTML = `<div class="card empty full-grid"><span class="big">⚠️</span><h3>Não foi possível carregar o portal</h3><p>${escapeHTML(bhErroMensagem(erro))}</p></div>`;

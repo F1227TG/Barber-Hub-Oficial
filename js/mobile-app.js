@@ -1,6 +1,6 @@
 /**
  * mobile-app.js
- * Experiência mobile do Barber Hub 1.4.
+ * Experiência mobile do Barber Hub 1.5.
  *
  * Responsabilidades:
  * - identificar a página atual e ajustar o cabeçalho compacto;
@@ -34,7 +34,8 @@
     "redefinir-senha": ["Nova senha", "Proteja sua conta"],
     "beauty-hub": ["Beauty Hub", "Expansão do ecossistema"],
     privacidade: ["Privacidade", "Uso responsável de dados"],
-    termos: ["Termos", "Regras da plataforma"]
+    termos: ["Termos", "Regras da plataforma"],
+    "mapa-sistema": ["Mapa do sistema", "Páginas e fluxos"]
   };
 
   function paginaAtual() {

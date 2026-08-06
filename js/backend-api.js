@@ -1,20 +1,27 @@
 /**
  * backend-api.js
- * Cliente da API própria do Barber Hub hospedada em /api/v1.
+ * --------------------------------------------------------------------------
+ * Cliente da API própria do Barber Hub em Python/FastAPI.
  *
- * O navegador nunca recebe a chave service_role. Operações sensíveis passam
- * pelas funções da Vercel, que validam sessão e dados antes de acessar o banco.
+ * Responsabilidades:
+ * - anexar o token da sessão quando uma rota exige autenticação;
+ * - padronizar timeouts e mensagens de erro;
+ * - impedir que chaves administrativas sejam enviadas ao navegador;
+ * - concentrar os endpoints usados pelo site, PWA e futuro app Android.
+ * --------------------------------------------------------------------------
  */
 
 (function createBarberHubBackendClient(global) {
   "use strict";
 
+  /** Retorna o access token atual sem armazená-lo em outra variável global. */
   async function sessionToken() {
     if (!global.supabaseClient?.auth) return null;
     const { data } = await global.supabaseClient.auth.getSession();
     return data?.session?.access_token || null;
   }
 
+  /** Executa uma requisição JSON para /api/v1. */
   async function request(path, options = {}) {
     const {
       method = "GET",
@@ -48,10 +55,16 @@
 
       const payload = await response.json().catch(() => null);
       if (!response.ok || payload?.success === false) {
-        const error = new Error(payload?.error?.message || "A API não conseguiu concluir a operação.");
+        const details = payload?.error?.details;
+        const validationMessage = Array.isArray(details)
+          ? details.map(item => item?.message || item?.msg).filter(Boolean).join(" ")
+          : null;
+        const error = new Error(
+          validationMessage || payload?.error?.message || "A API não conseguiu concluir a operação."
+        );
         error.code = payload?.error?.code || "API_ERROR";
         error.status = response.status;
-        error.details = payload?.error?.details || null;
+        error.details = details || null;
         throw error;
       }
 
@@ -72,13 +85,23 @@
     request,
     health: () => request("health", { auth: false, timeout: 8_000 }),
     catalogSummary: () => request("catalog/summary", { auth: false }),
+    createAppointment: data => request("appointments", {
+      method: "POST",
+      auth: true,
+      body: data
+    }),
     createSupportTicket: data => request("support/tickets", { method: "POST", body: data }),
     listSupportTickets: () => request("support/tickets", { auth: true }),
-    deleteAccount: confirmation => request("account/delete", {
+    deleteAccount: confirmation => request("account", {
       method: "DELETE",
       auth: true,
       body: { confirmacao: confirmation }
     }),
-    adminOverview: () => request("admin/overview", { auth: true })
+    adminOverview: () => request("admin/overview", { auth: true }),
+    sendPasswordRecovery: (userId, motivo = "") => request(
+      `admin/users/${encodeURIComponent(userId)}/password-recovery`,
+      { method: "POST", auth: true, body: { motivo } }
+    ),
+    navigationAudit: () => request("admin/navigation-audit", { auth: true })
   };
 })(window);

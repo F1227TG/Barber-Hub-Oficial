@@ -1,254 +1,130 @@
-# Barber Hub — versão 1.4.0
+# Barber Hub — versão 1.5.0
 
-Plataforma web para descoberta, divulgação, gestão e agendamento de barbearias. O projeto também está preparado para a futura expansão **Beauty Hub**.
+O Barber Hub conecta clientes e barbearias em uma única plataforma: descoberta,
+status de funcionamento, agendamento, avaliações, presença digital e gestão.
+É uma plataforma de **The Gamers Tech**.
 
-Tecnologias principais:
+## Entrega 1.5.0
+
+- redesign orientado às tarefas principais de clientes e profissionais;
+- chamada de instalação do PWA em destaque na página inicial;
+- agendamento sem repetir dados já presentes na conta;
+- seleção de até oito serviços no mesmo horário;
+- duração e valor totais calculados automaticamente;
+- API própria em Python com FastAPI;
+- recuperação segura de senha iniciada pelo administrador;
+- mapa visual de páginas, fluxos e responsabilidades;
+- regras e skills locais para Google Antigravity;
+- auditoria local de links, IDs, estrutura e segredos.
+
+## Arquitetura
+
+```text
+Navegador / PWA / futuro app Android
+                 │
+                 ├── consultas públicas e Realtime autorizados
+                 │
+                 ▼
+        Barber Hub API — FastAPI
+                 │
+                 ▼
+ Supabase Auth + PostgreSQL + Storage
+```
+
+O Supabase continua sendo banco e provedor de autenticação. A API Python
+centraliza operações sensíveis e regras que não devem ficar no navegador.
+
+## Tecnologias
 
 - HTML, CSS e JavaScript;
-- Supabase Auth e PostgreSQL;
-- Row Level Security;
-- Supabase Storage;
-- Supabase Realtime por WebSocket;
-- PWA e hospedagem estática no Vercel.
+- Bootstrap local, usado de forma complementar;
+- Python 3.13 e FastAPI;
+- Supabase Auth, PostgreSQL, Storage, RLS e Realtime;
+- Vercel para frontend e funções Python;
+- PWA com Service Worker e manifesto.
 
+## Configuração da API
 
-## Experiência mobile 1.4.0
-
-- interface mobile inspirada na praticidade de aplicativos de serviços;
-- cabeçalho contextual e dock inferior por perfil;
-- filtros do portal em folha inferior;
-- cartões compactos e tabelas convertidas em cards;
-- ações rápidas para cliente, profissional e administrador;
-- página pública com agendamento fixo e conteúdo reorganizado;
-- suporte a notch, áreas seguras e PWA standalone;
-- estilos concentrados em `css/mobile-app.css`;
-- comportamentos concentrados em `js/mobile-app.js`.
-
-> A versão 1.4.0 não exige migration SQL nova.
-
-## Funcionalidades atuais
-
-### Contas e acesso
-
-- Cadastro de cliente ou profissional;
-- Login, recuperação e redefinição de senha;
-- Redirecionamento conforme o tipo da conta;
-- Proteção das áreas de cliente, profissional e administrador;
-- Menus desktop, menu lateral e navegação mobile personalizados por perfil;
-- Tema claro/escuro e preferências de acessibilidade.
-
-### Clientes
-
-- Portal público com busca e filtros;
-- Página pública de cada estabelecimento;
-- Visualização de serviços, profissionais, horários e status;
-- Agendamento com proteção contra conflito de horário;
-- Histórico e cancelamento de agendamentos;
-- Central persistente de notificações;
-- Curtidas em trabalhos da galeria para contas com mais de sete dias;
-- Denúncia de conteúdo da galeria.
-
-### Profissionais
-
-- Cadastro e configuração do estabelecimento;
-- Horários de funcionamento, feriados e status manual;
-- Ativação ou desativação da agenda online;
-- Cadastro de serviços e equipe;
-- Agenda com contador de solicitações pendentes;
-- Confirmação, recusa, conclusão e cancelamento de atendimentos;
-- Relatórios básicos;
-- Página pública;
-- Galeria de trabalhos com:
-  - até cinco imagens por publicação;
-  - compressão automática para WebP;
-  - categorias e até cinco tags;
-  - serviço relacionado opcional;
-  - modo antes e depois opcional;
-  - até três trabalhos em destaque;
-  - ordenação das imagens e escolha da capa;
-  - rascunho, publicação e arquivamento;
-  - confirmação de autorização de imagem;
-  - confirmação específica para menores de idade;
-  - limite inicial de 50 publicações.
-
-### Notificações internas
-
-- Notificações salvas no banco;
-- Contadores no menu e na navegação mobile;
-- Atualização em tempo real por Supabase Realtime;
-- Avisos de novo agendamento, alteração de status, suporte e moderação;
-- Marcar uma ou todas como lidas.
-
-> Esta versão possui notificações **dentro do Barber Hub** enquanto o navegador está conectado. Web Push do sistema operacional, capaz de avisar com o site fechado, permanece como uma etapa separada.
-
-### Administração
-
-- Resumo de usuários, estabelecimentos, agendamentos e tickets;
-- Publicação ou ocultação de estabelecimentos;
-- Atendimento de tickets;
-- Central de moderação da galeria;
-- Ocultação de publicação denunciada;
-- Notificações para administradores, autores das denúncias e proprietários afetados.
-
-## Correções importantes desta versão
-
-- Corrigida a mensagem falsa de erro ao adicionar um serviço: a inserção não depende mais de uma leitura posterior para ser considerada concluída;
-- Separadas as políticas públicas e autenticadas do Supabase, evitando erro `permission denied for function is_admin` para visitantes;
-- Removida a avaliação inicial fictícia de 5,0; estabelecimentos sem avaliações exibem “Ainda sem avaliações”;
-- Impedido que o proprietário republique conteúdo ocultado pela moderação;
-- Corrigido o contador de curtidas para funcionar sem conceder permissão indevida ao cliente;
-- Adicionada limpeza de arquivos quando um upload da galeria falha parcialmente.
-
-## Estrutura principal
-
-```text
-Barber-Hub/
-├── index.html
-├── 404.html
-├── manifest.webmanifest
-├── service-worker.js
-├── vercel.json
-├── css/
-├── html/
-│   ├── portal.html
-│   ├── barbearia.html
-│   ├── agendamento.html
-│   ├── cliente.html
-│   ├── painel.html
-│   ├── notificacoes.html
-│   ├── conta.html
-│   └── admin.html
-├── js/
-├── sql/
-│   ├── 01_barberhub_supabase.sql
-│   ├── 02_promover_admin.sql
-│   ├── 03_experiencia_seguranca_realtime.sql
-│   ├── 04_corrigir_politicas_publicas.sql
-│   ├── 05_menus_notificacoes_portfolio.sql
-│   ├── 06_corrigir_contador_curtidas.sql
-│   ├── 07_avaliacao_sem_nota_ficticia.sql
-│   ├── 08_notificacoes_moderacao_portfolio.sql
-│   ├── 09_ordenacao_midias_portfolio.sql
-│   ├── 10_reforco_seguranca_performance.sql
-│   ├── 11_planos_assinaturas.sql
-│   ├── 12_comunidade_conta_admin_mobile.sql
-│   └── 13_modais_status_avaliacoes_comunidade.sql
-├── vendor/
-│   ├── bootstrap.min.css
-│   └── bootstrap.bundle.min.js
-└── docs/
-    ├── CONFIGURACAO_SUPABASE.md
-    ├── TESTES_INTEGRACAO.md
-    ├── ATUALIZACAO_1_3.md
-    └── ATUALIZACAO_1_3_1.md
-```
-
-## Configuração do Supabase
-
-Leia `docs/CONFIGURACAO_SUPABASE.md`.
-
-Para um projeto novo, execute os arquivos SQL na ordem numérica. O arquivo `01_barberhub_supabase.sql` recria a estrutura central e apaga os dados correspondentes; não o execute novamente em produção apenas para atualizar o sistema.
-
-Configuração pública do navegador:
-
-```javascript
-const SUPABASE_URL = "https://SEU-PROJETO.supabase.co";
-const SUPABASE_ANON_KEY = "SUA_CHAVE_PUBLICA";
-```
-
-Nunca coloque no front-end:
-
-- `service_role`;
-- secret key;
-- senha do banco;
-- URL de conexão PostgreSQL.
-
-## Conta administrativa
-
-Crie uma conta com uma senha forte e exclusiva. Depois, ajuste o e-mail em `sql/02_promover_admin.sql` e execute o arquivo.
-
-Não utilize senhas de exemplo ou uma senha compartilhada em produção. Ative autenticação em dois fatores nas contas do GitHub, Supabase e Vercel.
-
-## Testes
-
-Use o roteiro:
-
-```text
-docs/TESTES_INTEGRACAO.md
-```
-
-Teste pelo menos:
-
-- uma conta cliente;
-- uma conta profissional com estabelecimento;
-- uma conta administrativa;
-- computador e celular;
-- janela anônima para validar o acesso público.
-
-## Deploy
-
-O projeto não exige comando de build.
-
-```bash
-git add .
-git commit -m "Atualiza menus, notificações e galeria"
-git push
-```
-
-O Vercel conectado ao branch de produção publicará a alteração automaticamente.
-
-## Próximas etapas planejadas
-
-- Notificações push com o aplicativo fechado;
-- Web Push com o site fechado;
-- MFA obrigatório para administradores;
-- SMTP próprio;
-- Planos e pagamentos;
-- Exportação de dados da conta;
-- Aplicativo móvel;
-- Expansão Beauty Hub.
-
-
-## Versão 1.3.0
-
-A versão 1.3 adiciona avaliações verificadas, favoritos, reagendamento, redes sociais, exclusão de conta, administração ampliada, nova página Sobre, página inicial redesenhada, planos mensais e experiência mobile em formato de aplicativo. Antes dos testes, aplique `sql/12_comunidade_conta_admin_mobile.sql`.
-
-
-## Versão 1.3.1
-
-A versão 1.3.1 corrige a página Sobre, transforma avaliações e denúncias em modais, adiciona avaliações da comunidade e de publicações, inclui controles rápidos de status no painel, oculta badges zerados e integra Bootstrap localmente. Após a migration 12, execute `sql/13_modais_status_avaliacoes_comunidade.sql`.
-
-
-## Organização do código
-
-Consulte `docs/GUIA_DE_CODIGO.md` para entender a responsabilidade de cada arquivo e o padrão de manutenção.
-
----
-
-## API própria — versão 1.4.1
-
-O projeto agora possui uma camada de backend em `api/v1/`, publicada como
-Vercel Functions. Ela valida dados e protege operações sensíveis antes de
-acessar o Supabase.
-
-Rotas iniciais:
-
-```text
-GET    /api/v1/health
-GET    /api/v1/catalog/summary
-GET    /api/v1/support/tickets
-POST   /api/v1/support/tickets
-DELETE /api/v1/account/delete
-GET    /api/v1/admin/overview
-```
-
-Configure na Vercel:
+Crie as seguintes variáveis na Vercel:
 
 ```text
 SUPABASE_URL
 SUPABASE_PUBLISHABLE_KEY
 SUPABASE_SECRET_KEY
+BARBER_HUB_ALLOWED_ORIGINS
+BARBER_HUB_PASSWORD_REDIRECT_URL
 ```
 
-A chave `secret` — ou `service_role` legada — é secreta e nunca deve ser enviada ao GitHub ou colocada
-nos arquivos JavaScript do navegador. Consulte `docs/API_BARBER_HUB_V1.md`.
+A chave secreta nunca deve aparecer em HTML, JavaScript, repositório ou
+aplicativo. Use `.env.example` como modelo, sem preencher valores reais nele.
+
+## Banco de dados
+
+Em um banco já atualizado até a versão 1.4.1, execute somente:
+
+```text
+sql/14_api_python_agendamento_multisservicos.sql
+```
+
+Em um projeto novo, execute as migrations de `01` a `14`, em ordem. A migration
+`01` recria a estrutura principal e não deve ser reaplicada sobre produção com
+dados reais.
+
+## Desenvolvimento local
+
+O Live Server executa somente os arquivos estáticos. Para testar frontend e API
+juntos:
+
+```bash
+npm install -g vercel
+vercel login
+vercel link
+vercel env pull .env.local
+vercel dev
+```
+
+Documentação automática da API durante o desenvolvimento:
+
+```text
+http://localhost:3000/api/docs
+```
+
+## Verificação antes do commit
+
+```bash
+npm run check
+```
+
+O comando verifica JavaScript/estrutura do projeto e compila os módulos Python.
+O roteiro funcional está em `docs/TESTES_INTEGRACAO.md`.
+
+## Documentação principal
+
+- `ARCHITECTURE.md`: arquitetura e limites entre camadas;
+- `docs/API_BARBER_HUB_V1.md`: endpoints e configuração do backend;
+- `docs/MAPA_DE_NAVEGACAO.md`: páginas e fluxos;
+- `docs/GUIA_DE_CODIGO.md`: responsabilidade dos arquivos;
+- `docs/ANTIGRAVITY.md`: uso seguro do Google Antigravity;
+- `docs/ATUALIZACAO_1_5.md`: alterações e roteiro desta versão.
+
+## Senhas e administração
+
+Senhas não são armazenadas de forma legível. O painel administrativo oferece
+**Redefinir senha**, que envia ao titular um fluxo de recuperação. Não adicione
+funções para revelar, registrar ou enviar senhas em texto puro.
+
+## Deploy
+
+```bash
+git status
+git add .
+git commit -m "Atualiza Barber Hub para versão 1.5.0"
+git push origin main
+```
+
+Depois do deploy, valide:
+
+```text
+/api/v1/health
+/api/docs
+```

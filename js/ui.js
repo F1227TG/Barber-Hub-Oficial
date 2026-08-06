@@ -154,6 +154,7 @@ function bhLinksExtrasDrawer(perfil, contadores = {}) {
     ["html/admin.html#agendamentos", "Agendamentos", "bi-calendar2-check"],
     ["html/admin.html#avaliacoes", "Avaliações", "bi-star"],
     ["html/admin.html#moderacao", "Moderação", "bi-flag", "moderacao"],
+    ["html/mapa-sistema.html", "Mapa do sistema", "bi-diagram-3"],
     ["html/conta.html", "Minha conta", "bi-person-gear"]
   ];
   if (perfil) return [
@@ -204,7 +205,16 @@ function bhCriarDrawer(perfil, contadores = {}) {
           <button data-a11y="movimento"><i class="bi bi-person-wheelchair"></i> Movimento</button>
         </div>
       </div>
-      ${perfil ? `<button class="btn btn-danger full" id="drawerLogout"><i class="bi bi-box-arrow-right"></i> Sair da conta</button>` : `<a class="btn btn-primary full" href="${bhUrl("html/cadastro.html")}">Criar conta</a>`}
+      ${perfil ? `
+        <div class="drawer-auth-actions">
+          <button class="btn btn-outline full" data-install-app type="button"><i class="bi bi-phone"></i> Instalar aplicativo</button>
+          <button class="btn btn-danger full" id="drawerLogout"><i class="bi bi-box-arrow-right"></i> Sair da conta</button>
+        </div>` : `
+        <div class="drawer-auth-actions">
+          <a class="btn btn-primary full" href="${bhUrl("html/login.html")}"><i class="bi bi-box-arrow-in-right"></i> Entrar</a>
+          <a class="btn btn-outline full" href="${bhUrl("html/cadastro.html")}"><i class="bi bi-person-plus"></i> Criar conta</a>
+          <button class="btn btn-outline full" data-install-app type="button"><i class="bi bi-phone"></i> Instalar aplicativo</button>
+        </div>`}
     </aside>
   `;
   document.body.appendChild(drawer);
@@ -545,7 +555,7 @@ function bhCriarDockMobile(perfil, contadores = {}){
 function bhPrepararPWA(){
   if('serviceWorker' in navigator&&location.protocol.startsWith('http')) navigator.serviceWorker.register(bhUrl('service-worker.js')).catch(console.warn);
   let deferred;
-  addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferred=e;const sec=document.querySelector('.drawer-section');if(sec&&!document.getElementById('instalarApp')){const b=document.createElement('button');b.id='instalarApp';b.className='btn btn-outline full install-app-btn';b.innerHTML='<i class="bi bi-phone"></i> Instalar Barber Hub';b.onclick=async()=>{await deferred.prompt();deferred=null;b.remove()};sec.appendChild(b)}});
+
 }
 
 function bhAplicarSEO(){

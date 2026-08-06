@@ -18,6 +18,40 @@ const BH_ESTABELECIMENTO_SELECT = `
 
 const BH_DIAS_CHAVE = ["domingo", "segunda", "terca", "quarta", "quinta", "sexta", "sabado"];
 
+/**
+ * Normaliza os serviços de um agendamento novo ou antigo.
+ * A migration 14 mantém `servico_id` como item principal por compatibilidade,
+ * enquanto `agendamento_servicos` contém a seleção completa.
+ */
+function bhAgendamentoServicos(agendamento) {
+  const itens = [...(agendamento?.agendamento_servicos || [])]
+    .sort((a, b) => Number(a.ordem || 0) - Number(b.ordem || 0))
+    .map(item => ({
+      id: item.servico_id || item.servicos?.id || null,
+      nome: item.nome_snapshot || item.servicos?.nome || "Serviço",
+      preco: Number(item.preco_snapshot ?? item.servicos?.preco ?? 0),
+      duracao: Number(item.duracao_min_snapshot ?? item.servicos?.duracao_min ?? 0)
+    }));
+  if (itens.length) return itens;
+  if (agendamento?.servicos) return [{
+    id: agendamento.servico_id || agendamento.servicos.id || null,
+    nome: agendamento.servicos.nome || "Serviço",
+    preco: Number(agendamento.valor || agendamento.servicos.preco || 0),
+    duracao: Number(agendamento.servicos.duracao_min || 0)
+  }];
+  return [];
+}
+
+function bhAgendamentoServicosTexto(agendamento, separador = " + ") {
+  const nomes = bhAgendamentoServicos(agendamento).map(item => item.nome);
+  return nomes.length ? nomes.join(separador) : "Serviço";
+}
+
+function bhAgendamentoServicoIds(agendamento) {
+  const ids = bhAgendamentoServicos(agendamento).map(item => item.id).filter(Boolean);
+  return ids.length ? ids : [agendamento?.servico_id].filter(Boolean);
+}
+
 /** Retorna true quando o backend próprio ainda não está disponível no ambiente local. */
 function bhBackendPodeUsarFallback(erro) {
   return !window.bhBackendApi || [404, 405, 503].includes(Number(erro?.status)) ||
@@ -188,7 +222,8 @@ async function bhListarAgendamentosCliente() {
       *,
       estabelecimentos(nome,slug,tipo_estabelecimento),
       profissionais(nome),
-      servicos(nome,duracao_min)
+      servicos(id,nome,preco,duracao_min),
+      agendamento_servicos(servico_id,ordem,nome_snapshot,preco_snapshot,duracao_min_snapshot,servicos(id,nome,preco,duracao_min))
     `)
     .eq("cliente_id", perfil.id)
     .order("data", { ascending: false })
@@ -204,7 +239,8 @@ async function bhListarAgendamentosEstabelecimento(estabelecimentoId) {
     .select(`
       *,
       profissionais(nome),
-      servicos(nome,duracao_min)
+      servicos(id,nome,preco,duracao_min),
+      agendamento_servicos(servico_id,ordem,nome_snapshot,preco_snapshot,duracao_min_snapshot,servicos(id,nome,preco,duracao_min))
     `)
     .eq("estabelecimento_id", estabelecimentoId)
     .order("data", { ascending: false })
@@ -227,11 +263,32 @@ async function bhObterHorariosOcupados(profissionalId, data) {
 }
 
 async function bhCriarAgendamento(payload) {
+  const servicosIds = [...new Set(payload.servicosIds || [payload.servicoId].filter(Boolean))];
+  if (!servicosIds.length) throw new Error("Selecione pelo menos um serviço.");
+
+  // Produção: a API Python valida a sessão e chama a função transacional.
+  if (window.bhBackendApi) {
+    try {
+      return await window.bhBackendApi.createAppointment({
+        estabelecimento_id: payload.estabelecimentoId,
+        profissional_id: payload.profissionalId,
+        servicos_ids: servicosIds,
+        data: payload.data,
+        hora_inicio: payload.hora,
+        observacao: payload.observacao || null
+      });
+    } catch (erro) {
+      if (!bhBackendPodeUsarFallback(erro)) throw erro;
+      console.warn("[Barber Hub] API de agendamento indisponível; usando RPC autenticada.", erro);
+    }
+  }
+
+  // Desenvolvimento estático: fallback temporário para o Supabase.
   const client = bhExigirSupabase();
-  const { data, error } = await client.rpc("criar_agendamento", {
+  const { data, error } = await client.rpc("criar_agendamento_multisservico", {
     p_estabelecimento_id: payload.estabelecimentoId,
     p_profissional_id: payload.profissionalId,
-    p_servico_id: payload.servicoId,
+    p_servicos_ids: servicosIds,
     p_data: payload.data,
     p_hora_inicio: payload.hora,
     p_observacao: payload.observacao || null
@@ -396,14 +453,14 @@ async function bhAdminResumo() {
   const resultados = await Promise.all([
     client.from("perfis").select("*", { count: "exact" }).order("created_at", { ascending: false }).limit(250),
     client.from("estabelecimentos").select("*", { count: "exact" }).order("created_at", { ascending: false }).limit(250),
-    client.from("agendamentos").select("*", { count: "exact" }).order("created_at", { ascending: false }).limit(250),
+    client.from("agendamentos").select(`*, servicos(id,nome,preco,duracao_min), profissionais(nome), estabelecimentos(nome), agendamento_servicos(servico_id,ordem,nome_snapshot,preco_snapshot,duracao_min_snapshot,servicos(id,nome,preco,duracao_min))`, { count: "exact" }).order("created_at", { ascending: false }).limit(250),
     client.from("tickets_suporte").select("*", { count: "exact" }).order("created_at", { ascending: false }).limit(250),
     client.from("portfolio_denuncias").select(`
       *,
       perfis(nome,email),
       portfolio_publicacoes(id,titulo,status,estabelecimento_id,estabelecimentos(nome))
     `, { count: "exact" }).order("created_at", { ascending: false }).limit(250),
-    client.from("avaliacoes").select(`*, perfis(nome,email), estabelecimentos(nome), agendamentos(data,hora_inicio,servicos(nome),profissionais(nome)), portfolio_publicacoes(id,titulo)`, { count: "exact" }).order("created_at", { ascending: false }).limit(250)
+    client.from("avaliacoes").select(`*, perfis(nome,email), estabelecimentos(nome), agendamentos(data,hora_inicio,servicos(nome),profissionais(nome),agendamento_servicos(ordem,nome_snapshot)), portfolio_publicacoes(id,titulo)`, { count: "exact" }).order("created_at", { ascending: false }).limit(250)
   ]);
   const [perfis, estabelecimentos, agendamentos, tickets, denuncias, avaliacoesResultado] = resultados;
   [perfis, estabelecimentos, agendamentos, tickets, denuncias].forEach(resultado => {
@@ -1004,7 +1061,7 @@ async function bhListarAvaliacoesEstabelecimento(estabelecimentoId) {
   const client = bhExigirSupabase();
   const { data, error } = await client
     .from("avaliacoes")
-    .select(`*, perfis(nome,avatar_url), agendamentos(servicos(nome),profissionais(nome)), portfolio_publicacoes(id,titulo)`)
+    .select(`*, perfis(nome,avatar_url), agendamentos(servicos(nome),profissionais(nome),agendamento_servicos(ordem,nome_snapshot)), portfolio_publicacoes(id,titulo)`)
     .eq("estabelecimento_id", estabelecimentoId)
     .eq("status", "publicada")
     .order("created_at", { ascending: false });
@@ -1018,7 +1075,7 @@ async function bhListarMinhasAvaliacoes() {
   const client = bhExigirSupabase();
   const { data, error } = await client
     .from("avaliacoes")
-    .select(`*, estabelecimentos(nome,slug), agendamentos(data,hora_inicio,servicos(nome),profissionais(nome)), portfolio_publicacoes(id,titulo)`)
+    .select(`*, estabelecimentos(nome,slug), agendamentos(data,hora_inicio,servicos(nome),profissionais(nome),agendamento_servicos(ordem,nome_snapshot)), portfolio_publicacoes(id,titulo)`)
     .eq("cliente_id", perfil.id)
     .order("created_at", { ascending: false });
   if (error) throw error;
@@ -1100,7 +1157,7 @@ async function bhListarAvaliacoesMeuEstabelecimento(estabelecimentoId) {
   const client = bhExigirSupabase();
   const { data, error } = await client
     .from("avaliacoes")
-    .select(`*, perfis(nome,avatar_url), agendamentos(data,hora_inicio,servicos(nome),profissionais(nome)), portfolio_publicacoes(id,titulo)`)
+    .select(`*, perfis(nome,avatar_url), agendamentos(data,hora_inicio,servicos(nome),profissionais(nome),agendamento_servicos(ordem,nome_snapshot)), portfolio_publicacoes(id,titulo)`)
     .eq("estabelecimento_id", estabelecimentoId)
     .order("created_at", { ascending: false });
   if (error) throw error;

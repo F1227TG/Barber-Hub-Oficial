@@ -68,12 +68,48 @@ function bhRenderAdminEstabelecimentos() {
 function bhRenderAdminUsuarios() {
   const termo = document.getElementById("buscarAdminUsuarios")?.value.trim() || "";
   const filtro = document.getElementById("filtroAdminUsuarios")?.value || "todos";
-  const itens = bhAdminDados.perfis.filter(item => bhAdminFiltrarTexto(item, termo, ["nome","email"]) && (filtro === "todos" || item.tipo === filtro || (filtro === "inativo" && !item.ativo)));
+  const itens = bhAdminDados.perfis.filter(item =>
+    bhAdminFiltrarTexto(item, termo, ["nome", "email"]) &&
+    (filtro === "todos" || item.tipo === filtro || (filtro === "inativo" && !item.ativo))
+  );
   const tbody = document.getElementById("tbodyAdminUsuarios");
-  tbody.innerHTML = itens.length ? itens.map(item => {
+  if (!itens.length) {
+    tbody.innerHTML = `<tr><td colspan="5"><div class="empty compact">Nenhum usuário encontrado.</div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = itens.map(item => {
     const proprio = item.id === bhAdminPerfil.id;
-    return `<tr><td><div class="admin-entity"><div class="admin-user-avatar">${escapeHTML((item.nome||"U").slice(0,1).toUpperCase())}</div><div><strong>${escapeHTML(item.nome)}</strong><span>${escapeHTML(item.email)}</span></div></div></td><td><select data-admin-role="${item.id}" ${proprio?"disabled":""}><option value="cliente" ${item.tipo==="cliente"?"selected":""}>Cliente</option><option value="barbeiro" ${item.tipo==="barbeiro"?"selected":""}>Barbeiro</option><option value="admin" ${item.tipo==="admin"?"selected":""}>Administrador</option></select></td><td><span class="status ${item.ativo?"concluido":"cancelado"}">${item.ativo?"Ativo":"Inativo"}</span></td><td>${new Date(item.created_at).toLocaleDateString("pt-BR")}</td><td><button class="btn ${item.ativo?"btn-danger":"btn-outline"} btn-small" data-admin-ativo="${item.id}" data-valor="${item.ativo}" ${proprio?"disabled title='Sua conta é protegida nesta tela'":""}>${item.ativo?"Desativar":"Ativar"}</button></td></tr>`;
-  }).join("") : `<tr><td colspan="5"><div class="empty compact">Nenhum usuário encontrado.</div></td></tr>`;
+    return `<tr>
+      <td>
+        <div class="admin-entity">
+          <div class="admin-user-avatar">${escapeHTML((item.nome || "U").slice(0, 1).toUpperCase())}</div>
+          <div><strong>${escapeHTML(item.nome)}</strong><span>${escapeHTML(item.email)}</span></div>
+        </div>
+      </td>
+      <td>
+        <select data-admin-role="${item.id}" ${proprio ? "disabled" : ""}>
+          <option value="cliente" ${item.tipo === "cliente" ? "selected" : ""}>Cliente</option>
+          <option value="barbeiro" ${item.tipo === "barbeiro" ? "selected" : ""}>Barbeiro</option>
+          <option value="admin" ${item.tipo === "admin" ? "selected" : ""}>Administrador</option>
+        </select>
+      </td>
+      <td><span class="status ${item.ativo ? "concluido" : "cancelado"}">${item.ativo ? "Ativo" : "Inativo"}</span></td>
+      <td>${new Date(item.created_at).toLocaleDateString("pt-BR")}</td>
+      <td>
+        <div class="admin-user-actions">
+          <button class="btn btn-outline btn-small" data-admin-password-recovery="${item.id}" data-user-email="${escapeHTML(item.email)}">
+            <i class="bi bi-envelope-lock"></i> Redefinir senha
+          </button>
+          <button class="btn ${item.ativo ? "btn-danger" : "btn-outline"} btn-small"
+            data-admin-ativo="${item.id}" data-valor="${item.ativo}"
+            ${proprio ? "disabled title='Sua conta é protegida nesta tela'" : ""}>
+            ${item.ativo ? "Desativar" : "Ativar"}
+          </button>
+        </div>
+      </td>
+    </tr>`;
+  }).join("");
 }
 
 function bhRenderAdminAgendamentos() {
@@ -92,8 +128,8 @@ function bhRenderAdminAvaliacoes() {
     const verificada = Boolean(item.verificada || item.origem === "agendamento");
     const contexto = item.portfolio_publicacoes?.titulo
       ? `<span class="review-context"><i class="bi bi-images"></i> Publicação: ${escapeHTML(item.portfolio_publicacoes.titulo)}</span>`
-      : item.agendamentos?.servicos?.nome
-        ? `<span class="review-context"><i class="bi bi-scissors"></i> Atendimento: ${escapeHTML(item.agendamentos.servicos.nome)}</span>`
+      : (item.agendamentos?.agendamento_servicos?.length || item.agendamentos?.servicos?.nome)
+        ? `<span class="review-context"><i class="bi bi-scissors"></i> Atendimento: ${escapeHTML(bhAgendamentoServicosTexto(item.agendamentos))}</span>`
         : "";
     return `<article class="admin-review-card"><div class="review-manage-head"><div><strong>${escapeHTML(item.estabelecimentos?.nome||"Estabelecimento")}</strong><span>${"★".repeat(Number(item.nota||0))}${"☆".repeat(5-Number(item.nota||0))}</span></div><div class="review-meta-stack"><span class="review-source-badge ${verificada ? "verified" : "community"}"><i class="bi ${verificada ? "bi-patch-check-fill" : "bi-people-fill"}"></i> ${verificada ? "Verificada" : "Comunidade"}</span><span class="status ${item.status==="publicada"?"concluido":item.status==="ocultada"?"cancelado":"pendente"}">${escapeHTML(item.status.replace("_"," "))}</span></div></div>${contexto}<p>${escapeHTML(item.comentario||"Avaliação sem comentário.")}</p><small>${escapeHTML(item.perfis?.nome||"Conta excluída")} • ${new Date(item.created_at).toLocaleDateString("pt-BR")}</small>${item.resposta_estabelecimento?`<div class="business-reply"><strong>Resposta do estabelecimento</strong><p>${escapeHTML(item.resposta_estabelecimento)}</p></div>`:""}<div class="moderation-actions"><button class="btn btn-outline btn-small" data-admin-avaliacao-status="${item.id}" data-status="publicada"><i class="bi bi-eye"></i> Publicar</button><button class="btn btn-outline btn-small" data-admin-avaliacao-status="${item.id}" data-status="em_analise"><i class="bi bi-search"></i> Analisar</button><button class="btn btn-danger btn-small" data-admin-avaliacao-status="${item.id}" data-status="ocultada"><i class="bi bi-eye-slash"></i> Ocultar</button></div></article>`;
   }).join("") : `<div class="empty full-grid"><i class="bi bi-star big"></i><p>Nenhuma avaliação registrada.</p></div>`;
@@ -135,8 +171,31 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   document.body.addEventListener("click", async evento => {
-    const vis = evento.target.closest("[data-admin-visibilidade]"); const ver = evento.target.closest("[data-admin-verificar]"); const dest = evento.target.closest("[data-admin-destaque]"); const ativo = evento.target.closest("[data-admin-ativo]"); const av = evento.target.closest("[data-admin-avaliacao-status]");
+    const vis = evento.target.closest("[data-admin-visibilidade]");
+    const ver = evento.target.closest("[data-admin-verificar]");
+    const dest = evento.target.closest("[data-admin-destaque]");
+    const ativo = evento.target.closest("[data-admin-ativo]");
+    const av = evento.target.closest("[data-admin-avaliacao-status]");
+    const recovery = evento.target.closest("[data-admin-password-recovery]");
     try {
+      if (recovery) {
+        if (!window.bhBackendApi) throw new Error("A API Python ainda não está disponível neste ambiente.");
+        const email = recovery.dataset.userEmail || "esta conta";
+        if (!await bhConfirmar({
+          titulo: "Enviar redefinição de senha",
+          mensagem: `O Barber Hub enviará um link seguro para ${email}. A senha atual não será exibida nem alterada pela administração.`,
+          confirmarTexto: "Enviar link",
+          trigger: recovery
+        })) return;
+        bhSetButtonLoading(recovery, true, "Enviando...");
+        try {
+          const result = await window.bhBackendApi.sendPasswordRecovery(recovery.dataset.adminPasswordRecovery, "Solicitação administrativa pelo painel");
+          mostrarToast("sucesso", "Link enviado", `A recuperação foi enviada para ${result.email_masked || email}.`);
+        } finally {
+          bhSetButtonLoading(recovery, false);
+        }
+        return;
+      }
       if (vis) { await bhAdminAtualizarEstabelecimento(vis.dataset.adminVisibilidade,{visivel:vis.dataset.valor!=="true"}); mostrarToast("sucesso","Visibilidade atualizada","A alteração já está ativa no portal."); await bhRecarregarAdmin(); return; }
       if (ver) { await bhAdminAtualizarEstabelecimento(ver.dataset.adminVerificar,{verificado:ver.dataset.valor!=="true"}); mostrarToast("sucesso","Verificação atualizada","O selo foi ajustado."); await bhRecarregarAdmin(); return; }
       if (dest) { await bhAdminAtualizarEstabelecimento(dest.dataset.adminDestaque,{destaque:dest.dataset.valor!=="true"}); mostrarToast("sucesso","Destaque atualizado","A prioridade do portal foi ajustada."); await bhRecarregarAdmin(); return; }

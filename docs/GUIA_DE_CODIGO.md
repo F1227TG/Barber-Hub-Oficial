@@ -1,57 +1,89 @@
-# Guia de código — Barber Hub 1.4.0
+# Guia de código — Barber Hub 1.5.0
 
-Este documento explica onde cada parte do sistema deve ser alterada. O objetivo é evitar regras duplicadas e facilitar a manutenção.
+## Princípio central
 
-## Ordem de carregamento dos estilos
+Cada regra deve existir na camada adequada:
 
-1. `css/framework.css`: importa o Bootstrap local dentro de uma camada de fornecedor.
-2. `css/global.css`: tokens de tema, reset, componentes compartilhados e responsividade global.
-3. `css/index.css`: somente a página inicial.
-4. `css/pages.css`: páginas internas e painéis.
+- **HTML:** estrutura e semântica;
+- **CSS:** aparência e responsividade;
+- **JavaScript da página:** interação e renderização;
+- **`js/api.js`:** consultas públicas/autorizadas ao Supabase;
+- **`js/backend-api.js`:** consumo da API própria;
+- **Python:** validações e operações sensíveis;
+- **SQL/RPC:** consistência transacional e políticas de dados.
 
-As cores nunca devem ser escritas diretamente em componentes comuns. Use `var(--text)`, `var(--muted)`, `var(--surface)`, `var(--border)` e os demais tokens de `:root`. Isso mantém os temas escuro e claro consistentes.
+## Estilos
 
-## Organização do JavaScript
+Ordem atual:
 
-- `supabase-config.js` e `supabase-client.js`: conexão pública com o Supabase.
-- `api.js`: única camada para consultas e alterações de dados.
-- `auth.js`: sessão e proteção de páginas.
-- `utils.js`, `toast.js`, `status.js` e `ui.js`: recursos compartilhados.
-- Arquivos com nome de página, como `barbearia.js`, `painel.js` e `planos.js`: comportamento exclusivo daquela tela.
+1. `vendor/bootstrap.min.css` / `css/framework.css`: fornecedor;
+2. `css/global.css`: tokens, componentes e temas;
+3. `css/index.css` ou `css/pages.css`: telas existentes;
+4. `css/mobile-app.css`: navegação e experiência mobile;
+5. `css/release-1.4.1.css`: correções preservadas da versão anterior;
+6. `css/product-redesign.css`: camada de produto 1.5 e ajustes finais.
 
-Evite consultas Supabase diretamente dentro de páginas novas. Adicione a operação em `api.js` e consuma a função na tela.
+Use tokens como `var(--text)`, `var(--muted)`, `var(--surface)` e `var(--gold)`.
+Evite alturas fixas em cards com conteúdo variável.
 
-## Padrão de uma página
+## JavaScript
 
-1. Estado local da página.
-2. Funções puras de formatação e cálculo.
-3. Funções de renderização.
-4. Operações assíncronas.
-5. Eventos.
-6. Inicialização.
+- `supabase-config.js` e `supabase-client.js`: cliente público;
+- `api.js`: operações de dados e compatibilidade;
+- `backend-api.js`: requisições para `/api/v1`;
+- `auth.js`: sessão e proteção de páginas;
+- `ui.js`: menu, drawer, dock, tema e acessibilidade;
+- `mobile-app.js`: comportamento específico de telas pequenas;
+- `product-redesign.js`: instalação do PWA e utilidades do redesign;
+- arquivos com nome de página: estado e eventos daquela tela.
 
-## Correção de contraste 1.3.2
+Organização recomendada dentro de cada arquivo:
 
-O Bootstrap define variáveis próprias de cor. Elas agora apontam para os tokens do Barber Hub, e títulos/cartões recebem cor explícita. Dessa forma, títulos não ficam pretos no tema escuro e os dois temas continuam sincronizados.
+1. estado;
+2. seletores e constantes;
+3. formatadores puros;
+4. renderização;
+5. operações assíncronas;
+6. eventos;
+7. inicialização.
 
-## Cartões de planos
+## API Python
 
-O cartão de plano atual possui espaçamento interno próprio, colunas flexíveis e estatísticas com altura mínima. Os cartões comerciais crescem conforme o conteúdo; não use alturas fixas para textos variáveis.
+- `api/index.py`: rotas, middlewares e erros HTTP;
+- `backend/models.py`: entradas validadas;
+- `backend/security.py`: autenticação/autorização;
+- `backend/supabase.py`: único gateway HTTP do backend;
+- `backend/services/`: regras por domínio.
 
-## Checklist antes do commit
+Nenhum módulo fora de `backend/config.py` deve ler variáveis de ambiente.
+Nenhuma rota deve retornar stack trace, segredo ou hash de senha.
 
-- Executar `node --check` nos arquivos JavaScript.
-- Abrir páginas em tema escuro e claro.
-- Testar larguras de 390 px, 768 px e 1366 px.
-- Confirmar que textos longos não saem dos cartões.
-- Atualizar o nome do cache no `service-worker.js` quando arquivos estáticos mudarem.
+## Agendamento múltiplo
 
+A interface mantém os serviços selecionados em um `Set`. A API envia uma lista
+de UUIDs para a RPC `criar_agendamento_multisservico`. A RPC calcula duração,
+preço e conflito numa transação e grava snapshots em `agendamento_servicos`.
 
-## Experiência responsiva 1.4.0
+`agendamentos.servico_id` continua guardando o primeiro serviço para manter
+compatibilidade com partes antigas durante a transição.
 
-- `css/mobile-app.css`: contém somente a camada de adaptação para tablet e celular.
-- `js/mobile-app.js`: adiciona cabeçalho contextual, atalhos, filtros mobile e ações fixas.
-- `js/ui.js`: cria menu por perfil, drawer, badges e dock inferior.
-- `js/home.js`: carrega e anima os indicadores públicos da página inicial.
+## Comentários
 
-Ao corrigir um problema exclusivamente mobile, prefira alterar `mobile-app.css` ou `mobile-app.js`, evitando espalhar regras responsivas em vários arquivos.
+Comente intenção, decisões e regras de negócio. Não comente cada linha óbvia.
+Cabeçalhos de seção devem facilitar navegação sem duplicar o que o código já
+diz claramente.
+
+## Checklist
+
+```bash
+npm run check
+```
+
+Depois:
+
+- tema escuro e claro;
+- 360 px, 390 px, 412 px, tablet e desktop;
+- cliente, profissional e administrador;
+- Service Worker atualizado;
+- nenhuma secret key no Git;
+- migration correspondente documentada.

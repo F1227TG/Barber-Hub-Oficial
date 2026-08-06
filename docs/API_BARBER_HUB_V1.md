@@ -1,63 +1,57 @@
-# API própria do Barber Hub — versão 1
+# API própria do Barber Hub — Python/FastAPI
 
-A pasta `api/` contém funções de backend publicadas pela Vercel. O Supabase
-continua como banco, autenticação e armazenamento, mas o navegador não executa
-diretamente as operações mais sensíveis.
+## Objetivo
 
-## Arquitetura
+A API não substitui o Supabase. Ela cria uma camada controlada pelo Barber Hub
+para validação, autenticação, operações administrativas, regras transacionais e
+integrações futuras.
 
 ```text
-Site / PWA / futuro aplicativo
+Frontend / PWA / Capacitor
+            ↓ JSON + Bearer token
+     /api/v1 — FastAPI
             ↓
-     /api/v1 (Vercel)
-            ↓
- Supabase Auth + PostgreSQL
+ Supabase Auth + PostgREST + RPC
 ```
 
-A chave `SUPABASE_SECRET_KEY` — ou a `SUPABASE_SERVICE_ROLE_KEY` legada — existe somente no servidor. Ela nunca deve
-ser colocada em `js/`, HTML, GitHub público ou aplicativo Android.
+## Estrutura
 
-## Endpoints iniciais
+```text
+api/index.py                 entrada da Vercel e definição das rotas
+backend/config.py            leitura centralizada das variáveis
+backend/models.py            contratos validados com Pydantic
+backend/security.py          sessão e autorização por perfil
+backend/supabase.py          comunicação assíncrona com Supabase
+backend/services/            regras de catálogo, agenda, suporte e admin
+```
 
-| Método | Endpoint | Autenticação | Finalidade |
+## Endpoints
+
+| Método | Rota | Acesso | Responsabilidade |
 |---|---|---|---|
-| GET | `/api/v1/health` | Não | Estado e versão da API |
-| GET | `/api/v1/catalog/summary` | Não | Métricas públicas da página inicial |
-| POST | `/api/v1/support/tickets` | Opcional | Criação validada de ticket |
-| GET | `/api/v1/support/tickets` | Sim | Histórico do usuário conectado |
-| DELETE | `/api/v1/account/delete` | Sim | Exclusão segura da própria conta |
-| GET | `/api/v1/admin/overview` | Admin | Resumo protegido da plataforma |
+| GET | `/api/v1/health` | público | estado e runtime da API |
+| GET | `/api/v1/catalog/summary` | público | indicadores da página inicial |
+| POST | `/api/v1/appointments` | autenticado | agendamento com múltiplos serviços |
+| GET | `/api/v1/support/tickets` | autenticado | tickets do usuário |
+| POST | `/api/v1/support/tickets` | público ou autenticado | ticket validado e limitado |
+| DELETE | `/api/v1/account` | autenticado | exclusão da própria conta |
+| GET | `/api/v1/admin/overview` | admin | resumo administrativo |
+| POST | `/api/v1/admin/users/{id}/password-recovery` | admin | envia recuperação de senha |
+| GET | `/api/v1/admin/navigation-audit` | admin | referência do mapa interno |
 
-## Variáveis na Vercel
-
-No projeto `barberhuboficial`, abra **Settings → Environment Variables** e crie:
+Swagger UI:
 
 ```text
-SUPABASE_URL
-SUPABASE_PUBLISHABLE_KEY
-SUPABASE_SECRET_KEY
-BARBER_HUB_ALLOWED_ORIGINS (opcional)
+/api/docs
 ```
 
-Marque as três primeiras para Production, Preview e Development conforme o
-ambiente usado. Depois, faça um novo deploy.
+OpenAPI JSON:
 
-## Desenvolvimento local
-
-O Live Server entrega apenas arquivos estáticos e não executa a pasta `api/`.
-Para testar frontend e backend juntos, use a CLI da Vercel:
-
-```bash
-npm install -g vercel
-vercel login
-vercel link
-vercel env pull .env.local
-vercel dev
+```text
+/api/openapi.json
 ```
 
-Acesse o endereço exibido pelo terminal, normalmente `http://localhost:3000`.
-
-## Respostas padronizadas
+## Respostas
 
 Sucesso:
 
@@ -75,18 +69,33 @@ Erro:
   "success": false,
   "error": {
     "code": "VALIDATION_ERROR",
-    "message": "Revise os dados enviados."
+    "message": "Revise os dados informados.",
+    "details": []
   }
 }
 ```
 
-## Próximas rotas
+## Variáveis da Vercel
 
-Depois da estabilização do MVP, a API pode receber:
+```text
+SUPABASE_URL
+SUPABASE_PUBLISHABLE_KEY
+SUPABASE_SECRET_KEY
+BARBER_HUB_ALLOWED_ORIGINS
+BARBER_HUB_PASSWORD_REDIRECT_URL
+```
 
-- notificações push;
-- moderação administrativa completa;
-- lista de espera;
-- webhooks de assinatura e pagamento;
-- relatórios consolidados;
-- upload assinado de arquivos.
+`SUPABASE_SECRET_KEY` é exclusiva do servidor. Não a coloque em `js/`, HTML,
+manifesto, aplicativo Android ou commit.
+
+## Concorrência
+
+A API usa funções `async` e o cliente HTTP assíncrono `httpx`. Isso atende bem
+operações de rede e banco sem criar uma thread por requisição. Threads ou
+processos adicionais só devem ser introduzidos quando medição real justificar.
+
+## Senhas
+
+A API não possui endpoint para exibir senhas. O fluxo administrativo envia uma
+recuperação ao e-mail cadastrado e registra somente metadados operacionais, sem
+armazenar a nova senha.

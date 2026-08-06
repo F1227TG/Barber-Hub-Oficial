@@ -51,7 +51,9 @@ function bhAnalisarAgendamentos(agendamentos = []) {
   const contagemDias = {};
 
   ativos.forEach(item => {
-    const servico = item.servicos?.nome || item.servico_nome || "Serviço";
+    const servico = typeof bhAgendamentoServicosTexto === "function"
+      ? bhAgendamentoServicosTexto(item)
+      : (item.servicos?.nome || item.servico_nome || "Serviço");
     const hora = bhHoraCurta(item.hora_inicio);
     const dia = item.data;
     contagemServicos[servico] = (contagemServicos[servico] || 0) + 1;

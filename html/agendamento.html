@@ -4,8 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<meta content="Barber Hub — plataforma de gestão, agenda e divulgação para barbearias e futuros salões de beleza." name="description">
+<meta content="Barber Hub — plataforma de gestão, agenda e divulgação para barbearias e futuros salões de beleza." name="description"/>
 <title>
    Agendamento | Barber Hub
   </title>
@@ -22,7 +21,7 @@
 <meta content="yes" name="apple-mobile-web-app-capable"/>
 <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
 <link href="../css/mobile-app.css" rel="stylesheet"/><link href="../css/release-1.4.1.css" rel="stylesheet"/>
-</meta></head>
+<link href="../css/product-redesign.css" rel="stylesheet"/></head>
 <body>
 <!-- Cabeçalho e navegação principal -->
 <header class="header">
@@ -72,122 +71,97 @@
 </div>
 </header>
 <!-- Conteúdo principal da página -->
-<main>
-<section class="page-hero">
-<div class="container">
-<div class="breadcrumb">
-      Início / Agendamento
-     </div>
-<span class="tag">
-<i class="bi bi-calendar-check">
-</i>
-      Agenda conectada
-     </span>
-<h1>
-      Escolha um horário realmente disponível.
-     </h1>
-<p>
-      O sistema consulta o Supabase e impede conflito entre atendimentos do mesmo profissional.
-     </p>
+<main class="booking-page" id="conteudo-principal">
+<section class="page-hero booking-hero">
+<div class="container booking-hero-grid">
+<div>
+<div class="breadcrumb">Início / Agendamento</div>
+<span class="tag"><i class="bi bi-calendar2-check"></i> Agendamento simples</span>
+<h1>Escolha os serviços e reserve seu horário.</h1>
+<p>Sem repetir dados da conta. Você escolhe o local, combina serviços, define o profissional e confirma.</p>
+</div>
+<div aria-label="Etapas do agendamento" class="booking-hero-steps">
+<span><b>1</b> Serviços</span>
+<span><b>2</b> Profissional</span>
+<span><b>3</b> Horário</span>
+</div>
 </div>
 </section>
-<section class="section">
-<div class="container detail-grid">
-<div>
-<form class="form-card" id="formAgendamento">
-<div class="form-grid">
-<div class="campo">
-<label>
-          Nome da conta
-         </label>
-<input id="nome" placeholder="Entre na conta para preencher" readonly=""/>
+<section class="section booking-section">
+<div class="container booking-layout">
+<form class="booking-form" id="formAgendamento" novalidate="">
+<div class="booking-login-note" hidden="" id="bookingLoginNote">
+<i class="bi bi-person-check"></i>
+<div><strong>Entre para confirmar</strong><span>Você pode montar o agendamento antes. O login será solicitado somente na confirmação.</span></div>
+<a class="btn btn-outline btn-small" href="login.html">Entrar</a>
+</div>
+<section class="booking-step" data-booking-step="1">
+<div class="booking-step-head">
+<span class="booking-step-number">1</span>
+<div><h2>Escolha o estabelecimento</h2><p>Mostramos apenas locais com agenda online ativa.</p></div>
 </div>
 <div class="campo">
-<label>
-          Telefone
-         </label>
-<input id="telefone" readonly=""/>
+<label for="barbearia">Estabelecimento</label>
+<select id="barbearia" required=""></select>
 </div>
-<div class="campo full">
-<label>
-          E-mail
-         </label>
-<input id="email" readonly=""/>
+<div class="booking-business-status" id="statusBarbearia"></div>
+</section>
+<section class="booking-step" data-booking-step="2">
+<div class="booking-step-head">
+<span class="booking-step-number">2</span>
+<div><h2>Selecione um ou mais serviços</h2><p>Combine corte, barba, sobrancelha e outros itens no mesmo horário.</p></div>
 </div>
-<div class="campo full">
-<label>
-          Estabelecimento
-         </label>
-<select id="barbearia" required="">
-</select>
+<div aria-live="polite" class="booking-services" id="servicosSelecao">
+<div class="empty compact">Escolha um estabelecimento para ver os serviços.</div>
+</div>
+</section>
+<section class="booking-step" data-booking-step="3">
+<div class="booking-step-head">
+<span class="booking-step-number">3</span>
+<div><h2>Profissional, data e horário</h2><p>A duração total dos serviços é usada para evitar conflitos na agenda.</p></div>
+</div>
+<div class="form-grid booking-date-grid">
+<div class="campo">
+<label for="barbeiro">Profissional</label>
+<select id="barbeiro" required=""></select>
 </div>
 <div class="campo">
-<label>
-          Serviço
-         </label>
-<select id="servico" required="">
-</select>
-</div>
-<div class="campo">
-<label>
-          Profissional
-         </label>
-<select id="barbeiro" required="">
-</select>
-</div>
-<div class="campo">
-<label>
-          Data
-         </label>
+<label for="data">Data</label>
 <input id="data" required="" type="date"/>
 </div>
+<div class="campo full">
+<label>Horários disponíveis</label>
+<div id="slots"><p class="texto-section">Selecione serviços, profissional e data.</p></div>
+</div>
+</div>
+</section>
+<details class="booking-note">
+<summary><i class="bi bi-chat-left-text"></i> Adicionar observação <span>Opcional</span></summary>
 <div class="campo">
-<label>
-          Pagamento
-         </label>
-<select disabled="">
-<option>
-           Pagamento online — fase futura
-          </option>
-</select>
+<label for="observacao">Observação para o profissional</label>
+<textarea id="observacao" maxlength="800" placeholder="Ex.: preferência de acabamento ou informação importante"></textarea>
 </div>
-<div class="campo full">
-<label>
-          Horários disponíveis
-         </label>
-<div id="slots">
-<p class="texto-section">
-           Selecione as opções acima.
-          </p>
-</div>
-</div>
-<div class="campo full">
-<label>
-          Observação
-         </label>
-<textarea id="observacao" placeholder="Preferências ou informações importantes"></textarea>
-</div>
-</div>
-<button class="btn btn-primary full" type="submit">
-<i class="bi bi-calendar-check">
-</i>
-        Enviar agendamento
-       </button>
+</details>
+<button class="btn btn-primary full booking-submit" type="submit">
+<i class="bi bi-calendar-check"></i>
+          Confirmar agendamento
+        </button>
 </form>
+<aside aria-label="Resumo do agendamento" class="booking-summary">
+<div class="booking-summary-card">
+<span class="tag compact"><i class="bi bi-receipt"></i> Resumo</span>
+<h2>Seu agendamento</h2>
+<div class="booking-summary-services" id="resumoServicosAgenda">
+<p>Nenhum serviço selecionado.</p>
 </div>
-<aside class="grid side-info">
-<div id="statusBarbearia">
+<dl class="booking-total">
+<div><dt>Duração estimada</dt><dd id="resumoDuracaoAgenda">—</dd></div>
+<div><dt>Valor estimado</dt><dd id="resumoValorAgenda">—</dd></div>
+<div><dt>Horário</dt><dd id="resumoHorarioAgenda">—</dd></div>
+</dl>
+<p class="booking-summary-help"><i class="bi bi-shield-check"></i> O horário só é confirmado depois da validação da agenda.</p>
 </div>
-<div id="iaAgendamento">
-</div>
-<div class="pagamento-box">
-<strong>
-        Pagamento futuro
-       </strong>
-<p>
-        Uma integração poderá enviar o valor diretamente ao profissional após confirmação do atendimento, usando um provedor financeiro adequado.
-       </p>
-</div>
+<div id="iaAgendamento"></div>
 </aside>
 </div>
 </section>
@@ -196,85 +170,33 @@
 <footer class="footer">
 <div class="container">
 <div class="footer-grid">
-<div>
+<div class="footer-brand">
 <a class="logo" href="../index.html">
 <img alt="Barber Hub" src="../img/logomarcaTRANSPARENTE.png"/>
-<span>
-        Barber Hub
-        <small>
-         Uma plataforma de The Gamers Tech
-        </small>
-</span>
+<span>Barber Hub<small>Uma plataforma de The Gamers Tech</small></span>
 </a>
-<p style="margin-top:16px">
-       Gestão, divulgação, agenda online e inteligência de dados para profissionais de beleza.
-      </p>
+<p>Descoberta, agenda e gestão para conectar clientes e negócios de beleza.</p>
 </div>
 <div>
-<h4>
-       Plataforma
-      </h4>
-<p>
-<a href="../html/portal.html">
-        Explorar locais
-       </a>
-</p>
-<p>
-<a href="../html/agendamento.html">
-        Agendar horário
-       </a>
-</p>
-<p>
-<a href="../html/planos.html">
-        Ver planos
-       </a>
-</p>
-<p>
-<a href="../html/cadastro.html">
-        Criar conta
-       </a>
-</p>
+<h4>Plataforma</h4>
+<p><a href="../html/portal.html">Explorar locais</a></p>
+<p><a href="../html/agendamento.html">Agendar horário</a></p>
+<p><a href="../html/planos.html">Planos</a></p>
+<p><a href="../html/sobre.html">Sobre</a></p>
 </div>
 <div>
-<p>
-<a href="sobre.html">
-        Sobre
-       </a>
-</p>
-<h4>
-       Profissionais
-      </h4>
-<p>
-<a href="../html/cadastro.html">
-        Cadastrar negócio
-       </a>
-</p>
-<p>
-<a href="../html/login.html">
-        Entrar no painel
-       </a>
-</p>
-<p>
-<a href="../html/contato.html">
-        Abrir ticket
-       </a>
-</p>
+<h4>Para profissionais</h4>
+<p><a href="../html/cadastro.html">Cadastrar negócio</a></p>
+<p><a href="../html/login.html">Entrar no painel</a></p>
+<p><a href="../html/contato.html">Central de suporte</a></p>
+<p><a href="../html/beauty-hub.html">Beauty Hub</a></p>
 </div>
 <div>
-<h4>
-       Expansão
-      </h4>
-<p>
-<a href="../html/beauty-hub.html">
-        Beauty Hub
-       </a>
-</p>
-<p>
-       Pagamentos futuros
-      </p>
-<p>
-       Recomendações inteligentes
-      </p>
+<h4>Confiança</h4>
+<p><a href="../html/privacidade.html">Privacidade</a></p>
+<p><a href="../html/termos.html">Termos de uso</a></p>
+<p><a href="../html/conta.html">Conta e segurança</a></p>
+<p><a href="../html/contato.html#support-faq-title">Perguntas frequentes</a></p>
 </div>
 </div>
 <div class="copy">
@@ -310,5 +232,5 @@
 <script src="../js/agendamento.js">
 </script>
 <script src="../js/mobile-app.js"></script>
-</body>
+<script src="../js/product-redesign.js"></script></body>
 </html>

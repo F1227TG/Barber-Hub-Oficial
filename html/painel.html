@@ -4,8 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<meta content="Barber Hub — plataforma de gestão, agenda e divulgação para barbearias e futuros salões de beleza." name="description">
+<meta content="Barber Hub — plataforma de gestão, agenda e divulgação para barbearias e futuros salões de beleza." name="description"/>
 <title>
    Painel profissional | Barber Hub
   </title>
@@ -22,7 +21,7 @@
 <meta content="yes" name="apple-mobile-web-app-capable"/>
 <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
 <link href="../css/mobile-app.css" rel="stylesheet"/><link href="../css/release-1.4.1.css" rel="stylesheet"/>
-</meta></head>
+<link href="../css/product-redesign.css" rel="stylesheet"/></head>
 <body>
 <!-- Cabeçalho e navegação principal -->
 <header class="header">
@@ -296,31 +295,31 @@
 <form class="form-card" id="formServico">
 <div class="form-grid">
 <div class="campo">
-<label>
+<label for="servNome">
           Nome
          </label>
 <input id="servNome" required=""/>
 </div>
 <div class="campo">
-<label>
+<label for="servCategoria">
           Categoria
          </label>
 <input id="servCategoria" required=""/>
 </div>
 <div class="campo">
-<label>
+<label for="servPreco">
           Preço
          </label>
 <input id="servPreco" min="0" required="" step="0.01" type="number"/>
 </div>
 <div class="campo">
-<label>
+<label for="servDuracao">
           Duração min
          </label>
 <input id="servDuracao" min="5" required="" type="number"/>
 </div>
 <div class="campo full">
-<label>
+<label for="servDescricao">
           Descrição
          </label>
 <textarea id="servDescricao"></textarea>
@@ -351,32 +350,32 @@
 <form class="form-card" id="formBarbeiro">
 <div class="form-grid">
 <div class="campo">
-<label>
+<label for="barbNome">
           Nome
          </label>
 <input id="barbNome" required=""/>
 </div>
 <div class="campo">
-<label>
+<label for="barbEspecialidade">
           Especialidade
          </label>
 <input id="barbEspecialidade" required=""/>
 </div>
 <div class="campo">
-<label>
+<label for="barbTelefone">
           Telefone
          </label>
 <input id="barbTelefone"/>
 </div>
 <div class="campo">
-<label>
+<label for="barbEmail">
           E-mail
          </label>
 <input id="barbEmail" type="email"/>
 </div>
 </div>
 <label class="check-line">
-<input checked="" id="barbAgenda" type="checkbox"/>
+<input aria-label="Aceita agendamento online" checked="" id="barbAgenda" type="checkbox"/>
 <span>
          Aceita agendamento online
         </span>
@@ -547,25 +546,25 @@
 </div>
 </div>
 <label class="check-line">
-<input id="portfolioDestaque" type="checkbox"/>
+<input aria-label="Marcar como trabalho em destaque" id="portfolioDestaque" type="checkbox"/>
 <span>
          Marcar como trabalho em destaque
         </span>
 </label>
 <label class="check-line">
-<input id="portfolioAutorizacao" type="checkbox"/>
+<input aria-label="Confirmo que possuo autorização para publicar estas imagens." id="portfolioAutorizacao" type="checkbox"/>
 <span>
          Confirmo que possuo autorização para publicar estas imagens.
         </span>
 </label>
 <label class="check-line">
-<input id="portfolioTemMenor" type="checkbox"/>
+<input aria-label="Há pessoa menor de idade identificável nas imagens" id="portfolioTemMenor" type="checkbox"/>
 <span>
          Há pessoa menor de idade identificável nas imagens
         </span>
 </label>
 <label class="check-line dependent-check" hidden="" id="portfolioResponsavelLinha">
-<input id="portfolioResponsavel" type="checkbox"/>
+<input aria-label="Confirmo a autorização prévia do responsável legal." id="portfolioResponsavel" type="checkbox"/>
 <span>
          Confirmo a autorização prévia do responsável legal.
         </span>
@@ -684,25 +683,25 @@
 <form class="form-card" id="formConfig">
 <div class="form-grid">
 <div class="campo">
-<label>
+<label for="configNome">
           Nome
          </label>
 <input id="configNome" required=""/>
 </div>
 <div class="campo">
-<label>
+<label for="configTelefone">
           Telefone
          </label>
 <input id="configTelefone"/>
 </div>
 <div class="campo">
-<label>
+<label for="configWhatsapp">
           WhatsApp
          </label>
 <input id="configWhatsapp"/>
 </div>
 <div class="campo">
-<label>
+<label for="configInstagram">
           Instagram
          </label>
 <input id="configInstagram"/>
@@ -714,19 +713,19 @@
 <input id="configTiktok" placeholder="@usuario ou link do perfil"/>
 </div>
 <div class="campo full">
-<label>
+<label for="configEndereco">
           Endereço
          </label>
 <input id="configEndereco"/>
 </div>
 <div class="campo full">
-<label>
+<label for="configDescricao">
           Descrição
          </label>
 <textarea id="configDescricao"></textarea>
 </div>
 <div class="campo full">
-<label>
+<label for="configStatus">
           Status do estabelecimento
          </label>
 <select aria-hidden="true" class="visually-hidden" id="configStatus" tabindex="-1">
@@ -777,13 +776,13 @@
          </small>
 </div>
 <div class="campo">
-<label>
+<label for="configMotivoStatus">
           Motivo do status
          </label>
 <input id="configMotivoStatus" placeholder="Ex: feriado, evento, manutenção"/>
 </div>
 <div class="campo full">
-<label>
+<label for="configAgenda">
           Agendamento online
          </label>
 <select aria-hidden="true" class="visually-hidden" id="configAgenda" tabindex="-1">
@@ -812,13 +811,13 @@
 </div>
 </div>
 <div class="campo">
-<label>
+<label for="configFoto">
           Foto ou logo
          </label>
 <input accept="image/png,image/jpeg,image/webp" id="configFoto" type="file"/>
 </div>
 <div class="campo full">
-<label>
+<label for="configCapa">
           Imagem de capa
          </label>
 <input accept="image/png,image/jpeg,image/webp" id="configCapa" type="file"/>
@@ -834,13 +833,13 @@
        </h3>
 <form class="stack-form" id="formFechado">
 <div class="campo">
-<label>
+<label for="fechadoData">
           Data
          </label>
 <input id="fechadoData" required="" type="date"/>
 </div>
 <div class="campo">
-<label>
+<label for="fechadoMotivo">
           Motivo
          </label>
 <input id="fechadoMotivo" placeholder="Feriado, folga, reforma"/>
@@ -990,5 +989,5 @@
 <script src="../js/painel.js">
 </script>
 <script src="../js/mobile-app.js"></script>
-</body>
+<script src="../js/product-redesign.js"></script></body>
 </html>

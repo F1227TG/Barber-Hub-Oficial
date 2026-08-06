@@ -1,11 +1,13 @@
 {
   "name": "barber-hub-oficial",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "private": true,
-  "description": "Portal, gestão e API própria do Barber Hub.",
+  "description": "Portal, gestão, PWA e API própria em Python do Barber Hub.",
   "scripts": {
     "dev": "vercel dev",
-    "check": "node scripts/check-project.js"
+    "check": "node scripts/check-project.js && python scripts/validate_project.py && python -m compileall -q api backend && python -m unittest discover -s tests -v",
+    "api:dev": "fastapi dev api/index.py",
+    "check:python": "python -m compileall -q api backend"
   },
   "engines": {
     "node": ">=20"

@@ -4,8 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<meta content="Barber Hub — plataforma de gestão, agenda e divulgação para barbearias e futuros salões de beleza." name="description">
+<meta content="Barber Hub — plataforma de gestão, agenda e divulgação para barbearias e futuros salões de beleza." name="description"/>
 <title>
    Portal | Barber Hub
   </title>
@@ -22,7 +21,7 @@
 <meta content="yes" name="apple-mobile-web-app-capable"/>
 <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
 <link href="../css/mobile-app.css" rel="stylesheet"/><link href="../css/release-1.4.1.css" rel="stylesheet"/>
-</meta></head>
+<link href="../css/product-redesign.css" rel="stylesheet"/></head>
 <body>
 <!-- Cabeçalho e navegação principal -->
 <header class="header">
@@ -72,91 +71,63 @@
 </div>
 </header>
 <!-- Conteúdo principal da página -->
-<main>
-<section class="page-hero">
-<div class="container">
-<div class="breadcrumb">
-      Início / Portal
-     </div>
-<span class="tag">
-      Busca pública
-     </span>
-<h1>
-      Encontre o lugar certo para cuidar do seu estilo.
-     </h1>
-<p>
-      Consulte status, serviços, profissionais, localização e disponibilidade de agenda.
-     </p>
+<main class="portal-page" id="conteudo-principal">
+<section class="page-hero portal-hero">
+<div class="container portal-hero-grid">
+<div class="portal-hero-copy">
+<div class="breadcrumb">Início / Explorar</div>
+<span class="tag"><i class="bi bi-geo-alt"></i> Descubra perto de você</span>
+<h1>Encontre. Confira se está aberto. Agende.</h1>
+<p>Pesquise por nome, bairro ou cidade e veja apenas o que importa para escolher seu próximo atendimento.</p>
+<div class="portal-search-shell">
+<i aria-hidden="true" class="bi bi-search"></i>
+<label class="sr-only" for="pesquisa">Buscar estabelecimento</label>
+<input autocomplete="off" id="pesquisa" placeholder="Barbearia, bairro ou cidade" type="search"/>
+<button aria-label="Limpar busca" data-portal-search-clear="" type="button"><i class="bi bi-x-lg"></i></button>
+</div>
+<div aria-label="Recursos do portal" class="portal-hero-proof">
+<span><i class="bi bi-door-open"></i> Status atualizado</span>
+<span><i class="bi bi-star"></i> Avaliações</span>
+<span><i class="bi bi-calendar2-check"></i> Agenda online</span>
+</div>
+</div>
+<aside aria-label="Como usar o portal" class="portal-hero-aside">
+<span class="portal-aside-icon"><i class="bi bi-scissors"></i></span>
+<strong>Seu próximo corte em poucos passos</strong>
+<ol>
+<li><b>1</b><span>Encontre um local</span></li>
+<li><b>2</b><span>Escolha os serviços</span></li>
+<li><b>3</b><span>Reserve o horário</span></li>
+</ol>
+</aside>
 </div>
 </section>
-<section class="section">
+<section class="section portal-results-section">
 <div class="container">
-<div class="filters">
-<div class="campo">
-<label>
-        Buscar
-       </label>
-<input id="pesquisa" placeholder="Nome, cidade ou bairro" type="search"/>
+<div class="portal-results-head">
+<div>
+<span class="tag compact">Catálogo</span>
+<h2>Locais disponíveis</h2>
+<p>Use os filtros para reduzir os resultados.</p>
 </div>
+<div aria-label="Filtros do catálogo" class="filters">
 <div class="campo">
-<label>
-        Tipo
-       </label>
-<select id="filtroTipo">
-<option value="todos">
-         Todos
-        </option>
-<option value="barbearia">
-         Barbearias
-        </option>
-<option value="salao">
-         Salões
-        </option>
-</select>
+<label for="filtroTipo">Tipo</label>
+<select id="filtroTipo"><option value="todos">Todos</option><option value="barbearia">Barbearias</option><option value="salao">Salões</option></select>
 </div>
 <div class="campo">
-<label>
-        Status
-       </label>
-<select id="filtroStatus">
-<option value="todos">
-         Todos
-        </option>
-<option value="aberta">
-         Abertos agora
-        </option>
-<option value="fechada">
-         Fechados
-        </option>
-</select>
+<label for="filtroStatus">Status</label>
+<select id="filtroStatus"><option value="todos">Todos</option><option value="aberta">Abertos agora</option><option value="fechada">Fechados</option></select>
 </div>
 <div class="campo">
-<label>
-        Agenda
-       </label>
-<select id="filtroAgendamento">
-<option value="todos">
-         Todos
-        </option>
-<option value="sim">
-         Agenda online
-        </option>
-<option value="nao">
-         Sem agenda online
-        </option>
-</select>
+<label for="filtroAgendamento">Agenda</label>
+<select id="filtroAgendamento"><option value="todos">Todos</option><option value="sim">Agenda online</option><option value="nao">Atendimento direto</option></select>
 </div>
 </div>
-<div class="portal-summary" id="resumoPortal">
 </div>
-<div class="grid grid-3" id="gridBarbearias">
-<div class="card empty full-grid">
-<i class="bi bi-arrow-repeat spin big">
-</i>
-<p>
-        Carregando estabelecimentos...
-       </p>
-</div>
+<div class="portal-summary" id="resumoPortal"></div>
+<div class="grid grid-3 portal-business-grid" id="gridBarbearias">
+<div class="card empty full-grid"><i class="bi bi-arrow-repeat spin big"></i><p>Carregando estabelecimentos...</p></div>
 </div>
 </div>
 </section>
@@ -165,85 +136,33 @@
 <footer class="footer">
 <div class="container">
 <div class="footer-grid">
-<div>
+<div class="footer-brand">
 <a class="logo" href="../index.html">
 <img alt="Barber Hub" src="../img/logomarcaTRANSPARENTE.png"/>
-<span>
-        Barber Hub
-        <small>
-         Uma plataforma de The Gamers Tech
-        </small>
-</span>
+<span>Barber Hub<small>Uma plataforma de The Gamers Tech</small></span>
 </a>
-<p style="margin-top:16px">
-       Gestão, divulgação, agenda online e inteligência de dados para profissionais de beleza.
-      </p>
+<p>Descoberta, agenda e gestão para conectar clientes e negócios de beleza.</p>
 </div>
 <div>
-<h4>
-       Plataforma
-      </h4>
-<p>
-<a href="../html/portal.html">
-        Explorar locais
-       </a>
-</p>
-<p>
-<a href="../html/agendamento.html">
-        Agendar horário
-       </a>
-</p>
-<p>
-<a href="../html/planos.html">
-        Ver planos
-       </a>
-</p>
-<p>
-<a href="../html/cadastro.html">
-        Criar conta
-       </a>
-</p>
+<h4>Plataforma</h4>
+<p><a href="../html/portal.html">Explorar locais</a></p>
+<p><a href="../html/agendamento.html">Agendar horário</a></p>
+<p><a href="../html/planos.html">Planos</a></p>
+<p><a href="../html/sobre.html">Sobre</a></p>
 </div>
 <div>
-<p>
-<a href="sobre.html">
-        Sobre
-       </a>
-</p>
-<h4>
-       Profissionais
-      </h4>
-<p>
-<a href="../html/cadastro.html">
-        Cadastrar negócio
-       </a>
-</p>
-<p>
-<a href="../html/login.html">
-        Entrar no painel
-       </a>
-</p>
-<p>
-<a href="../html/contato.html">
-        Abrir ticket
-       </a>
-</p>
+<h4>Para profissionais</h4>
+<p><a href="../html/cadastro.html">Cadastrar negócio</a></p>
+<p><a href="../html/login.html">Entrar no painel</a></p>
+<p><a href="../html/contato.html">Central de suporte</a></p>
+<p><a href="../html/beauty-hub.html">Beauty Hub</a></p>
 </div>
 <div>
-<h4>
-       Expansão
-      </h4>
-<p>
-<a href="../html/beauty-hub.html">
-        Beauty Hub
-       </a>
-</p>
-<p>
-       Pagamentos futuros
-      </p>
-<p>
-       Recomendações inteligentes
-      </p>
+<h4>Confiança</h4>
+<p><a href="../html/privacidade.html">Privacidade</a></p>
+<p><a href="../html/termos.html">Termos de uso</a></p>
+<p><a href="../html/conta.html">Conta e segurança</a></p>
+<p><a href="../html/contato.html#support-faq-title">Perguntas frequentes</a></p>
 </div>
 </div>
 <div class="copy">
@@ -279,5 +198,5 @@
 <script src="../js/portal.js">
 </script>
 <script src="../js/mobile-app.js"></script>
-</body>
+<script src="../js/product-redesign.js"></script></body>
 </html>
