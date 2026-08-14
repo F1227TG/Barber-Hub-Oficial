@@ -13,10 +13,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const botao = form.querySelector("button[type='submit']");
     bhSetButtonLoading(botao, true, "Enviando...");
     try {
-      await bhSolicitarRecuperacaoSenha(document.getElementById("emailRecuperacao").value);
+      const captchaToken = await window.bhSecurity?.token?.(form);
+      await bhSolicitarRecuperacaoSenha(document.getElementById("emailRecuperacao").value, captchaToken);
       form.classList.add("hidden");
       document.getElementById("recuperacaoEnviada").classList.remove("hidden");
     } catch (erro) {
+      window.bhSecurity?.reset?.(form);
       mostrarToast("erro", "Não foi possível enviar", bhErroMensagem(erro));
     } finally {
       bhSetButtonLoading(botao, false);

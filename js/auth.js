@@ -48,11 +48,12 @@ async function bhAguardarPerfil(tentativas = 5) {
   return null;
 }
 
-async function bhLogin(email, senha) {
+async function bhLogin(email, senha, captchaToken = undefined) {
   const client = bhExigirSupabase();
   const { data, error } = await client.auth.signInWithPassword({
     email: email.trim(),
-    password: senha
+    password: senha,
+    options: captchaToken ? { captchaToken } : undefined
   });
   if (error) throw error;
   bhPerfilCache = null;
@@ -60,13 +61,14 @@ async function bhLogin(email, senha) {
   return { session: data.session, user: data.user, perfil };
 }
 
-async function bhRegistrar({ nome, email, telefone, senha, tipo }) {
+async function bhRegistrar({ nome, email, telefone, senha, tipo, captchaToken = undefined }) {
   const client = bhExigirSupabase();
   const { data, error } = await client.auth.signUp({
     email: email.trim(),
     password: senha,
     options: {
       emailRedirectTo: bhAbsoluteUrl("html/login.html?confirmado=1"),
+      ...(captchaToken ? { captchaToken } : {}),
       data: {
         nome: nome.trim(),
         telefone: telefone.trim(),
@@ -86,10 +88,11 @@ async function bhRegistrar({ nome, email, telefone, senha, tipo }) {
 }
 
 
-async function bhSolicitarRecuperacaoSenha(email) {
+async function bhSolicitarRecuperacaoSenha(email, captchaToken = undefined) {
   const client = bhExigirSupabase();
   const { error } = await client.auth.resetPasswordForEmail(email.trim(), {
-    redirectTo: bhAbsoluteUrl("html/redefinir-senha.html")
+    redirectTo: bhAbsoluteUrl("html/redefinir-senha.html"),
+    ...(captchaToken ? { captchaToken } : {})
   });
   if (error) throw error;
 }

@@ -1,5 +1,5 @@
 /**
- * Auditoria local do Barber Hub 1.5.0.
+ * Auditoria local do Barber Hub 1.6.0.
  *
  * Não depende de bibliotecas externas. O script verifica estrutura, referências
  * locais, IDs duplicados, presença da API Python e vazamento acidental de
@@ -7,6 +7,7 @@
  */
 const fs = require("node:fs");
 const path = require("node:path");
+const { spawnSync } = require("node:child_process");
 
 const root = path.resolve(__dirname, "..");
 const required = [
@@ -20,13 +21,24 @@ const required = [
   "html/contato.html",
   "html/mapa-sistema.html",
   "css/product-redesign.css",
+  "css/release-1.6.css",
   "js/product-redesign.js",
+  "js/booking-modal.js",
+  "js/device-router.js",
+  "js/mobile-shell-v1.6.js",
   "js/backend-api.js",
   "api/index.py",
   "backend/config.py",
   "backend/security.py",
   "backend/services/appointments.py",
+  "backend/services/catalog.py",
+  "backend/services/management.py",
+  "backend/rate_limit.py",
   "sql/14_api_python_agendamento_multisservicos.sql",
+  "sql/15_marketplace_fts_api_seguranca.sql",
+  "mobile/index.html",
+  "mobile/portal.html",
+  "docs/PRD_BARBER_HUB.md",
   ".agents/rules/00-project-context.md",
   ".agents/skills/barberhub-release/SKILL.md",
   "ARCHITECTURE.md"
@@ -74,8 +86,22 @@ for (const file of htmlFiles) {
     }
   }
 
-  if (!html.includes("product-redesign.css") && !file.endsWith("offline.html")) {
-    warnings.push(`${path.relative(root, file)} não carrega product-redesign.css.`);
+  const rel = path.relative(root, file).replaceAll("\\", "/");
+  const minimalPages = new Set(["offline.html", "html/agendamento.html", "mobile/agendamento.html", "mobile/index.html"]);
+  if (!html.includes("product-redesign.css") && !minimalPages.has(rel)) {
+    warnings.push(`${rel} não carrega product-redesign.css.`);
+  }
+  if (!html.includes("release-1.6.css") && !rel.endsWith("offline.html")) {
+    errors.push(`${rel} não carrega release-1.6.css.`);
+  }
+}
+
+// Validação sintática de todos os módulos JavaScript do projeto.
+const jsFiles = walk(path.join(root, "js"), ".js");
+for (const file of jsFiles) {
+  const result = spawnSync(process.execPath, ["--check", file], { encoding: "utf8" });
+  if (result.status !== 0) {
+    errors.push(`${path.relative(root, file)} possui erro de sintaxe JavaScript: ${result.stderr.trim()}`);
   }
 }
 
@@ -90,11 +116,13 @@ for (const file of publicFiles) {
   if (secretPattern.test(content)) errors.push(`Possível segredo encontrado em ${path.relative(root, file)}.`);
 }
 
-const migration = fs.readFileSync(path.join(root, "sql/14_api_python_agendamento_multisservicos.sql"), "utf8");
+const migration14 = fs.readFileSync(path.join(root, "sql/14_api_python_agendamento_multisservicos.sql"), "utf8");
 for (const expected of ["agendamento_servicos", "criar_agendamento_multisservico", "begin;", "commit;"]) {
-  if (!migration.toLowerCase().includes(expected.toLowerCase())) {
-    errors.push(`Migration 14 não contém: ${expected}`);
-  }
+  if (!migration14.toLowerCase().includes(expected.toLowerCase())) errors.push(`Migration 14 não contém: ${expected}`);
+}
+const migration15 = fs.readFileSync(path.join(root, "sql/15_marketplace_fts_api_seguranca.sql"), "utf8");
+for (const expected of ["buscar_marketplace", "websearch_to_tsquery", "using gin", "consumir_api_rate_limit", "auditoria_admin", "commit;"]) {
+  if (!migration15.toLowerCase().includes(expected.toLowerCase())) errors.push(`Migration 15 não contém: ${expected}`);
 }
 
 if (errors.length) {
@@ -102,7 +130,8 @@ if (errors.length) {
   process.exit(1);
 }
 
-console.log(`Barber Hub 1.5.0: ${required.length} arquivos centrais encontrados.`);
+console.log(`Barber Hub 1.6.0: ${required.length} arquivos centrais encontrados.`);
 console.log(`${htmlFiles.length} páginas HTML verificadas, sem IDs duplicados ou links locais quebrados.`);
+console.log(`${jsFiles.length} arquivos JavaScript passaram por node --check.`);
 console.log("Nenhuma chave secreta foi encontrada nos arquivos públicos auditados.");
 if (warnings.length) console.warn(`Avisos (${warnings.length}):\n- ${warnings.join("\n- ")}`);

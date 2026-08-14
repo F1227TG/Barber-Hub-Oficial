@@ -122,14 +122,21 @@ function bhSetButtonLoading(botao, carregando, texto = "Aguarde...") {
 
 function bhErroMensagem(erro, fallback = "Não foi possível concluir a operação.") {
   const codigosApi = {
-    RATE_LIMITED: "Aguarde um minuto antes de tentar novamente.",
+    RATE_LIMITED: "Muitas tentativas em pouco tempo. Aguarde alguns minutos e tente novamente.",
+    CAPTCHA_REQUIRED: "Confirme a verificação anti-robô para continuar.",
+    EMAIL_NOT_CONFIRMED: "Confirme seu e-mail antes de continuar.",
+    INTERNAL_ERROR: "Não foi possível concluir a operação agora. Tente novamente em alguns instantes.",
     INVALID_SESSION: "Sua sessão expirou. Entre novamente para continuar.",
     UNAUTHORIZED: "Entre na conta para continuar.",
     FORBIDDEN: "Sua conta não possui permissão para esta ação.",
     BACKEND_NOT_CONFIGURED: "O backend ainda precisa ser configurado na Vercel.",
-    API_TIMEOUT: "O servidor demorou para responder. Tente novamente."
+    API_TIMEOUT: "O servidor demorou para responder. Tente novamente.",
+    UPSTREAM_RATE_LIMITED: "Muitas solicitações foram feitas em pouco tempo. Aguarde e tente novamente.",
+    UPSTREAM_UNAVAILABLE: "Os serviços do Barber Hub estão temporariamente indisponíveis. Tente novamente em instantes."
   };
   if (erro?.code && codigosApi[erro.code]) return codigosApi[erro.code];
+  if (Number(erro?.status) === 429) return "Muitas tentativas em pouco tempo. Aguarde alguns minutos e tente novamente.";
+  if (Number(erro?.status) === 503) return "O Barber Hub está temporariamente indisponível. Tente novamente em alguns instantes.";
 
   const mensagem = erro?.message || erro?.error_description || fallback;
   const mapa = [

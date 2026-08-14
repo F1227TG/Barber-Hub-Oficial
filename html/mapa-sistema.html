@@ -17,8 +17,8 @@
 <link href="../css/pages.css" rel="stylesheet"/>
 <link href="../manifest.webmanifest" rel="manifest"/>
 <link href="../css/mobile-app.css" rel="stylesheet"/><link href="../css/release-1.4.1.css" rel="stylesheet"/>
-<link href="../css/product-redesign.css" rel="stylesheet"/></head>
-<body>
+<link href="../css/product-redesign.css" rel="stylesheet"/><link href="../css/release-1.6.css" rel="stylesheet"/></head>
+<body><script src="../js/device-router.js"></script>
 <!-- Cabeçalho e navegação principal -->
 <header class="header">
 <div class="container nav">
@@ -34,9 +34,6 @@
       Início
      </a>
 <a data-page="portal" href="portal.html">Explorar</a>
-<a data-page="agendamento" href="agendamento.html">
-      Agendar
-     </a>
 <a data-page="planos" href="planos.html">
       Planos
      </a>
@@ -84,10 +81,10 @@
 <a class="system-map-item" href="../index.html"><div><strong>Início</strong><span class="map-status ok">Funcional</span></div><p>Apresentação objetiva, instalação do PWA e acesso ao portal.</p></a>
 <a class="system-map-item" href="portal.html"><div><strong>Explorar</strong><span class="map-status ok">Funcional</span></div><p>Busca, filtros, status, agenda e catálogo de estabelecimentos.</p></a>
 <a class="system-map-item" href="barbearia.html"><div><strong>Página pública</strong><span class="map-status ok">Funcional</span></div><p>Serviços, equipe, portfólio, redes sociais e avaliações.</p></a>
-<a class="system-map-item" href="agendamento.html"><div><strong>Agendamento</strong><span class="map-status partial">Migration 14</span></div><p>Múltiplos serviços, profissional, data e horário.</p></a>
+<a class="system-map-item" href="portal.html"><div><strong>Agendamento em modal</strong><span class="map-status ok">1.6</span></div><p>Iniciado no perfil do estabelecimento, com múltiplos serviços, profissional, data e horário.</p></a>
 <a class="system-map-item" href="planos.html"><div><strong>Planos</strong><span class="map-status info">Comercial</span></div><p>Apresentação dos planos; cobrança real permanece futura.</p></a>
 <a class="system-map-item" href="contato.html"><div><strong>Suporte</strong><span class="map-status ok">API Python</span></div><p>Abertura e acompanhamento de tickets.</p></a>
-</div>
+<div class="system-map-item"><div><strong>Auditoria de navegação</strong><span class="map-status partial" data-navigation-audit-status="">Verificando</span></div><p>Conferência protegida pela API Python.</p></div></div>
 </article>
 <article class="system-map-role">
 <header><i class="bi bi-person"></i><h2>Cliente</h2><p class="texto-section">Encontrar, reservar e acompanhar.</p></header>
@@ -131,7 +128,7 @@
 <article class="system-map-role">
 <header><i class="bi bi-tools"></i><h2>Próximas validações</h2><p class="texto-section">O que impede chamar a versão de lançamento.</p></header>
 <div class="system-map-list">
-<div class="system-map-item"><div><strong>Migration 14</strong><span class="map-status partial">Pendente</span></div><p>Aplicar no Supabase para ativar múltiplos serviços.</p></div>
+<div class="system-map-item"><div><strong>Migration 15</strong><span class="map-status partial">Aplicar</span></div><p>Aplicar no Supabase para ativar FTS, ranking, paginação e rate limiting distribuído.</p></div>
 <div class="system-map-item"><div><strong>Variáveis Vercel</strong><span class="map-status partial">Conferir</span></div><p>URL e chaves pública/secret da API.</p></div>
 <div class="system-map-item"><div><strong>Teste físico</strong><span class="map-status partial">Pendente</span></div><p>Android, PWA, teclado, modais e redes móveis.</p></div>
 <div class="system-map-item"><div><strong>Piloto local</strong><span class="map-status partial">Pendente</span></div><p>Professor, barbearias e clientes reais.</p></div>
@@ -154,7 +151,6 @@
 <div>
 <h4>Plataforma</h4>
 <p><a href="../html/portal.html">Explorar locais</a></p>
-<p><a href="../html/agendamento.html">Agendar horário</a></p>
 <p><a href="../html/planos.html">Planos</a></p>
 <p><a href="../html/sobre.html">Sobre</a></p>
 </div>
@@ -186,7 +182,7 @@
 <script src="../js/supabase-config.js">
 </script>
 <script src="../js/supabase-client.js">
-</script><script src="../js/backend-api.js"></script>
+</script><script src="../js/security.js"></script><script src="../js/backend-api.js"></script>
 <script src="../js/utils.js">
 </script>
 <script src="../js/toast.js">
@@ -202,10 +198,7 @@
 <script src="../vendor/bootstrap.bundle.min.js">
 </script>
 <script src="../js/ui.js">
-</script>
-<script>
-   document.addEventListener('DOMContentLoaded',()=>marcarMenuAtivo('admin'));
-  </script>
+</script><script src="../js/mapa-sistema.js"></script>
 <script src="../js/mobile-app.js"></script>
 <script src="../js/product-redesign.js"></script></body>
 </html>

@@ -11,7 +11,7 @@ const BH_ESTABELECIMENTO_SELECT = `
   *,
   horarios_funcionamento(*),
   dias_bloqueados(*),
-  profissionais(*),
+  profissionais(*,profissional_servicos(servico_id)),
   servicos(*),
   promocoes(*)
 `;
@@ -54,6 +54,11 @@ function bhAgendamentoServicoIds(agendamento) {
 
 /** Retorna true quando o backend próprio ainda não está disponível no ambiente local. */
 function bhBackendPodeUsarFallback(erro) {
+  // Segurança 1.6: produção não contorna validações Python/rate limiting quando
+  // a API falha. O acesso direto é permitido somente no desenvolvimento local,
+  // onde o Live Server pode estar rodando sem a função FastAPI da Vercel.
+  const local = ["localhost", "127.0.0.1", "::1", ""].includes(location.hostname) || location.protocol === "file:";
+  if (!local) return false;
   return !window.bhBackendApi || [404, 405, 503].includes(Number(erro?.status)) ||
     ["BACKEND_NOT_CONFIGURED", "API_TIMEOUT"].includes(erro?.code) ||
     erro instanceof TypeError;
@@ -91,6 +96,7 @@ function bhNormalizarEstabelecimento(row) {
     barbeiros: (row.profissionais || []).map(item => ({
       ...item,
       aceitaAgendamento: item.aceita_agendamento,
+      servicosIds: (item.profissional_servicos || []).map(vinculo => vinculo.servico_id).filter(Boolean),
       avatar: item.nome.split(" ").map(parte => parte[0]).join("").slice(0, 2).toUpperCase()
     })),
     servicos: (row.servicos || []).map(item => ({
@@ -114,6 +120,72 @@ async function bhListarEstabelecimentos({ tipo = null, busca = null } = {}) {
   if (busca) query = query.or(`nome.ilike.%${busca}%,cidade.ilike.%${busca}%,bairro.ilike.%${busca}%`);
 
   const { data, error } = await query;
+  if (error) throw error;
+  return (data || []).map(bhNormalizarEstabelecimento);
+}
+
+/**
+ * Busca paginada do marketplace. Em produção prioriza FTS pela API Python;
+ * no Live Server local usa uma consulta limitada ao Supabase como fallback.
+ */
+async function bhBuscarMarketplace({ busca = "", tipo = "todos", agenda = null, status = "todos", offset = 0, limit = 24 } = {}) {
+  if (window.bhBackendApi?.searchMarketplace) {
+    try {
+      const result = await window.bhBackendApi.searchMarketplace({ query: busca, tipo, agenda, status, offset, limit });
+      return {
+        ...result,
+        items: (result?.items || []).map(bhNormalizarEstabelecimento)
+      };
+    } catch (erro) {
+      if (!bhBackendPodeUsarFallback(erro)) throw erro;
+      console.warn("[Barber Hub] Busca FTS indisponível; usando fallback paginado do Supabase.", erro);
+    }
+  }
+
+  const client = bhExigirSupabase();
+  let query = client
+    .from("estabelecimentos")
+    .select(BH_ESTABELECIMENTO_SELECT, { count: "exact" })
+    .eq("visivel", true)
+    .eq("onboarding_concluido", true)
+    .order("destaque", { ascending: false })
+    .order("avaliacao", { ascending: false })
+    .order("created_at", { ascending: false })
+    .range(offset, offset + limit - 1);
+
+  if (tipo && tipo !== "todos") query = query.eq("tipo_estabelecimento", tipo);
+  if (agenda !== null && agenda !== undefined) query = query.eq("aceita_agendamento", Boolean(agenda));
+  if (busca) {
+    const seguro = String(busca).replace(/[,%()]/g, " ").trim();
+    if (seguro) query = query.or(`nome.ilike.%${seguro}%,cidade.ilike.%${seguro}%,bairro.ilike.%${seguro}%`);
+  }
+
+  const { data, error, count } = await query;
+  if (error) throw error;
+  let items = (data || []).map(bhNormalizarEstabelecimento);
+  if (status === "aberta") items = items.filter(item => bhCalcularStatus(item).aberta);
+  if (status === "fechada") items = items.filter(item => !bhCalcularStatus(item).aberta);
+  return { items, total: Number(count || items.length), offset, limit, has_more: offset + (data || []).length < Number(count || 0), search_engine: "supabase_ilike_fallback" };
+}
+
+async function bhBuscarDestaquesMarketplace(limit = 6) {
+  if (window.bhBackendApi?.featuredMarketplace) {
+    try {
+      const result = await window.bhBackendApi.featuredMarketplace(limit);
+      return (result?.items || []).map(bhNormalizarEstabelecimento);
+    } catch (erro) {
+      if (!bhBackendPodeUsarFallback(erro)) throw erro;
+    }
+  }
+  const client = bhExigirSupabase();
+  const { data, error } = await client
+    .from("estabelecimentos")
+    .select(BH_ESTABELECIMENTO_SELECT)
+    .eq("visivel", true)
+    .eq("onboarding_concluido", true)
+    .eq("destaque", true)
+    .order("avaliacao", { ascending: false })
+    .limit(limit);
   if (error) throw error;
   return (data || []).map(bhNormalizarEstabelecimento);
 }
@@ -172,6 +244,23 @@ async function bhCriarEstabelecimentoInicial(payload) {
 }
 
 async function bhAtualizarEstabelecimento(id, dados) {
+  const chaves = Object.keys(dados || {});
+  const somenteStatus = chaves.length > 0 && chaves.every(chave => ["status_manual", "motivo_status"].includes(chave));
+
+  if (window.bhBackendApi) {
+    try {
+      if (somenteStatus && dados.status_manual && window.bhBackendApi.updateEstablishmentStatus) {
+        return await window.bhBackendApi.updateEstablishmentStatus(id, dados.status_manual, dados.motivo_status ?? null);
+      }
+      if (window.bhBackendApi.updateEstablishment) {
+        return await window.bhBackendApi.updateEstablishment(id, dados);
+      }
+    } catch (erro) {
+      if (!bhBackendPodeUsarFallback(erro)) throw erro;
+      console.warn("[Barber Hub] API de estabelecimento indisponível; usando RLS local.", erro);
+    }
+  }
+
   const client = bhExigirSupabase();
   const { error } = await client.from("estabelecimentos").update(dados).eq("id", id);
   if (error) throw error;
@@ -298,6 +387,14 @@ async function bhCriarAgendamento(payload) {
 }
 
 async function bhCancelarAgendamento(id, motivo = "Cancelado pelo cliente") {
+  if (window.bhBackendApi?.cancelAppointment) {
+    try {
+      return await window.bhBackendApi.cancelAppointment(id, motivo);
+    } catch (erro) {
+      if (!bhBackendPodeUsarFallback(erro)) throw erro;
+      console.warn("[Barber Hub] API de cancelamento indisponível; usando RPC autenticada.", erro);
+    }
+  }
   const client = bhExigirSupabase();
   const { error } = await client.rpc("cancelar_agendamento", {
     p_agendamento_id: id,
@@ -306,31 +403,45 @@ async function bhCancelarAgendamento(id, motivo = "Cancelado pelo cliente") {
   if (error) throw error;
 }
 
-async function bhAtualizarStatusAgendamento(id, status) {
+async function bhAtualizarStatusAgendamento(id, status, motivo = null) {
+  if (window.bhBackendApi?.updateAppointmentStatus) {
+    try {
+      return await window.bhBackendApi.updateAppointmentStatus(id, status, motivo);
+    } catch (erro) {
+      if (!bhBackendPodeUsarFallback(erro)) throw erro;
+      console.warn("[Barber Hub] API de status indisponível; usando RLS do Supabase.", erro);
+    }
+  }
   const client = bhExigirSupabase();
-  const { error } = await client
-    .from("agendamentos")
-    .update({ status })
-    .eq("id", id);
+  const { error } = await client.from("agendamentos").update({ status }).eq("id", id);
   if (error) throw error;
 }
 
 async function bhCriarServico(estabelecimentoId, dados) {
+  if (window.bhBackendApi?.createService) {
+    try {
+      return await window.bhBackendApi.createService({ estabelecimento_id: estabelecimentoId, ...dados });
+    } catch (erro) {
+      if (!bhBackendPodeUsarFallback(erro)) throw erro;
+      console.warn("[Barber Hub] API de serviços indisponível; usando RLS local.", erro);
+    }
+  }
+
   const client = bhExigirSupabase();
-  // O ID é criado no navegador para não depender do SELECT de retorno do
-  // PostgREST. Assim, um serviço salvo não gera uma falsa mensagem de erro
-  // caso apenas a leitura de atualização falhe depois da inserção.
-  const item = {
-    id: crypto.randomUUID(),
-    estabelecimento_id: estabelecimentoId,
-    ...dados
-  };
+  const item = { id: crypto.randomUUID(), estabelecimento_id: estabelecimentoId, ...dados };
   const { error } = await client.from("servicos").insert(item);
   if (error) throw error;
   return item;
 }
 
 async function bhAtualizarServico(id, dados) {
+  if (window.bhBackendApi?.updateService) {
+    try { return await window.bhBackendApi.updateService(id, dados); }
+    catch (erro) {
+      if (!bhBackendPodeUsarFallback(erro)) throw erro;
+      console.warn("[Barber Hub] API de serviços indisponível; usando RLS local.", erro);
+    }
+  }
   const client = bhExigirSupabase();
   const { error } = await client.from("servicos").update(dados).eq("id", id);
   if (error) throw error;
@@ -338,12 +449,29 @@ async function bhAtualizarServico(id, dados) {
 }
 
 async function bhExcluirServico(id) {
+  if (window.bhBackendApi?.deleteService) {
+    try { return await window.bhBackendApi.deleteService(id); }
+    catch (erro) {
+      if (!bhBackendPodeUsarFallback(erro)) throw erro;
+      console.warn("[Barber Hub] API de serviços indisponível; usando arquivamento local.", erro);
+    }
+  }
+  // Arquivamento lógico preserva referências de agendamentos antigos.
   const client = bhExigirSupabase();
-  const { error } = await client.from("servicos").delete().eq("id", id);
+  const { error } = await client.from("servicos").update({ ativo: false, publico: false }).eq("id", id);
   if (error) throw error;
+  return { id, ativo: false, publico: false };
 }
 
 async function bhCriarProfissional(estabelecimentoId, dados) {
+  if (window.bhBackendApi?.createProfessional) {
+    try {
+      return await window.bhBackendApi.createProfessional({ estabelecimento_id: estabelecimentoId, ...dados });
+    } catch (erro) {
+      if (!bhBackendPodeUsarFallback(erro)) throw erro;
+      console.warn("[Barber Hub] API de profissionais indisponível; usando RLS local.", erro);
+    }
+  }
   const client = bhExigirSupabase();
   const item = { id: crypto.randomUUID(), estabelecimento_id: estabelecimentoId, ...dados };
   const { error } = await client.from("profissionais").insert(item);
@@ -352,6 +480,13 @@ async function bhCriarProfissional(estabelecimentoId, dados) {
 }
 
 async function bhAtualizarProfissional(id, dados) {
+  if (window.bhBackendApi?.updateProfessional) {
+    try { return await window.bhBackendApi.updateProfessional(id, dados); }
+    catch (erro) {
+      if (!bhBackendPodeUsarFallback(erro)) throw erro;
+      console.warn("[Barber Hub] API de profissionais indisponível; usando RLS local.", erro);
+    }
+  }
   const client = bhExigirSupabase();
   const { error } = await client.from("profissionais").update(dados).eq("id", id);
   if (error) throw error;
@@ -359,9 +494,18 @@ async function bhAtualizarProfissional(id, dados) {
 }
 
 async function bhExcluirProfissional(id) {
+  if (window.bhBackendApi?.deleteProfessional) {
+    try { return await window.bhBackendApi.deleteProfessional(id); }
+    catch (erro) {
+      if (!bhBackendPodeUsarFallback(erro)) throw erro;
+      console.warn("[Barber Hub] API de profissionais indisponível; usando arquivamento local.", erro);
+    }
+  }
+  // Arquivamento lógico preserva o profissional em atendimentos históricos.
   const client = bhExigirSupabase();
-  const { error } = await client.from("profissionais").delete().eq("id", id);
+  const { error } = await client.from("profissionais").update({ ativo: false, aceita_agendamento: false }).eq("id", id);
   if (error) throw error;
+  return { id, ativo: false, aceita_agendamento: false };
 }
 
 async function bhAdicionarDiaBloqueado(estabelecimentoId, data, motivo) {
@@ -1178,7 +1322,7 @@ async function bhExcluirMinhaConta(senhaAtual) {
 
   if (window.bhBackendApi) {
     try {
-      await window.bhBackendApi.deleteAccount("EXCLUIR");
+      await window.bhBackendApi.deleteAccount("EXCLUIR MINHA CONTA");
       bhPerfilCache = null;
       try { await client.auth.signOut(); } catch (_) {}
       return;

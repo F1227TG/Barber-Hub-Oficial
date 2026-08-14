@@ -2,16 +2,24 @@
   "id": "./",
   "name": "Barber Hub",
   "short_name": "Barber Hub",
-  "description": "Encontre barbearias, agende serviços e gerencie seu negócio em um só lugar.",
-  "start_url": "./index.html",
+  "description": "Marketplace de serviços para encontrar barbearias, consultar disponibilidade e agendar em poucos toques.",
+  "start_url": "./mobile/index.html",
   "scope": "./",
   "display": "standalone",
-  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
-  "background_color": "#080808",
-  "theme_color": "#d4af37",
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "minimal-ui"
+  ],
+  "background_color": "#0d0c0b",
+  "theme_color": "#d2ad45",
   "orientation": "portrait-primary",
   "lang": "pt-BR",
-  "categories": ["business", "lifestyle", "productivity"],
+  "categories": [
+    "business",
+    "lifestyle",
+    "productivity"
+  ],
   "icons": [
     {
       "src": "./img/android-chrome-192x192.png",
@@ -28,16 +36,26 @@
   ],
   "shortcuts": [
     {
-      "name": "Explorar barbearias",
+      "name": "Explorar locais",
       "short_name": "Explorar",
-      "url": "./html/portal.html",
-      "icons": [{"src": "./img/android-chrome-192x192.png", "sizes": "192x192"}]
+      "url": "./mobile/portal.html",
+      "icons": [
+        {
+          "src": "./img/android-chrome-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
     },
     {
-      "name": "Agendar horário",
-      "short_name": "Agendar",
-      "url": "./html/agendamento.html",
-      "icons": [{"src": "./img/android-chrome-192x192.png", "sizes": "192x192"}]
+      "name": "Minha agenda",
+      "short_name": "Agenda",
+      "url": "./mobile/cliente.html",
+      "icons": [
+        {
+          "src": "./img/android-chrome-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
     }
   ]
 }

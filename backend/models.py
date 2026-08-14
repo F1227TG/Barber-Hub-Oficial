@@ -1,6 +1,7 @@
 """Validated request models exposed by the Barber Hub API."""
 
 from datetime import date, time
+from decimal import Decimal
 from typing import Literal
 from uuid import UUID
 
@@ -23,6 +24,92 @@ class AppointmentCreate(BaseModel):
         return value
 
 
+class AppointmentStatusUpdate(BaseModel):
+    status: Literal["confirmado", "concluido", "recusado", "cancelado"]
+    motivo: str | None = Field(default=None, max_length=500)
+
+
+class AppointmentCancelRequest(BaseModel):
+    motivo: str = Field(default="Cancelado pelo cliente", min_length=3, max_length=500)
+
+
+class EstablishmentUpdate(BaseModel):
+    nome: str | None = Field(default=None, min_length=2, max_length=140)
+    descricao: str | None = Field(default=None, max_length=3000)
+    email_publico: EmailStr | None = None
+    telefone: str | None = Field(default=None, max_length=40)
+    whatsapp: str | None = Field(default=None, max_length=40)
+    instagram: str | None = Field(default=None, max_length=120)
+    tiktok: str | None = Field(default=None, max_length=120)
+    website: str | None = Field(default=None, max_length=500)
+    cep: str | None = Field(default=None, max_length=16)
+    cidade: str | None = Field(default=None, max_length=120)
+    estado: str | None = Field(default=None, min_length=2, max_length=2)
+    bairro: str | None = Field(default=None, max_length=120)
+    endereco: str | None = Field(default=None, max_length=180)
+    numero: str | None = Field(default=None, max_length=30)
+    complemento: str | None = Field(default=None, max_length=120)
+    foto_url: str | None = Field(default=None, max_length=1200)
+    capa_url: str | None = Field(default=None, max_length=1200)
+    status_manual: Literal["automatico", "aberto", "fechado"] | None = None
+    motivo_status: str | None = Field(default=None, max_length=240)
+    aceita_agendamento: bool | None = None
+    intervalo_slots_min: int | None = Field(default=None, ge=10, le=180)
+    antecedencia_min_horas: int | None = Field(default=None, ge=0, le=168)
+    limite_dias_agendamento: int | None = Field(default=None, ge=1, le=365)
+
+
+class EstablishmentStatusUpdate(BaseModel):
+    status: Literal["automatico", "aberto", "fechado"]
+    motivo: str | None = Field(default=None, max_length=240)
+
+
+class ServiceCreate(BaseModel):
+    estabelecimento_id: UUID
+    nome: str = Field(min_length=2, max_length=140)
+    categoria: str = Field(default="Serviço", min_length=2, max_length=100)
+    descricao: str = Field(default="", max_length=2000)
+    preco: Decimal = Field(ge=0, le=1_000_000)
+    duracao_min: int = Field(ge=5, le=480)
+    ativo: bool = True
+    publico: bool = True
+    destaque: bool = False
+
+
+class ServiceUpdate(BaseModel):
+    nome: str | None = Field(default=None, min_length=2, max_length=140)
+    categoria: str | None = Field(default=None, min_length=2, max_length=100)
+    descricao: str | None = Field(default=None, max_length=2000)
+    preco: Decimal | None = Field(default=None, ge=0, le=1_000_000)
+    duracao_min: int | None = Field(default=None, ge=5, le=480)
+    ativo: bool | None = None
+    publico: bool | None = None
+    destaque: bool | None = None
+
+
+class ProfessionalCreate(BaseModel):
+    estabelecimento_id: UUID
+    nome: str = Field(min_length=2, max_length=140)
+    email: EmailStr | None = None
+    telefone: str | None = Field(default=None, max_length=40)
+    especialidade: str | None = Field(default=None, max_length=180)
+    bio: str | None = Field(default=None, max_length=2000)
+    avatar_url: str | None = Field(default=None, max_length=1200)
+    ativo: bool = True
+    aceita_agendamento: bool = True
+
+
+class ProfessionalUpdate(BaseModel):
+    nome: str | None = Field(default=None, min_length=2, max_length=140)
+    email: EmailStr | None = None
+    telefone: str | None = Field(default=None, max_length=40)
+    especialidade: str | None = Field(default=None, max_length=180)
+    bio: str | None = Field(default=None, max_length=2000)
+    avatar_url: str | None = Field(default=None, max_length=1200)
+    ativo: bool | None = None
+    aceita_agendamento: bool | None = None
+
+
 class SupportTicketCreate(BaseModel):
     nome: str = Field(min_length=2, max_length=120)
     email: EmailStr
@@ -34,7 +121,7 @@ class SupportTicketCreate(BaseModel):
 
 
 class DeleteAccountRequest(BaseModel):
-    confirmacao: str = Field(max_length=20)
+    confirmacao: str = Field(max_length=80)
 
 
 class PasswordRecoveryRequest(BaseModel):

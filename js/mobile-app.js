@@ -83,7 +83,7 @@
 
     if (pagina === "cliente") {
       criarAtalhos([
-        { href: "agendamento.html", icon: "bi-calendar2-plus", label: "Novo horário", primary: true },
+        { href: "portal.html", icon: "bi-compass", label: "Encontrar local", primary: true },
         { href: "#favoritos", icon: "bi-heart", label: "Favoritos" },
         { href: "#historico", icon: "bi-clock-history", label: "Histórico" },
         { href: "conta.html", icon: "bi-person-gear", label: "Conta" }
@@ -301,6 +301,7 @@
   }
 
   function iniciar() {
+    if (document.body.classList.contains("mobile-native")) return;
     rotularPagina();
     configurarAtalhosContextuais();
     configurarFiltroPortal();

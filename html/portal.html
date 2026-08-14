@@ -21,8 +21,8 @@
 <meta content="yes" name="apple-mobile-web-app-capable"/>
 <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
 <link href="../css/mobile-app.css" rel="stylesheet"/><link href="../css/release-1.4.1.css" rel="stylesheet"/>
-<link href="../css/product-redesign.css" rel="stylesheet"/></head>
-<body>
+<link href="../css/product-redesign.css" rel="stylesheet"/><link href="../css/release-1.6.css" rel="stylesheet"/></head>
+<body><script src="../js/device-router.js"></script>
 <!-- Cabeçalho e navegação principal -->
 <header class="header">
 <div class="container nav">
@@ -38,9 +38,6 @@
       Início
      </a>
 <a data-page="portal" href="../html/portal.html">Explorar</a>
-<a data-page="agendamento" href="../html/agendamento.html">
-      Agendar
-     </a>
 <a data-page="planos" href="../html/planos.html">
       Planos
      </a>
@@ -71,66 +68,71 @@
 </div>
 </header>
 <!-- Conteúdo principal da página -->
-<main class="portal-page" id="conteudo-principal">
-<section class="page-hero portal-hero">
-<div class="container portal-hero-grid">
-<div class="portal-hero-copy">
+<main class="marketplace-page" id="conteudo-principal">
+<section class="marketplace-hero">
+<div class="container marketplace-hero-inner">
+<div class="marketplace-hero-copy">
 <div class="breadcrumb">Início / Explorar</div>
-<span class="tag"><i class="bi bi-geo-alt"></i> Descubra perto de você</span>
-<h1>Encontre. Confira se está aberto. Agende.</h1>
-<p>Pesquise por nome, bairro ou cidade e veja apenas o que importa para escolher seu próximo atendimento.</p>
-<div class="portal-search-shell">
+<span class="tag"><i class="bi bi-compass"></i> Marketplace Barber Hub</span>
+<h1>Encontre um bom atendimento sem complicação.</h1>
+<p>Pesquise pelo local, bairro, cidade ou serviço. O Barber Hub organiza os resultados para você decidir rápido.</p>
+</div>
+<div aria-label="Fluxo rápido" class="marketplace-mini-guide">
+<i class="bi bi-search"></i><span>Pesquisar</span><i class="bi bi-chevron-right"></i>
+<span>Escolher</span><i class="bi bi-chevron-right"></i><span>Agendar</span>
+</div>
+</div>
+</section>
+<section class="marketplace-search-zone">
+<div class="container">
+<div class="marketplace-searchbar">
+<div class="marketplace-search-input">
 <i aria-hidden="true" class="bi bi-search"></i>
-<label class="sr-only" for="pesquisa">Buscar estabelecimento</label>
-<input autocomplete="off" id="pesquisa" placeholder="Barbearia, bairro ou cidade" type="search"/>
+<label class="sr-only" for="pesquisa">Pesquisar estabelecimento ou serviço</label>
+<input autocomplete="off" id="pesquisa" placeholder="Barbearia, serviço, bairro ou cidade" type="search"/>
 <button aria-label="Limpar busca" data-portal-search-clear="" type="button"><i class="bi bi-x-lg"></i></button>
 </div>
-<div aria-label="Recursos do portal" class="portal-hero-proof">
-<span><i class="bi bi-door-open"></i> Status atualizado</span>
-<span><i class="bi bi-star"></i> Avaliações</span>
-<span><i class="bi bi-calendar2-check"></i> Agenda online</span>
+<button class="btn btn-outline marketplace-filter-button" id="abrirFiltrosMarketplace" type="button">
+<i class="bi bi-sliders"></i><span>Filtros</span><span class="marketplace-filter-count" id="contadorFiltrosMarketplace"></span>
+</button>
 </div>
+<div aria-label="Filtros rápidos" class="marketplace-quick-filters">
+<button class="marketplace-chip" data-quick-filter="aberta" type="button"><i class="bi bi-door-open"></i> Abertos agora</button>
+<button class="marketplace-chip" data-quick-filter="agenda" type="button"><i class="bi bi-calendar2-check"></i> Com agenda</button>
+<button class="marketplace-chip" data-quick-filter="barbearia" type="button"><i class="bi bi-scissors"></i> Barbearias</button>
 </div>
-<aside aria-label="Como usar o portal" class="portal-hero-aside">
-<span class="portal-aside-icon"><i class="bi bi-scissors"></i></span>
-<strong>Seu próximo corte em poucos passos</strong>
-<ol>
-<li><b>1</b><span>Encontre um local</span></li>
-<li><b>2</b><span>Escolha os serviços</span></li>
-<li><b>3</b><span>Reserve o horário</span></li>
-</ol>
-</aside>
 </div>
 </section>
-<section class="section portal-results-section">
+<section class="marketplace-section" id="secDestaquesMarketplace">
 <div class="container">
-<div class="portal-results-head">
-<div>
-<span class="tag compact">Catálogo</span>
-<h2>Locais disponíveis</h2>
-<p>Use os filtros para reduzir os resultados.</p>
+<div class="marketplace-section-head">
+<div><span class="tag compact">Destaques</span><h2>Recomendados pelo Barber Hub</h2><p>Perfis selecionados para facilitar sua descoberta.</p></div>
 </div>
-<div aria-label="Filtros do catálogo" class="filters">
-<div class="campo">
-<label for="filtroTipo">Tipo</label>
-<select id="filtroTipo"><option value="todos">Todos</option><option value="barbearia">Barbearias</option><option value="salao">Salões</option></select>
-</div>
-<div class="campo">
-<label for="filtroStatus">Status</label>
-<select id="filtroStatus"><option value="todos">Todos</option><option value="aberta">Abertos agora</option><option value="fechada">Fechados</option></select>
-</div>
-<div class="campo">
-<label for="filtroAgendamento">Agenda</label>
-<select id="filtroAgendamento"><option value="todos">Todos</option><option value="sim">Agenda online</option><option value="nao">Atendimento direto</option></select>
-</div>
-</div>
-</div>
-<div class="portal-summary" id="resumoPortal"></div>
-<div class="grid grid-3 portal-business-grid" id="gridBarbearias">
-<div class="card empty full-grid"><i class="bi bi-arrow-repeat spin big"></i><p>Carregando estabelecimentos...</p></div>
-</div>
+<div class="marketplace-featured-grid" id="gridDestaquesMarketplace"></div>
 </div>
 </section>
+<section class="marketplace-section">
+<div class="container">
+<div class="marketplace-section-head">
+<div><span class="tag compact">Explorar</span><h2 id="tituloResultadosMarketplace">Locais disponíveis</h2><p>Resultados objetivos, com status e serviços principais.</p></div>
+<div aria-live="polite" class="marketplace-result-meta" id="resumoPortal"></div>
+</div>
+<div class="marketplace-grid" id="gridBarbearias"><div class="marketplace-loading"><i class="bi bi-arrow-repeat spin"></i> Carregando locais...</div></div>
+<div class="marketplace-load-more"><button class="btn btn-outline" hidden="" id="carregarMaisMarketplace" type="button"><i class="bi bi-plus-lg"></i> Carregar mais</button></div>
+</div>
+</section>
+<div aria-hidden="true" class="marketplace-filter-modal" id="filtrosMarketplace">
+<div class="marketplace-filter-backdrop" data-fechar-filtros=""></div>
+<section aria-labelledby="tituloFiltrosMarketplace" aria-modal="true" class="marketplace-filter-dialog" role="dialog">
+<header><div><span class="tag compact">Refinar</span><h2 id="tituloFiltrosMarketplace">Filtros</h2></div><button aria-label="Fechar filtros" data-fechar-filtros="" type="button"><i class="bi bi-x-lg"></i></button></header>
+<div class="marketplace-filter-grid">
+<div class="campo"><label for="filtroTipo">Tipo</label><select id="filtroTipo"><option value="todos">Todos</option><option value="barbearia">Barbearias</option><option value="salao">Salões</option></select></div>
+<div class="campo"><label for="filtroStatus">Funcionamento</label><select id="filtroStatus"><option value="todos">Qualquer status</option><option value="aberta">Abertos agora</option><option value="fechada">Fechados agora</option></select></div>
+<div class="campo"><label for="filtroAgendamento">Atendimento</label><select id="filtroAgendamento"><option value="todos">Todos</option><option value="sim">Agenda online</option><option value="nao">Contato direto</option></select></div>
+</div>
+<div class="marketplace-filter-actions"><button class="btn btn-outline" id="limparFiltrosMarketplace" type="button">Limpar</button><button class="btn btn-primary" id="aplicarFiltrosMarketplace" type="button">Ver resultados</button></div>
+</section>
+</div>
 </main>
 <!-- Rodapé institucional -->
 <footer class="footer">
@@ -146,7 +148,6 @@
 <div>
 <h4>Plataforma</h4>
 <p><a href="../html/portal.html">Explorar locais</a></p>
-<p><a href="../html/agendamento.html">Agendar horário</a></p>
 <p><a href="../html/planos.html">Planos</a></p>
 <p><a href="../html/sobre.html">Sobre</a></p>
 </div>
@@ -178,7 +179,7 @@
 <script src="../js/supabase-config.js">
 </script>
 <script src="../js/supabase-client.js">
-</script><script src="../js/backend-api.js"></script>
+</script><script src="../js/security.js"></script><script src="../js/backend-api.js"></script>
 <script src="../js/utils.js">
 </script>
 <script src="../js/toast.js">

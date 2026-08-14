@@ -51,7 +51,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     bhSetButtonLoading(botao, true, "Criando conta...");
     try {
-      const resultado = await bhRegistrar({ nome, email, telefone: telefoneValor, senha, tipo: tipo.value });
+      const captchaToken = await window.bhSecurity?.token?.(form);
+      const resultado = await bhRegistrar({ nome, email, telefone: telefoneValor, senha, tipo: tipo.value, captchaToken });
       if (resultado.precisaConfirmarEmail) {
         form.classList.add("hidden");
         document.getElementById("confirmacaoEmail").classList.remove("hidden");
@@ -62,6 +63,7 @@ document.addEventListener("DOMContentLoaded", () => {
       mostrarToast("sucesso", "Conta criada", tipo.value === "barbeiro" ? "Agora vamos cadastrar sua barbearia." : "Seu perfil de cliente está pronto.");
       setTimeout(() => { location.href = bhDestinoPerfil(resultado.perfil); }, 650);
     } catch (erro) {
+      window.bhSecurity?.reset?.(form);
       mostrarToast("erro", "Erro no cadastro", bhErroMensagem(erro));
     } finally {
       bhSetButtonLoading(botao, false);

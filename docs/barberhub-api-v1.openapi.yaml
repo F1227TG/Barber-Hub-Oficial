@@ -1,64 +1,1258 @@
 openapi: 3.1.0
 info:
   title: Barber Hub API
-  version: 1.1.0
-  description: API própria do Barber Hub em Python/FastAPI.
-servers:
-  - url: https://barberhuboficial.vercel.app
+  description: API própria do Barber Hub, executada em Python/FastAPI.
+  version: 1.2.0
 paths:
   /api/v1/health:
     get:
-      summary: Estado da API
+      summary: Health
+      operationId: health_api_v1_health_get
       responses:
-        '200': { description: API disponível }
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
   /api/v1/catalog/summary:
     get:
-      summary: Indicadores públicos
+      summary: Catalog Summary
+      operationId: catalog_summary_api_v1_catalog_summary_get
       responses:
-        '200': { description: Resumo público }
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /api/v1/marketplace/search:
+    get:
+      summary: Marketplace Search
+      operationId: marketplace_search_api_v1_marketplace_search_get
+      parameters:
+      - name: q
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            maxLength: 120
+          - type: 'null'
+          title: Q
+      - name: tipo
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            pattern: ^(barbearia|salao|todos)?$
+          - type: 'null'
+          title: Tipo
+      - name: agenda
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Agenda
+      - name: status
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            pattern: ^(aberta|fechada|todos)?$
+          - type: 'null'
+          title: Status
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+          title: Offset
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 60
+          minimum: 1
+          default: 24
+          title: Limit
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/marketplace/featured:
+    get:
+      summary: Marketplace Featured
+      operationId: marketplace_featured_api_v1_marketplace_featured_get
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 12
+          minimum: 1
+          default: 6
+          title: Limit
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /api/v1/appointments:
     post:
-      summary: Cria agendamento com múltiplos serviços
-      security: [{ bearerAuth: [] }]
+      summary: Create Appointment
+      operationId: create_appointment_api_v1_appointments_post
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppointmentCreate'
       responses:
-        '201': { description: Agendamento criado }
-        '422': { description: Dados ou regra de negócio inválidos }
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/appointments/{appointment_id}/status:
+    patch:
+      summary: Update Appointment Status
+      operationId: update_appointment_status_api_v1_appointments__appointment_id__status_patch
+      parameters:
+      - name: appointment_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Appointment Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppointmentStatusUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/appointments/{appointment_id}:
+    delete:
+      summary: Cancel Appointment
+      operationId: cancel_appointment_api_v1_appointments__appointment_id__delete
+      parameters:
+      - name: appointment_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Appointment Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppointmentCancelRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/establishments/{establishment_id}:
+    patch:
+      summary: Update Establishment
+      operationId: update_establishment_api_v1_establishments__establishment_id__patch
+      parameters:
+      - name: establishment_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Establishment Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EstablishmentUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/establishments/{establishment_id}/status:
+    patch:
+      summary: Update Establishment Status
+      operationId: update_establishment_status_api_v1_establishments__establishment_id__status_patch
+      parameters:
+      - name: establishment_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Establishment Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EstablishmentStatusUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/services:
+    post:
+      summary: Create Service
+      operationId: create_service_api_v1_services_post
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceCreate'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/services/{service_id}:
+    patch:
+      summary: Update Service
+      operationId: update_service_api_v1_services__service_id__patch
+      parameters:
+      - name: service_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Service Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      summary: Delete Service
+      operationId: delete_service_api_v1_services__service_id__delete
+      parameters:
+      - name: service_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Service Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/professionals:
+    post:
+      summary: Create Professional
+      operationId: create_professional_api_v1_professionals_post
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfessionalCreate'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/professionals/{professional_id}:
+    patch:
+      summary: Update Professional
+      operationId: update_professional_api_v1_professionals__professional_id__patch
+      parameters:
+      - name: professional_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Professional Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfessionalUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      summary: Delete Professional
+      operationId: delete_professional_api_v1_professionals__professional_id__delete
+      parameters:
+      - name: professional_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Professional Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /api/v1/support/tickets:
     get:
-      summary: Lista tickets do usuário
-      security: [{ bearerAuth: [] }]
+      summary: List Support Tickets
+      operationId: list_support_tickets_api_v1_support_tickets_get
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
       responses:
-        '200': { description: Tickets encontrados }
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
     post:
-      summary: Cria ticket de suporte
+      summary: Create Support Ticket
+      operationId: create_support_ticket_api_v1_support_tickets_post
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupportTicketCreate'
       responses:
-        '201': { description: Ticket criado }
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /api/v1/account:
     delete:
-      summary: Exclui a própria conta
-      security: [{ bearerAuth: [] }]
+      summary: Delete Account
+      operationId: delete_account_api_v1_account_delete
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteAccountRequest'
       responses:
-        '200': { description: Conta excluída }
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /api/v1/admin/overview:
     get:
-      summary: Resumo administrativo
-      security: [{ bearerAuth: [] }]
+      summary: Admin Overview
+      operationId: admin_overview_api_v1_admin_overview_get
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
       responses:
-        '200': { description: Resumo retornado }
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/admin/health:
+    get:
+      summary: Admin Health
+      operationId: admin_health_api_v1_admin_health_get
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /api/v1/admin/users/{user_id}/password-recovery:
     post:
-      summary: Envia recuperação de senha ao titular
-      security: [{ bearerAuth: [] }]
+      summary: Admin Password Recovery
+      operationId: admin_password_recovery_api_v1_admin_users__user_id__password_recovery_post
       parameters:
-        - in: path
-          name: user_id
-          required: true
-          schema: { type: string, format: uuid }
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: User Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordRecoveryRequest'
       responses:
-        '200': { description: E-mail solicitado }
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/admin/navigation-audit:
+    get:
+      summary: Navigation Audit
+      operationId: navigation_audit_api_v1_admin_navigation_audit_get
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
 components:
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
+  schemas:
+    AppointmentCancelRequest:
+      properties:
+        motivo:
+          type: string
+          maxLength: 500
+          minLength: 3
+          title: Motivo
+          default: Cancelado pelo cliente
+      type: object
+      title: AppointmentCancelRequest
+    AppointmentCreate:
+      properties:
+        estabelecimento_id:
+          type: string
+          format: uuid
+          title: Estabelecimento Id
+        profissional_id:
+          type: string
+          format: uuid
+          title: Profissional Id
+        servicos_ids:
+          items:
+            type: string
+            format: uuid
+          type: array
+          maxItems: 8
+          minItems: 1
+          title: Servicos Ids
+        data:
+          type: string
+          format: date
+          title: Data
+        hora_inicio:
+          type: string
+          format: time
+          title: Hora Inicio
+        observacao:
+          anyOf:
+          - type: string
+            maxLength: 800
+          - type: 'null'
+          title: Observacao
+      type: object
+      required:
+      - estabelecimento_id
+      - profissional_id
+      - servicos_ids
+      - data
+      - hora_inicio
+      title: AppointmentCreate
+    AppointmentStatusUpdate:
+      properties:
+        status:
+          type: string
+          enum:
+          - confirmado
+          - concluido
+          - recusado
+          - cancelado
+          title: Status
+        motivo:
+          anyOf:
+          - type: string
+            maxLength: 500
+          - type: 'null'
+          title: Motivo
+      type: object
+      required:
+      - status
+      title: AppointmentStatusUpdate
+    DeleteAccountRequest:
+      properties:
+        confirmacao:
+          type: string
+          maxLength: 80
+          title: Confirmacao
+      type: object
+      required:
+      - confirmacao
+      title: DeleteAccountRequest
+    EstablishmentStatusUpdate:
+      properties:
+        status:
+          type: string
+          enum:
+          - automatico
+          - aberto
+          - fechado
+          title: Status
+        motivo:
+          anyOf:
+          - type: string
+            maxLength: 240
+          - type: 'null'
+          title: Motivo
+      type: object
+      required:
+      - status
+      title: EstablishmentStatusUpdate
+    EstablishmentUpdate:
+      properties:
+        nome:
+          anyOf:
+          - type: string
+            maxLength: 140
+            minLength: 2
+          - type: 'null'
+          title: Nome
+        descricao:
+          anyOf:
+          - type: string
+            maxLength: 3000
+          - type: 'null'
+          title: Descricao
+        email_publico:
+          anyOf:
+          - type: string
+            format: email
+          - type: 'null'
+          title: Email Publico
+        telefone:
+          anyOf:
+          - type: string
+            maxLength: 40
+          - type: 'null'
+          title: Telefone
+        whatsapp:
+          anyOf:
+          - type: string
+            maxLength: 40
+          - type: 'null'
+          title: Whatsapp
+        instagram:
+          anyOf:
+          - type: string
+            maxLength: 120
+          - type: 'null'
+          title: Instagram
+        tiktok:
+          anyOf:
+          - type: string
+            maxLength: 120
+          - type: 'null'
+          title: Tiktok
+        website:
+          anyOf:
+          - type: string
+            maxLength: 500
+          - type: 'null'
+          title: Website
+        cep:
+          anyOf:
+          - type: string
+            maxLength: 16
+          - type: 'null'
+          title: Cep
+        cidade:
+          anyOf:
+          - type: string
+            maxLength: 120
+          - type: 'null'
+          title: Cidade
+        estado:
+          anyOf:
+          - type: string
+            maxLength: 2
+            minLength: 2
+          - type: 'null'
+          title: Estado
+        bairro:
+          anyOf:
+          - type: string
+            maxLength: 120
+          - type: 'null'
+          title: Bairro
+        endereco:
+          anyOf:
+          - type: string
+            maxLength: 180
+          - type: 'null'
+          title: Endereco
+        numero:
+          anyOf:
+          - type: string
+            maxLength: 30
+          - type: 'null'
+          title: Numero
+        complemento:
+          anyOf:
+          - type: string
+            maxLength: 120
+          - type: 'null'
+          title: Complemento
+        foto_url:
+          anyOf:
+          - type: string
+            maxLength: 1200
+          - type: 'null'
+          title: Foto Url
+        capa_url:
+          anyOf:
+          - type: string
+            maxLength: 1200
+          - type: 'null'
+          title: Capa Url
+        status_manual:
+          anyOf:
+          - type: string
+            enum:
+            - automatico
+            - aberto
+            - fechado
+          - type: 'null'
+          title: Status Manual
+        motivo_status:
+          anyOf:
+          - type: string
+            maxLength: 240
+          - type: 'null'
+          title: Motivo Status
+        aceita_agendamento:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Aceita Agendamento
+        intervalo_slots_min:
+          anyOf:
+          - type: integer
+            maximum: 180.0
+            minimum: 10.0
+          - type: 'null'
+          title: Intervalo Slots Min
+        antecedencia_min_horas:
+          anyOf:
+          - type: integer
+            maximum: 168.0
+            minimum: 0.0
+          - type: 'null'
+          title: Antecedencia Min Horas
+        limite_dias_agendamento:
+          anyOf:
+          - type: integer
+            maximum: 365.0
+            minimum: 1.0
+          - type: 'null'
+          title: Limite Dias Agendamento
+      type: object
+      title: EstablishmentUpdate
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    PasswordRecoveryRequest:
+      properties:
+        motivo:
+          anyOf:
+          - type: string
+            maxLength: 300
+          - type: 'null'
+          title: Motivo
+      type: object
+      title: PasswordRecoveryRequest
+    ProfessionalCreate:
+      properties:
+        estabelecimento_id:
+          type: string
+          format: uuid
+          title: Estabelecimento Id
+        nome:
+          type: string
+          maxLength: 140
+          minLength: 2
+          title: Nome
+        email:
+          anyOf:
+          - type: string
+            format: email
+          - type: 'null'
+          title: Email
+        telefone:
+          anyOf:
+          - type: string
+            maxLength: 40
+          - type: 'null'
+          title: Telefone
+        especialidade:
+          anyOf:
+          - type: string
+            maxLength: 180
+          - type: 'null'
+          title: Especialidade
+        bio:
+          anyOf:
+          - type: string
+            maxLength: 2000
+          - type: 'null'
+          title: Bio
+        avatar_url:
+          anyOf:
+          - type: string
+            maxLength: 1200
+          - type: 'null'
+          title: Avatar Url
+        ativo:
+          type: boolean
+          title: Ativo
+          default: true
+        aceita_agendamento:
+          type: boolean
+          title: Aceita Agendamento
+          default: true
+      type: object
+      required:
+      - estabelecimento_id
+      - nome
+      title: ProfessionalCreate
+    ProfessionalUpdate:
+      properties:
+        nome:
+          anyOf:
+          - type: string
+            maxLength: 140
+            minLength: 2
+          - type: 'null'
+          title: Nome
+        email:
+          anyOf:
+          - type: string
+            format: email
+          - type: 'null'
+          title: Email
+        telefone:
+          anyOf:
+          - type: string
+            maxLength: 40
+          - type: 'null'
+          title: Telefone
+        especialidade:
+          anyOf:
+          - type: string
+            maxLength: 180
+          - type: 'null'
+          title: Especialidade
+        bio:
+          anyOf:
+          - type: string
+            maxLength: 2000
+          - type: 'null'
+          title: Bio
+        avatar_url:
+          anyOf:
+          - type: string
+            maxLength: 1200
+          - type: 'null'
+          title: Avatar Url
+        ativo:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Ativo
+        aceita_agendamento:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Aceita Agendamento
+      type: object
+      title: ProfessionalUpdate
+    ServiceCreate:
+      properties:
+        estabelecimento_id:
+          type: string
+          format: uuid
+          title: Estabelecimento Id
+        nome:
+          type: string
+          maxLength: 140
+          minLength: 2
+          title: Nome
+        categoria:
+          type: string
+          maxLength: 100
+          minLength: 2
+          title: Categoria
+          default: Serviço
+        descricao:
+          type: string
+          maxLength: 2000
+          title: Descricao
+          default: ''
+        preco:
+          anyOf:
+          - type: number
+            maximum: 1000000.0
+            minimum: 0.0
+          - type: string
+            pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+          title: Preco
+        duracao_min:
+          type: integer
+          maximum: 480.0
+          minimum: 5.0
+          title: Duracao Min
+        ativo:
+          type: boolean
+          title: Ativo
+          default: true
+        publico:
+          type: boolean
+          title: Publico
+          default: true
+        destaque:
+          type: boolean
+          title: Destaque
+          default: false
+      type: object
+      required:
+      - estabelecimento_id
+      - nome
+      - preco
+      - duracao_min
+      title: ServiceCreate
+    ServiceUpdate:
+      properties:
+        nome:
+          anyOf:
+          - type: string
+            maxLength: 140
+            minLength: 2
+          - type: 'null'
+          title: Nome
+        categoria:
+          anyOf:
+          - type: string
+            maxLength: 100
+            minLength: 2
+          - type: 'null'
+          title: Categoria
+        descricao:
+          anyOf:
+          - type: string
+            maxLength: 2000
+          - type: 'null'
+          title: Descricao
+        preco:
+          anyOf:
+          - type: number
+            maximum: 1000000.0
+            minimum: 0.0
+          - type: string
+            pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+          - type: 'null'
+          title: Preco
+        duracao_min:
+          anyOf:
+          - type: integer
+            maximum: 480.0
+            minimum: 5.0
+          - type: 'null'
+          title: Duracao Min
+        ativo:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Ativo
+        publico:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Publico
+        destaque:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Destaque
+      type: object
+      title: ServiceUpdate
+    SupportTicketCreate:
+      properties:
+        nome:
+          type: string
+          maxLength: 120
+          minLength: 2
+          title: Nome
+        email:
+          type: string
+          format: email
+          title: Email
+        categoria:
+          type: string
+          enum:
+          - duvida
+          - suporte
+          - cadastro
+          - financeiro
+          - sugestao
+          - outro
+          title: Categoria
+          default: duvida
+        prioridade:
+          type: string
+          enum:
+          - baixa
+          - normal
+          - alta
+          - urgente
+          title: Prioridade
+          default: normal
+        assunto:
+          type: string
+          maxLength: 160
+          minLength: 5
+          title: Assunto
+        mensagem:
+          type: string
+          maxLength: 4000
+          minLength: 15
+          title: Mensagem
+        website:
+          type: string
+          maxLength: 200
+          title: Website
+          default: ''
+      type: object
+      required:
+      - nome
+      - email
+      - assunto
+      - mensagem
+      title: SupportTicketCreate
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+        input:
+          title: Input
+        ctx:
+          type: object
+          title: Context
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+servers:
+- url: https://barberhuboficial.vercel.app

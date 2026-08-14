@@ -19,8 +19,8 @@
 <link href="../css/pages.css" rel="stylesheet"/>
 <link href="../manifest.webmanifest" rel="manifest"/>
 <link href="../css/mobile-app.css" rel="stylesheet"/><link href="../css/release-1.4.1.css" rel="stylesheet"/>
-<link href="../css/product-redesign.css" rel="stylesheet"/></head>
-<body class="admin-page">
+<link href="../css/product-redesign.css" rel="stylesheet"/><link href="../css/release-1.6.css" rel="stylesheet"/></head>
+<body class="admin-page"><script src="../js/device-router.js"></script>
 <!-- Cabeçalho e navegação principal -->
 <header class="header">
 <div class="container nav">
@@ -93,7 +93,12 @@
 </i>
        Atualizar
       </button>
-<a class="btn btn-outline btn-small" href="mapa-sistema.html"><i class="bi bi-diagram-3"></i> Mapa do sistema</a></div>
+<a class="btn btn-outline btn-small" href="mapa-sistema.html"><i class="bi bi-diagram-3"></i> Mapa do sistema</a><div aria-live="polite" class="admin-health-live" id="adminHealthServices">
+<div class="admin-service-health" data-health="api"><span>API Python</span><strong id="adminHealthApi">Verificando</strong></div>
+<div class="admin-service-health" data-health="database"><span>Banco</span><strong id="adminHealthDb">Verificando</strong></div>
+<div class="admin-service-health" data-health="auth"><span>Autenticação</span><strong id="adminHealthAuth">Verificando</strong></div>
+<div class="admin-service-health" data-health="marketplace"><span>Marketplace FTS</span><strong id="adminHealthMarketplace">Verificando</strong></div>
+</div></div>
 </div>
 </section>
 <section class="section admin-overview-section">
@@ -537,7 +542,6 @@
 <div>
 <h4>Plataforma</h4>
 <p><a href="../html/portal.html">Explorar locais</a></p>
-<p><a href="../html/agendamento.html">Agendar horário</a></p>
 <p><a href="../html/planos.html">Planos</a></p>
 <p><a href="../html/sobre.html">Sobre</a></p>
 </div>
@@ -569,7 +573,7 @@
 <script src="../js/supabase-config.js">
 </script>
 <script src="../js/supabase-client.js">
-</script><script src="../js/backend-api.js"></script>
+</script><script src="../js/security.js"></script><script src="../js/backend-api.js"></script>
 <script src="../js/utils.js">
 </script>
 <script src="../js/toast.js">

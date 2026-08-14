@@ -4,7 +4,6 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
-
 <meta content="Barber Hub — plataforma de gestão, agenda e divulgação para barbearias e futuros salões de beleza." name="description"/>
 <title>
    Entrar | Barber Hub
@@ -19,11 +18,11 @@
 <link href="../css/global.css" rel="stylesheet"/>
 <link href="../css/pages.css" rel="stylesheet"/>
 <link href="../manifest.webmanifest" rel="manifest"/>
-<meta content="yes" name="apple-mobile-web-app-capable">
+<meta content="yes" name="apple-mobile-web-app-capable"/>
 <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
 <link href="../css/mobile-app.css" rel="stylesheet"/><link href="../css/release-1.4.1.css" rel="stylesheet"/>
-</meta><link href="../css/product-redesign.css" rel="stylesheet"/></head>
-<body>
+<link href="../css/product-redesign.css" rel="stylesheet"/><link href="../css/release-1.6.css" rel="stylesheet"/></head>
+<body><script src="../js/device-router.js"></script>
 <!-- Cabeçalho e navegação principal -->
 <header class="header">
 <div class="container nav">
@@ -39,9 +38,6 @@
       Início
      </a>
 <a data-page="portal" href="../html/portal.html">Explorar</a>
-<a data-page="agendamento" href="../html/agendamento.html">
-      Agendar
-     </a>
 <a data-page="planos" href="../html/planos.html">
       Planos
      </a>
@@ -147,7 +143,7 @@
 <script src="../js/supabase-config.js">
 </script>
 <script src="../js/supabase-client.js">
-</script><script src="../js/backend-api.js"></script>
+</script><script src="../js/security.js"></script><script src="../js/backend-api.js"></script>
 <script src="../js/utils.js">
 </script>
 <script src="../js/toast.js">

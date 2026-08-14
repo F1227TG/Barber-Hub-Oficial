@@ -32,6 +32,8 @@ async def require_user(authorization: str | None = Header(default=None)) -> Auth
         user = await gateway.auth_user(token)
     except ApiError as exc:
         raise ApiError(401, "INVALID_SESSION", "Sua sessão expirou. Entre novamente.") from exc
+    if user.get("email") and not user.get("email_confirmed_at"):
+        raise ApiError(403, "EMAIL_NOT_CONFIRMED", "Confirme seu e-mail antes de continuar.")
     return AuthContext(token=token, user_id=str(user["id"]), user=user)
 
 

@@ -21,8 +21,8 @@
 <meta content="yes" name="apple-mobile-web-app-capable"/>
 <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
 <link href="../css/mobile-app.css" rel="stylesheet"/><link href="../css/release-1.4.1.css" rel="stylesheet"/>
-<link href="../css/product-redesign.css" rel="stylesheet"/></head>
-<body>
+<link href="../css/product-redesign.css" rel="stylesheet"/><link href="../css/release-1.6.css" rel="stylesheet"/></head>
+<body><script src="../js/device-router.js"></script>
 <!-- Cabeçalho e navegação principal -->
 <header class="header">
 <div class="container nav">
@@ -38,9 +38,6 @@
       Início
      </a>
 <a data-page="portal" href="../html/portal.html">Explorar</a>
-<a data-page="agendamento" href="../html/agendamento.html">
-      Agendar
-     </a>
 <a data-page="planos" href="../html/planos.html">
       Planos
      </a>
@@ -175,7 +172,10 @@
        Abrir página pública
       </a>
 </div>
-<div class="quick-status-card" id="quickStatusCard">
+<div class="professional-command-center" id="painelCommandCenter">
+<div class="command-primary"><span class="command-eyebrow">Operação de hoje</span><h2 id="painelProximoTitulo">Sua agenda em um só olhar</h2><p id="painelProximoDetalhe">Carregando o próximo atendimento...</p><div style="margin-top:14px"><button class="btn btn-primary btn-small" data-panel="secAgenda" type="button"><i class="bi bi-calendar-week"></i> Abrir agenda</button></div></div>
+<div class="command-actions"><button class="btn btn-outline" data-panel="secServicos" type="button"><i class="bi bi-plus-lg"></i> Serviço</button><button class="btn btn-outline" data-panel="secBarbeiros" type="button"><i class="bi bi-person-plus"></i> Profissional</button><button class="btn btn-outline" data-panel="secGaleria" type="button"><i class="bi bi-camera"></i> Publicar</button><button class="btn btn-outline" data-panel="secConfig" type="button"><i class="bi bi-calendar-x"></i> Bloquear dia</button></div>
+</div><div class="quick-status-card" id="quickStatusCard">
 <div class="quick-status-copy">
 <span>
         Como o estabelecimento aparece agora
@@ -373,7 +373,7 @@
          </label>
 <input id="barbEmail" type="email"/>
 </div>
-</div>
+<div class="campo full"><label for="barbAvatar">Foto do profissional <span class="muted">(opcional)</span></label><input accept="image/png,image/jpeg,image/webp" id="barbAvatar" type="file"/><small>Usada na página pública e na escolha do profissional durante o agendamento.</small></div></div>
 <label class="check-line">
 <input aria-label="Aceita agendamento online" checked="" id="barbAgenda" type="checkbox"/>
 <span>
@@ -969,7 +969,7 @@
 <script src="../js/supabase-config.js">
 </script>
 <script src="../js/supabase-client.js">
-</script><script src="../js/backend-api.js"></script>
+</script><script src="../js/security.js"></script><script src="../js/backend-api.js"></script>
 <script src="../js/utils.js">
 </script>
 <script src="../js/toast.js">

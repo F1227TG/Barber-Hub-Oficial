@@ -52,12 +52,27 @@ class SupabaseGateway:
                 details = response.json()
             except ValueError:
                 details = response.text
-            message = (
-                details.get("message")
-                if isinstance(details, dict)
-                else "Falha na comunicação com o banco."
-            )
-            raise ApiError(response.status_code, "SUPABASE_ERROR", message or "Falha na comunicação com o banco.", details)
+
+            # Erros de infraestrutura não devolvem mensagens internas do provedor
+            # para o navegador. O request_id da API permite investigar nos logs.
+            if response.status_code == 429:
+                retry_after = response.headers.get("retry-after")
+                raise ApiError(
+                    429,
+                    "UPSTREAM_RATE_LIMITED",
+                    "Muitas solicitações foram feitas em pouco tempo. Aguarde e tente novamente.",
+                    None,
+                    {"Retry-After": retry_after} if retry_after else None,
+                )
+            if response.status_code >= 500:
+                raise ApiError(
+                    503,
+                    "UPSTREAM_UNAVAILABLE",
+                    "Os serviços do Barber Hub estão temporariamente indisponíveis. Tente novamente em instantes.",
+                )
+
+            message = details.get("message") if isinstance(details, dict) else "Não foi possível concluir a operação."
+            raise ApiError(response.status_code, "SUPABASE_ERROR", message or "Não foi possível concluir a operação.", details)
         return response
 
     async def rest(

@@ -75,6 +75,16 @@ function bhRenderKpisPainel() {
   document.getElementById("kpiFaturamento").textContent = bhMoeda(faturamento);
   document.getElementById("kpiServicos").textContent = bhPainelEstabelecimento.servicos.filter(item => item.ativo).length;
   document.getElementById("kpiStatus").textContent = status.texto;
+  const agora = new Date();
+  const proximo = bhPainelAgendamentos
+    .filter(item => ["pendente","confirmado"].includes(item.status) && new Date(`${item.data}T${bhHoraCurta(item.hora_inicio)}`) >= agora)
+    .sort((a,b) => new Date(`${a.data}T${bhHoraCurta(a.hora_inicio)}`) - new Date(`${b.data}T${bhHoraCurta(b.hora_inicio)}`))[0];
+  const tituloProximo = document.getElementById("painelProximoTitulo");
+  const detalheProximo = document.getElementById("painelProximoDetalhe");
+  if (tituloProximo && detalheProximo) {
+    tituloProximo.textContent = proximo ? `Próximo: ${proximo.cliente_nome} às ${bhHoraCurta(proximo.hora_inicio)}` : "Agenda livre no momento";
+    detalheProximo.textContent = proximo ? `${bhFormatarData(proximo.data)} · ${bhAgendamentoServicosTexto(proximo)} · ${proximo.profissionais?.nome || "Profissional"}` : "Use os atalhos para ajustar serviços, equipe ou publicar um trabalho.";
+  }
   const recomendacao = bhRecomendacaoPainel(bhPainelAgendamentos, bhPainelEstabelecimento.servicos);
   document.getElementById("iaPainel").innerHTML = `<h3><i class="bi bi-stars"></i> ${escapeHTML(recomendacao.titulo)}</h3><p>${escapeHTML(recomendacao.texto)}</p>`;
 }
@@ -102,7 +112,7 @@ function bhRenderAgendaPainel() {
 
 function bhRenderServicosPainel() {
   const lista = document.getElementById("listaServicosPainel");
-  const itens = bhPainelEstabelecimento.servicos;
+  const itens = bhPainelEstabelecimento.servicos.filter(item => item.ativo || item.publico);
   lista.innerHTML = itens.length ? itens.map(item => `
     <div class="simple-item">
       <div><strong>${escapeHTML(item.nome)}</strong><span>${bhMoeda(item.preco)} • ${item.duracao_min} min • ${item.ativo ? "Ativo" : "Inativo"}</span></div>
@@ -115,10 +125,10 @@ function bhRenderServicosPainel() {
 
 function bhRenderProfissionaisPainel() {
   const lista = document.getElementById("listaBarbeirosPainel");
-  const itens = bhPainelEstabelecimento.barbeiros;
+  const itens = bhPainelEstabelecimento.barbeiros.filter(item => item.ativo || item.aceita_agendamento);
   lista.innerHTML = itens.length ? itens.map(item => `
     <div class="simple-item">
-      <div style="display:flex;align-items:center;gap:12px"><div class="avatar">${escapeHTML(item.avatar)}</div><div><strong>${escapeHTML(item.nome)}</strong><span>${escapeHTML(item.especialidade || "Profissional")} • ${item.ativo ? "Ativo" : "Inativo"}</span></div></div>
+      <div style="display:flex;align-items:center;gap:12px">${item.avatar_url ? `<img class="avatar-image" src="${escapeHTML(item.avatar_url)}" alt="Foto de ${escapeHTML(item.nome)}">` : `<div class="avatar">${escapeHTML(item.avatar)}</div>`}<div><strong>${escapeHTML(item.nome)}</strong><span>${escapeHTML(item.especialidade || "Profissional")} • ${item.ativo ? "Ativo" : "Inativo"}</span></div></div>
       <div class="item-actions">
         <button class="icon-btn" data-profissional-toggle="${item.id}" data-ativo="${item.ativo}" title="Ativar/inativar"><i class="bi ${item.ativo ? "bi-toggle-on" : "bi-toggle-off"}"></i></button>
         ${item.user_id ? "" : `<button class="icon-btn danger" data-profissional-delete="${item.id}" title="Excluir"><i class="bi bi-trash"></i></button>`}
@@ -504,11 +514,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     const botao = form.querySelector("button[type='submit']");
     bhSetButtonLoading(botao, true, "Salvando...");
     try {
+      const avatarFile = document.getElementById("barbAvatar")?.files?.[0];
+      const avatarUrl = avatarFile ? await bhUploadImagem(avatarFile, "profissionais") : null;
       await bhCriarProfissional(bhPainelEstabelecimento.id, {
         nome: document.getElementById("barbNome").value.trim(),
         especialidade: document.getElementById("barbEspecialidade").value.trim(),
         telefone: document.getElementById("barbTelefone").value.trim() || null,
         email: document.getElementById("barbEmail").value.trim() || null,
+        avatar_url: avatarUrl,
         ativo: true,
         aceita_agendamento: document.getElementById("barbAgenda").checked
       });

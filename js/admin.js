@@ -149,7 +149,25 @@ function bhRenderAdminTickets() {
 }
 
 function bhRenderAdmin() { bhRenderAdminKpis(); bhRenderAdminEstabelecimentos(); bhRenderAdminUsuarios(); bhRenderAdminAgendamentos(); bhRenderAdminAvaliacoes(); bhRenderAdminDenuncias(); bhRenderAdminTickets(); }
-async function bhRecarregarAdmin() { bhAdminDados = await bhAdminResumo(); bhRenderAdmin(); }
+async function bhRecarregarAdmin() {
+  // As listas detalhadas continuam protegidas por RLS no Supabase; os totais
+  // globais passam pela API Python, centralizando a visão administrativa.
+  const [dados, overview] = await Promise.all([
+    bhAdminResumo(),
+    window.bhBackendApi?.adminOverview?.().catch(error => { console.warn("[Admin] overview da API indisponível", error); return null; }) || Promise.resolve(null)
+  ]);
+  if (overview) {
+    dados.counts = {
+      ...dados.counts,
+      perfis: Number(overview.usuarios ?? dados.counts?.perfis ?? 0),
+      estabelecimentos: Number(overview.estabelecimentos ?? dados.counts?.estabelecimentos ?? 0),
+      agendamentos: Number(overview.agendamentos ?? dados.counts?.agendamentos ?? 0),
+      avaliacoes: Number(overview.avaliacoes ?? dados.counts?.avaliacoes ?? 0)
+    };
+  }
+  bhAdminDados = dados;
+  bhRenderAdmin();
+}
 window.bhRecarregarAdmin = bhRecarregarAdmin;
 
 async function bhAdminExecutar(botao, acao) { bhSetButtonLoading(botao,true,"..."); try { await acao(); await bhRecarregarAdmin(); } finally { bhSetButtonLoading(botao,false); } }
@@ -213,3 +231,37 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 function bhAssinarAdminTempoReal(){if(!window.supabaseClient)return;const atualizar=async()=>{await bhRecarregarAdmin()};window.supabaseClient.channel('admin-live-v13').on('postgres_changes',{event:'*',schema:'public',table:'tickets_suporte'},atualizar).on('postgres_changes',{event:'*',schema:'public',table:'portfolio_denuncias'},atualizar).on('postgres_changes',{event:'*',schema:'public',table:'avaliacoes'},atualizar).on('postgres_changes',{event:'*',schema:'public',table:'estabelecimentos'},atualizar).subscribe()}
 document.addEventListener('DOMContentLoaded',()=>setTimeout(bhAssinarAdminTempoReal,1800));
+
+/** Barber Hub 1.6 — health check real da API Python para o painel admin. */
+async function bhAdminCarregarSaudeApi() {
+  const set = (name, text, online = true) => {
+    const value = document.getElementById(`adminHealth${name}`);
+    const card = value?.closest(".admin-service-health");
+    if (value) value.textContent = text;
+    card?.classList.toggle("offline", !online);
+  };
+  try {
+    if (!window.bhBackendApi?.adminHealth) throw new Error("Cliente da API indisponível");
+    const started = performance.now();
+    const data = await window.bhBackendApi.adminHealth();
+    const latency = Math.max(1, Math.round(performance.now() - started));
+    set("Api", `Online · ${latency} ms · v${data?.api?.version || "?"}`, data?.api?.status === "online");
+    set("Db", data?.database?.status === "online" ? "Online" : "Indisponível", data?.database?.status === "online");
+    set("Auth", data?.auth?.status === "online" ? "Online" : "Indisponível", data?.auth?.status === "online");
+    const marketplaceOk = data?.marketplace?.status === "online";
+    set("Marketplace", marketplaceOk ? "Online · FTS" : "Migration 15 pendente", marketplaceOk);
+    const updated = document.getElementById("adminUltimaAtualizacao");
+    if (updated) updated.textContent = `API verificada às ${new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" }).format(new Date())}`;
+  } catch (error) {
+    set("Api", "Indisponível", false);
+    set("Db", "Não confirmado", false);
+    set("Auth", "Não confirmado", false);
+    set("Marketplace", "Não confirmado", false);
+    console.warn("[Barber Hub Admin] health check failed", error);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => setTimeout(bhAdminCarregarSaudeApi, 900));
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("adminAtualizar")?.addEventListener("click", () => setTimeout(bhAdminCarregarSaudeApi, 250));
+});

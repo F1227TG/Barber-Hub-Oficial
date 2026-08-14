@@ -26,7 +26,7 @@ function bhRenderFavoritosCliente() {
     const imagem = item.capaUrl || item.fotoUrl || "../img/logoblack.png";
     return `<article class="favorite-card">
       <a class="favorite-cover" href="barbearia.html?id=${item.id}" style="--favorite-cover:url('${escapeHTML(imagem)}')"><span class="status ${bhCalcularStatus(item).classe}">${escapeHTML(bhCalcularStatus(item).texto)}</span>${item.verificado ? `<span class="verified-mini"><i class="bi bi-patch-check-fill"></i> Verificado</span>` : ""}</a>
-      <div class="favorite-body"><div><h3>${escapeHTML(item.nome)}</h3><p><i class="bi bi-geo-alt"></i> ${escapeHTML([item.bairro,item.cidade].filter(Boolean).join(", "))}</p></div><div class="favorite-actions"><a class="btn btn-primary btn-small" href="agendamento.html?barbearia=${item.id}"><i class="bi bi-calendar2-plus"></i> Agendar</a><button class="icon-btn danger" type="button" data-remover-favorito="${item.id}" title="Remover dos favoritos"><i class="bi bi-heart-fill"></i></button></div></div>
+      <div class="favorite-body"><div><h3>${escapeHTML(item.nome)}</h3><p><i class="bi bi-geo-alt"></i> ${escapeHTML([item.bairro,item.cidade].filter(Boolean).join(", "))}</p></div><div class="favorite-actions"><a class="btn btn-primary btn-small" href="barbearia.html?id=${item.id}&agendar=1"><i class="bi bi-calendar2-plus"></i> Agendar</a><button class="icon-btn danger" type="button" data-remover-favorito="${item.id}" title="Remover dos favoritos"><i class="bi bi-heart-fill"></i></button></div></div>
     </article>`;
   }).join("");
 }
@@ -42,6 +42,23 @@ function bhRenderCliente(perfil) {
   document.getElementById("kpiProximos").textContent = futuros.length;
   document.getElementById("kpiHistorico").textContent = historico.length;
   document.getElementById("kpiConcluidos").textContent = bhClienteAgendamentos.filter(item => item.status === "concluido").length;
+  const proximo = [...futuros].sort((a,b) => new Date(`${a.data}T${bhHoraCurta(a.hora_inicio)}`) - new Date(`${b.data}T${bhHoraCurta(b.hora_inicio)}`))[0];
+  const proximoTitulo = document.getElementById("clienteProximoTitulo");
+  const proximoDetalhe = document.getElementById("clienteProximoDetalhe");
+  const proximoAcao = document.getElementById("clienteProximoAcao");
+  if (proximoTitulo && proximoDetalhe && proximoAcao) {
+    if (proximo) {
+      proximoTitulo.textContent = `${proximo.estabelecimentos?.nome || "Próximo atendimento"} · ${bhHoraCurta(proximo.hora_inicio)}`;
+      proximoDetalhe.textContent = `${bhFormatarData(proximo.data)} · ${bhAgendamentoServicosTexto(proximo)} · ${proximo.profissionais?.nome || "Profissional"}`;
+      proximoAcao.href = "#proximos";
+      proximoAcao.innerHTML = '<i class="bi bi-calendar2-check"></i> Ver meu horário';
+    } else {
+      proximoTitulo.textContent = "Seu próximo corte começa por uma boa escolha";
+      proximoDetalhe.textContent = "Explore locais, veja quem está aberto e agende em poucos toques.";
+      proximoAcao.href = "portal.html";
+      proximoAcao.innerHTML = '<i class="bi bi-search"></i> Explorar locais';
+    }
+  }
 
   const renderTabela = (itens, alvo, vazio) => {
     const tbody = document.getElementById(alvo);
@@ -52,7 +69,7 @@ function bhRenderCliente(perfil) {
     tbody.innerHTML = itens.map(item => {
       const avaliacao = bhAvaliacaoDoAgendamento(item.id);
       const servicosQuery = encodeURIComponent(bhAgendamentoServicoIds(item).join(","));
-      const repetir = `agendamento.html?barbearia=${item.estabelecimento_id}&servicos=${servicosQuery}&profissional=${item.profissional_id}`;
+      const repetir = `barbearia.html?id=${item.estabelecimento_id}&agendar=1&servicos=${servicosQuery}&profissional=${item.profissional_id}`;
       let acoes = "—";
       if (["pendente", "confirmado"].includes(item.status)) {
         acoes = `<button class="btn btn-danger btn-small" data-cancelar-agendamento="${item.id}">Cancelar</button>`;
@@ -80,7 +97,7 @@ function bhRenderCliente(perfil) {
   const texto = analise.servicoMaisUsado
     ? `Você costuma escolher ${analise.servicoMaisUsado[0]}. Use “Agendar novamente” para repetir o serviço e profissional em poucos toques.`
     : "Depois dos seus primeiros atendimentos, o Barber Hub identificará preferências e facilitará seus próximos agendamentos.";
-  document.getElementById("clienteIA").innerHTML = `<h3><i class="bi bi-stars"></i> Seu atalho inteligente</h3><p>${escapeHTML(texto)}</p><a class="btn btn-primary btn-small" href="agendamento.html">Agendar novo horário</a>`;
+  document.getElementById("clienteIA").innerHTML = `<h3><i class="bi bi-stars"></i> Seu atalho inteligente</h3><p>${escapeHTML(texto)}</p><a class="btn btn-primary btn-small" href="portal.html">Encontrar novo horário</a>`;
 }
 
 function bhAbrirModalAvaliacao(agendamento) {

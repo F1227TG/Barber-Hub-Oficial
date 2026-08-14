@@ -1,0 +1,442 @@
+/*
+ * Barber Hub 1.6.0 — Marketplace & App Architecture
+ * --------------------------------------------------------------------------
+ * 1. Paleta e temas mais suaves
+ * 2. Marketplace / Explorar
+ * 3. Modal de agendamento
+ * 4. Painéis cliente/profissional/admin
+ * 5. Interface mobile dedicada
+ * --------------------------------------------------------------------------
+ */
+
+/* ========================================================================== */
+/* 1. TEMAS — menos contraste agressivo, mesma identidade preto + dourado     */
+/* ========================================================================== */
+
+:root {
+  --bg:#0d0c0b;
+  --bg-2:#12110f;
+  --surface:#181614;
+  --surface-2:#211e1a;
+  --surface-soft:rgba(255,248,236,.045);
+  --surface-hover:rgba(255,248,236,.075);
+  --text:#f2ede5;
+  --muted:#b8b0a5;
+  --muted-2:#888077;
+  --border:rgba(242,237,229,.105);
+  --gold:#d2ad45;
+  --gold-2:#e5bd4e;
+  --gold-soft:rgba(210,173,69,.115);
+  --gold-border:rgba(210,173,69,.29);
+  --shadow:0 26px 72px rgba(0,0,0,.28);
+  --shadow-soft:0 14px 34px rgba(0,0,0,.17);
+  color-scheme:dark;
+}
+
+body {
+  background:
+    radial-gradient(circle at 85% -10%, rgba(210,173,69,.055), transparent 34rem),
+    var(--bg);
+}
+
+body.claro {
+  --bg:#f5f1e9;
+  --bg-2:#fbf8f2;
+  --surface:#fffdf9;
+  --surface-2:#eee8de;
+  --surface-soft:#f4eee4;
+  --surface-hover:#ece4d7;
+  --text:#27231e;
+  --muted:#686057;
+  --muted-2:#847a6f;
+  --border:#ded4c5;
+  --gold:#98731c;
+  --gold-2:#ae8321;
+  --gold-soft:#f1e6cb;
+  --gold-border:#d1bc86;
+  --shadow:0 20px 50px rgba(63,48,24,.09);
+  --shadow-soft:0 10px 28px rgba(63,48,24,.07);
+  color-scheme:light;
+  background:
+    radial-gradient(circle at 85% -10%, rgba(174,131,33,.08), transparent 36rem),
+    linear-gradient(180deg,#f8f5ef 0,#f5f1e9 40%,#f3eee6 100%);
+}
+
+body.claro .header,
+body.claro .app-drawer,
+body.claro .modal-content,
+body.claro .mobile-sheet {
+  background:rgba(255,253,249,.96);
+}
+
+body.claro .card,
+body.claro .form-card,
+body.claro .account-section,
+body.claro .panel-section,
+body.claro .support-card {
+  box-shadow:var(--shadow-soft);
+}
+
+body.claro input,
+body.claro select,
+body.claro textarea {
+  background:#fbf8f2;
+  border-color:#d8cebf;
+  color:var(--text);
+}
+
+body.claro input::placeholder,
+body.claro textarea::placeholder { color:#958b7e; }
+
+body.claro .btn-outline { background:rgba(255,255,255,.54); }
+
+/* ========================================================================== */
+/* 2. MARKETPLACE / EXPLORAR                                                  */
+/* ========================================================================== */
+
+.marketplace-page { padding-bottom:32px; }
+.marketplace-hero { padding:62px 0 32px; border-bottom:1px solid var(--border); }
+.marketplace-hero .breadcrumb { margin-bottom:16px; }
+.marketplace-hero-inner { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:34px; align-items:end; }
+.marketplace-hero-copy { max-width:720px; }
+.marketplace-hero h1 { font-size:clamp(2rem,4vw,3.8rem); line-height:1.02; margin:8px 0 14px; letter-spacing:-.045em; }
+.marketplace-hero p { color:var(--muted); max-width:650px; font-size:1.02rem; }
+.marketplace-mini-guide { display:flex; gap:9px; align-items:center; color:var(--muted); font-size:.84rem; white-space:nowrap; }
+.marketplace-mini-guide i { color:var(--gold-2); }
+
+.marketplace-search-zone { padding:28px 0 12px; }
+.marketplace-searchbar {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:10px;
+  max-width:100%;
+}
+.marketplace-search-input {
+  min-height:58px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:0 17px;
+  border:1px solid var(--gold-border);
+  background:var(--surface);
+  border-radius:18px;
+  transition:.18s ease;
+}
+.marketplace-search-input:focus-within { border-color:var(--gold); box-shadow:0 0 0 4px var(--gold-soft); }
+.marketplace-search-input > i { color:var(--gold-2); font-size:1.14rem; }
+.marketplace-search-input input { flex:1; border:0; outline:0; background:transparent; color:var(--text); min-width:0; padding:0; }
+.marketplace-search-input button { width:38px; height:38px; border-radius:12px; background:var(--surface-2); color:var(--muted); cursor:pointer; }
+.marketplace-filter-button { min-width:128px; min-height:58px; border-radius:18px; display:inline-flex; align-items:center; justify-content:center; gap:9px; }
+.marketplace-filter-count { display:inline-grid; place-items:center; min-width:21px; height:21px; padding:0 6px; border-radius:999px; background:var(--gold); color:#15110a; font-size:.72rem; font-weight:900; }
+.marketplace-filter-count:empty { display:none; }
+
+.marketplace-quick-filters { display:flex; gap:8px; overflow:auto; padding:12px 0 4px; scrollbar-width:none; }
+.marketplace-quick-filters::-webkit-scrollbar { display:none; }
+.marketplace-chip {
+  flex:0 0 auto; min-height:38px; padding:0 14px; border-radius:999px;
+  border:1px solid var(--border); background:var(--surface-soft); color:var(--muted);
+  display:inline-flex; align-items:center; gap:7px; cursor:pointer; font-weight:700; font-size:.82rem;
+}
+.marketplace-chip:hover,.marketplace-chip.ativo { border-color:var(--gold-border); background:var(--gold-soft); color:var(--text); }
+.marketplace-chip i { color:var(--gold-2); }
+
+.marketplace-section { padding:34px 0 70px; }
+.marketplace-section + .marketplace-section { padding-top:0; }
+.marketplace-section-head { display:flex; align-items:end; justify-content:space-between; gap:20px; margin-bottom:20px; }
+.marketplace-section-head h2 { margin:5px 0 3px; font-size:clamp(1.45rem,2.2vw,2rem); }
+.marketplace-section-head p { color:var(--muted); }
+.marketplace-result-meta { color:var(--muted); font-size:.86rem; }
+.marketplace-result-meta strong { color:var(--text); }
+
+.marketplace-featured-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
+.marketplace-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+.marketplace-card {
+  min-width:0; min-height:168px; display:grid; grid-template-columns:154px minmax(0,1fr);
+  overflow:hidden; border:1px solid var(--border); border-radius:20px; background:var(--surface);
+  transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;
+}
+.marketplace-card:hover { transform:translateY(-2px); border-color:var(--gold-border); box-shadow:var(--shadow-soft); }
+.marketplace-card-image { position:relative; min-height:168px; background:var(--surface-2) center/cover no-repeat; }
+.marketplace-card-image::after { content:""; position:absolute; inset:0; background:linear-gradient(180deg,transparent 52%,rgba(0,0,0,.55)); pointer-events:none; }
+.marketplace-card-image .marketplace-type { position:absolute; z-index:1; left:10px; bottom:10px; padding:5px 9px; border-radius:999px; background:rgba(12,11,10,.72); color:#fff; font-size:.7rem; font-weight:800; backdrop-filter:blur(8px); }
+.marketplace-card-body { padding:16px; min-width:0; display:flex; flex-direction:column; }
+.marketplace-card-title { display:flex; gap:10px; align-items:start; justify-content:space-between; }
+.marketplace-card h3 { font-size:1.05rem; line-height:1.2; margin:0; min-width:0; }
+.marketplace-card h3 a { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.marketplace-rating { flex:0 0 auto; color:var(--gold-2); font-weight:900; font-size:.78rem; }
+.marketplace-location { color:var(--muted); font-size:.79rem; margin-top:5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.marketplace-services { display:flex; gap:6px; flex-wrap:wrap; margin:12px 0; }
+.marketplace-services span { padding:5px 8px; border-radius:999px; background:var(--surface-2); color:var(--muted); font-size:.72rem; }
+.marketplace-card-bottom { display:flex; align-items:center; gap:8px; justify-content:space-between; margin-top:auto; padding-top:10px; border-top:1px solid var(--border); }
+.marketplace-status { display:inline-flex; gap:6px; align-items:center; font-size:.72rem; font-weight:850; }
+.marketplace-status.aberta { color:#59d892; }
+.marketplace-status.fechada { color:#ef7d70; }
+.marketplace-card-actions { display:flex; gap:7px; }
+.marketplace-card-actions .btn { min-height:36px; padding:0 12px; border-radius:11px; }
+.marketplace-sponsored { display:inline-flex; align-items:center; gap:5px; color:var(--gold-2); font-size:.66rem; font-weight:850; text-transform:uppercase; letter-spacing:.05em; }
+
+.marketplace-load-more { display:flex; justify-content:center; margin-top:26px; }
+.marketplace-load-more .btn { min-width:220px; }
+.marketplace-loading { grid-column:1/-1; min-height:160px; display:grid; place-items:center; color:var(--muted); }
+.marketplace-empty { grid-column:1/-1; padding:54px 22px; text-align:center; border:1px dashed var(--border); border-radius:20px; color:var(--muted); background:var(--surface-soft); }
+
+/* Filter dialog is a compact desktop modal and a bottom sheet on mobile. */
+.marketplace-filter-modal { position:fixed; inset:0; z-index:1200; display:none; }
+.marketplace-filter-modal.ativo { display:block; }
+.marketplace-filter-backdrop { position:absolute; inset:0; background:rgba(0,0,0,.54); backdrop-filter:blur(3px); }
+.marketplace-filter-dialog { position:absolute; width:min(520px,calc(100% - 32px)); right:max(20px,calc((100vw - var(--container))/2)); top:120px; padding:20px; border:1px solid var(--border); background:var(--surface); border-radius:22px; box-shadow:var(--shadow); }
+.marketplace-filter-dialog header { display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; }
+.marketplace-filter-dialog header button { background:var(--surface-2); color:var(--text); width:38px; height:38px; border-radius:12px; }
+.marketplace-filter-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.marketplace-filter-actions { display:flex; gap:9px; justify-content:flex-end; margin-top:18px; }
+
+/* ========================================================================== */
+/* 3. AGENDAMENTO EM MODAL                                                    */
+/* ========================================================================== */
+
+.booking-modal { position:fixed; inset:0; z-index:1400; display:none; }
+.booking-modal.ativo { display:block; }
+.booking-modal-backdrop { position:absolute; inset:0; background:rgba(0,0,0,.68); backdrop-filter:blur(5px); }
+.booking-modal-dialog {
+  position:relative; width:min(940px,calc(100% - 32px)); max-height:min(88vh,820px); margin:6vh auto 0;
+  display:grid; grid-template-rows:auto minmax(0,1fr) auto; overflow:hidden;
+  border:1px solid var(--border); border-radius:26px; background:var(--surface); box-shadow:0 35px 90px rgba(0,0,0,.42);
+}
+.booking-modal-header { padding:18px 20px; display:flex; align-items:center; justify-content:space-between; gap:16px; border-bottom:1px solid var(--border); }
+.booking-modal-header small { display:block; color:var(--muted); margin-top:2px; }
+.booking-modal-close { width:40px; height:40px; border-radius:13px; background:var(--surface-2); color:var(--text); cursor:pointer; }
+.booking-modal-body { overflow:auto; padding:22px; }
+.booking-modal-progress { display:flex; align-items:center; gap:8px; margin-bottom:22px; }
+.booking-progress-step { flex:1; height:4px; background:var(--surface-2); border-radius:999px; overflow:hidden; }
+.booking-progress-step.ativo { background:var(--gold); }
+.booking-modal-panel { display:none; }
+.booking-modal-panel.ativo { display:block; }
+.booking-modal-panel > h3 { font-size:1.35rem; margin-bottom:5px; }
+.booking-modal-panel > p { color:var(--muted); margin-bottom:18px; }
+.booking-service-list { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.booking-service-choice { width:100%; display:grid; grid-template-columns:auto 1fr auto; gap:12px; align-items:center; text-align:left; padding:14px; border:1px solid var(--border); border-radius:16px; background:var(--surface-soft); color:var(--text); cursor:pointer; }
+.booking-service-choice.ativo { border-color:var(--gold); background:var(--gold-soft); }
+.booking-choice-indicator { width:26px; height:26px; border:1px solid var(--border); border-radius:8px; display:grid; place-items:center; color:transparent; background:var(--surface); }
+.booking-service-choice.ativo .booking-choice-indicator { background:var(--gold); color:#18120a; border-color:var(--gold); }
+.booking-service-choice strong { display:block; }
+.booking-service-choice small { display:block; color:var(--muted); margin-top:3px; }
+.booking-service-choice b { color:var(--gold-2); white-space:nowrap; }
+
+.booking-professional-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.booking-professional-choice { position:relative; display:grid; grid-template-columns:auto 1fr auto; gap:12px; align-items:center; padding:14px; border:1px solid var(--border); border-radius:16px; background:var(--surface-soft); cursor:pointer; }
+.booking-professional-choice input { position:absolute; opacity:0; pointer-events:none; }
+.booking-professional-choice:has(input:checked) { border-color:var(--gold); background:var(--gold-soft); box-shadow:0 0 0 2px rgba(210,173,69,.08); }
+.booking-professional-avatar { width:48px; height:48px; border-radius:15px; object-fit:cover; background:linear-gradient(135deg,var(--gold),#8f6815); color:#17120a; display:grid; place-items:center; font-weight:950; overflow:hidden; }
+.booking-professional-avatar img { width:100%; height:100%; object-fit:cover; }
+.booking-professional-choice strong { display:block; }
+.booking-professional-choice small { color:var(--muted); display:block; margin-top:2px; }
+.booking-radio-dot { width:20px; height:20px; border-radius:50%; border:2px solid var(--muted-2); box-shadow:inset 0 0 0 4px var(--surface); background:var(--surface); }
+.booking-professional-choice:has(input:checked) .booking-radio-dot { border-color:var(--gold); background:var(--gold); }
+
+.booking-date-row { display:grid; grid-template-columns:240px minmax(0,1fr); gap:18px; }
+.booking-date-row .campo { margin:0; }
+.booking-modal-slots { min-width:0; }
+.booking-modal-slots .slot-grid { grid-template-columns:repeat(5,minmax(0,1fr)); }
+.booking-review { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.booking-review-card { border:1px solid var(--border); border-radius:16px; padding:16px; background:var(--surface-soft); }
+.booking-review-card span { color:var(--muted); font-size:.78rem; }
+.booking-review-card strong { display:block; margin-top:4px; }
+.booking-modal-footer { display:flex; gap:10px; align-items:center; justify-content:space-between; padding:16px 20px; border-top:1px solid var(--border); background:color-mix(in srgb,var(--surface) 94%,transparent); }
+.booking-modal-total { display:flex; gap:14px; align-items:center; color:var(--muted); font-size:.82rem; }
+.booking-modal-total strong { color:var(--text); font-size:1rem; }
+.booking-modal-nav { display:flex; gap:8px; margin-left:auto; }
+.booking-modal-footer .btn[disabled] { opacity:.5; cursor:not-allowed; }
+
+/* ========================================================================== */
+/* 4. PAINÉIS — informação organizada por prioridade                          */
+/* ========================================================================== */
+
+.client-kpis,.panel-kpis,.admin-kpi-grid { gap:12px!important; }
+.client-kpis .kpi,.panel-kpis .kpi,.admin-kpi { border-radius:18px!important; box-shadow:none!important; }
+.account-section,.panel-section { border-radius:22px; }
+.account-section { padding:22px; margin-bottom:18px; border:1px solid var(--border); background:var(--surface); }
+
+.client-command-center,.professional-command-center { display:grid; grid-template-columns:minmax(0,1.35fr) minmax(280px,.65fr); gap:14px; margin-bottom:18px; }
+.command-primary,.command-actions { border:1px solid var(--border); border-radius:20px; background:var(--surface); padding:20px; }
+.command-eyebrow { color:var(--gold-2); text-transform:uppercase; letter-spacing:.08em; font-size:.7rem; font-weight:900; }
+.command-primary h2 { margin:6px 0 4px; }
+.command-primary p { color:var(--muted); }
+.command-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; align-content:start; }
+.command-actions a,.command-actions button { min-height:46px; }
+
+.dashboard .sidebar { border-right:1px solid var(--border); }
+.dashboard .sidebar .btn { border-radius:12px; }
+.dashboard .sidebar .btn-dark { background:transparent; color:var(--muted); }
+.dashboard .sidebar .btn-dark:hover,.dashboard .sidebar .btn-primary { background:var(--gold-soft); color:var(--text); border-color:var(--gold-border); }
+.panel-section .section-top { gap:14px; }
+.panel-section .section-top h2 { font-size:1.45rem; }
+.form-card { border-radius:20px; }
+
+.admin-health-live { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:9px; margin-top:14px; }
+.admin-service-health { padding:10px 12px; border-radius:14px; border:1px solid var(--border); background:var(--surface-soft); }
+.admin-service-health span { display:block; color:var(--muted); font-size:.7rem; }
+.admin-service-health strong { display:flex; align-items:center; gap:6px; margin-top:3px; font-size:.82rem; }
+.admin-service-health strong::before { content:""; width:8px; height:8px; border-radius:50%; background:#57d68d; box-shadow:0 0 0 4px rgba(87,214,141,.1); }
+.admin-service-health.offline strong::before { background:#e76a61; box-shadow:0 0 0 4px rgba(231,106,97,.1); }
+
+/* ========================================================================== */
+/* 5. MOBILE DEDICADO                                                         */
+/* ========================================================================== */
+
+body.mobile-native { --radius:18px; padding-bottom:82px; background:var(--bg); }
+body.mobile-native .header, body.mobile-native > .footer { display:none!important; }
+.mobile-app-header { position:sticky; top:0; z-index:900; min-height:62px; padding:env(safe-area-inset-top) 14px 0; background:color-mix(in srgb,var(--bg) 92%,transparent); border-bottom:1px solid var(--border); backdrop-filter:blur(16px); }
+.mobile-app-header-inner { min-height:61px; display:flex; align-items:center; gap:10px; }
+.mobile-app-brand { display:flex; align-items:center; gap:9px; min-width:0; }
+.mobile-app-brand img { width:34px; height:34px; border-radius:11px; object-fit:contain; background:var(--surface); }
+.mobile-app-brand strong { display:block; font-size:.92rem; }
+.mobile-app-brand span { display:block; color:var(--muted); font-size:.69rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.mobile-app-header-actions { margin-left:auto; display:flex; gap:7px; }
+.mobile-app-header-actions .icon-btn { width:40px; height:40px; }
+.mobile-app-dock { position:fixed; z-index:950; left:8px; right:8px; bottom:max(8px,env(safe-area-inset-bottom)); height:66px; display:grid; grid-template-columns:repeat(5,1fr); padding:6px; border:1px solid var(--border); border-radius:22px; background:color-mix(in srgb,var(--surface) 94%,transparent); box-shadow:0 16px 50px rgba(0,0,0,.3); backdrop-filter:blur(18px); }
+.mobile-app-dock a { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; border-radius:16px; color:var(--muted); font-size:.62rem; font-weight:800; }
+.mobile-app-dock a i { font-size:1.15rem; }
+.mobile-app-dock a.ativo { background:var(--gold-soft); color:var(--gold-2); }
+body.mobile-native .container { width:min(100% - 24px,var(--container)); }
+body.mobile-native .section { padding:24px 0; }
+body.mobile-native .page-hero { padding:28px 0 18px!important; min-height:0!important; }
+body.mobile-native .breadcrumb,body.mobile-native .page-hero .tag { display:none; }
+body.mobile-native .page-hero h1 { font-size:1.65rem!important; line-height:1.1!important; margin-bottom:7px!important; }
+body.mobile-native .page-hero p { font-size:.88rem!important; line-height:1.45!important; color:var(--muted); }
+body.mobile-native .marketplace-hero { display:none; }
+body.mobile-native .marketplace-search-zone { padding:16px 0 6px; }
+body.mobile-native .marketplace-searchbar { grid-template-columns:minmax(0,1fr) 50px; gap:7px; }
+body.mobile-native .marketplace-search-input { min-height:50px; border-radius:15px; padding:0 13px; }
+body.mobile-native .marketplace-filter-button { min-width:50px; width:50px; min-height:50px; padding:0; border-radius:15px; }
+body.mobile-native .marketplace-filter-button span:not(.marketplace-filter-count) { display:none; }
+body.mobile-native .marketplace-quick-filters { padding-top:9px; }
+body.mobile-native .marketplace-section { padding:22px 0 34px; }
+body.mobile-native .marketplace-section-head { align-items:start; margin-bottom:13px; }
+body.mobile-native .marketplace-section-head p { display:none; }
+body.mobile-native .marketplace-featured-grid,body.mobile-native .marketplace-grid { display:grid; grid-template-columns:1fr; gap:10px; }
+body.mobile-native .marketplace-featured-grid { display:flex; overflow:auto; scroll-snap-type:x mandatory; padding-bottom:4px; scrollbar-width:none; }
+body.mobile-native .marketplace-featured-grid .marketplace-card { min-width:88%; scroll-snap-align:start; }
+body.mobile-native .marketplace-card { min-height:142px; grid-template-columns:112px minmax(0,1fr); border-radius:17px; }
+body.mobile-native .marketplace-card-image { min-height:142px; }
+body.mobile-native .marketplace-card-body { padding:12px; }
+body.mobile-native .marketplace-card h3 { font-size:.94rem; }
+body.mobile-native .marketplace-services { margin:8px 0; flex-wrap:nowrap; overflow:hidden; }
+body.mobile-native .marketplace-services span { white-space:nowrap; font-size:.65rem; }
+body.mobile-native .marketplace-card-bottom { padding-top:8px; }
+body.mobile-native .marketplace-card-actions .btn { min-height:34px; padding:0 10px; font-size:.7rem; }
+body.mobile-native .marketplace-filter-dialog { left:0; right:0; top:auto; bottom:0; width:100%; max-height:82vh; border-radius:24px 24px 0 0; padding:20px 16px calc(18px + env(safe-area-inset-bottom)); }
+body.mobile-native .marketplace-filter-grid { grid-template-columns:1fr; }
+
+body.mobile-native .client-command-center,body.mobile-native .professional-command-center { grid-template-columns:1fr; }
+body.mobile-native .command-primary,body.mobile-native .command-actions { padding:15px; border-radius:17px; }
+body.mobile-native .account-section { padding:15px; border-radius:18px; }
+body.mobile-native .client-kpis,body.mobile-native .kpis { display:flex!important; overflow:auto; gap:8px!important; scrollbar-width:none; }
+body.mobile-native .client-kpis > *,body.mobile-native .kpis > * { min-width:118px; flex:0 0 118px; }
+body.mobile-native table.responsive-table thead { display:none; }
+body.mobile-native table.responsive-table,body.mobile-native table.responsive-table tbody,body.mobile-native table.responsive-table tr,body.mobile-native table.responsive-table td { display:block; width:100%; }
+body.mobile-native table.responsive-table tr { padding:13px; border:1px solid var(--border); border-radius:16px; background:var(--surface); margin-bottom:9px; }
+body.mobile-native table.responsive-table td { display:flex; justify-content:space-between; gap:12px; padding:5px 0!important; border:0!important; font-size:.78rem; }
+body.mobile-native table.responsive-table td::before { content:attr(data-label); color:var(--muted); font-weight:700; }
+
+body.mobile-native.dashboard { display:block; }
+body.mobile-native .dashboard { display:block!important; }
+body.mobile-native .dashboard .sidebar { display:none!important; }
+body.mobile-native .dashboard .painel-content { padding:14px 12px 90px!important; width:100%!important; }
+body.mobile-native .panel-section { border-radius:18px; }
+
+/* Booking modal becomes an app-like full screen flow. */
+@media (max-width:700px) {
+  .booking-modal-dialog { width:100%; height:100dvh; max-height:none; margin:0; border:0; border-radius:0; }
+  .booking-modal-header { padding-top:calc(14px + env(safe-area-inset-top)); }
+  .booking-modal-body { padding:16px; }
+  .booking-service-list,.booking-professional-list,.booking-review { grid-template-columns:1fr; }
+  .booking-date-row { grid-template-columns:1fr; }
+  .booking-modal-slots .slot-grid { grid-template-columns:repeat(4,minmax(0,1fr)); }
+  .booking-modal-footer { padding-bottom:calc(12px + env(safe-area-inset-bottom)); }
+  .booking-modal-total { display:none; }
+  .booking-modal-nav { width:100%; }
+  .booking-modal-nav .btn { flex:1; }
+}
+
+@media (max-width:980px) {
+  .marketplace-featured-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .marketplace-grid { grid-template-columns:1fr; }
+  .client-command-center,.professional-command-center { grid-template-columns:1fr; }
+  .admin-health-live { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+
+@media (max-width:650px) {
+  .marketplace-hero-inner { grid-template-columns:1fr; }
+  .marketplace-mini-guide { display:none; }
+  .marketplace-searchbar { grid-template-columns:minmax(0,1fr) 54px; }
+  .marketplace-filter-button { min-width:54px; width:54px; padding:0; }
+  .marketplace-filter-button > span:first-of-type { display:none; }
+  .marketplace-featured-grid,.marketplace-grid { grid-template-columns:1fr; }
+  .marketplace-card { grid-template-columns:112px minmax(0,1fr); min-height:142px; }
+  .marketplace-card-image { min-height:142px; }
+  .marketplace-card-body { padding:12px; }
+  .marketplace-card-actions .btn-outline { display:none; }
+  .marketplace-filter-dialog { left:0; right:0; top:auto; bottom:0; width:100%; border-radius:24px 24px 0 0; }
+  .marketplace-filter-grid { grid-template-columns:1fr; }
+  .command-actions { grid-template-columns:1fr 1fr; }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Mobile: página pública do estabelecimento                                  */
+/* -------------------------------------------------------------------------- */
+body.mobile-native .mobile-business-hero { position:relative; padding-bottom:14px; }
+body.mobile-native .mobile-business-cover { height:150px; background:linear-gradient(180deg,transparent,rgba(13,12,11,.55)),var(--business-cover) center/cover no-repeat; }
+body.mobile-native .mobile-business-summary { position:relative; margin-top:-36px; padding:15px; border:1px solid var(--border); border-radius:22px; background:color-mix(in srgb,var(--surface) 97%,transparent); box-shadow:var(--shadow-soft); }
+body.mobile-native .mobile-business-title-row { display:flex; gap:12px; justify-content:space-between; align-items:start; }
+body.mobile-native .mobile-business-title-row span { color:var(--gold-2); text-transform:uppercase; letter-spacing:.07em; font-size:.66rem; font-weight:900; }
+body.mobile-native .mobile-business-title-row h1 { margin:3px 0 0; font-size:1.35rem; line-height:1.1; }
+body.mobile-native .mobile-business-rating { display:flex; align-items:center; gap:5px; padding:7px 9px; border-radius:12px; background:var(--surface-2); color:var(--text); font-size:.76rem; font-weight:900; white-space:nowrap; }
+body.mobile-native .mobile-business-rating i { color:var(--gold-2); }
+body.mobile-native .mobile-business-summary > p { margin:7px 0 10px; color:var(--muted); font-size:.78rem; }
+body.mobile-native .mobile-business-status-row { display:flex; flex-wrap:wrap; gap:7px; align-items:center; }
+body.mobile-native .mobile-business-status-row .status { padding:6px 9px; font-size:.67rem; }
+body.mobile-native .mobile-business-status-row .verified-badge { font-size:.67rem; }
+body.mobile-native .mobile-business-actions { display:grid; grid-template-columns:minmax(0,1fr) 44px 44px; gap:7px; margin-top:13px; }
+body.mobile-native .mobile-business-actions .btn { min-height:44px; }
+body.mobile-native .mobile-business-actions .icon-btn { width:44px; height:44px; border-radius:14px; background:var(--surface-2); }
+body.mobile-native .mobile-business-content { padding-top:6px; padding-bottom:112px; display:grid; gap:12px; }
+body.mobile-native .mobile-business-block,
+body.mobile-native .mobile-business-content > .card,
+body.mobile-native .mobile-business-details { border:1px solid var(--border); border-radius:19px; background:var(--surface); overflow:hidden; box-shadow:none; }
+body.mobile-native .mobile-business-block { padding:15px; }
+body.mobile-native .mobile-section-head { display:flex; justify-content:space-between; align-items:end; gap:12px; margin-bottom:12px; }
+body.mobile-native .mobile-section-head span { color:var(--gold-2); text-transform:uppercase; font-size:.64rem; letter-spacing:.08em; font-weight:900; }
+body.mobile-native .mobile-section-head h2 { margin:2px 0 0; font-size:1.06rem; }
+body.mobile-native .mobile-section-head .text-link { border:0; background:transparent; color:var(--gold-2); font-weight:850; font-size:.72rem; cursor:pointer; }
+body.mobile-native .mobile-business-service { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:11px 0; border-top:1px solid var(--border); }
+body.mobile-native .mobile-business-service:first-child { border-top:0; padding-top:2px; }
+body.mobile-native .mobile-business-service strong { display:block; font-size:.84rem; }
+body.mobile-native .mobile-business-service small { display:block; color:var(--muted); margin-top:2px; font-size:.68rem; }
+body.mobile-native .mobile-business-service b { color:var(--gold-2); font-size:.8rem; white-space:nowrap; }
+body.mobile-native .mobile-business-pros { display:flex; gap:9px; overflow:auto; scrollbar-width:none; padding-bottom:2px; }
+body.mobile-native .mobile-business-pro { min-width:164px; display:grid; grid-template-columns:40px minmax(0,1fr) 9px; gap:9px; align-items:center; padding:10px; border:1px solid var(--border); border-radius:15px; background:var(--surface-soft); }
+body.mobile-native .mobile-business-pro > img,
+body.mobile-native .mobile-business-pro > span { width:40px; height:40px; border-radius:13px; object-fit:cover; display:grid; place-items:center; background:var(--gold-soft); color:var(--gold-2); font-size:.68rem; font-weight:900; }
+body.mobile-native .mobile-business-pro strong { display:block; font-size:.75rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+body.mobile-native .mobile-business-pro small { display:block; color:var(--muted); font-size:.62rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+body.mobile-native .mobile-business-pro > i { width:8px; height:8px; border-radius:50%; background:#777; }
+body.mobile-native .mobile-business-pro > i.online { background:#57d68d; box-shadow:0 0 0 4px rgba(87,214,141,.08); }
+body.mobile-native .portfolio-public-section .card-body,
+body.mobile-native .reviews-public-card .card-body { padding:15px; }
+body.mobile-native .portfolio-public-section .section-top,
+body.mobile-native .reviews-public-card .section-top { margin-bottom:11px; }
+body.mobile-native .portfolio-public-section .texto-section,
+body.mobile-native .reviews-public-card .texto-section,
+body.mobile-native .review-counts { display:none; }
+body.mobile-native .portfolio-public-filters { display:none; }
+body.mobile-native .portfolio-public-grid { grid-template-columns:1fr 1fr; gap:7px; }
+body.mobile-native .reviews-public-list { max-height:420px; overflow:auto; }
+body.mobile-native .review-public-item { padding:12px 0; }
+body.mobile-native .mobile-business-details summary { min-height:54px; padding:0 15px; display:flex; align-items:center; justify-content:space-between; cursor:pointer; font-size:.8rem; font-weight:850; list-style:none; }
+body.mobile-native .mobile-business-details summary::-webkit-details-marker { display:none; }
+body.mobile-native .mobile-business-details-body { padding:0 15px 15px; border-top:1px solid var(--border); }
+body.mobile-native .mobile-business-details-body > p { display:flex; justify-content:space-between; gap:16px; margin:12px 0; font-size:.72rem; }
+body.mobile-native .mobile-business-details-body > p span { color:var(--muted); text-align:right; }
+body.mobile-native .mobile-business-details-body .hours-row { font-size:.7rem; }
+body.mobile-native .mobile-business-sticky { position:fixed; z-index:920; left:12px; right:12px; bottom:82px; padding:7px; border:1px solid var(--gold-border); border-radius:17px; background:color-mix(in srgb,var(--surface) 95%,transparent); box-shadow:0 14px 40px rgba(0,0,0,.32); backdrop-filter:blur(14px); }
+body.mobile-native .mobile-business-sticky .btn { width:100%; min-height:44px; }

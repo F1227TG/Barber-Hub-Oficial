@@ -50,7 +50,6 @@ function bhLinksPorPerfil(perfil, contadores = {}) {
   if (!perfil) return [
     ["index.html", "home", "Início", "bi-house-door"],
     ["html/portal.html", "portal", "Explorar", "bi-shop"],
-    ["html/agendamento.html", "agendamento", "Agendar", "bi-calendar2-check"],
     ["html/planos.html", "planos", "Planos", "bi-wallet2"],
     ["html/sobre.html", "sobre", "Sobre", "bi-compass"],
     ["html/beauty-hub.html", "beauty", "Beauty Hub", "bi-stars"],
@@ -81,7 +80,6 @@ function bhLinksPorPerfil(perfil, contadores = {}) {
   ];
   return [
     ["html/portal.html", "portal", "Explorar", "bi-shop"],
-    ["html/agendamento.html", "agendamento", "Agendar", "bi-calendar2-plus"],
     ["html/planos.html", "planos", "Planos", "bi-wallet2"],
     ["html/cliente.html", "cliente", "Meus horários", "bi-calendar2-check", "agenda"],
     ["html/notificacoes.html", "notificacoes", "Notificações", "bi-bell", "notificacoes"],
@@ -471,7 +469,7 @@ function bhAdicionarRodapeLegal(){
 }
 
 function bhCriarDockMobile(perfil, contadores = {}){
-  if(document.querySelector(".mobile-dock")) return;
+  if(document.body.classList.contains("mobile-native") || document.querySelector(".mobile-dock")) return;
 
   const dock = document.createElement("nav");
   dock.className = "mobile-dock";
@@ -499,7 +497,7 @@ function bhCriarDockMobile(perfil, contadores = {}){
   } else if(perfil){
     links = [
       ["html/portal.html", "Explorar", "bi-shop"],
-      ["html/agendamento.html", "Agendar", "bi-calendar2-plus"],
+      ["html/portal.html", "Explorar", "bi-compass"],
       ["html/cliente.html", "Horários", "bi-calendar2-check", "agenda"],
       ["html/notificacoes.html", "Avisos", "bi-bell", "notificacoes"],
       ["html/conta.html", "Conta", "bi-person-circle"]
@@ -509,7 +507,7 @@ function bhCriarDockMobile(perfil, contadores = {}){
     links = [
       ["index.html", "Início", "bi-house-door"],
       ["html/portal.html", "Explorar", "bi-shop"],
-      ["html/agendamento.html", "Agendar", "bi-calendar2-plus"],
+      ["html/portal.html", "Explorar", "bi-compass"],
       ["html/planos.html", "Planos", "bi-wallet2"],
       ["#menu", "Mais", "bi-grid-3x3-gap", null, "drawer"]
     ];

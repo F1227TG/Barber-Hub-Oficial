@@ -217,6 +217,67 @@ function bhRenderDetalheEstabelecimento(item) {
   const tipoLabel = item.tipoEstabelecimento === "salao" ? "Salão de beleza" : "Barbearia";
 
   document.title = `${item.nome} | Barber Hub`;
+
+  // A interface instalada/mobile tem um layout próprio: primeiro decisão e
+  // conversão (status, serviços, equipe e agendamento); detalhes secundários
+  // ficam abaixo/recolhidos. A regra de negócio continua compartilhada.
+  if (document.body.classList.contains("mobile-native")) {
+    const servicosMobile = item.servicos.filter(s => s.ativo && s.publico).map(s => `
+      <div class="mobile-business-service">
+        <div><strong>${escapeHTML(s.nome)}</strong><small>${s.duracao_min} min${s.categoria ? ` · ${escapeHTML(s.categoria)}` : ""}</small></div>
+        <b>${bhMoeda(s.preco)}</b>
+      </div>`).join("") || `<div class="empty compact">Nenhum serviço publicado.</div>`;
+    const profissionaisMobile = item.barbeiros.filter(p => p.ativo).map(p => `
+      <div class="mobile-business-pro">
+        ${p.avatar_url ? `<img src="${escapeHTML(p.avatar_url)}" alt="Foto de ${escapeHTML(p.nome)}">` : `<span>${escapeHTML(p.avatar)}</span>`}
+        <div><strong>${escapeHTML(p.nome)}</strong><small>${escapeHTML(p.especialidade || "Profissional")}</small></div>
+        <i class="${p.aceitaAgendamento ? "online" : "offline"}" title="${p.aceitaAgendamento ? "Agenda ativa" : "Sem agenda online"}"></i>
+      </div>`).join("") || `<div class="empty compact">Equipe ainda não publicada.</div>`;
+
+    main.innerHTML = `
+      <section class="mobile-business-hero" style="--business-cover:url('${escapeHTML(imagem)}')">
+        <div class="mobile-business-cover"></div>
+        <div class="container mobile-business-summary">
+          <div class="mobile-business-title-row">
+            <div><span>${escapeHTML(tipoLabel)}</span><h1>${escapeHTML(item.nome)}</h1></div>
+            <div class="mobile-business-rating"><i class="bi bi-star-fill"></i>${Number(item.avaliacao || 0) > 0 ? Number(item.avaliacao).toFixed(1) : "Novo"}</div>
+          </div>
+          <p><i class="bi bi-geo-alt"></i> ${escapeHTML([item.bairro,item.cidade].filter(Boolean).join(", ") || "Localização não informada")}</p>
+          <div class="mobile-business-status-row">${bhRenderStatus(item)}${item.verificado ? `<span class="verified-badge"><i class="bi bi-patch-check-fill"></i> Verificado</span>` : ""}</div>
+          <div class="mobile-business-actions">
+            ${item.aceitaAgendamento ? `<button type="button" class="btn btn-primary" data-booking-open="${item.id}"><i class="bi bi-calendar2-check"></i> Agendar</button>` : ""}
+            ${whatsapp ? `<a href="https://wa.me/${whatsapp}" target="_blank" rel="noopener" class="icon-btn" aria-label="Abrir WhatsApp"><i class="bi bi-whatsapp"></i></a>` : ""}
+            ${bhPerfilPortfolio?.tipo === "cliente" ? `<button type="button" class="icon-btn favorite-business-btn ${bhFavoritoAtual ? "ativo" : ""}" data-favoritar-estabelecimento aria-label="${bhFavoritoAtual ? "Remover dos favoritos" : "Favoritar"}"><i class="bi ${bhFavoritoAtual ? "bi-heart-fill" : "bi-heart"}"></i></button>` : ""}
+          </div>
+        </div>
+      </section>
+      <section class="container mobile-business-content">
+        <article class="mobile-business-block">
+          <div class="mobile-section-head"><div><span>Serviços</span><h2>Escolha o que precisa</h2></div>${item.aceitaAgendamento ? `<button class="text-link" data-booking-open="${item.id}">Agendar <i class="bi bi-arrow-right"></i></button>` : ""}</div>
+          <div>${servicosMobile}</div>
+        </article>
+        <article class="mobile-business-block">
+          <div class="mobile-section-head"><div><span>Equipe</span><h2>Profissionais</h2></div></div>
+          <div class="mobile-business-pros">${profissionaisMobile}</div>
+        </article>
+        ${bhRenderSecaoPortfolioPublico()}
+        ${bhRenderAvaliacoesPublicas()}
+        <details class="mobile-business-details">
+          <summary><span><i class="bi bi-info-circle"></i> Informações, horários e redes</span><i class="bi bi-chevron-down"></i></summary>
+          <div class="mobile-business-details-body">
+            <p><strong>Endereço</strong><span>${escapeHTML([item.endereco,item.numero,item.bairro,item.cidade,item.estado].filter(Boolean).join(", "))}</span></p>
+            <p><strong>Telefone</strong><span>${escapeHTML(item.telefone || "Não informado")}</span></p>
+            ${bhRenderRedesSociais(item)}
+            <div class="hours-list">${horarios}</div>
+          </div>
+        </details>
+        ${item.promocoes.some(p => p.ativo) ? `<article class="mobile-business-block"><div class="mobile-section-head"><div><span>Benefícios</span><h2>Promoções</h2></div></div>${promocoes}</article>` : ""}
+      </section>
+      ${item.aceitaAgendamento ? `<div class="mobile-business-sticky"><button type="button" class="btn btn-primary" data-booking-open="${item.id}"><i class="bi bi-calendar2-check"></i> Agendar horário</button></div>` : ""}`;
+    bhRenderCardsPortfolioPublico();
+    return;
+  }
+
   main.innerHTML = `
     <section class="page-hero business-hero" style="--business-cover:url('${escapeHTML(imagem)}')">
       <div class="container">
@@ -225,7 +286,7 @@ function bhRenderDetalheEstabelecimento(item) {
         <h1>${escapeHTML(item.nome)} ${item.verificado ? `<span class="verified-badge" title="Estabelecimento verificado"><i class="bi bi-patch-check-fill"></i> Verificado</span>` : ""}</h1>
         <p>${escapeHTML(item.descricao)}</p>
         <div class="hero-actions">
-          ${item.aceitaAgendamento ? `<a href="agendamento.html?barbearia=${item.id}" class="btn btn-primary">Agendar horário</a>` : ""}
+          ${item.aceitaAgendamento ? `<button type="button" class="btn btn-primary" data-booking-open="${item.id}"><i class="bi bi-calendar2-check"></i> Agendar horário</button>` : ""}
           ${whatsapp ? `<a href="https://wa.me/${whatsapp}" target="_blank" rel="noopener" class="btn btn-outline"><i class="bi bi-whatsapp"></i> WhatsApp</a>` : ""}
           ${bhPerfilPortfolio?.tipo === "cliente" ? `<button type="button" class="btn btn-outline favorite-business-btn ${bhFavoritoAtual ? "ativo" : ""}" data-favoritar-estabelecimento><i class="bi ${bhFavoritoAtual ? "bi-heart-fill" : "bi-heart"}"></i> ${bhFavoritoAtual ? "Favoritado" : "Favoritar"}</button>` : !bhPerfilPortfolio ? `<a class="btn btn-outline" href="login.html?next=${encodeURIComponent(location.pathname + location.search)}"><i class="bi bi-heart"></i> Entrar para favoritar</a>` : ""}
         </div>

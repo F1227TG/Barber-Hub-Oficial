@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<meta content="Mapa de navegação, responsabilidade e estado funcional das páginas do Barber Hub." name="description"/>
+<title>Mapa do sistema | Barber Hub</title>
+<link href="../img/favicon.ico" rel="shortcut icon" type="image/x-icon"/>
+<link href="../img/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="../css/framework.css" rel="stylesheet"/>
+<link href="../css/global.css" rel="stylesheet"/>
+<link href="../css/pages.css" rel="stylesheet"/>
+<link href="../manifest.webmanifest" rel="manifest"/>
+<link href="../css/mobile-app.css" rel="stylesheet"/><link href="../css/release-1.4.1.css" rel="stylesheet"/>
+<link href="../css/product-redesign.css" rel="stylesheet"/><link href="../css/release-1.6.css" rel="stylesheet"/><meta content="noindex,follow" name="robots"/><link href="https://barberhuboficial.vercel.app/html/mapa-sistema" rel="canonical"/></head>
+<body class="mobile-native">
+<!-- Cabeçalho e navegação principal -->
+<header class="header">
+<div class="container nav">
+<a class="logo" href="../index.html">
+<img alt="Barber Hub" src="../img/logomarcaTRANSPARENTE.png"/>
+<span>
+      Barber Hub
+      <small>The Gamers Tech</small>
+</span>
+</a>
+<nav class="menu" id="menuPrincipal">
+<a data-page="home" href="../index.html">
+      Início
+     </a>
+<a data-page="portal" href="portal.html">Explorar</a>
+<a data-page="planos" href="planos.html">
+      Planos
+     </a>
+<a data-page="sobre" href="sobre.html">
+      Sobre
+     </a>
+<a data-page="contato" href="contato.html">
+      Suporte
+     </a>
+</nav>
+<div class="nav-actions">
+<button aria-label="Alternar tema" class="btn-tema" id="btnTema" title="Alternar tema">
+<i class="bi bi-circle-half">
+</i>
+</button>
+<a class="btn btn-outline btn-small account-link" data-auth-link="" href="login.html">
+<i class="bi bi-person-circle">
+</i>
+<span data-user-name="">
+       Entrar
+      </span>
+</a>
+<button aria-label="Abrir menu lateral" class="btn-menu" id="btnMenu">
+<i class="bi bi-list">
+</i>
+</button>
+</div>
+</div>
+</header>
+<!-- Conteúdo principal da página -->
+<main id="conteudo-principal">
+<section class="page-hero">
+<div class="container system-map-intro">
+<div class="breadcrumb">Barber Hub / Mapa do sistema</div>
+<span class="tag"><i class="bi bi-diagram-3"></i> Organização do produto</span>
+<h1>O que existe, para quem serve e o que já funciona.</h1>
+<p>Este mapa ajuda a equipe a localizar cada fluxo antes de alterar o código, testar uma versão ou planejar uma nova entrega.</p>
+</div>
+</section>
+<section class="section">
+<div class="container system-map-grid">
+<article class="system-map-role">
+<header><i class="bi bi-globe2"></i><h2>Visitante</h2><p class="texto-section">Descoberta e entrada na plataforma.</p></header>
+<div class="system-map-list">
+<a class="system-map-item" href="../index.html"><div><strong>Início</strong><span class="map-status ok">Funcional</span></div><p>Apresentação objetiva, instalação do PWA e acesso ao portal.</p></a>
+<a class="system-map-item" href="portal.html"><div><strong>Explorar</strong><span class="map-status ok">Funcional</span></div><p>Busca, filtros, status, agenda e catálogo de estabelecimentos.</p></a>
+<a class="system-map-item" href="barbearia.html"><div><strong>Página pública</strong><span class="map-status ok">Funcional</span></div><p>Serviços, equipe, portfólio, redes sociais e avaliações.</p></a>
+<a class="system-map-item" href="portal.html"><div><strong>Agendamento em modal</strong><span class="map-status ok">1.6</span></div><p>Iniciado no perfil do estabelecimento, com múltiplos serviços, profissional, data e horário.</p></a>
+<a class="system-map-item" href="planos.html"><div><strong>Planos</strong><span class="map-status info">Comercial</span></div><p>Apresentação dos planos; cobrança real permanece futura.</p></a>
+<a class="system-map-item" href="contato.html"><div><strong>Suporte</strong><span class="map-status ok">API Python</span></div><p>Abertura e acompanhamento de tickets.</p></a>
+<div class="system-map-item"><div><strong>Auditoria de navegação</strong><span class="map-status partial" data-navigation-audit-status="">Verificando</span></div><p>Conferência protegida pela API Python.</p></div></div>
+</article>
+<article class="system-map-role">
+<header><i class="bi bi-person"></i><h2>Cliente</h2><p class="texto-section">Encontrar, reservar e acompanhar.</p></header>
+<div class="system-map-list">
+<a class="system-map-item" href="cadastro.html"><div><strong>Cadastro e login</strong><span class="map-status ok">Funcional</span></div><p>Autenticação, recuperação e redefinição de senha.</p></a>
+<a class="system-map-item" href="cliente.html"><div><strong>Minha área</strong><span class="map-status ok">Funcional</span></div><p>Próximos horários, histórico, favoritos e repetir reserva.</p></a>
+<a class="system-map-item" href="notificacoes.html"><div><strong>Notificações</strong><span class="map-status ok">Funcional</span></div><p>Atualizações com contador somente quando há itens não lidos.</p></a>
+<a class="system-map-item" href="conta.html"><div><strong>Conta e privacidade</strong><span class="map-status ok">Funcional</span></div><p>Perfil, segurança, preferências e exclusão da conta.</p></a>
+<a class="system-map-item" href="cliente.html#historico"><div><strong>Avaliações</strong><span class="map-status ok">Funcional</span></div><p>Avaliação verificada e comunitária em janela modal.</p></a>
+</div>
+</article>
+<article class="system-map-role">
+<header><i class="bi bi-scissors"></i><h2>Profissional</h2><p class="texto-section">Presença digital e operação.</p></header>
+<div class="system-map-list">
+<a class="system-map-item" href="cadastro-barbearia.html"><div><strong>Onboarding</strong><span class="map-status ok">Funcional</span></div><p>Negócio, endereço, serviço inicial, horários e profissional.</p></a>
+<a class="system-map-item" href="painel.html"><div><strong>Dashboard</strong><span class="map-status ok">Funcional</span></div><p>Resumo da rotina, atalhos e status aberto/fechado/automático.</p></a>
+<a class="system-map-item" href="painel.html#agenda"><div><strong>Agenda</strong><span class="map-status ok">Funcional</span></div><p>Aceitar, recusar e concluir solicitações.</p></a>
+<a class="system-map-item" href="painel.html#servicos"><div><strong>Catálogo e equipe</strong><span class="map-status ok">Funcional</span></div><p>Serviços, profissionais e disponibilidade online.</p></a>
+<a class="system-map-item" href="painel.html#galeria"><div><strong>Portfólio</strong><span class="map-status ok">Funcional</span></div><p>Publicações, imagens, destaque, curtidas e moderação.</p></a>
+<a class="system-map-item" href="painel.html#relatorios"><div><strong>Relatórios</strong><span class="map-status ok">MVP</span></div><p>Indicadores operacionais e receita estimada.</p></a>
+</div>
+</article>
+<article class="system-map-role">
+<header><i class="bi bi-shield-lock"></i><h2>Administrador</h2><p class="texto-section">Controle e segurança da plataforma.</p></header>
+<div class="system-map-list">
+<a class="system-map-item" href="admin.html"><div><strong>Visão geral</strong><span class="map-status ok">Funcional</span></div><p>Métricas, estabelecimentos, agendamentos e operação.</p></a>
+<a class="system-map-item" href="admin.html#usuarios"><div><strong>Usuários</strong><span class="map-status ok">API Python</span></div><p>Perfis, bloqueio e envio seguro de redefinição de senha.</p></a>
+<a class="system-map-item" href="admin.html#moderacao"><div><strong>Moderação</strong><span class="map-status ok">Funcional</span></div><p>Avaliações, denúncias e conteúdo público.</p></a>
+<a class="system-map-item" href="admin.html#tickets"><div><strong>Tickets</strong><span class="map-status ok">Funcional</span></div><p>Atendimento, resposta, prioridade e encerramento.</p></a>
+</div>
+</article>
+<article class="system-map-role">
+<header><i class="bi bi-code-slash"></i><h2>Backend</h2><p class="texto-section">Camadas que sustentam o produto.</p></header>
+<div class="system-map-list">
+<div class="system-map-item"><div><strong>FastAPI</strong><span class="map-status ok">Própria</span></div><p>Rotas em <code>/api/v1</code>, validação e documentação automática.</p></div>
+<div class="system-map-item"><div><strong>Supabase Auth</strong><span class="map-status ok">Ativo</span></div><p>Sessões e hashes de senha; senhas nunca são exibidas.</p></div>
+<div class="system-map-item"><div><strong>PostgreSQL/RLS</strong><span class="map-status ok">Ativo</span></div><p>Dados, regras transacionais e permissões.</p></div>
+<div class="system-map-item"><div><strong>Storage e Realtime</strong><span class="map-status ok">Ativo</span></div><p>Imagens, atualizações e contadores.</p></div>
+</div>
+</article>
+<article class="system-map-role">
+<header><i class="bi bi-tools"></i><h2>Próximas validações</h2><p class="texto-section">O que impede chamar a versão de lançamento.</p></header>
+<div class="system-map-list">
+<div class="system-map-item"><div><strong>Migration 15</strong><span class="map-status partial">Aplicar</span></div><p>Aplicar no Supabase para ativar FTS, ranking, paginação e rate limiting distribuído.</p></div>
+<div class="system-map-item"><div><strong>Variáveis Vercel</strong><span class="map-status partial">Conferir</span></div><p>URL e chaves pública/secret da API.</p></div>
+<div class="system-map-item"><div><strong>Teste físico</strong><span class="map-status partial">Pendente</span></div><p>Android, PWA, teclado, modais e redes móveis.</p></div>
+<div class="system-map-item"><div><strong>Piloto local</strong><span class="map-status partial">Pendente</span></div><p>Professor, barbearias e clientes reais.</p></div>
+</div>
+</article>
+</div>
+</section>
+</main>
+<!-- Rodapé institucional -->
+<footer class="footer">
+<div class="container">
+<div class="footer-grid">
+<div class="footer-brand">
+<a class="logo" href="../index.html">
+<img alt="Barber Hub" src="../img/logomarcaTRANSPARENTE.png"/>
+<span>Barber Hub<small>Uma plataforma de The Gamers Tech</small></span>
+</a>
+<p>Descoberta, agenda e gestão para conectar clientes e negócios de beleza.</p>
+</div>
+<div>
+<h4>Plataforma</h4>
+<p><a href="../html/portal.html">Explorar locais</a></p>
+<p><a href="../html/planos.html">Planos</a></p>
+<p><a href="../html/sobre.html">Sobre</a></p>
+</div>
+<div>
+<h4>Para profissionais</h4>
+<p><a href="../html/cadastro.html">Cadastrar negócio</a></p>
+<p><a href="../html/login.html">Entrar no painel</a></p>
+<p><a href="../html/contato.html">Central de suporte</a></p>
+<p><a href="../html/beauty-hub.html">Beauty Hub</a></p>
+</div>
+<div>
+<h4>Confiança</h4>
+<p><a href="../html/privacidade.html">Privacidade</a></p>
+<p><a href="../html/termos.html">Termos de uso</a></p>
+<p><a href="../html/conta.html">Conta e segurança</a></p>
+<p><a href="../html/contato.html#support-faq-title">Perguntas frequentes</a></p>
+</div>
+</div>
+<div class="copy">
+     © 2026 Barber Hub. Uma plataforma de The Gamers Tech.
+    </div>
+</div>
+</footer>
+<div class="toast" id="toast">
+</div>
+<!-- Scripts compartilhados e específicos da página -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+</script>
+<script src="../js/supabase-config.js">
+</script>
+<script src="../js/supabase-client.js">
+</script><script src="../js/security.js"></script><script src="../js/backend-api.js"></script>
+<script src="../js/utils.js">
+</script>
+<script src="../js/toast.js">
+</script>
+<script src="../js/auth.js">
+</script>
+<script src="../js/api.js">
+</script>
+<script src="../js/status.js">
+</script>
+<script src="../js/ia.js">
+</script>
+<script src="../vendor/bootstrap.bundle.min.js">
+</script>
+<script src="../js/ui.js">
+</script><script src="../js/mapa-sistema.js"></script>
+<script src="../js/mobile-app.js"></script>
+<script src="../js/product-redesign.js"></script><script src="../js/mobile-shell-v1.6.js"></script></body>
+</html>

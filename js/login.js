@@ -33,13 +33,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     bhSetButtonLoading(botao, true, "Entrando...");
     try {
-      const resultado = await bhLogin(email, password);
+      const captchaToken = await window.bhSecurity?.token?.(form);
+      const resultado = await bhLogin(email, password, captchaToken);
       if (!resultado.perfil) throw new Error("Seu perfil ainda não foi criado. Tente novamente em alguns segundos.");
       mostrarToast("sucesso", "Login realizado", `Bem-vindo, ${resultado.perfil.nome}.`);
       const next = bhQueryParam("next");
       const destino = next || bhDestinoPerfil(resultado.perfil);
       setTimeout(() => { location.href = destino; }, 550);
     } catch (erro) {
+      window.bhSecurity?.reset?.(form);
       mostrarToast("erro", "Não foi possível entrar", bhErroMensagem(erro));
     } finally {
       bhSetButtonLoading(botao, false);

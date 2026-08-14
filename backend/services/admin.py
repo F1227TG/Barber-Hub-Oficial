@@ -23,8 +23,8 @@ async def _count(table: str, filters: dict[str, str] | None = None) -> int:
 
 
 async def delete_own_account(payload: DeleteAccountRequest, auth: AuthContext) -> None:
-    if payload.confirmacao.strip().upper() != "EXCLUIR":
-        raise ApiError(422, "CONFIRMATION_REQUIRED", "Digite EXCLUIR para confirmar a exclusão.")
+    if payload.confirmacao.strip().upper() != "EXCLUIR MINHA CONTA":
+        raise ApiError(422, "CONFIRMATION_REQUIRED", "Digite EXCLUIR MINHA CONTA para confirmar a exclusão.")
     await gateway.rest(
         "excluir_minha_conta",
         method="POST",
@@ -85,3 +85,69 @@ async def navigation_audit(_auth: AuthContext) -> dict[str, str]:
         "page": "/html/mapa-sistema.html",
         "status": "available",
     }
+
+
+async def health_details(auth: AuthContext) -> dict[str, object]:
+    """Protected health view for the administrative dashboard.
+
+    Reaching this function already proves that the bearer token was validated by
+    Supabase Auth. In addition to normal database counts, we probe the 1.6 FTS
+    RPC so the admin can distinguish "API online" from "marketplace migration
+    missing" after a deploy.
+    """
+    overview_data = await overview(auth)
+    marketplace = {"status": "online", "engine": "postgres-fts"}
+    try:
+        await gateway.rest(
+            "buscar_marketplace",
+            method="POST",
+            admin=True,
+            rpc=True,
+            json={
+                "p_busca": None,
+                "p_tipo": None,
+                "p_agenda": None,
+                "p_status": None,
+                "p_offset": 0,
+                "p_limit": 1,
+                "p_somente_destaques": False,
+            },
+        )
+    except Exception:
+        marketplace = {"status": "migration_required", "engine": "postgres-fts"}
+    return {
+        "api": {"status": "online", "version": "1.2.0"},
+        "database": {"status": "online", "provider": "supabase-postgres"},
+        "auth": {"status": "online", "provider": "supabase-auth"},
+        "marketplace": marketplace,
+        "overview": overview_data,
+    }
+
+
+async def audit_action(
+    auth: AuthContext,
+    *,
+    action: str,
+    target_type: str | None = None,
+    target_id: str | None = None,
+    details: dict | None = None,
+    request_id: str | None = None,
+) -> None:
+    """Persist a searchable administrative audit event without sensitive data."""
+    try:
+        await gateway.rest(
+            "auditoria_admin",
+            method="POST",
+            admin=True,
+            json={
+                "admin_id": auth.user_id,
+                "acao": action,
+                "alvo_tipo": target_type,
+                "alvo_id": target_id,
+                "detalhes": details or {},
+                "request_id": request_id,
+            },
+        )
+    except Exception as exc:
+        # Audit logging must not break the primary admin action.
+        print(f"[Barber Hub API] audit write failed: {exc!r}")

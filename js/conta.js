@@ -92,8 +92,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const confirmacao = document.getElementById("excluirConfirmacao").value.trim();
     const senha = document.getElementById("excluirSenhaAtual").value;
     const ciente = document.getElementById("excluirCiente").checked;
-    if (confirmacao !== "EXCLUIR" || !ciente) {
-      mostrarToast("erro", "Confirmação incompleta", "Digite EXCLUIR e marque a confirmação antes de continuar.");
+    if (confirmacao !== "EXCLUIR MINHA CONTA" || !ciente) {
+      mostrarToast("erro", "Confirmação incompleta", "Digite EXCLUIR MINHA CONTA e marque a confirmação antes de continuar.");
       return;
     }
     if (!await bhConfirmar({ titulo: "Excluir conta permanentemente", mensagem: "Esta ação remove seu acesso e seus dados pessoais. Ela não poderá ser desfeita.", confirmarTexto: "Excluir minha conta", perigo: true, trigger: form.querySelector("button[type=\'submit\']") })) return;

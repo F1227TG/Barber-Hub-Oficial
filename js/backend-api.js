@@ -85,11 +85,48 @@
     request,
     health: () => request("health", { auth: false, timeout: 8_000 }),
     catalogSummary: () => request("catalog/summary", { auth: false }),
+    searchMarketplace: ({ query = "", tipo = "todos", agenda = null, status = "todos", offset = 0, limit = 24 } = {}) => {
+      const params = new URLSearchParams();
+      if (query) params.set("q", query);
+      if (tipo && tipo !== "todos") params.set("tipo", tipo);
+      if (agenda !== null && agenda !== undefined) params.set("agenda", String(Boolean(agenda)));
+      if (status && status !== "todos") params.set("status", status);
+      params.set("offset", String(offset));
+      params.set("limit", String(limit));
+      return request(`marketplace/search?${params.toString()}`, { auth: false });
+    },
+    featuredMarketplace: (limit = 6) => request(`marketplace/featured?limit=${encodeURIComponent(limit)}`, { auth: false }),
     createAppointment: data => request("appointments", {
       method: "POST",
       auth: true,
       body: data
     }),
+    cancelAppointment: (appointmentId, motivo = "Cancelado pelo cliente") => request(`appointments/${encodeURIComponent(appointmentId)}`, {
+      method: "DELETE",
+      auth: true,
+      body: { motivo }
+    }),
+    updateAppointmentStatus: (appointmentId, status, motivo = null) => request(`appointments/${encodeURIComponent(appointmentId)}/status`, {
+      method: "PATCH",
+      auth: true,
+      body: { status, motivo }
+    }),
+    updateEstablishment: (establishmentId, data) => request(`establishments/${encodeURIComponent(establishmentId)}`, {
+      method: "PATCH",
+      auth: true,
+      body: data
+    }),
+    updateEstablishmentStatus: (establishmentId, status, motivo = null) => request(`establishments/${encodeURIComponent(establishmentId)}/status`, {
+      method: "PATCH",
+      auth: true,
+      body: { status, motivo }
+    }),
+    createService: data => request("services", { method: "POST", auth: true, body: data }),
+    updateService: (serviceId, data) => request(`services/${encodeURIComponent(serviceId)}`, { method: "PATCH", auth: true, body: data }),
+    deleteService: serviceId => request(`services/${encodeURIComponent(serviceId)}`, { method: "DELETE", auth: true }),
+    createProfessional: data => request("professionals", { method: "POST", auth: true, body: data }),
+    updateProfessional: (professionalId, data) => request(`professionals/${encodeURIComponent(professionalId)}`, { method: "PATCH", auth: true, body: data }),
+    deleteProfessional: professionalId => request(`professionals/${encodeURIComponent(professionalId)}`, { method: "DELETE", auth: true }),
     createSupportTicket: data => request("support/tickets", { method: "POST", body: data }),
     listSupportTickets: () => request("support/tickets", { auth: true }),
     deleteAccount: confirmation => request("account", {
@@ -102,6 +139,7 @@
       `admin/users/${encodeURIComponent(userId)}/password-recovery`,
       { method: "POST", auth: true, body: { motivo } }
     ),
+    adminHealth: () => request("admin/health", { auth: true }),
     navigationAudit: () => request("admin/navigation-audit", { auth: true })
   };
 })(window);
