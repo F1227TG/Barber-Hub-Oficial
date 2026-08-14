@@ -2,11 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "cleanUrls": true,
   "trailingSlash": false,
-<<<<<<< HEAD
   "rewrites": [
-=======
-    "rewrites": [
->>>>>>> e02b712f9e055dc953f75846b12c03194fe43eca
     {
       "source": "/api/v1/:path*",
       "destination": "/api/index"
