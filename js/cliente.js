@@ -39,9 +39,17 @@ function bhRenderCliente(perfil) {
     return momento >= new Date() && !["cancelado", "recusado", "concluido"].includes(item.status);
   });
   const historico = bhClienteAgendamentos.filter(item => !futuros.includes(item));
+  const concluidos = bhClienteAgendamentos.filter(item => item.status === "concluido");
+  const finalizados = bhClienteAgendamentos.filter(item => ["concluido", "cancelado", "recusado"].includes(item.status));
+  const taxaConclusao = finalizados.length ? Math.round((concluidos.length / finalizados.length) * 100) : 0;
+  const ultimo = [...historico].sort((a,b) => new Date(`${b.data}T${bhHoraCurta(b.hora_inicio)}`) - new Date(`${a.data}T${bhHoraCurta(a.hora_inicio)}`))[0];
   document.getElementById("kpiProximos").textContent = futuros.length;
   document.getElementById("kpiHistorico").textContent = historico.length;
-  document.getElementById("kpiConcluidos").textContent = bhClienteAgendamentos.filter(item => item.status === "concluido").length;
+  document.getElementById("kpiConcluidos").textContent = concluidos.length;
+  if (document.getElementById("clienteFavoritosCount")) document.getElementById("clienteFavoritosCount").textContent = bhClienteFavoritos.length;
+  if (document.getElementById("clienteAvaliacoesCount")) document.getElementById("clienteAvaliacoesCount").textContent = bhClienteAvaliacoes.length;
+  if (document.getElementById("clienteTaxaConclusao")) document.getElementById("clienteTaxaConclusao").textContent = `${taxaConclusao}%`;
+  if (document.getElementById("clienteUltimoAtendimento")) document.getElementById("clienteUltimoAtendimento").textContent = ultimo ? bhFormatarData(ultimo.data, { day: "2-digit", month: "short" }) : "—";
   const proximo = [...futuros].sort((a,b) => new Date(`${a.data}T${bhHoraCurta(a.hora_inicio)}`) - new Date(`${b.data}T${bhHoraCurta(b.hora_inicio)}`))[0];
   const proximoTitulo = document.getElementById("clienteProximoTitulo");
   const proximoDetalhe = document.getElementById("clienteProximoDetalhe");

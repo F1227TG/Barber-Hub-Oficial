@@ -75,6 +75,16 @@ function bhRenderKpisPainel() {
   document.getElementById("kpiFaturamento").textContent = bhMoeda(faturamento);
   document.getElementById("kpiServicos").textContent = bhPainelEstabelecimento.servicos.filter(item => item.ativo).length;
   document.getElementById("kpiStatus").textContent = status.texto;
+  const hojeIso = bhHojeISO();
+  const agendaHoje = bhPainelAgendamentos.filter(item => item.data === hojeIso && !["cancelado", "recusado"].includes(item.status));
+  const pendentes = bhPainelAgendamentos.filter(item => item.status === "pendente");
+  const equipeAtiva = bhPainelEstabelecimento.barbeiros.filter(item => item.ativo).length;
+  const avaliacoesPublicadas = bhPainelAvaliacoes.filter(item => item.status === "publicada");
+  const notaMedia = avaliacoesPublicadas.length ? avaliacoesPublicadas.reduce((soma,item) => soma + Number(item.nota || 0), 0) / avaliacoesPublicadas.length : null;
+  if (document.getElementById("painelHoje")) document.getElementById("painelHoje").textContent = agendaHoje.length;
+  if (document.getElementById("painelPendentes")) document.getElementById("painelPendentes").textContent = pendentes.length;
+  if (document.getElementById("painelEquipeAtiva")) document.getElementById("painelEquipeAtiva").textContent = equipeAtiva;
+  if (document.getElementById("painelNotaMedia")) document.getElementById("painelNotaMedia").textContent = notaMedia === null ? "—" : notaMedia.toFixed(1).replace(".", ",");
   const agora = new Date();
   const proximo = bhPainelAgendamentos
     .filter(item => ["pendente","confirmado"].includes(item.status) && new Date(`${item.data}T${bhHoraCurta(item.hora_inicio)}`) >= agora)

@@ -1,4 +1,4 @@
-# Guia de código — Barber Hub 1.6.0
+# Guia de código — Barber Hub 1.7.0
 
 ## Princípio central
 
@@ -49,7 +49,7 @@ Evite preto/branco puro em novas superfícies. O tema claro usa off-white/bege p
 - `auth.js`: sessão/perfil/rotas;
 - `ui.js`: tema, drawer e navegação web;
 - `device-router.js`: desktop → `/mobile` em tela pequena/PWA;
-- `mobile-shell-v1.6.js`: shell exclusivo `/mobile`;
+- `mobile-shell-v1.7.js`: shell exclusivo `/mobile`;
 - `booking-modal.js`: fluxo de agendamento contextual;
 - arquivos de página (`portal.js`, `cliente.js`, `painel.js`, `admin.js` etc.): estado/render/eventos da tela.
 

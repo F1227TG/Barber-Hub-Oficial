@@ -1,5 +1,5 @@
 /**
- * Auditoria local do Barber Hub 1.6.0.
+ * Auditoria local do Barber Hub 1.7.0.
  *
  * Não depende de bibliotecas externas. O script verifica estrutura, referências
  * locais, IDs duplicados, presença da API Python e vazamento acidental de
@@ -22,10 +22,11 @@ const required = [
   "html/mapa-sistema.html",
   "css/product-redesign.css",
   "css/release-1.6.css",
+  "css/release-1.7.css",
   "js/product-redesign.js",
   "js/booking-modal.js",
   "js/device-router.js",
-  "js/mobile-shell-v1.6.js",
+  "js/mobile-shell-v1.7.js",
   "js/backend-api.js",
   "api/index.py",
   "backend/config.py",
@@ -80,7 +81,9 @@ for (const file of htmlFiles) {
     if (!value || value.startsWith("#") || /^(https?:|mailto:|tel:|data:|javascript:)/i.test(value)) continue;
     const clean = value.split(/[?#]/)[0];
     if (!clean) continue;
-    const target = path.resolve(path.dirname(file), clean);
+    const target = clean.startsWith("/")
+      ? path.resolve(root, `.${clean}`)
+      : path.resolve(path.dirname(file), clean);
     if (!fs.existsSync(target)) {
       errors.push(`${path.relative(root, file)} referencia arquivo inexistente: ${value}`);
     }
@@ -93,6 +96,9 @@ for (const file of htmlFiles) {
   }
   if (!html.includes("release-1.6.css") && !rel.endsWith("offline.html")) {
     errors.push(`${rel} não carrega release-1.6.css.`);
+  }
+  if (!html.includes("release-1.7.css") && !rel.endsWith("offline.html") && !["cadastro.html","listagem.html"].includes(rel)) {
+    errors.push(`${rel} não carrega release-1.7.css.`);
   }
 }
 
@@ -130,7 +136,7 @@ if (errors.length) {
   process.exit(1);
 }
 
-console.log(`Barber Hub 1.6.0: ${required.length} arquivos centrais encontrados.`);
+console.log(`Barber Hub 1.7.0: ${required.length} arquivos centrais encontrados.`);
 console.log(`${htmlFiles.length} páginas HTML verificadas, sem IDs duplicados ou links locais quebrados.`);
 console.log(`${jsFiles.length} arquivos JavaScript passaram por node --check.`);
 console.log("Nenhuma chave secreta foi encontrada nos arquivos públicos auditados.");

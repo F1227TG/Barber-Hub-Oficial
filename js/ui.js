@@ -70,13 +70,12 @@ function bhLinksPorPerfil(perfil, contadores = {}) {
     ];
   }
   if (perfil.tipo === "admin") return [
-    ["html/admin.html", "admin", "Visão geral", "bi-shield-lock"],
-    ["html/admin.html#estabelecimentos", "admin-estabelecimentos", "Estabelecimentos", "bi-shop-window"],
-    ["html/admin.html#usuarios", "admin-usuarios", "Usuários", "bi-people"],
-    ["html/admin.html#moderacao", "admin-moderacao", "Moderação", "bi-flag", "moderacao"],
-    ["html/admin.html#tickets", "admin-tickets", "Tickets", "bi-headset", "tickets"],
+    ["html/admin.html", "admin", "Administração", "bi-shield-lock"],
+    ["html/mapa-sistema.html", "mapa-sistema", "Mapa do sistema", "bi-diagram-3"],
     ["html/planos.html", "planos", "Planos", "bi-wallet2"],
-    ["html/notificacoes.html", "notificacoes", "Notificações", "bi-bell", "notificacoes"]
+    ["html/notificacoes.html", "notificacoes", "Notificações", "bi-bell", "notificacoes"],
+    ["html/contato.html", "contato", "Suporte", "bi-headset"],
+    ["html/conta.html", "conta", "Minha conta", "bi-person-gear"]
   ];
   return [
     ["html/portal.html", "portal", "Explorar", "bi-shop"],
@@ -149,10 +148,10 @@ function bhLinksExtrasDrawer(perfil, contadores = {}) {
     ["html/contato.html", "Suporte", "bi-headset"]
   ];
   if (perfil?.tipo === "admin") return [
-    ["html/admin.html#agendamentos", "Agendamentos", "bi-calendar2-check"],
-    ["html/admin.html#avaliacoes", "Avaliações", "bi-star"],
-    ["html/admin.html#moderacao", "Moderação", "bi-flag", "moderacao"],
     ["html/mapa-sistema.html", "Mapa do sistema", "bi-diagram-3"],
+    ["html/planos.html", "Planos e oferta", "bi-wallet2"],
+    ["html/notificacoes.html", "Central de avisos", "bi-bell"],
+    ["html/contato.html", "Suporte", "bi-headset"],
     ["html/conta.html", "Minha conta", "bi-person-gear"]
   ];
   if (perfil) return [
@@ -488,27 +487,27 @@ function bhCriarDockMobile(perfil, contadores = {}){
     ];
   } else if(perfil?.tipo === "admin"){
     links = [
-      ["html/admin.html", "Resumo", "bi-shield-lock"],
-      ["html/admin.html#moderacao", "Moderação", "bi-flag", "moderacao"],
-      ["html/admin.html#estabelecimentos", "Negócios", "bi-shop-window"],
+      ["html/admin.html", "Admin", "bi-shield-lock"],
+      ["html/mapa-sistema.html", "Mapa", "bi-diagram-3"],
       ["html/notificacoes.html", "Avisos", "bi-bell", "notificacoes"],
-      ["#menu", "Mais", "bi-grid-3x3-gap", null, "drawer"]
+      ["html/contato.html", "Suporte", "bi-headset"],
+      ["html/conta.html", "Conta", "bi-person-circle"]
     ];
   } else if(perfil){
     links = [
-      ["html/portal.html", "Explorar", "bi-shop"],
+      ["index.html", "Início", "bi-house-door"],
       ["html/portal.html", "Explorar", "bi-compass"],
       ["html/cliente.html", "Horários", "bi-calendar2-check", "agenda"],
       ["html/notificacoes.html", "Avisos", "bi-bell", "notificacoes"],
       ["html/conta.html", "Conta", "bi-person-circle"]
     ];
   } else {
-    primaryIndex = 2;
+    primaryIndex = 1;
     links = [
       ["index.html", "Início", "bi-house-door"],
-      ["html/portal.html", "Explorar", "bi-shop"],
       ["html/portal.html", "Explorar", "bi-compass"],
       ["html/planos.html", "Planos", "bi-wallet2"],
+      ["html/login.html", "Entrar", "bi-box-arrow-in-right"],
       ["#menu", "Mais", "bi-grid-3x3-gap", null, "drawer"]
     ];
   }

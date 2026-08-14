@@ -1,6 +1,6 @@
-# Mapa de navegação do Barber Hub 1.6
+# Mapa de navegação do Barber Hub 1.7
 
-O Barber Hub possui duas apresentações da mesma plataforma: web (`/html`) e app mobile (`/mobile`). Regras de negócio e API são compartilhadas.
+O Barber Hub possui duas apresentações da mesma plataforma: web (`/html`) e app mobile (`/mobile`). Regras de negócio, API e scripts de domínio são compartilhados. Na 1.7, as páginas funcionais mobile são sincronizadas a partir das equivalentes web para impedir deriva de recursos.
 
 ## Cliente — fluxo principal
 
@@ -46,6 +46,7 @@ Onboarding do estabelecimento
   ↓
 Painel
   ├── Operação de hoje
+  ├── Hoje / A confirmar / Equipe / Reputação
   ├── Status automático / aberto / fechado
   ├── Agenda
   ├── Serviços
@@ -62,38 +63,47 @@ Painel
 
 ```text
 Admin
-  ├── Saúde da plataforma (API / DB / Auth)
+  ├── Saúde da plataforma (API / DB / Auth / FTS)
   ├── KPIs globais via API
+  ├── Pendências / conclusão / verificação / agenda online
   ├── Usuários
   ├── Estabelecimentos
   ├── Agendamentos
   ├── Avaliações
   ├── Moderação
-  ├── Tickets
-  └── Mapa do sistema (auditoria via API)
+  └── Tickets
+
+Páginas administrativas relacionadas
+  ├── Mapa do sistema
+  ├── Notificações
+  ├── Suporte
+  └── Conta
 ```
+
+> Usuários, Estabelecimentos, Agendamentos, Avaliações, Moderação e Tickets são **seções do dashboard Admin**, não páginas independentes. Por isso não aparecem como destinos da navegação global.
 
 ## Navegação web
 
-| Destino | Arquivo | Estado 1.6 | Papel |
+| Destino | Arquivo | Estado 1.7 | Papel |
 |---|---|---|---|
 | Início | `index.html` | ✅ | Landing e instalação PWA |
 | Explorar | `html/portal.html` | ✅ | Marketplace FTS/paginado |
 | Estabelecimento | `html/barbearia.html` | ✅ | Página pública + modal de agendamento |
 | Agendamento legado | `html/agendamento.html` | ✅ Compatibilidade | Redireciona para estabelecimento + modal |
-| Cliente | `html/cliente.html` | ✅ | Agenda, favoritos e histórico |
-| Profissional | `html/painel.html` | ✅ | Gestão operacional |
-| Admin | `html/admin.html` | ✅ | Controle da plataforma e saúde da API |
+| Cliente | `html/cliente.html` | ✅ | Agenda, indicadores, favoritos e histórico |
+| Profissional | `html/painel.html` | ✅ | Gestão operacional + indicadores |
+| Admin | `html/admin.html` | ✅ | Controle, health e indicadores da plataforma |
 | Conta | `html/conta.html` | ✅ | Perfil, senha, exclusão |
 | Notificações | `html/notificacoes.html` | ✅ | Inbox in-app |
 | Planos | `html/planos.html` | 🟡 Comercial | Sem gateway de cobrança |
 | Suporte | `html/contato.html` | ✅ | Tickets via API |
 | Sobre | `html/sobre.html` | ✅ | Institucional |
-| Mapa | `html/mapa-sistema.html` | ✅ 1.6 | Estado técnico + API audit |
+| Beauty Hub | `html/beauty-hub.html` | 🟡 Preparação | Visão e roadmap da expansão |
+| Mapa | `html/mapa-sistema.html` | ✅ | Estado técnico + API audit |
 
 ## Navegação mobile dedicada
 
-Os equivalentes ficam em `/mobile/*.html`. O PWA inicia em `/mobile/index.html`.
+Os equivalentes funcionais ficam em `/mobile/*.html`. O PWA inicia em `/mobile/index.html`. O topo contém tema, notificações e **menu hambúrguer** para o drawer de conta/logout.
 
 ### Cliente
 
@@ -104,13 +114,13 @@ Início | Explorar | Agenda | Avisos | Conta
 ### Profissional
 
 ```text
-Painel | Agenda | Serviços | Avisos | Conta
+Painel | Agenda | Explorar | Avisos | Conta
 ```
 
 ### Administrador
 
 ```text
-Resumo | Negócios | Usuários | Avisos | Conta
+Admin | Mapa | Avisos | Suporte | Conta
 ```
 
 ### Visitante
@@ -118,6 +128,18 @@ Resumo | Negócios | Usuários | Avisos | Conta
 ```text
 Início | Explorar | Entrar | Criar | Suporte
 ```
+
+## Resolução de URLs em `/mobile`
+
+```text
+html/portal.html       → /mobile/portal.html
+html/conta.html        → /mobile/conta.html
+img/...                → /img/...
+service-worker.js      → /service-worker.js
+index.html             → /mobile/index.html
+```
+
+Essas regras são verificadas automaticamente por `scripts/check-mobile-routing.js`.
 
 ## Backend/API
 
@@ -150,6 +172,6 @@ Início | Explorar | Entrar | Criar | Suporte
     └── users/{id}/password-recovery
 ```
 
-## Regra de navegação da 1.6
+## Regra de navegação atual
 
-O usuário **não navega mais para uma página de “Agendar”** como destino principal. Ele escolhe primeiro um estabelecimento; o agendamento é uma ação contextual daquele perfil.
+O usuário não navega para uma página de “Agendar” como destino principal. Ele escolhe um estabelecimento e abre o fluxo contextual em modal. No admin, a navegação global representa somente destinos distintos; se algo é apenas uma seção interna do dashboard, permanece como seção.

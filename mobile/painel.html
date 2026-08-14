@@ -21,12 +21,12 @@
 <meta content="yes" name="apple-mobile-web-app-capable"/>
 <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
 <link href="../css/mobile-app.css" rel="stylesheet"/><link href="../css/release-1.4.1.css" rel="stylesheet"/>
-<link href="../css/product-redesign.css" rel="stylesheet"/><link href="../css/release-1.6.css" rel="stylesheet"/><meta content="noindex,follow" name="robots"/><link href="https://barberhuboficial.vercel.app/html/painel" rel="canonical"/></head>
-<body class="mobile-native">
+<link href="../css/product-redesign.css" rel="stylesheet"/><link href="../css/release-1.6.css" rel="stylesheet"/><link href="../css/release-1.7.css" rel="stylesheet"/><meta content="noindex,follow" name="robots"/><link href="https://barberhuboficial.vercel.app/html/painel" rel="canonical"/></head>
+<body class="page-painel mobile-native">
 <!-- Cabeçalho e navegação principal -->
 <header class="header">
 <div class="container nav">
-<a class="logo" href="../index.html">
+<a class="logo" href="index.html">
 <img alt="Barber Hub" src="../img/logomarcaTRANSPARENTE.png"/>
 <span>
       Barber Hub
@@ -34,17 +34,17 @@
 </span>
 </a>
 <nav class="menu" id="menuPrincipal">
-<a data-page="home" href="../index.html">
+<a data-page="home" href="index.html">
       Início
      </a>
-<a data-page="portal" href="../html/portal.html">Explorar</a>
-<a data-page="planos" href="../html/planos.html">
+<a data-page="portal" href="portal.html">Explorar</a>
+<a data-page="planos" href="planos.html">
       Planos
      </a>
-<a data-page="beauty" href="../html/beauty-hub.html">
+<a data-page="beauty" href="beauty-hub.html">
       Beauty Hub
      </a>
-<a data-page="contato" href="../html/contato.html">
+<a data-page="contato" href="contato.html">
       Suporte
      </a>
 </nav>
@@ -53,7 +53,7 @@
 <i class="bi bi-circle-half">
 </i>
 </button>
-<a class="btn btn-outline btn-small account-link" data-auth-link="" href="../html/login.html">
+<a class="btn btn-outline btn-small account-link" data-auth-link="" href="login.html">
 <i class="bi bi-person-circle">
 </i>
 <span data-user-name="">
@@ -244,6 +244,12 @@
         --
        </strong>
 </div>
+</div>
+<div class="professional-detail-grid" aria-label="Resumo operacional do estabelecimento">
+<article class="dashboard-detail-card"><span><i class="bi bi-calendar-day"></i> Hoje</span><strong id="painelHoje">0</strong><small>atendimentos válidos no dia</small></article>
+<article class="dashboard-detail-card"><span><i class="bi bi-hourglass-split"></i> A confirmar</span><strong id="painelPendentes">0</strong><small>agendamentos pendentes de ação</small></article>
+<article class="dashboard-detail-card"><span><i class="bi bi-people"></i> Equipe ativa</span><strong id="painelEquipeAtiva">0</strong><small>profissionais disponíveis no cadastro</small></article>
+<article class="dashboard-detail-card"><span><i class="bi bi-star-fill"></i> Reputação</span><strong id="painelNotaMedia">—</strong><small>média das avaliações publicadas</small></article>
 </div>
 <div class="recommend-card" id="iaPainel">
 </div>
@@ -989,5 +995,5 @@
 <script src="../js/painel.js">
 </script>
 <script src="../js/mobile-app.js"></script>
-<script src="../js/product-redesign.js"></script><script src="../js/mobile-shell-v1.6.js"></script></body>
+<script src="../js/product-redesign.js"></script><script src="../js/mobile-shell-v1.7.js"></script></body>
 </html>

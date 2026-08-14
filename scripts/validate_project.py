@@ -38,7 +38,11 @@ def local_target(source: Path, reference: str) -> Path | None:
     if re.match(r"^(https?:|mailto:|tel:|data:|javascript:)", value, re.I):
         return None
     clean = re.split(r"[?#]", value, maxsplit=1)[0]
-    return (source.parent / clean).resolve() if clean else None
+    if not clean:
+        return None
+    if clean.startswith("/"):
+        return (ROOT / clean.lstrip("/")).resolve()
+    return (source.parent / clean).resolve()
 
 
 def main() -> int:
@@ -76,8 +80,8 @@ def main() -> int:
                 warnings.append(f"{relative}: confira o rótulo do controle #{control_id}")
 
     sw = (ROOT / "service-worker.js").read_text(encoding="utf-8")
-    if "barberhub-v1.6.0" not in sw:
-        errors.append("service-worker.js não usa o cache barberhub-v1.6.0")
+    if "barberhub-v1.7.0" not in sw:
+        errors.append("service-worker.js não usa o cache barberhub-v1.7.0")
 
     for migration_name in ["14_api_python_agendamento_multisservicos.sql", "15_marketplace_fts_api_seguranca.sql"]:
         if not (ROOT / "sql" / migration_name).exists():
@@ -85,7 +89,7 @@ def main() -> int:
 
     manifest = (ROOT / "manifest.webmanifest").read_text(encoding="utf-8")
     if '"start_url": "./mobile/index.html"' not in manifest:
-        errors.append("manifest não inicia na interface mobile 1.6")
+        errors.append("manifest não inicia na interface mobile dedicada")
 
     print(f"Páginas analisadas: {len(pages)}")
     if warnings:

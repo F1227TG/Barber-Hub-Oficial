@@ -41,6 +41,16 @@ function bhRenderAdminKpis() {
   document.getElementById("adminReceita").textContent = bhMoeda(receita);
   document.getElementById("adminVerificacaoResumo").textContent = `${verificados} de ${estabelecimentos.length} estabelecimento${estabelecimentos.length===1?"":"s"} com selo verificado.`;
   document.getElementById("adminResumoTexto").textContent = `${ticketsPendentes.length} ticket(s) pendente(s), ${moderacao} item(ns) em moderação e ${concluidos.length} atendimento(s) concluído(s) na amostra carregada.`;
+  const pendencias = ticketsPendentes.length + moderacao;
+  const taxaConclusao = agendamentos.length ? Math.round((concluidos.length / agendamentos.length) * 100) : 0;
+  const coberturaVerificada = estabelecimentos.length ? Math.round((verificados / estabelecimentos.length) * 100) : 0;
+  const agendasAtivas = estabelecimentos.filter(item => item.aceita_agendamento).length;
+  const coberturaAgenda = estabelecimentos.length ? Math.round((agendasAtivas / estabelecimentos.length) * 100) : 0;
+  if (document.getElementById("adminPendenciasCriticas")) document.getElementById("adminPendenciasCriticas").textContent = pendencias;
+  if (document.getElementById("adminPendenciasDetalhe")) document.getElementById("adminPendenciasDetalhe").textContent = `${ticketsPendentes.length} ticket(s) + ${moderacao} moderação(ões)`;
+  if (document.getElementById("adminTaxaConclusao")) document.getElementById("adminTaxaConclusao").textContent = `${taxaConclusao}%`;
+  if (document.getElementById("adminCoberturaVerificada")) document.getElementById("adminCoberturaVerificada").textContent = `${coberturaVerificada}%`;
+  if (document.getElementById("adminAgendaAtiva")) document.getElementById("adminAgendaAtiva").textContent = `${coberturaAgenda}%`;
   document.getElementById("adminUltimaAtualizacao").textContent = `Atualizado às ${new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}`;
 }
 

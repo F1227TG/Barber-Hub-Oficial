@@ -1,13 +1,15 @@
 {
   "name": "barber-hub-oficial",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "private": true,
   "description": "Portal, gestão, PWA e API própria em Python do Barber Hub.",
   "scripts": {
     "dev": "vercel dev",
-    "check": "node scripts/check-project.js && python scripts/validate_project.py && python -m compileall -q api backend && python -m unittest discover -s tests -v",
+    "check": "python scripts/sync_mobile_pages.py --check && node scripts/check-mobile-routing.js && node scripts/check-project.js && python scripts/validate_project.py && python -m compileall -q api backend && python -m unittest discover -s tests -v",
     "api:dev": "fastapi dev api/index.py",
-    "check:python": "python -m compileall -q api backend"
+    "check:python": "python -m compileall -q api backend",
+    "mobile:sync": "python scripts/sync_mobile_pages.py",
+    "check:mobile-routing": "node scripts/check-mobile-routing.js"
   },
   "engines": {
     "node": ">=20"

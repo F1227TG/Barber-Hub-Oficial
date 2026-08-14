@@ -19,8 +19,8 @@
 <link href="../css/pages.css" rel="stylesheet"/>
 <link href="../manifest.webmanifest" rel="manifest"/>
 <link href="../css/mobile-app.css" rel="stylesheet"/><link href="../css/release-1.4.1.css" rel="stylesheet"/>
-<link href="../css/product-redesign.css" rel="stylesheet"/><link href="../css/release-1.6.css" rel="stylesheet"/></head>
-<body class="admin-page"><script src="../js/device-router.js"></script>
+<link href="../css/product-redesign.css" rel="stylesheet"/><link href="../css/release-1.6.css" rel="stylesheet"/><link href="../css/release-1.7.css" rel="stylesheet"/></head>
+<body class="admin-page page-admin"><script src="../js/device-router.js"></script>
 <!-- Cabeçalho e navegação principal -->
 <header class="header">
 <div class="container nav">
@@ -194,6 +194,12 @@
         </small>
 </div>
 </article>
+</div>
+<div class="admin-detail-grid" aria-label="Indicadores operacionais detalhados">
+<article class="dashboard-detail-card priority"><span><i class="bi bi-exclamation-diamond"></i> Pendências</span><strong id="adminPendenciasCriticas">0</strong><small id="adminPendenciasDetalhe">itens que exigem atenção</small></article>
+<article class="dashboard-detail-card"><span><i class="bi bi-check2-all"></i> Taxa de conclusão</span><strong id="adminTaxaConclusao">0%</strong><small>agendamentos concluídos na amostra</small></article>
+<article class="dashboard-detail-card"><span><i class="bi bi-patch-check-fill"></i> Cobertura verificada</span><strong id="adminCoberturaVerificada">0%</strong><small>estabelecimentos com selo ativo</small></article>
+<article class="dashboard-detail-card"><span><i class="bi bi-calendar2-check"></i> Agenda online</span><strong id="adminAgendaAtiva">0%</strong><small>negócios aceitando agendamento</small></article>
 </div>
 <div class="admin-insights-grid">
 <article class="recommend-card">

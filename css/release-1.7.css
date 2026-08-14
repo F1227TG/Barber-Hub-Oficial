@@ -1,0 +1,406 @@
+/*
+ * Barber Hub 1.7.0 — Navegação móvel, consistência visual e painéis
+ * --------------------------------------------------------------------------
+ * Camada incremental sobre a 1.6. Mantém regras de negócio intactas e corrige
+ * navegação, ritmo visual, cartões com mídia, selo verificado e dashboards.
+ */
+
+:root {
+  --barber-red:#8b3d36;
+  --barber-blue:#334b61;
+  --barber-cream:#d7cbb7;
+  --section-gap:clamp(54px,6vw,86px);
+}
+
+/* ========================================================================== */
+/* 1. IDENTIDADE VISUAL — detalhes discretos de barbearia                    */
+/* ========================================================================== */
+body:not(.beauty-mode) {
+  background-color:var(--bg);
+  background-image:
+    radial-gradient(circle at 8% 12%, color-mix(in srgb,var(--gold) 7%,transparent), transparent 24rem),
+    radial-gradient(circle at 92% 66%, color-mix(in srgb,var(--barber-blue) 7%,transparent), transparent 27rem),
+    repeating-linear-gradient(132deg,
+      transparent 0 82px,
+      color-mix(in srgb,var(--barber-red) 5%,transparent) 82px 84px,
+      transparent 84px 112px,
+      color-mix(in srgb,var(--barber-cream) 3.5%,transparent) 112px 114px,
+      transparent 114px 144px,
+      color-mix(in srgb,var(--barber-blue) 4.5%,transparent) 144px 146px,
+      transparent 146px 228px);
+  background-attachment:fixed;
+}
+
+.page-hero,
+.marketplace-hero,
+.admin-hero,
+.beauty-hero {
+  position:relative;
+  overflow:hidden;
+  isolation:isolate;
+}
+
+body:not(.beauty-mode) .page-hero::after,
+body:not(.beauty-mode) .admin-hero::after,
+body:not(.beauty-mode) .marketplace-hero::after {
+  content:"";
+  position:absolute;
+  z-index:-1;
+  width:76px;
+  height:230px;
+  right:clamp(20px,7vw,120px);
+  top:50%;
+  transform:translateY(-50%) rotate(9deg);
+  border:1px solid var(--border);
+  border-radius:999px;
+  opacity:.2;
+  background:repeating-linear-gradient(
+    135deg,
+    var(--barber-red) 0 18px,
+    var(--barber-cream) 18px 36px,
+    var(--barber-blue) 36px 54px,
+    var(--barber-cream) 54px 72px
+  );
+  box-shadow:0 22px 50px rgba(0,0,0,.15);
+}
+
+.page-hero .container,
+.marketplace-hero .container,
+.admin-hero .container { position:relative; z-index:1; }
+
+.section { scroll-margin-top:92px; }
+.section + .section { border-top-color:color-mix(in srgb,var(--border) 74%,transparent); }
+
+/* ========================================================================== */
+/* 2. CARDS E IMAGENS — proporções consistentes                               */
+/* ========================================================================== */
+.marketplace-card {
+  height:178px;
+  min-height:178px;
+}
+.marketplace-card-image {
+  height:178px;
+  min-height:178px;
+  background-position:center;
+  background-size:cover;
+}
+.marketplace-card-body { overflow:hidden; }
+.marketplace-card .marketplace-services { max-height:31px; overflow:hidden; }
+.marketplace-card .marketplace-location { min-height:1.15em; }
+
+.favorite-card { grid-template-rows:auto 1fr; }
+.favorite-cover,
+.favorite-card-cover {
+  position:relative;
+  display:block;
+  width:100%;
+  aspect-ratio:16/9;
+  min-height:0!important;
+  background-image:linear-gradient(180deg,transparent 45%,rgba(0,0,0,.62)),var(--favorite-cover,url('../img/backgrounds/barber-home-bg.png'));
+  background-position:center;
+  background-size:cover;
+}
+.favorite-cover .status { position:absolute; left:11px; bottom:11px; z-index:2; }
+.favorite-body,
+.favorite-card-body { padding:16px; display:grid; gap:12px; align-content:space-between; }
+.favorite-body h3 { margin:0; }
+.favorite-body p { margin:5px 0 0; color:var(--muted); font-size:.8rem; }
+.favorite-actions { display:flex; align-items:center; gap:8px; }
+.favorite-actions .btn { flex:1; }
+
+.portfolio-public-grid { align-items:stretch; }
+.portfolio-public-card { display:grid; grid-template-rows:auto 1fr; height:100%; }
+.portfolio-public-media { aspect-ratio:4/3; overflow:hidden; }
+.portfolio-main-photo,
+.before-after-grid { width:100%; height:100%; aspect-ratio:auto; }
+.portfolio-main-photo img,
+.portfolio-photo-button img,
+.portfolio-preview-item img,
+.avatar-image { object-fit:cover; object-position:center; }
+
+.app-business-image { min-height:0; aspect-ratio:16/10; }
+
+/* ========================================================================== */
+/* 3. SELO VERIFICADO — maior e reconhecível                                 */
+/* ========================================================================== */
+.verified-badge,
+.verified-mini,
+.review-source.verified,
+.review-source-badge.verified {
+  border-color:color-mix(in srgb,var(--gold) 48%,var(--border));
+  background:color-mix(in srgb,var(--gold) 14%,var(--surface));
+  color:var(--gold-2);
+  box-shadow:0 6px 18px color-mix(in srgb,var(--gold) 9%,transparent);
+}
+.verified-badge {
+  gap:7px;
+  min-height:32px;
+  padding:7px 11px;
+  font-size:.78rem;
+  line-height:1;
+  letter-spacing:.01em;
+}
+.verified-badge i { font-size:1rem; }
+.verified-mini {
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  min-height:31px;
+  padding:7px 10px;
+  font-size:.72rem;
+  border:1px solid color-mix(in srgb,var(--gold) 45%,transparent);
+  backdrop-filter:blur(10px);
+}
+.verified-mini i { font-size:.95rem; }
+.verified-text { display:inline-flex; align-items:center; gap:4px; font-size:.76rem; }
+.verified-text::before { content:"✓"; display:grid; place-items:center; width:16px; height:16px; border-radius:50%; background:var(--gold-2); color:#15110b; font-size:.65rem; font-weight:950; }
+
+/* ========================================================================== */
+/* 4. PAINÉIS — densidade útil, ritmo e leitura                              */
+/* ========================================================================== */
+.client-detail-grid,
+.professional-detail-grid,
+.admin-detail-grid {
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:12px;
+  margin:0 0 18px;
+}
+.dashboard-detail-card {
+  position:relative;
+  min-width:0;
+  min-height:132px;
+  padding:17px;
+  border:1px solid var(--border);
+  border-radius:19px;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 96%,transparent),color-mix(in srgb,var(--surface-2) 70%,var(--surface)));
+  overflow:hidden;
+}
+.dashboard-detail-card::after {
+  content:"";
+  position:absolute;
+  width:74px;
+  height:74px;
+  right:-30px;
+  bottom:-32px;
+  border-radius:50%;
+  background:var(--gold-soft);
+}
+.dashboard-detail-card > span {
+  display:flex;
+  align-items:center;
+  gap:7px;
+  color:var(--muted);
+  font-size:.74rem;
+  font-weight:800;
+}
+.dashboard-detail-card > span i { color:var(--gold-2); }
+.dashboard-detail-card > strong {
+  display:block;
+  margin-top:12px;
+  font-size:1.65rem;
+  line-height:1;
+  letter-spacing:-.03em;
+}
+.dashboard-detail-card > small {
+  display:block;
+  margin-top:8px;
+  color:var(--muted-2);
+  font-size:.7rem;
+  line-height:1.35;
+}
+.dashboard-detail-card.priority { border-color:color-mix(in srgb,var(--barber-red) 36%,var(--border)); }
+
+.client-command-center,
+.professional-command-center { align-items:stretch; }
+.command-primary,
+.command-actions,
+.quick-status-card,
+.account-section,
+.panel-section,
+.admin-health-card,
+.recommend-card { border-color:color-mix(in srgb,var(--border) 92%,transparent); }
+
+.page-cliente .section > .container,
+.page-admin .admin-overview-section > .container { display:grid; gap:18px; }
+.page-cliente .account-section { margin-bottom:0; }
+
+.dashboard .sidebar {
+  width:248px;
+  padding:22px 14px;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 94%,transparent),color-mix(in srgb,var(--bg-2) 96%,transparent));
+}
+.dashboard .sidebar .side-menu { gap:5px; }
+.dashboard .sidebar .btn { min-height:45px; justify-content:flex-start; }
+.dashboard .painel-content { padding:26px 28px 60px; }
+.panel-section { padding:24px; }
+.panel-section.ativo { animation:bh-panel-enter .2s ease both; }
+@keyframes bh-panel-enter { from { opacity:.55; transform:translateY(5px); } to { opacity:1; transform:none; } }
+
+.admin-overview-section { padding-top:34px; }
+.admin-kpi-grid { margin-bottom:0; }
+.admin-insights-grid { margin-top:0; }
+.admin-section { padding-block:var(--section-gap); }
+.admin-section .section-top { margin-bottom:24px; }
+.admin-section .table-wrap { border-radius:20px; }
+.admin-toolbar { gap:10px; }
+.admin-toolbar > * { min-height:46px; }
+
+/* ========================================================================== */
+/* 5. BEAUTY HUB — preparação com identidade própria                         */
+/* ========================================================================== */
+.beauty-mode {
+  --beauty-violet:#7a609a;
+  --beauty-rose:#c97f9d;
+  --beauty-pearl:#f4dfe8;
+}
+.beauty-mode {
+  background-color:var(--bg);
+  background-image:
+    radial-gradient(circle at 12% 12%,color-mix(in srgb,var(--beauty-rose) 11%,transparent),transparent 24rem),
+    radial-gradient(circle at 90% 45%,color-mix(in srgb,var(--beauty-violet) 10%,transparent),transparent 28rem),
+    repeating-radial-gradient(circle at 82% 18%,transparent 0 26px,color-mix(in srgb,var(--gold) 4%,transparent) 27px 28px);
+  background-attachment:fixed;
+}
+.beauty-hero { min-height:640px; display:grid; align-items:center; padding:90px 0; }
+.beauty-hero::after { content:""; position:absolute; inset:auto -90px -140px auto; width:400px; height:400px; border-radius:50%; border:1px solid var(--gold-border); opacity:.34; box-shadow:0 0 0 60px color-mix(in srgb,var(--gold) 3%,transparent),0 0 0 120px color-mix(in srgb,var(--gold) 2%,transparent); }
+.beauty-visual-stage { position:relative; min-height:430px; display:grid; place-items:center; }
+.beauty-core-v17 { position:relative; z-index:3; width:230px; height:230px; backdrop-filter:blur(16px); background:color-mix(in srgb,var(--surface) 88%,transparent); }
+.beauty-glow { position:absolute; border-radius:50%; filter:blur(20px); opacity:.5; }
+.beauty-glow-one { width:220px; height:220px; background:color-mix(in srgb,var(--beauty-rose) 28%,transparent); left:12%; top:14%; }
+.beauty-glow-two { width:250px; height:250px; background:color-mix(in srgb,var(--beauty-violet) 22%,transparent); right:8%; bottom:5%; }
+.beauty-orbit-card { position:absolute; z-index:4; min-width:126px; padding:13px 15px; display:flex; align-items:center; gap:9px; border:1px solid var(--gold-border); border-radius:18px; background:color-mix(in srgb,var(--surface) 92%,transparent); box-shadow:var(--shadow-soft); backdrop-filter:blur(14px); color:var(--text); font-weight:850; font-size:.78rem; }
+.beauty-orbit-card i { color:var(--gold-2); font-size:1.1rem; }
+.beauty-orbit-hair { top:12%; right:4%; }
+.beauty-orbit-nails { left:2%; bottom:23%; }
+.beauty-orbit-makeup { right:10%; bottom:8%; }
+.beauty-roadmap-section { position:relative; }
+.beauty-roadmap-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
+.beauty-roadmap-grid article { padding:24px; border:1px solid var(--border); border-radius:22px; background:color-mix(in srgb,var(--surface) 94%,transparent); }
+.beauty-roadmap-grid article > span { display:inline-grid; place-items:center; width:38px; height:38px; border-radius:12px; background:var(--gold-soft); color:var(--gold-2); font-weight:950; }
+.beauty-roadmap-grid h3 { margin:18px 0 8px; }
+.beauty-roadmap-grid p { color:var(--muted); line-height:1.6; font-size:.86rem; }
+
+/* ========================================================================== */
+/* 6. MOBILE — shell completo, espaçamento e cards                           */
+/* ========================================================================== */
+body.mobile-native { padding-bottom:92px; }
+.mobile-app-header { z-index:1180; }
+.mobile-app-header-inner { gap:8px; }
+.mobile-app-brand { flex:1 1 auto; max-width:calc(100% - 144px); }
+.mobile-app-header-actions { flex:0 0 auto; }
+.mobile-app-header-actions .icon-btn { min-width:42px; width:42px; height:42px; border-radius:13px; }
+.mobile-app-menu-button { border-color:var(--gold-border)!important; background:var(--gold-soft)!important; color:var(--gold-2)!important; }
+.mobile-app-header .nav-badge { position:absolute; top:3px; right:3px; }
+.mobile-app-header-actions a.icon-btn { position:relative; }
+
+.mobile-app-dock { height:70px; padding:7px; }
+.mobile-app-dock a { min-width:0; min-height:54px; }
+.mobile-app-dock a span { max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+body.mobile-native main { min-width:0; overflow-x:clip; }
+body.mobile-native .section { padding:28px 0; }
+body.mobile-native .page-hero { padding:26px 0 20px!important; }
+body.mobile-native .page-hero::after,
+body.mobile-native .admin-hero::after,
+body.mobile-native .marketplace-hero::after { display:none; }
+body.mobile-native .page-hero .hero-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+body.mobile-native .page-hero .hero-actions .btn { min-height:44px; }
+
+body.mobile-native .client-detail-grid,
+body.mobile-native .professional-detail-grid,
+body.mobile-native .admin-detail-grid {
+  display:flex;
+  gap:9px;
+  overflow-x:auto;
+  margin-inline:-12px;
+  padding:0 12px 4px;
+  scroll-snap-type:x proximity;
+  scrollbar-width:none;
+}
+body.mobile-native .dashboard-detail-card { flex:0 0 154px; min-height:124px; padding:14px; scroll-snap-align:start; border-radius:17px; }
+body.mobile-native .dashboard-detail-card > strong { font-size:1.42rem; }
+body.mobile-native .dashboard-detail-card > small { font-size:.66rem; }
+
+body.mobile-native .command-actions { grid-template-columns:1fr 1fr; gap:8px; }
+body.mobile-native .command-actions .btn { min-height:46px; }
+body.mobile-native .quick-status-card { padding:15px; border-radius:18px; }
+body.mobile-native .status-segment { width:100%; overflow-x:auto; }
+body.mobile-native .status-segment button { min-width:96px; min-height:44px; }
+
+body.mobile-native .account-section { margin-bottom:12px; }
+body.mobile-native .section-top { gap:12px; }
+body.mobile-native .section-top .btn { width:100%; }
+body.mobile-native .favorites-grid { grid-template-columns:1fr; gap:11px; }
+body.mobile-native .favorite-card { border-radius:18px; }
+body.mobile-native .favorite-cover { aspect-ratio:16/8.4; }
+
+body.mobile-native .marketplace-card { height:148px; min-height:148px; grid-template-columns:112px minmax(0,1fr); }
+body.mobile-native .marketplace-card-image { height:148px; min-height:148px; }
+body.mobile-native .marketplace-featured-grid .marketplace-card { min-width:92%; }
+body.mobile-native .marketplace-card-body { padding:11px; }
+body.mobile-native .marketplace-card-actions { gap:6px; }
+body.mobile-native .marketplace-card-actions .btn { min-height:36px; }
+body.mobile-native .marketplace-services { max-height:27px; }
+
+body.mobile-native .portfolio-public-grid { grid-template-columns:1fr 1fr; gap:8px; }
+body.mobile-native .portfolio-public-card { border-radius:16px; }
+body.mobile-native .portfolio-public-media { aspect-ratio:1/1; }
+body.mobile-native .portfolio-public-body { padding:11px; }
+body.mobile-native .portfolio-public-body h3 { font-size:.8rem; }
+body.mobile-native .portfolio-public-body > p { font-size:.68rem; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+
+body.mobile-native .verified-badge { min-height:30px; padding:7px 10px; font-size:.73rem!important; }
+body.mobile-native .verified-badge i { font-size:.95rem; }
+body.mobile-native .verified-mini { top:9px; right:9px; font-size:.7rem; }
+
+body.mobile-native .dashboard .painel-content { padding:14px 12px 102px!important; }
+body.mobile-native .panel-section { padding:16px; }
+body.mobile-native .panel-section .section-top { align-items:flex-start; }
+body.mobile-native .panel-section .section-top .btn { width:auto; max-width:100%; }
+body.mobile-native .panel-grid { grid-template-columns:1fr!important; gap:12px; }
+body.mobile-native .form-card,
+body.mobile-native .card .card-body { padding:15px; }
+body.mobile-native .form-grid { grid-template-columns:1fr!important; }
+
+body.mobile-native.page-admin .admin-hero { padding:24px 0 16px; }
+body.mobile-native.page-admin .admin-hero-grid { grid-template-columns:1fr; gap:14px; }
+body.mobile-native.page-admin .admin-health-card { padding:16px; }
+body.mobile-native.page-admin .admin-health-live { grid-template-columns:1fr 1fr; gap:7px; }
+body.mobile-native.page-admin .admin-kpi-grid { grid-template-columns:1fr 1fr!important; gap:8px!important; }
+body.mobile-native.page-admin .admin-kpi { min-height:106px; padding:13px; align-items:flex-start; }
+body.mobile-native.page-admin .admin-kpi>i { width:38px; height:38px; }
+body.mobile-native.page-admin .admin-insights-grid { grid-template-columns:1fr!important; }
+body.mobile-native.page-admin .admin-section { padding:34px 0; }
+body.mobile-native.page-admin .admin-toolbar { width:100%; display:grid; grid-template-columns:1fr; }
+body.mobile-native.page-admin .admin-search { width:100%; }
+body.mobile-native.page-admin .admin-toolbar select { width:100%; }
+
+body.mobile-native.beauty-mode .beauty-hero { min-height:auto; padding:42px 0 30px; }
+body.mobile-native .beauty-grid { grid-template-columns:1fr; gap:24px; }
+body.mobile-native .beauty-hero h1 { font-size:2.1rem; }
+body.mobile-native .beauty-visual-stage { min-height:330px; }
+body.mobile-native .beauty-core-v17 { width:178px; height:178px; }
+body.mobile-native .beauty-orbit-card { min-width:auto; padding:10px 12px; font-size:.7rem; }
+body.mobile-native .beauty-orbit-hair { right:0; top:8%; }
+body.mobile-native .beauty-orbit-nails { left:0; bottom:21%; }
+body.mobile-native .beauty-orbit-makeup { right:3%; bottom:4%; }
+body.mobile-native .beauty-roadmap-grid { grid-template-columns:1fr; gap:10px; }
+
+@media (max-width:1100px) {
+  .client-detail-grid,.professional-detail-grid,.admin-detail-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+
+@media (max-width:760px) {
+  body:not(.mobile-native) .client-detail-grid,
+  body:not(.mobile-native) .professional-detail-grid,
+  body:not(.mobile-native) .admin-detail-grid { grid-template-columns:1fr 1fr; }
+  .dashboard .painel-content { padding:18px 14px 60px; }
+}
+
+@media (max-width:460px) {
+  body.mobile-native .page-hero .hero-actions { grid-template-columns:1fr; }
+  body.mobile-native.page-admin .admin-health-live { grid-template-columns:1fr; }
+  body.mobile-native.page-admin .admin-kpi-grid { grid-template-columns:1fr!important; }
+  body.mobile-native .portfolio-public-grid { grid-template-columns:1fr 1fr; }
+}

@@ -7,12 +7,33 @@
  */
 
 function bhBasePath() {
-  return location.pathname.includes("/html/") ? ".." : ".";
+  const pathname = String(location.pathname || "");
+  return pathname.includes("/html/") || pathname.includes("/mobile/") ? ".." : ".";
 }
 
 function bhUrl(caminho) {
   const limpo = String(caminho || "").replace(/^\/+/, "");
-  return `${bhBasePath()}/${limpo}`;
+  const pathname = String(location.pathname || "");
+  const mobile = pathname.includes("/mobile/");
+  const fileProtocol = String(location.protocol || "") === "file:";
+
+  // Em produção usamos caminhos desde a raiz do domínio. Isso mantém o destino
+  // correto até quando a aplicação está renderizando a 404 para uma URL aninhada.
+  // file:// conserva caminhos relativos para desenvolvimento local sem servidor.
+  if (mobile) {
+    const page = limpo.startsWith("html/")
+      ? limpo.slice(5)
+      : limpo.startsWith("mobile/")
+        ? limpo.slice(7)
+        : /^index\.html(?:[?#]|$)/.test(limpo)
+          ? limpo
+          : null;
+    if (page) return fileProtocol ? `./${page}` : `/mobile/${page}`;
+    return fileProtocol ? `../${limpo}` : `/${limpo}`;
+  }
+
+  if (fileProtocol) return `${bhBasePath()}/${limpo}`;
+  return `/${limpo}`;
 }
 
 function bhAbsoluteUrl(caminho) {

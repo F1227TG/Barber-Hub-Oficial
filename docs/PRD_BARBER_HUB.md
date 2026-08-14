@@ -25,7 +25,7 @@
 | Tipo de produto | Aplicação web + interface HTML mobile dedicada, instalável como PWA, multi-tenant (múltiplos estabelecimentos independentes), com backend próprio (API Python/FastAPI) sobre infraestrutura Supabase |
 | Empresa/divisão | The Gamers Tech |
 | Estágio atual | Produto em produção ativa (deploy Vercel), evoluindo por versões incrementais e documentadas (1.1 → 1.6). Não há, no repositório, uma declaração formal de "MVP concluído" — ver critério proposto na Seção 22 |
-| Versão analisada | Front-end/PWA **1.6.0** (`package.json`, cache do Service Worker `barberhub-v1.6.0`) · API própria **1.2.0** (`pyproject.toml`, `api/index.py`) · Schema de banco até a migration **15** (`15_marketplace_fts_api_seguranca.sql`) |
+| Versão analisada | Front-end/PWA **1.7.0** (`package.json`, cache do Service Worker `barberhub-v1.7.0`) · API própria **1.2.0** (`pyproject.toml`, `api/index.py`) · Schema de banco até a migration **15** (`15_marketplace_fts_api_seguranca.sql`) |
 | Repositório analisado | `Barber-Hub-Oficial-main.zip`, domínio de referência `barberhuboficial.vercel.app` |
 | Stack confirmada em código | HTML/CSS/JS vanilla + Bootstrap 5.3.6 (local, em camada `@layer`); Supabase (PostgreSQL, Auth, Storage, RLS, Realtime); backend próprio em Python 3.13+/FastAPI 0.117+/Pydantic 2.10+, empacotado como função serverless da Vercel (`api/index.py`); PWA com Service Worker e manifest próprios |
 
@@ -386,7 +386,7 @@ Critérios de aceitação descrevem o comportamento **já implementado**, salvo 
 - RNF-013 — Breakpoints de teste documentados e usados no desenho: 360, 390, 412, 768px e desktop (`.agents/rules/frontend.md`, `docs/TESTES_RESPONSIVOS_1_4.md`).
 - RNF-014 — PWA instalável, com manifest válido, ícones maskable, atalhos e `display_override` para janela com controles nativos.
 - RNF-015 — Service Worker com estratégia network-first, cache de fallback e página offline dedicada; exclui explicitamente respostas de `/api/` do cache (dado dinâmico não deve ficar stale).
-- RNF-016 — 🟡 Nem todas as páginas estão no pré-cache do Service Worker (`login.html`, `cadastro.html`, `cadastro-barbearia.html`, `servicos.html`, `recuperar-senha.html`, `redefinir-senha.html`, `privacidade.html`, `termos.html` não estão na lista `CORE`) — funcionam offline só depois da primeira visita.
+- RNF-016 — ✅ **1.7:** o pré-cache do Service Worker foi ampliado para cobrir as páginas web/mobile atuais e os assets de shell da release; respostas de `/api/` continuam excluídas do cache estático.
 
 **Privacidade**
 - RNF-017 — Exclusão de conta segue princípio de minimização com preservação de integridade referencial: dado pessoal identificável é removido/anonimizado, mas o registro de negócio (agendamento) permanece para o estabelecimento.
@@ -930,7 +930,7 @@ Questões que precisam de decisão explícita dos responsáveis pelo Barber Hub 
 
 ---
 
-*Documento originalmente gerado por leitura direta do código e posteriormente revisado após a implementação da versão 1.6.0 / API 1.2.0. A Seção 29 registra a auditoria pós-implementação e as alterações de estado.*
+*Documento originalmente gerado por leitura direta do código e revisado após as releases 1.6 e 1.7. A Seção 30 registra o estado mais recente da camada de navegação/mobile e prevalece sobre estados anteriores quando houver conflito.*
 
 
 ---
@@ -1066,3 +1066,121 @@ Após aplicar a migration 15 e publicar a API 1.2, o núcleo técnico esperado p
 - [ ] habilitar **Confirm Email** no Supabase de produção;
 - [ ] opcional/recomendado: habilitar CAPTCHA (Turnstile/hCaptcha) no Supabase de produção;
 - [ ] teste manual em Android real e fluxo completo com contas de teste.
+
+
+---
+
+## 30. Revisão pós-implementação — Barber Hub 1.7.0
+
+> Esta seção registra a release de confiabilidade mobile e revisão visual criada após problemas reais encontrados em uso. Ela **prevalece sobre a Seção 29** para navegação, shell mobile, paridade web/mobile, precache, painéis e apresentação visual. A API permanece na versão 1.2 e o schema permanece até a migration 15.
+
+### 30.1 Diagnóstico que motivou a release
+
+A auditoria da 1.7 encontrou três causas estruturais para os relatos de 404, páginas de erro sem estilo e perda de acesso no mobile:
+
+1. `bhUrl()` reconhecia `/html/`, mas não tratava `/mobile/` como contexto próprio. Como a mesma lógica JS é compartilhada, destinos do tipo `html/conta.html` podiam ser resolvidos a partir da pasta mobile de forma inválida; assets/infraestrutura também podiam receber base errada.
+2. `release-1.6.css` ocultava o header web em `body.mobile-native`, enquanto `mobile-shell-v1.6.js` não fornecia botão de menu equivalente. O drawer de `ui.js` continuava contendo Conta/logout, mas ficava sem um acionador evidente na experiência instalada.
+3. `404.html` usava referências relativas para CSS/JS/imagens. Quando a Vercel entregava a 404 mantendo uma URL quebrada profunda, o navegador podia procurar os assets abaixo daquela pasta inexistente e renderizar a própria tela de erro sem estilização. A 1.7 usa referências desde a raiz na página 404.
+
+A consequência prática era uma interface mobile que podia parecer completa em auditoria estrutural, mas ainda falhar em navegação gerada em runtime e em tarefas de conta.
+
+### 30.2 Roteamento e prevenção de novos 404
+
+`js/utils.js` agora diferencia raiz, `/html/` e `/mobile/`. Em páginas mobile:
+
+- `html/portal.html` → `/mobile/portal.html`;
+- `html/conta.html` → `/mobile/conta.html`;
+- `img/...` → `/img/...`;
+- `service-worker.js` → `/service-worker.js`;
+- `index.html` → `/mobile/index.html`.
+
+`scripts/check-mobile-routing.js` executa o resolvedor real em contexto isolado e também audita os documentos da pasta `/mobile`. O teste é parte de `npm run check`.
+
+### 30.3 Paridade funcional web/mobile
+
+A 1.7 elimina a manutenção manual das páginas funcionais duplicadas. `scripts/sync_mobile_pages.py` considera `/html/*.html` a fonte funcional e gera os equivalentes em `/mobile` com apenas adaptações de apresentação/SEO:
+
+- classe `mobile-native`;
+- remoção de `device-router.js`;
+- canonical + `noindex,follow`;
+- links estáticos mantidos dentro de `/mobile`;
+- inclusão de `mobile-shell-v1.7.js`.
+
+O modo `--check` compara o conteúdo gerado com o versionado. Assim, alterações futuras em Cliente, Painel, Admin, Conta, Beauty Hub ou outras páginas não podem ser entregues apenas no desktop sem a validação acusar divergência. `mobile/index.html` continua sendo a home específica do aplicativo.
+
+### 30.4 Shell e navegação mobile
+
+`js/mobile-shell-v1.7.js` restaura três ações de topo:
+
+- tema;
+- notificações;
+- **menu hambúrguer**, que abre o drawer compartilhado de `ui.js`.
+
+O drawer volta a ser um caminho garantido para conta, acessibilidade, instalação do PWA e **Sair da conta** quando autenticado.
+
+Docks por perfil:
+
+- **Cliente:** Início · Explorar · Agenda · Avisos · Conta;
+- **Barbeiro:** Painel · Agenda · Explorar · Avisos · Conta;
+- **Admin:** Admin · Mapa · Avisos · Suporte · Conta;
+- **Visitante:** Início · Explorar · Entrar · Criar · Suporte.
+
+No admin, os itens de navegação principal não usam mais `admin.html#secao` para simular páginas independentes. Usuários, estabelecimentos, agendamentos, avaliações, moderação e tickets continuam como áreas da tela administrativa; a navegação global aponta apenas para destinos realmente distintos.
+
+### 30.5 Painéis e densidade de informação
+
+**Cliente:** além da próxima ação e listas existentes, a visão inicial passa a mostrar Favoritos, Avaliações, Taxa de conclusão e Último atendimento.
+
+**Estabelecimento:** a visão inicial passa a mostrar Hoje, A confirmar, Equipe ativa e Reputação, além do status rápido e operação já existentes.
+
+**Admin:** aos KPIs/health existentes foram adicionados Pendências, Taxa de conclusão, Cobertura verificada e Agenda online. Espaçamentos de hero, toolbars, tabelas e seções foram revisados para separar melhor leitura, ação e monitoramento.
+
+As mesmas alterações chegam ao mobile por meio da geração de paridade descrita em 30.3.
+
+### 30.6 Revisão visual
+
+A camada `css/release-1.7.css` mantém preto/dourado como identidade Barber Hub e acrescenta detalhes gráficos de baixa opacidade inspirados em elementos clássicos de barbearia. O objetivo é criar personalidade sem transformar o fundo em decoração concorrente com os dados.
+
+Também foram padronizados:
+
+- altura/proporção de cards do marketplace;
+- favoritos com mídia 16:9;
+- portfólio com `aspect-ratio` previsível;
+- `object-fit: cover` para evitar deformação por imagens de origem diferentes;
+- espaços internos e alvos de toque mobile;
+- **selo Verificado** com maior tamanho, ícone e contraste em desktop/mobile.
+
+### 30.7 Beauty Hub
+
+Beauty Hub permanece **em preparação**. A 1.7 redesenha a página com linguagem própria de expansão (pérola/rose/violeta sobre a base visual do ecossistema), composição visual com categorias e um roadmap explícito. Nenhuma funcionalidade inexistente foi marcada como pronta.
+
+### 30.8 PWA e cache
+
+O cache atual passa a ser `barberhub-v1.7.0`. O precache inclui as páginas web/mobile atuais e os assets de shell 1.7. Respostas `/api/` continuam excluídas do cache estático para evitar dado transacional obsoleto.
+
+### 30.9 Validação técnica da 1.7
+
+A rodada local registrada em `docs/VERIFICACAO_1_7.md` aprovou:
+
+- paridade das 21 páginas funcionais geradas para `/mobile`;
+- 10 casos dinâmicos de roteamento + auditoria dos 22 HTML presentes em `/mobile`;
+- 48 páginas HTML sem links locais quebrados/IDs duplicados na auditoria estrutural;
+- 37 arquivos JavaScript em `node --check`;
+- validação estrutural Python;
+- 9/9 testes FastAPI.
+
+A renderização automatizada local com Chromium foi bloqueada pela política do ambiente antes da navegação (`ERR_BLOCKED_BY_ADMINISTRATOR`). Portanto, a validação visual final **continua obrigatória após deploy**, em navegador/aparelho real com contas de cliente, barbeiro e admin.
+
+### 30.10 Critério de publicação 1.7
+
+- [x] corrigir base de URLs em `/mobile`;
+- [x] restaurar menu hambúrguer e acesso a conta/logout;
+- [x] sincronizar melhorias de Cliente/Painel/Admin com mobile;
+- [x] remover âncoras de seção da navegação global do admin;
+- [x] padronizar cards/imagens e reforçar selo Verificado;
+- [x] revisar Beauty Hub;
+- [x] ampliar precache e versionar Service Worker;
+- [x] adicionar testes de regressão de navegação mobile;
+- [ ] publicar a 1.7 na Vercel;
+- [ ] executar teste visual/manual real em 360, 390, 412, 768px e desktop;
+- [ ] validar login/logout, Conta, Cliente, Painel, Admin e PWA com sessões reais após deploy.
