@@ -1,5 +1,5 @@
 /**
- * Auditoria local do Barber Hub 1.7.1.
+ * Auditoria local do Barber Hub 1.7.2 hotfix.
  *
  * Não depende de bibliotecas externas. O script verifica estrutura, referências
  * locais, IDs duplicados, presença da API Python e vazamento acidental de
@@ -141,7 +141,7 @@ if (errors.length) {
   process.exit(1);
 }
 
-console.log(`Barber Hub 1.7.1: ${required.length} arquivos centrais encontrados.`);
+console.log(`Barber Hub 1.7.2: ${required.length} arquivos centrais encontrados.`);
 console.log(`${htmlFiles.length} páginas HTML verificadas, sem IDs duplicados ou links locais quebrados.`);
 console.log(`${jsFiles.length} arquivos JavaScript passaram por node --check.`);
 console.log("Nenhuma chave secreta foi encontrada nos arquivos públicos auditados.");

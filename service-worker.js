@@ -1,9 +1,9 @@
 /*
- * Barber Hub PWA — cache 1.7.1
+ * Barber Hub PWA — cache 1.7.2
  * Network-first para conteúdo; API nunca é armazenada. A experiência instalada
  * inicia na interface HTML dedicada em /mobile.
  */
-const CACHE = 'barberhub-v1.7.1';
+const CACHE = 'barberhub-v1.7.2';
 const CORE = [
   './', './index.html', './offline.html', './mobile/index.html',
   './css/framework.css', './css/global.css', './css/pages.css', './css/index.css', './css/mobile-app.css', './css/release-1.4.1.css', './css/product-redesign.css', './css/release-1.6.css', './css/release-1.7.css', './css/release-1.7.1.css',
@@ -33,9 +33,19 @@ self.addEventListener('fetch', event => {
   event.respondWith(
     fetch(event.request)
       .then(response => {
-        if (response.ok) caches.open(CACHE).then(cache => cache.put(event.request, response.clone()));
+        // A cópia precisa ser criada ANTES de devolver a Response ao navegador.
+        // Se o clone for feito dentro de uma Promise posterior, o body pode já
+        // ter sido consumido e o Chromium lança: "Response body is already used".
+        if (response.ok) {
+          const cacheCopy = response.clone();
+          caches.open(CACHE)
+            .then(cache => cache.put(event.request, cacheCopy))
+            .catch(error => console.warn('[Barber Hub SW] cache put ignorado:', error));
+        }
         return response;
       })
-      .catch(async () => isNavigation ? (await caches.match(event.request) || await caches.match('./offline.html')) : caches.match(event.request))
+      .catch(async () => isNavigation
+        ? (await caches.match(event.request) || await caches.match('./offline.html'))
+        : caches.match(event.request))
   );
 });

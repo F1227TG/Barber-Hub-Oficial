@@ -1,31 +1,14 @@
 /*
- * Barber Hub 1.7.1 — Mobile polish, navigation hardening and app-like motion
+ * Barber Hub 1.7.2 hotfix — Mobile polish, navigation hardening and safe app-like motion
  * Camada incremental sobre release-1.7.css.
  */
 
 /* ========================================================================== 
    1. Navegação entre páginas — enhancement progressivo
    ========================================================================== */
-@view-transition {
-  navigation: auto;
-}
-
-@media (max-width: 760px) and (prefers-reduced-motion: no-preference) {
-  ::view-transition-old(root) {
-    animation: bh-vt-old .16s cubic-bezier(.4,0,1,1) both;
-  }
-  ::view-transition-new(root) {
-    animation: bh-vt-new .24s cubic-bezier(.2,.75,.25,1) both;
-  }
-}
-
-@keyframes bh-vt-old {
-  to { opacity: 0; transform: translate3d(-8px,0,0) scale(.995); }
-}
-@keyframes bh-vt-new {
-  from { opacity: 0; transform: translate3d(10px,0,0) scale(.995); }
-  to { opacity: 1; transform: none; }
-}
+/* Cross-document View Transitions foram removidas na 1.7.2.
+   Em alguns Chromium/PWA o snapshot podia permanecer sobre a página e dar
+   a impressão de tela congelada. Mantemos abaixo apenas motion CSS/JS seguro. */
 
 body.mobile-native:not(.reduzir-movimento) main {
   animation: bh-mobile-page-enter .26s cubic-bezier(.2,.75,.25,1) both;

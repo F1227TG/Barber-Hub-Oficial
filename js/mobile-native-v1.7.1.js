@@ -1,4 +1,4 @@
-/** Barber Hub 1.7.1 — navegação mobile resiliente + microinterações. */
+/** Barber Hub 1.7.2 hotfix — navegação mobile resiliente + microinterações seguras. */
 (() => {
   "use strict";
 
@@ -55,7 +55,24 @@
     event.preventDefault();
     document.body.classList.add("mobile-nav-leaving");
     const target = anchor.href;
-    window.setTimeout(() => location.assign(target), document.body.classList.contains("reduzir-movimento") ? 0 : 105);
+    const delay = document.body.classList.contains("reduzir-movimento") ? 0 : 90;
+
+    // Fail-safe: se a navegação for bloqueada/abortada, a página nunca fica
+    // presa no estado visual de saída.
+    const resetTimer = window.setTimeout(() => {
+      document.body.classList.remove("mobile-nav-leaving");
+    }, 700);
+
+    window.setTimeout(() => {
+      try {
+        location.assign(target);
+      } catch (error) {
+        window.clearTimeout(resetTimer);
+        document.body.classList.remove("mobile-nav-leaving");
+        console.warn("Barber Hub: navegação animada falhou; usando fallback.", error);
+        location.href = target;
+      }
+    }, delay);
   });
 
   window.addEventListener("pageshow", () => document.body.classList.remove("mobile-nav-leaving"));

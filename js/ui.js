@@ -560,7 +560,7 @@ function bhCriarDockMobile(perfil, contadores = {}){
   window.addEventListener("hashchange", marcarAtivo);
 }
 function bhPrepararPWA(){
-  if('serviceWorker' in navigator&&location.protocol.startsWith('http')) navigator.serviceWorker.register(bhUrl('service-worker.js')).catch(console.warn);
+  if('serviceWorker' in navigator&&location.protocol.startsWith('http')) navigator.serviceWorker.register(bhUrl('service-worker.js'),{updateViaCache:'none'}).then(reg=>reg.update().catch(()=>{})).catch(console.warn);
   let deferred;
 
 }
