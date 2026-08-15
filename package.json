@@ -1,6 +1,6 @@
 {
   "name": "barber-hub-oficial",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "private": true,
   "description": "Portal, gestão, PWA e API própria em Python do Barber Hub.",
   "scripts": {

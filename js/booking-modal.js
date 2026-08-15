@@ -220,7 +220,7 @@
       if (state.services.size) params.set("servicos", [...state.services].join(","));
       if (state.professionalId) params.set("profissional", state.professionalId);
       const nextUrl = encodeURIComponent(`${location.pathname}?${params.toString()}`);
-      setTimeout(() => { location.href = `login.html?next=${nextUrl}`; }, 550);
+      setTimeout(() => { location.href = `${bhUrl("html/login.html")}?next=${nextUrl}`; }, 550);
       return;
     }
     state.loading = true;
@@ -238,7 +238,7 @@
       });
       mostrarToast("sucesso", "Agendamento enviado", "O estabelecimento recebeu sua solicitação.");
       close();
-      setTimeout(() => { location.href = "cliente.html"; }, 750);
+      setTimeout(() => { location.href = bhUrl("html/cliente.html"); }, 750);
       return result;
     } catch (error) {
       mostrarToast("erro", "Não foi possível agendar", bhErroMensagem(error));

@@ -63,7 +63,7 @@ function bhRenderCliente(perfil) {
     } else {
       proximoTitulo.textContent = "Seu próximo corte começa por uma boa escolha";
       proximoDetalhe.textContent = "Explore locais, veja quem está aberto e agende em poucos toques.";
-      proximoAcao.href = "portal.html";
+      proximoAcao.href = bhUrl("html/portal.html");
       proximoAcao.innerHTML = '<i class="bi bi-search"></i> Explorar locais';
     }
   }

@@ -1,6 +1,20 @@
-# Barber Hub — versão 1.7.0
+# Barber Hub — versão 1.7.1
 
 O Barber Hub é um **marketplace digital de serviços** com gestão integrada para barbearias. Clientes descobrem estabelecimentos, verificam disponibilidade, conhecem serviços/equipe e agendam; profissionais administram operação, agenda, portfólio e reputação. Uma plataforma de **The Gamers Tech**.
+
+
+## Entrega 1.7.1 — Mobile App Polish & Route Hardening
+
+- rotas mobile absolutas e runtime normalizado, com teste específico do CTA Explorar;
+- redirecionamentos JS compartilhados passam por `bhUrl()`;
+- View Transitions + fallback leve para navegação com sensação de aplicativo;
+- KPIs/cards mobile reorganizados em grade, sem cortes/carrossel estreito;
+- drawer com cards/contornos e links de Privacidade/Termos/Sobre;
+- controles de instalar app somem em PWA standalone;
+- home mobile redesenhada com mais identidade;
+- Essencial, Profissional e Elite marcados como Em desenvolvimento;
+- Service Worker `barberhub-v1.7.1`;
+- API 1.2 e migration 15 permanecem inalteradas.
 
 ## Entrega 1.7.0 — Mobile Reliability & Visual Refresh
 
@@ -137,6 +151,6 @@ A validação inclui paridade mobile, regressão de URLs, referências locais, s
 ```bash
 git status
 git add .
-git commit -m "Atualiza Barber Hub para versão 1.7.0"
+git commit -m "fix: atualiza Barber Hub para versão 1.7.1"
 git push origin main
 ```

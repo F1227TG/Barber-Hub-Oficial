@@ -34,9 +34,14 @@
     "mapa-sistema": ["Mapa do sistema", "Visão técnica da plataforma"],
   };
 
+  function appUrl(path) {
+    if (typeof global.bhUrl === "function") return global.bhUrl(`html/${path}`);
+    return `/mobile/${path}`;
+  }
+
   function link(path, icon, text, active = false, badge = "") {
     const badgeHtml = badge ? `<span class="nav-badge" ${badge} hidden aria-hidden="true"></span>` : "";
-    return `<a href="${path}" class="${active ? "ativo" : ""}"><i class="bi ${icon}"></i><span>${text}</span>${badgeHtml}</a>`;
+    return `<a href="${appUrl(path)}" class="${active ? "ativo" : ""}"><i class="bi ${icon}"></i><span>${text}</span>${badgeHtml}</a>`;
   }
 
   function prepareResponsiveTables(root = document) {
@@ -64,10 +69,10 @@
     const header = document.createElement("header");
     header.className = "mobile-app-header";
     header.innerHTML = `<div class="mobile-app-header-inner">
-      <a class="mobile-app-brand" href="index.html"><img src="../img/logomarcaTRANSPARENTE.png" alt=""><span><strong>${esc(title)}</strong><span>${esc(subtitle)}</span></span></a>
+      <a class="mobile-app-brand" href="${appUrl("index.html")}"><img src="../img/logomarcaTRANSPARENTE.png" alt=""><span><strong>${esc(title)}</strong><span>${esc(subtitle)}</span></span></a>
       <div class="mobile-app-header-actions">
         <button class="icon-btn" type="button" id="mobileThemeButton" aria-label="Alternar tema"><i class="bi bi-circle-half"></i></button>
-        <a class="icon-btn" href="notificacoes.html" aria-label="Notificações"><i class="bi bi-bell"></i><span class="nav-badge" data-badge-notificacoes hidden aria-hidden="true"></span></a>
+        <a class="icon-btn" href="${appUrl("notificacoes.html")}" aria-label="Notificações"><i class="bi bi-bell"></i><span class="nav-badge" data-badge-notificacoes hidden aria-hidden="true"></span></a>
         <button class="icon-btn mobile-app-menu-button" type="button" id="mobileMenuButton" aria-label="Abrir menu da conta" aria-haspopup="dialog"><i class="bi bi-list"></i></button>
       </div>
     </div>`;

@@ -25,6 +25,8 @@
     const installed = isStandalone();
     installButtons().forEach(button => {
       button.classList.toggle("is-installed", installed);
+      button.hidden = installed;
+      button.toggleAttribute("hidden", installed);
       button.setAttribute("aria-disabled", installed ? "true" : "false");
       const label = button.querySelector("[data-install-label]");
       const helper = button.querySelector("[data-install-helper]");
@@ -106,7 +108,10 @@
   }
 
   function observeDynamicContent() {
-    const observer = new MutationObserver(() => labelDynamicTables());
+    const observer = new MutationObserver(() => {
+      labelDynamicTables();
+      updateInstallButtons();
+    });
     observer.observe(document.body, { childList: true, subtree: true });
   }
 

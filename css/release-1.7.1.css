@@ -1,0 +1,326 @@
+/*
+ * Barber Hub 1.7.1 — Mobile polish, navigation hardening and app-like motion
+ * Camada incremental sobre release-1.7.css.
+ */
+
+/* ========================================================================== 
+   1. Navegação entre páginas — enhancement progressivo
+   ========================================================================== */
+@view-transition {
+  navigation: auto;
+}
+
+@media (max-width: 760px) and (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root) {
+    animation: bh-vt-old .16s cubic-bezier(.4,0,1,1) both;
+  }
+  ::view-transition-new(root) {
+    animation: bh-vt-new .24s cubic-bezier(.2,.75,.25,1) both;
+  }
+}
+
+@keyframes bh-vt-old {
+  to { opacity: 0; transform: translate3d(-8px,0,0) scale(.995); }
+}
+@keyframes bh-vt-new {
+  from { opacity: 0; transform: translate3d(10px,0,0) scale(.995); }
+  to { opacity: 1; transform: none; }
+}
+
+body.mobile-native:not(.reduzir-movimento) main {
+  animation: bh-mobile-page-enter .26s cubic-bezier(.2,.75,.25,1) both;
+}
+body.mobile-native.mobile-nav-leaving:not(.reduzir-movimento) main {
+  opacity:0;
+  transform:translate3d(-7px,0,0) scale(.997);
+  transition:opacity .11s ease,transform .11s ease;
+}
+@keyframes bh-mobile-page-enter {
+  from { opacity:.01; transform:translate3d(0,7px,0); }
+  to { opacity:1; transform:none; }
+}
+
+body.mobile-native a,
+body.mobile-native button,
+body.mobile-native .card,
+body.mobile-native .kpi {
+  -webkit-tap-highlight-color: transparent;
+}
+body.mobile-native a:active,
+body.mobile-native button:active {
+  transform:scale(.975);
+}
+body.mobile-native .mobile-app-dock a:active,
+body.mobile-native .mobile-action-card:active {
+  transform:translateY(1px) scale(.965);
+}
+body.mobile-native.reduzir-movimento main,
+body.mobile-native.reduzir-movimento a,
+body.mobile-native.reduzir-movimento button,
+body.mobile-native.reduzir-movimento .card { animation:none!important; transition:none!important; transform:none!important; }
+
+/* ========================================================================== 
+   2. Drawer / lateral — cada grupo volta a parecer um card real
+   ========================================================================== */
+.app-drawer .drawer-section {
+  margin:14px 0;
+  padding:14px;
+  border:1px solid var(--border);
+  border-radius:18px;
+  background:color-mix(in srgb,var(--surface-soft) 74%,transparent);
+  box-shadow:0 8px 24px rgba(0,0,0,.08);
+}
+.app-drawer .drawer-section h3 {
+  margin:0 0 10px;
+  color:var(--muted);
+  font-size:.72rem;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.app-drawer .drawer-links a {
+  min-width:0;
+  border:1px solid color-mix(in srgb,var(--border) 86%,transparent);
+  background:color-mix(in srgb,var(--surface) 88%,transparent);
+}
+.app-drawer .drawer-links a span { min-width:0; overflow-wrap:anywhere; }
+.app-drawer .drawer-links a:hover,
+.app-drawer .drawer-links a:focus-visible {
+  border-color:var(--gold-border);
+  background:var(--gold-soft);
+}
+.app-drawer .drawer-legal-links { grid-template-columns:1fr; }
+.app-drawer .drawer-legal-links a { min-height:48px; }
+
+.dashboard .sidebar .user-box,
+.dashboard .sidebar .sidebar-status-control,
+.dashboard .sidebar .side-menu > .btn,
+.dashboard .sidebar .side-menu > a {
+  border:1px solid var(--border);
+  box-shadow:0 7px 20px rgba(0,0,0,.06);
+}
+.dashboard .sidebar .side-menu > .btn-dark,
+.dashboard .sidebar .side-menu > a.btn-dark {
+  background:color-mix(in srgb,var(--surface) 80%,transparent);
+}
+
+/* ========================================================================== 
+   3. Mobile — eliminar carrosséis estreitos/cortes em cards de conta e painel
+   ========================================================================== */
+body.mobile-native {
+  overscroll-behavior-y:none;
+}
+body.mobile-native main,
+body.mobile-native .container,
+body.mobile-native .panel-section,
+body.mobile-native .card,
+body.mobile-native .form-card,
+body.mobile-native .command-primary,
+body.mobile-native .command-actions,
+body.mobile-native .quick-status-card,
+body.mobile-native .account-section,
+body.mobile-native .admin-section,
+body.mobile-native .table-wrap {
+  min-width:0;
+  max-width:100%;
+}
+body.mobile-native h1,
+body.mobile-native h2,
+body.mobile-native h3,
+body.mobile-native strong,
+body.mobile-native p,
+body.mobile-native small,
+body.mobile-native .btn,
+body.mobile-native .tag {
+  overflow-wrap:anywhere;
+}
+body.mobile-native .btn { white-space:normal; text-align:center; }
+
+body.mobile-native .client-detail-grid,
+body.mobile-native .professional-detail-grid,
+body.mobile-native .admin-detail-grid,
+body.mobile-native .client-kpis,
+body.mobile-native .kpis {
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:9px!important;
+  overflow:visible!important;
+  margin-inline:0!important;
+  padding:0!important;
+  scroll-snap-type:none!important;
+}
+body.mobile-native .dashboard-detail-card,
+body.mobile-native .client-kpis > *,
+body.mobile-native .kpis > * {
+  width:auto!important;
+  min-width:0!important;
+  max-width:none!important;
+  flex:none!important;
+  min-height:112px;
+}
+body.mobile-native .dashboard-detail-card {
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  gap:8px;
+  padding:13px;
+}
+body.mobile-native .dashboard-detail-card > span {
+  display:flex;
+  align-items:flex-start;
+  gap:6px;
+  white-space:normal;
+  line-height:1.3;
+}
+body.mobile-native .dashboard-detail-card > strong { font-size:1.32rem; line-height:1.05; }
+body.mobile-native .dashboard-detail-card > small { font-size:.65rem; line-height:1.35; }
+body.mobile-native .kpi { padding:14px; border-radius:17px; }
+body.mobile-native .kpi strong { font-size:1.32rem; }
+body.mobile-native .kpi span { white-space:normal; line-height:1.25; }
+
+body.mobile-native .professional-command-center,
+body.mobile-native .client-command-center { gap:10px; }
+body.mobile-native .command-primary,
+body.mobile-native .command-actions,
+body.mobile-native .quick-status-card { width:100%; }
+body.mobile-native .command-actions { grid-template-columns:repeat(2,minmax(0,1fr)); }
+body.mobile-native .command-actions .btn,
+body.mobile-native .command-actions a { min-width:0; padding-inline:9px; }
+body.mobile-native .quick-status-card { overflow:hidden; }
+body.mobile-native .status-segment { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); overflow:visible; }
+body.mobile-native .status-segment button { min-width:0!important; padding-inline:7px; }
+body.mobile-native .status-segment button span,
+body.mobile-native .status-segment button small { overflow-wrap:anywhere; }
+
+body.mobile-native .panel-section { overflow:visible; }
+body.mobile-native .panel-section.ativo { animation:bh-panel-mobile .2s ease both; }
+@keyframes bh-panel-mobile { from { opacity:.2; transform:translateY(5px); } to { opacity:1; transform:none; } }
+
+/* Tabelas transformadas em cards não podem escapar do contêiner. */
+body.mobile-native .responsive-table tr,
+body.mobile-native .responsive-table td { min-width:0; max-width:100%; }
+body.mobile-native .responsive-table td { overflow-wrap:anywhere; }
+
+/* ========================================================================== 
+   4. Home mobile — mais identidade e ritmo de aplicativo
+   ========================================================================== */
+body.mobile-native.mobile-home-v171 {
+  background:
+    radial-gradient(circle at 86% 2%,color-mix(in srgb,var(--gold) 15%,transparent),transparent 28%),
+    radial-gradient(circle at -8% 30%,rgba(125,23,30,.12),transparent 28%),
+    var(--bg);
+}
+.mobile-home-main { padding-bottom:12px; }
+.mobile-home-hero {
+  position:relative;
+  overflow:hidden;
+  padding:calc(30px + env(safe-area-inset-top)) 0 25px;
+  isolation:isolate;
+}
+.mobile-home-hero::before {
+  content:"";
+  position:absolute;
+  width:210px;
+  height:210px;
+  right:-92px;
+  top:-55px;
+  border:1px solid color-mix(in srgb,var(--gold) 18%,transparent);
+  border-radius:50%;
+  box-shadow:0 0 0 34px color-mix(in srgb,var(--gold) 3%,transparent),0 0 0 68px color-mix(in srgb,var(--gold) 2%,transparent);
+  z-index:-1;
+}
+.mobile-home-barber-lines {
+  position:absolute;
+  width:76px;
+  height:230px;
+  right:17px;
+  top:54px;
+  opacity:.10;
+  border-radius:999px;
+  transform:rotate(17deg);
+  background:repeating-linear-gradient(135deg,#8f1d25 0 16px,#f0e9d9 16px 32px,#1d4268 32px 48px,#f0e9d9 48px 64px);
+  filter:saturate(.75);
+  z-index:-1;
+}
+.mobile-home-kicker {
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  min-height:34px;
+  padding:0 12px;
+  border:1px solid var(--gold-border);
+  border-radius:999px;
+  background:color-mix(in srgb,var(--surface) 88%,transparent);
+  color:var(--muted);
+  font-size:.68rem;
+  font-weight:900;
+  letter-spacing:.05em;
+  text-transform:uppercase;
+}
+.mobile-live-dot { width:7px; height:7px; border-radius:50%; background:#58c987; box-shadow:0 0 0 5px rgba(88,201,135,.12); }
+.mobile-home-mark {
+  display:grid;
+  place-items:center;
+  width:54px;
+  height:54px;
+  margin:21px 0 12px;
+  border:1px solid var(--gold-border);
+  border-radius:18px;
+  background:linear-gradient(145deg,var(--gold-2),var(--gold));
+  color:#17130c;
+  box-shadow:0 14px 35px color-mix(in srgb,var(--gold) 20%,transparent);
+  transform:rotate(-4deg);
+  font-size:1.4rem;
+}
+.mobile-home-hero h1 { max-width:335px; margin:0; font-size:clamp(2.35rem,12vw,3.2rem); line-height:.94; letter-spacing:-.055em; }
+.mobile-home-hero h1 em { color:var(--gold-2); font-style:normal; }
+.mobile-home-hero > .container > p { max-width:320px; margin:14px 0 0; color:var(--muted); font-size:.92rem; line-height:1.6; }
+.mobile-home-hero-actions { display:grid; gap:9px; margin-top:21px; }
+.mobile-home-hero-actions .btn { min-height:52px; border-radius:16px; }
+.mobile-home-proof { display:flex; flex-wrap:wrap; gap:7px; margin-top:15px; }
+.mobile-home-proof span { display:inline-flex; align-items:center; gap:6px; min-height:30px; padding:0 9px; border:1px solid var(--border); border-radius:999px; background:color-mix(in srgb,var(--surface) 78%,transparent); color:var(--muted); font-size:.62rem; font-weight:800; }
+.mobile-home-proof i { color:var(--gold-2); }
+.mobile-home-actions-section { padding-top:10px!important; }
+.mobile-section-heading { display:flex; align-items:flex-end; justify-content:space-between; gap:12px; margin-bottom:13px; }
+.mobile-section-heading > div > span { color:var(--gold-2); font-size:.64rem; font-weight:900; letter-spacing:.09em; text-transform:uppercase; }
+.mobile-section-heading h2 { margin:4px 0 0; font-size:1.14rem; }
+.mobile-section-heading > i { width:36px; height:36px; display:grid; place-items:center; border-radius:12px; border:1px solid var(--border); background:var(--surface); color:var(--gold-2); }
+.mobile-home-action-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; }
+.mobile-action-card { position:relative; min-width:0; min-height:154px; display:flex; flex-direction:column; align-items:flex-start; gap:7px; padding:15px; overflow:hidden; border:1px solid var(--border); border-radius:19px; background:linear-gradient(150deg,color-mix(in srgb,var(--surface) 95%,transparent),color-mix(in srgb,var(--surface-soft) 85%,transparent)); box-shadow:0 9px 25px rgba(0,0,0,.08); color:var(--text); }
+.mobile-action-card::after { content:""; position:absolute; right:-28px; bottom:-34px; width:88px; height:88px; border-radius:50%; background:var(--gold-soft); }
+.mobile-action-card > i { width:39px; height:39px; display:grid; place-items:center; border-radius:13px; background:var(--surface-soft); border:1px solid var(--border); color:var(--gold-2); font-size:1rem; }
+.mobile-action-card strong { position:relative; z-index:1; font-size:.84rem; line-height:1.2; }
+.mobile-action-card span { position:relative; z-index:1; color:var(--muted); font-size:.68rem; line-height:1.42; }
+.mobile-action-card.primary { border-color:var(--gold-border); background:linear-gradient(145deg,color-mix(in srgb,var(--gold) 13%,var(--surface)),var(--surface)); }
+.mobile-home-status-section { padding-top:18px!important; }
+.mobile-home-stats { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; }
+.mobile-home-stats article { padding:15px; border:1px solid var(--border); border-radius:18px; background:var(--surface); }
+.mobile-home-stats span,.mobile-home-stats small { display:block; color:var(--muted); font-size:.65rem; }
+.mobile-home-stats strong { display:block; margin:7px 0 3px; color:var(--gold-2); font-size:1.65rem; line-height:1; }
+.mobile-home-discover { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:10px; padding:14px; border:1px solid var(--border); border-radius:18px; background:var(--surface); color:var(--text); }
+.mobile-home-discover > span { display:flex; align-items:center; gap:11px; min-width:0; }
+.mobile-home-discover > span > i { width:40px; height:40px; flex:0 0 40px; display:grid; place-items:center; border-radius:13px; background:var(--gold-soft); color:var(--gold-2); }
+.mobile-home-discover strong,.mobile-home-discover small { display:block; }
+.mobile-home-discover small { margin-top:3px; color:var(--muted); font-size:.65rem; line-height:1.35; }
+
+/* ========================================================================== 
+   5. Planos — Essencial, Profissional e Elite ainda não disponíveis
+   ========================================================================== */
+.plan-card.development { position:relative; opacity:.82; filter:saturate(.78); }
+.plan-card.development .development-ribbon { background:linear-gradient(135deg,#2c3037,#444b55); color:#f3f4f6; }
+.plan-card.development .plan-price strong { color:var(--muted); }
+.plan-card.development .btn[disabled] { opacity:.72; cursor:not-allowed; }
+
+[data-install-app][hidden] { display:none!important; }
+
+@media (max-width:390px) {
+  body.mobile-native .client-detail-grid,
+  body.mobile-native .professional-detail-grid,
+  body.mobile-native .admin-detail-grid,
+  body.mobile-native .client-kpis,
+  body.mobile-native .kpis { gap:7px!important; }
+  body.mobile-native .dashboard-detail-card { min-height:108px; padding:11px; }
+  body.mobile-native .dashboard-detail-card > span { font-size:.65rem; }
+  body.mobile-native .dashboard-detail-card > strong { font-size:1.2rem; }
+  body.mobile-native .command-actions { grid-template-columns:1fr; }
+  .mobile-action-card { min-height:145px; padding:13px; }
+}

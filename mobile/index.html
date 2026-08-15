@@ -13,35 +13,54 @@
 <link href="../css/framework.css" rel="stylesheet"/>
 <link href="../css/global.css" rel="stylesheet"/>
 <link href="../css/pages.css" rel="stylesheet"/>
-<link href="../css/release-1.6.css" rel="stylesheet"/><link href="../css/release-1.7.css" rel="stylesheet"/>
+<link href="../css/release-1.6.css" rel="stylesheet"/><link href="../css/release-1.7.css" rel="stylesheet"/><link href="../css/release-1.7.1.css" rel="stylesheet"/>
 <meta content="noindex,follow" name="robots"/><link href="https://barberhuboficial.vercel.app/" rel="canonical"/></head>
-<body class="mobile-native mobile-home-v17 page-home">
-<main id="conteudo-principal">
-<section class="section" style="padding-top:22px">
-<div class="container">
-<span class="tag compact"><i class="bi bi-scissors"></i> Barber Hub</span>
-<h1 style="font-size:2rem;line-height:1.04;margin:10px 0">Seu próximo atendimento, sem complicação.</h1>
-<p class="texto-section">Veja quem está aberto, compare rapidamente e agende no mesmo lugar.</p>
-<a class="btn btn-primary full" href="portal.html" style="margin-top:16px;min-height:54px"><i class="bi bi-search"></i> Encontrar um local</a>
-<button class="btn btn-outline full" data-install-app="" style="margin-top:9px;min-height:50px" type="button"><i class="bi bi-phone"></i> Instalar Barber Hub</button>
-</div>
+<body class="mobile-native mobile-home-v171 page-home">
+<main id="conteudo-principal" class="mobile-home-main">
+<section class="mobile-home-hero">
+  <div class="mobile-home-barber-lines" aria-hidden="true"></div>
+  <div class="container">
+    <div class="mobile-home-kicker"><span class="mobile-live-dot"></span> Barber Hub no seu ritmo</div>
+    <div class="mobile-home-mark" aria-hidden="true"><i class="bi bi-scissors"></i></div>
+    <h1>Seu próximo corte começa <em>aqui.</em></h1>
+    <p>Descubra locais, veja quem está aberto e organize seu atendimento com poucos toques.</p>
+    <div class="mobile-home-hero-actions">
+      <a class="btn btn-primary full" href="/mobile/portal.html"><i class="bi bi-compass"></i> Explorar agora</a>
+      <button class="btn btn-outline full" data-install-app type="button"><i class="bi bi-phone"></i> Instalar Barber Hub</button>
+    </div>
+    <div class="mobile-home-proof">
+      <span><i class="bi bi-shield-check"></i> Avaliações</span>
+      <span><i class="bi bi-calendar2-check"></i> Agenda</span>
+      <span><i class="bi bi-door-open"></i> Aberto agora</span>
+    </div>
+  </div>
 </section>
-<section class="section" style="padding-top:4px">
-<div class="container">
-<div class="client-command-center" style="display:block">
-<div class="command-primary"><span class="command-eyebrow">Rápido e direto</span><h2>O que você precisa?</h2><p>O aplicativo mostra primeiro as ações mais usadas.</p><div class="command-actions" style="margin-top:14px;padding:0;border:0;background:transparent"><a class="btn btn-outline" href="portal.html"><i class="bi bi-door-open"></i> Abertos agora</a><a class="btn btn-outline" href="cliente.html"><i class="bi bi-calendar2-check"></i> Minha agenda</a></div></div>
-</div>
-<div class="admin-health-live" id="mobilePublicStats">
-<div class="admin-service-health"><span>Locais</span><strong id="mobileStatPlaces">—</strong></div>
-<div class="admin-service-health"><span>Com agenda</span><strong id="mobileStatAgenda">—</strong></div>
-</div>
-</div>
+<section class="section mobile-home-actions-section">
+  <div class="container">
+    <div class="mobile-section-heading"><div><span>Atalhos</span><h2>O que você quer fazer?</h2></div><i class="bi bi-lightning-charge"></i></div>
+    <div class="mobile-home-action-grid">
+      <a class="mobile-action-card primary" href="/mobile/portal.html"><i class="bi bi-search"></i><strong>Encontrar um local</strong><span>Busque por serviço e disponibilidade.</span></a>
+      <a class="mobile-action-card" href="/mobile/cliente.html"><i class="bi bi-calendar-week"></i><strong>Minha agenda</strong><span>Acompanhe seus próximos horários.</span></a>
+      <a class="mobile-action-card" href="/mobile/notificacoes.html"><i class="bi bi-bell"></i><strong>Avisos</strong><span>Confirmações e novidades em um lugar.</span></a>
+      <a class="mobile-action-card" href="/mobile/beauty-hub.html"><i class="bi bi-stars"></i><strong>Beauty Hub</strong><span>Veja o que vem depois.</span></a>
+    </div>
+  </div>
+</section>
+<section class="section mobile-home-status-section">
+  <div class="container">
+    <div class="mobile-section-heading"><div><span>Ecossistema</span><h2>Barber Hub em números</h2></div><i class="bi bi-activity"></i></div>
+    <div class="mobile-home-stats" id="mobilePublicStats">
+      <article><span>Locais</span><strong id="mobileStatPlaces">—</strong><small>no marketplace</small></article>
+      <article><span>Com agenda</span><strong id="mobileStatAgenda">—</strong><small>prontos para agendar</small></article>
+    </div>
+    <a class="mobile-home-discover" href="/mobile/sobre.html"><span><i class="bi bi-shop-window"></i><span><strong>Mais que uma vitrine</strong><small>Marketplace + gestão do estabelecimento.</small></span></span><i class="bi bi-chevron-right"></i></a>
+  </div>
 </section>
 </main>
 <div class="toast" id="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/supabase-config.js"></script><script src="../js/supabase-client.js"></script><script src="../js/security.js"></script><script src="../js/backend-api.js"></script>
 <script src="../js/utils.js"></script><script src="../js/toast.js"></script><script src="../js/auth.js"></script><script src="../js/api.js"></script><script src="../js/ui.js"></script>
-<script src="../js/mobile-home-v1.6.js"></script><script src="../js/mobile-shell-v1.7.js"></script>
+<script src="../js/product-redesign.js"></script><script src="../js/mobile-home-v1.6.js"></script><script src="../js/mobile-shell-v1.7.js"></script><script src="../js/mobile-native-v1.7.1.js"></script>
 </body>
 </html>

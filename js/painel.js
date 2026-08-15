@@ -236,7 +236,7 @@ function bhRenderAvaliacoesPainel() {
 function bhRenderPaginaPublicaPreview() {
   const link = document.getElementById("linkPaginaPublica");
   const nome = document.getElementById("previewBusinessName");
-  if (link) link.href = `barbearia.html?id=${bhPainelEstabelecimento.id}`;
+  if (link) link.href = `${bhUrl("html/barbearia.html")}?id=${bhPainelEstabelecimento.id}`;
   if (nome) nome.textContent = bhPainelEstabelecimento.nome || "Seu estabelecimento";
 }
 
@@ -400,7 +400,7 @@ function bhDadosFormPortfolio(status) {
 async function bhRecarregarPainel() {
   bhPainelEstabelecimento = await bhObterMeuEstabelecimento();
   if (!bhPainelEstabelecimento) {
-    location.href = "cadastro-barbearia.html";
+    location.href = bhUrl("html/cadastro-barbearia.html");
     return;
   }
   [bhPainelAgendamentos, bhPainelPortfolio, bhPainelAvaliacoes] = await Promise.all([
@@ -427,7 +427,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   bhPainelPerfil = await bhRequireAuth(["barbeiro", "admin"]);
   if (!bhPainelPerfil) return;
   if (bhPainelPerfil.tipo === "barbeiro" && !bhPainelPerfil.onboarding_concluido) {
-    location.href = "cadastro-barbearia.html";
+    location.href = bhUrl("html/cadastro-barbearia.html");
     return;
   }
 

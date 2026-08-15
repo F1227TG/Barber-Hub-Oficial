@@ -172,7 +172,7 @@ async function bhConfirmarAgendamento(form) {
   if (!perfil) {
     mostrarToast("aviso", "Entre para confirmar", "Seu agendamento está montado. Faça login para finalizar.");
     const next = encodeURIComponent(`${location.pathname}${location.search}`);
-    setTimeout(() => { location.href = `login.html?next=${next}`; }, 700);
+    setTimeout(() => { location.href = `${bhUrl("html/login.html")}?next=${next}`; }, 700);
     return;
   }
 
@@ -197,7 +197,7 @@ async function bhConfirmarAgendamento(form) {
       observacao: document.getElementById("observacao").value.trim()
     });
     mostrarToast("sucesso", "Agendamento enviado", "O estabelecimento recebeu sua solicitação.");
-    setTimeout(() => { location.href = "cliente.html"; }, 850);
+    setTimeout(() => { location.href = bhUrl("html/cliente.html"); }, 850);
   } catch (erro) {
     mostrarToast("erro", "Não foi possível agendar", bhErroMensagem(erro));
     await bhRenderSlots();

@@ -163,6 +163,14 @@ function bhLinksExtrasDrawer(perfil, contadores = {}) {
   return [];
 }
 
+function bhLinksLegaisDrawer() {
+  return [
+    ["html/privacidade.html", "Privacidade", "bi-shield-lock"],
+    ["html/termos.html", "Termos de uso", "bi-file-earmark-text"],
+    ["html/sobre.html", "Sobre o Barber Hub", "bi-info-circle"]
+  ];
+}
+
 function bhRenderLinkExtraDrawer(link, contadores = {}) {
   const [url, texto, icone, badge] = link;
   const valor = badge === "moderacao" ? contadores.moderacao : 0;
@@ -174,6 +182,7 @@ function bhCriarDrawer(perfil, contadores = {}) {
   const drawer = document.createElement("div");
   const links = bhLinksPorPerfil(perfil, contadores).map(link => bhRenderLinkNavegacao(link, contadores, true)).join("");
   const extras = bhLinksExtrasDrawer(perfil, contadores).map(link => bhRenderLinkExtraDrawer(link, contadores)).join("");
+  const legais = bhLinksLegaisDrawer().map(link => bhRenderLinkExtraDrawer(link, contadores)).join("");
   drawer.innerHTML = `
     <div class="drawer-overlay" id="drawerOverlay"></div>
     <aside class="app-drawer" id="appDrawer" aria-hidden="true">
@@ -193,6 +202,7 @@ function bhCriarDrawer(perfil, contadores = {}) {
       </div>
       <nav class="drawer-links">${links}</nav>
       ${extras ? `<div class="drawer-section drawer-business-links"><h3>${perfil?.tipo === "barbeiro" ? "Gestão do negócio" : perfil?.tipo === "admin" ? "Administração" : "Sua conta"}</h3><nav class="drawer-links">${extras}</nav></div>` : ""}
+      <div class="drawer-section drawer-legal-section"><h3>Informações e políticas</h3><nav class="drawer-links drawer-legal-links">${legais}</nav></div>
       <div class="drawer-section">
         <h3>Acessibilidade</h3>
         <div class="a11y-grid">

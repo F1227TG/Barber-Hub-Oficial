@@ -62,7 +62,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const perfil = await bhRequireAuth(["barbeiro", "admin"]);
   if (!perfil) return;
   if (perfil.tipo === "barbeiro" && perfil.onboarding_concluido) {
-    location.href = "painel.html";
+    location.href = bhUrl("html/painel.html");
     return;
   }
 
@@ -143,7 +143,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       };
       await bhCriarEstabelecimentoInicial(payload);
       mostrarToast("sucesso", "Cadastro concluído", "Sua página e seu painel já estão disponíveis.");
-      setTimeout(() => { location.href = "painel.html"; }, 700);
+      setTimeout(() => { location.href = bhUrl("html/painel.html"); }, 700);
     } catch (erro) {
       mostrarToast("erro", "Não foi possível concluir", bhErroMensagem(erro));
     } finally {

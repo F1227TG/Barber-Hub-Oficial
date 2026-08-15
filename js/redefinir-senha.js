@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     try {
       await bhAtualizarSenha(senha);
       mostrarToast("sucesso", "Senha redefinida", "Você já pode entrar com a nova senha.");
-      setTimeout(() => { location.href = "login.html"; }, 800);
+      setTimeout(() => { location.href = bhUrl("html/login.html"); }, 800);
     } catch (erro) {
       mostrarToast("erro", "Não foi possível redefinir", bhErroMensagem(erro));
     } finally { bhSetButtonLoading(botao, false); }

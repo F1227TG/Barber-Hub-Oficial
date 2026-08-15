@@ -14,7 +14,36 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 HTML_DIR = ROOT / "html"
 MOBILE_DIR = ROOT / "mobile"
-SHELL = '<script src="../js/mobile-shell-v1.7.js"></script>'
+SHELL = '<script src="../js/mobile-shell-v1.7.js"></script><script src="../js/mobile-native-v1.7.1.js"></script>'
+MOBILE_PAGE_NAMES = {path.name for path in HTML_DIR.glob("*.html")} | {"index.html"}
+
+
+def normalize_mobile_hrefs(html: str) -> str:
+    """Converte destinos de páginas do app em URLs mobile absolutas."""
+    pattern = re.compile(r'href=(["\'])([^"\']+)\1', re.I)
+
+    def replace(match: re.Match[str]) -> str:
+        quote, value = match.group(1), match.group(2)
+        if not value or value.startswith("#") or re.match(r'^(https?:|mailto:|tel:|javascript:|data:)', value, re.I):
+            return match.group(0)
+        path_part = re.split(r'([?#].*)', value, maxsplit=1)
+        raw_path = path_part[0]
+        suffix = ''.join(path_part[1:])
+        normalized = raw_path.replace("\\", "/")
+        if normalized in ("../index.html", "./index.html", "index.html", "/index.html"):
+            return f'href={quote}/mobile/index.html{suffix}{quote}'
+        if normalized.startswith("../html/"):
+            normalized = normalized[8:]
+        elif normalized.startswith("/html/"):
+            normalized = normalized[6:]
+        elif normalized.startswith("./"):
+            normalized = normalized[2:]
+        name = normalized.rsplit("/", 1)[-1]
+        if name in MOBILE_PAGE_NAMES and ("/" not in normalized or normalized.startswith("mobile/")):
+            return f'href={quote}/mobile/{name}{suffix}{quote}'
+        return match.group(0)
+
+    return pattern.sub(replace, html)
 
 
 def add_mobile_class(html: str) -> str:
@@ -33,20 +62,17 @@ def transform(source: Path) -> str:
     html = html.replace('<script src="../js/device-router.js"></script>', "")
     html = add_mobile_class(html)
 
-    # Links estáticos visíveis também permanecem dentro de /mobile. Isso evita
-    # uma ida desnecessária a /html seguida de novo redirecionamento e elimina
-    # uma segunda classe de regressões de caminho relativo.
-    html = html.replace('href="../html/', 'href="')
-    html = html.replace("href='../html/", "href='")
-    html = html.replace('href="../index.html"', 'href="index.html"')
-    html = html.replace("href='../index.html'", "href='index.html'")
+    # Destinos de páginas mobile são absolutos para não depender da URL-base
+    # corrente nem de redirects intermediários do cleanUrls da Vercel.
+    html = normalize_mobile_hrefs(html)
 
     canonical = f'https://barberhuboficial.vercel.app/html/{source.stem}'
     mobile_meta = f'<meta content="noindex,follow" name="robots"/><link href="{canonical}" rel="canonical"/>'
     html = re.sub(r'<meta content="noindex,follow" name="robots"/><link href="https://barberhuboficial\.vercel\.app/html/[^"]+" rel="canonical"/>', "", html)
     html = html.replace("</head>", mobile_meta + "</head>", 1)
 
-    html = re.sub(r'<script src="\.\./js/mobile-shell-v1\.[0-9]+\.js"></script>', "", html)
+    html = re.sub(r'<script src="\.\./js/mobile-shell-v1\.[0-9.]+\.js"></script>', "", html)
+    html = html.replace('<script src="../js/mobile-native-v1.7.1.js"></script>', "")
     html = html.replace("</body>", SHELL + "</body>", 1)
     return html
 

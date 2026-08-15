@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const params = new URLSearchParams(location.search);
   const id = params.get("barbearia") || params.get("id");
   if (!id) {
-    location.replace("portal.html");
+    location.replace(bhUrl("html/portal.html"));
     return;
   }
   const next = new URLSearchParams();
@@ -16,5 +16,5 @@ document.addEventListener("DOMContentLoaded", () => {
     const value = params.get(key);
     if (value) next.set(key, value);
   });
-  location.replace(`barbearia.html?${next.toString()}`);
+  location.replace(`${bhUrl("html/barbearia.html")}?${next.toString()}`);
 });

@@ -80,8 +80,8 @@ def main() -> int:
                 warnings.append(f"{relative}: confira o rótulo do controle #{control_id}")
 
     sw = (ROOT / "service-worker.js").read_text(encoding="utf-8")
-    if "barberhub-v1.7.0" not in sw:
-        errors.append("service-worker.js não usa o cache barberhub-v1.7.0")
+    if "barberhub-v1.7.1" not in sw:
+        errors.append("service-worker.js não usa o cache barberhub-v1.7.1")
 
     for migration_name in ["14_api_python_agendamento_multisservicos.sql", "15_marketplace_fts_api_seguranca.sql"]:
         if not (ROOT / "sql" / migration_name).exists():

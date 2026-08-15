@@ -138,7 +138,7 @@ function bhAtualizarEstrelasComunidade(nota) {
 
 async function bhAbrirAvaliacaoComunidade(publicacao = null, trigger = null) {
   if (bhPerfilPortfolio?.tipo !== "cliente") {
-    location.href = `login.html?next=${encodeURIComponent(location.pathname + location.search + "#avaliacoes")}`;
+    location.href = `${bhUrl("html/login.html")}?next=${encodeURIComponent(location.pathname + location.search + "#avaliacoes")}`;
     return;
   }
   bhAlvoAvaliacaoComunidade = { publicacaoId: publicacao?.id || null };

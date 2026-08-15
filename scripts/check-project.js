@@ -1,5 +1,5 @@
 /**
- * Auditoria local do Barber Hub 1.7.0.
+ * Auditoria local do Barber Hub 1.7.1.
  *
  * Não depende de bibliotecas externas. O script verifica estrutura, referências
  * locais, IDs duplicados, presença da API Python e vazamento acidental de
@@ -23,10 +23,12 @@ const required = [
   "css/product-redesign.css",
   "css/release-1.6.css",
   "css/release-1.7.css",
+  "css/release-1.7.1.css",
   "js/product-redesign.js",
   "js/booking-modal.js",
   "js/device-router.js",
   "js/mobile-shell-v1.7.js",
+  "js/mobile-native-v1.7.1.js",
   "js/backend-api.js",
   "api/index.py",
   "backend/config.py",
@@ -100,6 +102,9 @@ for (const file of htmlFiles) {
   if (!html.includes("release-1.7.css") && !rel.endsWith("offline.html") && !["cadastro.html","listagem.html"].includes(rel)) {
     errors.push(`${rel} não carrega release-1.7.css.`);
   }
+  if (!html.includes("release-1.7.1.css") && !rel.endsWith("offline.html") && !["cadastro.html","listagem.html"].includes(rel)) {
+    errors.push(`${rel} não carrega release-1.7.1.css.`);
+  }
 }
 
 // Validação sintática de todos os módulos JavaScript do projeto.
@@ -136,7 +141,7 @@ if (errors.length) {
   process.exit(1);
 }
 
-console.log(`Barber Hub 1.7.0: ${required.length} arquivos centrais encontrados.`);
+console.log(`Barber Hub 1.7.1: ${required.length} arquivos centrais encontrados.`);
 console.log(`${htmlFiles.length} páginas HTML verificadas, sem IDs duplicados ou links locais quebrados.`);
 console.log(`${jsFiles.length} arquivos JavaScript passaram por node --check.`);
 console.log("Nenhuma chave secreta foi encontrada nos arquivos públicos auditados.");

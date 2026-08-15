@@ -25,7 +25,7 @@
 | Tipo de produto | Aplicação web + interface HTML mobile dedicada, instalável como PWA, multi-tenant (múltiplos estabelecimentos independentes), com backend próprio (API Python/FastAPI) sobre infraestrutura Supabase |
 | Empresa/divisão | The Gamers Tech |
 | Estágio atual | Produto em produção ativa (deploy Vercel), evoluindo por versões incrementais e documentadas (1.1 → 1.6). Não há, no repositório, uma declaração formal de "MVP concluído" — ver critério proposto na Seção 22 |
-| Versão analisada | Front-end/PWA **1.7.0** (`package.json`, cache do Service Worker `barberhub-v1.7.0`) · API própria **1.2.0** (`pyproject.toml`, `api/index.py`) · Schema de banco até a migration **15** (`15_marketplace_fts_api_seguranca.sql`) |
+| Versão analisada | Front-end/PWA **1.7.1** (`package.json`, cache do Service Worker `barberhub-v1.7.1`) · API própria **1.2.0** (`pyproject.toml`, `api/index.py`) · Schema de banco até a migration **15** (`15_marketplace_fts_api_seguranca.sql`) |
 | Repositório analisado | `Barber-Hub-Oficial-main.zip`, domínio de referência `barberhuboficial.vercel.app` |
 | Stack confirmada em código | HTML/CSS/JS vanilla + Bootstrap 5.3.6 (local, em camada `@layer`); Supabase (PostgreSQL, Auth, Storage, RLS, Realtime); backend próprio em Python 3.13+/FastAPI 0.117+/Pydantic 2.10+, empacotado como função serverless da Vercel (`api/index.py`); PWA com Service Worker e manifest próprios |
 
@@ -1184,3 +1184,48 @@ A renderização automatizada local com Chromium foi bloqueada pela política do
 - [ ] publicar a 1.7 na Vercel;
 - [ ] executar teste visual/manual real em 360, 390, 412, 768px e desktop;
 - [ ] validar login/logout, Conta, Cliente, Painel, Admin e PWA com sessões reais após deploy.
+
+
+---
+
+## 31. Revisão incremental — Barber Hub 1.7.1
+
+> Esta seção prevalece sobre a Seção 30 para navegação mobile, motion, drawer, cards/KPIs mobile, instalação PWA e disponibilidade comercial dos planos. API e banco não mudaram.
+
+### 31.1 Hardening de rotas mobile
+
+A 1.7.1 amplia a correção iniciada na 1.7: links estáticos entre páginas mobile são gerados como `/mobile/<pagina>.html`, o shell usa `bhUrl()` para seus destinos e redirecionamentos de módulos compartilhados (agendamento, painel, onboarding, avaliações e conta) também passam pelo resolvedor. `mobile-native-v1.7.1.js` normaliza links adicionados em runtime. O objetivo é remover a dependência da profundidade da URL e evitar que uma página mobile caia acidentalmente em `/html` ou monte um caminho relativo inválido.
+
+O teste `check-mobile-routing.js` passa a cobrir 11 casos dinâmicos, as 22 páginas mobile e padrões de navegação direta em JavaScript. O CTA principal da home possui regra dedicada exigindo `/mobile/portal.html`.
+
+### 31.2 Motion e comportamento de aplicativo
+
+A navegação utiliza View Transitions quando o navegador oferece transição entre documentos same-origin e mantém fallback CSS/JS de curta duração. Botões, dock e cards recebem feedback de toque e painéis internos preservam animação curta. A preferência `prefers-reduced-motion` e o modo `reduzir-movimento` do Barber Hub desativam os efeitos.
+
+### 31.3 Cards de conta/painel mobile
+
+KPIs e cards de resumo de Cliente/Estabelecimento/Admin deixam de usar faixa horizontal com cards parcialmente visíveis. Passam a uma grade 2x2 com `minmax(0,1fr)`, quebra de texto e proteção de largura. Isso elimina o comportamento de card cortado/móvel dentro de uma seção estreita e reduz overflow em textos longos do painel do estabelecimento.
+
+### 31.4 Drawer, políticas e instalação PWA
+
+Os grupos do drawer passam a ter superfície, borda e espaçamento próprios; os links também são visualmente delimitados. Privacidade, Termos de uso e Sobre o Barber Hub ficam disponíveis no menu lateral para qualquer perfil.
+
+O controlador do PWA agora oculta completamente `[data-install-app]` quando o app roda em `display-mode: standalone`/`navigator.standalone`. A observação de DOM garante que botões inseridos depois, como os do drawer, também sejam ocultados. A home mobile passou a carregar esse controlador, que antes estava ausente nela.
+
+### 31.5 Home mobile 1.7.1
+
+A home dedicada recebe hero com assinatura visual de barbearia, composição com barber-pole de baixa opacidade, atalhos em cards, benefícios rápidos, métricas e acesso à visão do ecossistema. O foco continua em descoberta/agendamento, sem transformar a home em dashboard pesado.
+
+### 31.6 Planos
+
+Nesta release, **Essencial, Profissional e Elite são apresentados como Em desenvolvimento**. Seus preços permanecem como previsão inicial, mas as ações comerciais ficam desabilitadas. O Perfil gratuito continua disponível.
+
+### 31.7 Versões e validação
+
+- Frontend/PWA: **1.7.1**;
+- API própria: **1.2.0**;
+- banco: migrations até **15**;
+- cache PWA: `barberhub-v1.7.1`;
+- nenhuma migration nova.
+
+`npm run check` aprovou 21 páginas mobile sincronizadas, 11 casos dinâmicos de rotas, 22 HTML mobile, 48 HTML no total, 38 arquivos JS e 9/9 testes FastAPI. A tentativa de renderização com Chromium/Playwright foi bloqueada pela política do ambiente (`ERR_BLOCKED_BY_ADMINISTRATOR`), portanto a checagem visual final deve ser feita após o deploy em aparelho real.
