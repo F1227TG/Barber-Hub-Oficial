@@ -107,6 +107,27 @@ function bhNormalizarEstabelecimento(row) {
   };
 }
 
+async function bhListarStatusEstabelecimentos() {
+  const client = bhExigirSupabase();
+  const { data, error } = await client
+    .from("estabelecimentos")
+    .select(`id,status_manual,motivo_status,horarios_funcionamento(dia_semana,aberto,abre,fecha),dias_bloqueados(data,motivo)`)
+    .eq("visivel", true)
+    .eq("onboarding_concluido", true);
+  if (error) throw error;
+  return (data || []).map(row => {
+    const horarios = {};
+    (row.horarios_funcionamento || []).forEach(item => { horarios[BH_DIAS_CHAVE[item.dia_semana]] = item.aberto ? { abre: bhHoraCurta(item.abre), fecha: bhHoraCurta(item.fecha) } : null; });
+    return {
+      id: row.id,
+      statusManual: row.status_manual,
+      motivoStatus: row.motivo_status,
+      horarios,
+      diasFechados: (row.dias_bloqueados || []).map(item => ({ data: item.data, motivo: item.motivo }))
+    };
+  });
+}
+
 async function bhListarEstabelecimentos({ tipo = null, busca = null } = {}) {
   const client = bhExigirSupabase();
   let query = client

@@ -1,5 +1,5 @@
 /**
- * Auditoria local do Barber Hub 1.7.3 hotfix.
+ * Auditoria local do Barber Hub 1.7.4 stability hotfix.
  *
  * Não depende de bibliotecas externas. O script verifica estrutura, referências
  * locais, IDs duplicados, presença da API Python e vazamento acidental de
@@ -24,6 +24,7 @@ const required = [
   "css/release-1.6.css",
   "css/release-1.7.css",
   "css/release-1.7.1.css",
+  "css/release-1.7.4.css",
   "js/product-redesign.js",
   "js/booking-modal.js",
   "js/device-router.js",
@@ -105,6 +106,9 @@ for (const file of htmlFiles) {
   if (!html.includes("release-1.7.1.css") && !rel.endsWith("offline.html") && !["cadastro.html","listagem.html"].includes(rel)) {
     errors.push(`${rel} não carrega release-1.7.1.css.`);
   }
+  if (!html.includes("release-1.7.4.css")) {
+    errors.push(`${rel} não carrega release-1.7.4.css.`);
+  }
 }
 
 // Validação sintática de todos os módulos JavaScript do projeto.
@@ -136,19 +140,21 @@ for (const expected of ["buscar_marketplace", "websearch_to_tsquery", "using gin
   if (!migration15.toLowerCase().includes(expected.toLowerCase())) errors.push(`Migration 15 não contém: ${expected}`);
 }
 
-// Regressões do Service Worker: a 1.7.2 falhou no Chromium porque
-// ./mobile/index.html aparecia duas vezes em cache.addAll().
+// Regressões do Service Worker e estabilidade 1.7.4.
 const serviceWorker = fs.readFileSync(path.join(root, "service-worker.js"), "utf8");
-if (!serviceWorker.includes("barberhub-v1.7.3")) errors.push("Service Worker não usa o cache barberhub-v1.7.3.");
-if (serviceWorker.includes("cache.addAll(CORE)")) errors.push("Service Worker voltou a usar cache.addAll(CORE), que falha com requisições duplicadas.");
-if (!serviceWorker.includes("const CORE = [...new Set(CORE_SOURCE)]")) errors.push("Service Worker não deduplica a lista CORE preventivamente.");
-const coreMatch = serviceWorker.match(/const CORE_SOURCE = \[([\s\S]*?)\n\];/);
-if (!coreMatch) {
-  errors.push("Não foi possível auditar CORE_SOURCE no Service Worker.");
-} else {
-  const assets = [...coreMatch[1].matchAll(/'([^']+)'/g)].map(match => match[1]);
+if (!serviceWorker.includes("barberhub-v1.7.4")) errors.push("Service Worker não usa o cache barberhub-v1.7.4.");
+if (serviceWorker.includes("cache.addAll(CORE)")) errors.push("Service Worker voltou a usar cache.addAll(CORE).");
+if (!serviceWorker.includes("const CORE = [...new Set([")) errors.push("Service Worker não deduplica CORE preventivamente.");
+if (!serviceWorker.includes("for (const asset of CORE)")) errors.push("Pré-cache não está sequencial na 1.7.4.");
+if (serviceWorker.includes("CORE.map(asset => cache.add(asset))")) errors.push("Service Worker voltou a pré-cache paralelo massivo.");
+if (!serviceWorker.includes('request.mode === "navigate"')) errors.push("Service Worker não separa navegações HTML de assets estáticos.");
+if (!serviceWorker.includes('url.pathname.startsWith("/api/")')) errors.push("Service Worker pode interceptar API indevidamente.");
+
+const coreMatch = serviceWorker.match(/const CORE = \[\.\.\.new Set\(\[([\s\S]*?)\]\)\];/);
+if (coreMatch) {
+  const assets = [...coreMatch[1].matchAll(/["']([^"']+)["']/g)].map(match => match[1]);
   const duplicates = [...new Set(assets.filter((asset, index) => assets.indexOf(asset) !== index))];
-  if (duplicates.length) errors.push(`Service Worker possui assets duplicados em CORE_SOURCE: ${duplicates.join(", ")}`);
+  if (duplicates.length) errors.push(`Service Worker possui assets duplicados em CORE: ${duplicates.join(", ")}`);
 }
 
 if (errors.length) {
@@ -156,7 +162,7 @@ if (errors.length) {
   process.exit(1);
 }
 
-console.log(`Barber Hub 1.7.3: ${required.length} arquivos centrais encontrados.`);
+console.log(`Barber Hub 1.7.4: ${required.length} arquivos centrais encontrados.`);
 console.log(`${htmlFiles.length} páginas HTML verificadas, sem IDs duplicados ou links locais quebrados.`);
 console.log(`${jsFiles.length} arquivos JavaScript passaram por node --check.`);
 console.log("Nenhuma chave secreta foi encontrada nos arquivos públicos auditados.");

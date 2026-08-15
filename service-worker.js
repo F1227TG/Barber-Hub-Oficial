@@ -1,67 +1,82 @@
-/*
- * Barber Hub PWA — cache 1.7.3
- * Network-first para conteúdo; API nunca é armazenada. A experiência instalada
- * inicia na interface HTML dedicada em /mobile.
- */
-const CACHE = 'barberhub-v1.7.3';
-const CORE_SOURCE = [
-  './', './index.html', './offline.html', './mobile/index.html',
-  './css/framework.css', './css/global.css', './css/pages.css', './css/index.css', './css/mobile-app.css', './css/release-1.4.1.css', './css/product-redesign.css', './css/release-1.6.css', './css/release-1.7.css', './css/release-1.7.1.css',
-  './vendor/bootstrap.min.css', './vendor/bootstrap.bundle.min.js',
-  './js/utils.js', './js/toast.js', './js/supabase-config.js', './js/supabase-client.js', './js/security.js', './js/backend-api.js',
-  './js/auth.js', './js/api.js', './js/status.js', './js/ia.js', './js/ui.js', './js/mobile-app.js', './js/product-redesign.js',
-  './js/home.js', './js/device-router.js', './js/portal.js', './js/notificacoes.js', './js/barbearia.js', './js/booking-modal.js', './js/conta.js',
-  './js/cliente.js', './js/painel.js', './js/admin.js', './js/contato.js', './js/mobile-shell-v1.7.js', './js/mobile-native-v1.7.1.js', './js/mobile-home-v1.6.js',
-  './html/admin.html', './html/agendamento.html', './html/barbearia.html', './html/beauty-hub.html', './html/cadastro-barbearia.html', './html/cadastro.html', './html/cliente.html', './html/conta.html', './html/contato.html', './html/login.html', './html/mapa-sistema.html', './html/notificacoes.html', './html/painel.html', './html/planos.html', './html/portal.html', './html/privacidade.html', './html/recuperar-senha.html', './html/redefinir-senha.html', './html/servicos.html', './html/sobre.html', './html/termos.html',
-  './mobile/admin.html', './mobile/agendamento.html', './mobile/barbearia.html', './mobile/beauty-hub.html', './mobile/cadastro-barbearia.html', './mobile/cadastro.html', './mobile/cliente.html', './mobile/conta.html', './mobile/contato.html', './mobile/login.html', './mobile/mapa-sistema.html', './mobile/notificacoes.html', './mobile/painel.html', './mobile/planos.html', './mobile/portal.html', './mobile/privacidade.html', './mobile/recuperar-senha.html', './mobile/redefinir-senha.html', './mobile/servicos.html', './mobile/sobre.html', './mobile/termos.html',
-  './img/logomarcaTRANSPARENTE.png', './img/android-chrome-192x192.png', './img/android-chrome-512x512.png', './img/favicon.ico'
-];
-
-// Defesa extra: mesmo que um asset seja adicionado duas vezes no futuro,
-// o instalador nunca enviará requisições duplicadas ao Cache API.
-const CORE = [...new Set(CORE_SOURCE)];
-
-self.addEventListener('install', event => {
-  event.waitUntil((async () => {
-    const cache = await caches.open(CACHE);
-    const results = await Promise.allSettled(CORE.map(asset => cache.add(asset)));
-    const failures = results
-      .map((result, index) => ({ result, asset: CORE[index] }))
-      .filter(({ result }) => result.status === 'rejected');
-
-    if (failures.length) {
-      console.warn('[Barber Hub SW] alguns assets não entraram no pré-cache:', failures.map(({ asset, result }) => ({ asset, reason: String(result.reason) })));
+/* Barber Hub PWA — cache 1.7.4 | hotfix de estabilidade */
+const CACHE = "barberhub-v1.7.4";
+const CACHE_PREFIX = "barberhub-";
+const OFFLINE_URL = "/offline.html";
+const CORE = [...new Set([
+  "/", "/index.html", "/mobile/index.html", OFFLINE_URL,
+  "/css/framework.css", "/css/global.css", "/css/index.css", "/css/mobile-app.css",
+  "/css/release-1.4.1.css", "/css/product-redesign.css", "/css/release-1.6.css",
+  "/css/release-1.7.css", "/css/release-1.7.1.css", "/css/release-1.7.4.css",
+  "/vendor/bootstrap.min.css", "/vendor/bootstrap.bundle.min.js",
+  "/js/supabase-config.js", "/js/supabase-client.js", "/js/backend-api.js",
+  "/js/utils.js", "/js/toast.js", "/js/auth.js", "/js/api.js", "/js/status.js",
+  "/js/ui.js", "/js/home.js", "/js/device-router.js", "/js/product-redesign.js",
+  "/js/mobile-shell-v1.7.js", "/js/mobile-native-v1.7.1.js", "/js/mobile-home-v1.6.js",
+  "/img/logomarcaTRANSPARENTE.png", "/img/favicon.ico"
+])];
+async function precacheSafely() {
+  const cache = await caches.open(CACHE);
+  for (const asset of CORE) {
+    try {
+      const request = new Request(asset, { cache: "reload", credentials: "same-origin" });
+      const response = await fetch(request);
+      if (response.ok) await cache.put(request, response);
+    } catch (error) {
+      console.warn("[Barber Hub SW] pré-cache ignorado:", asset, String(error));
     }
+  }
+}
 
-    await self.skipWaiting();
+self.addEventListener("install", event => {
+  event.waitUntil(precacheSafely().then(() => self.skipWaiting()));
+});
+
+self.addEventListener("activate", event => {
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys.filter(key => key.startsWith(CACHE_PREFIX) && key !== CACHE).map(key => caches.delete(key)));
+    await self.clients.claim();
   })());
 });
 
-self.addEventListener('activate', event => {
-  event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key !== CACHE).map(key => caches.delete(key)))).then(() => self.clients.claim()));
-});
+function isStaticAsset(request, url) {
+  if (["style", "script", "image", "font"].includes(request.destination)) return true;
+  return /\.(?:css|js|png|jpe?g|webp|svg|ico|woff2?|ttf)$/i.test(url.pathname);
+}
 
-self.addEventListener('fetch', event => {
-  const url = new URL(event.request.url);
-  if (event.request.method !== 'GET' || url.origin !== location.origin) return;
-  if (url.pathname.startsWith('/api/')) return;
-  const isNavigation = event.request.mode === 'navigate';
-  event.respondWith(
-    fetch(event.request)
-      .then(response => {
-        // A cópia precisa ser criada ANTES de devolver a Response ao navegador.
-        // Se o clone for feito dentro de uma Promise posterior, o body pode já
-        // ter sido consumido e o Chromium lança: "Response body is already used".
-        if (response.ok) {
-          const cacheCopy = response.clone();
-          caches.open(CACHE)
-            .then(cache => cache.put(event.request, cacheCopy))
-            .catch(error => console.warn('[Barber Hub SW] cache put ignorado:', error));
-        }
-        return response;
-      })
-      .catch(async () => isNavigation
-        ? (await caches.match(event.request) || await caches.match('./offline.html'))
-        : caches.match(event.request))
-  );
+async function networkNavigation(request) {
+  try {
+    return await fetch(request);
+  } catch (_) {
+    const cachedExact = await caches.match(request, { ignoreSearch: true });
+    if (cachedExact) return cachedExact;
+    return (await caches.match(OFFLINE_URL)) || Response.error();
+  }
+}
+
+async function networkStatic(request) {
+  try {
+    const response = await fetch(request);
+    if (response.ok) {
+      const copy = response.clone();
+      caches.open(CACHE).then(cache => cache.put(request, copy)).catch(error => console.warn("[Barber Hub SW] cache estático ignorado:", error));
+    }
+    return response;
+  } catch (_) {
+    return (await caches.match(request)) || Response.error();
+  }
+}
+
+self.addEventListener("fetch", event => {
+  const request = event.request;
+  if (request.method !== "GET") return;
+  const url = new URL(request.url);
+  if (url.origin !== self.location.origin) return;
+  if (url.pathname.startsWith("/api/")) return;
+  if (request.headers.has("range")) return;
+  if (request.mode === "navigate") {
+    event.respondWith(networkNavigation(request));
+    return;
+  }
+  if (isStaticAsset(request, url)) event.respondWith(networkStatic(request));
 });

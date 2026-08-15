@@ -25,7 +25,7 @@
 | Tipo de produto | Aplicação web + interface HTML mobile dedicada, instalável como PWA, multi-tenant (múltiplos estabelecimentos independentes), com backend próprio (API Python/FastAPI) sobre infraestrutura Supabase |
 | Empresa/divisão | The Gamers Tech |
 | Estágio atual | Produto em produção ativa (deploy Vercel), evoluindo por versões incrementais e documentadas (1.1 → 1.6). Não há, no repositório, uma declaração formal de "MVP concluído" — ver critério proposto na Seção 22 |
-| Versão analisada | Front-end/PWA **1.7.1** (`package.json`, cache do Service Worker `barberhub-v1.7.1`) · API própria **1.2.0** (`pyproject.toml`, `api/index.py`) · Schema de banco até a migration **15** (`15_marketplace_fts_api_seguranca.sql`) |
+| Versão analisada | Front-end/PWA **1.7.4** (`package.json`, cache do Service Worker `barberhub-v1.7.4`) · API própria **1.2.0** (`pyproject.toml`, `api/index.py`) · Schema de banco até a migration **15** (`15_marketplace_fts_api_seguranca.sql`) |
 | Repositório analisado | `Barber-Hub-Oficial-main.zip`, domínio de referência `barberhuboficial.vercel.app` |
 | Stack confirmada em código | HTML/CSS/JS vanilla + Bootstrap 5.3.6 (local, em camada `@layer`); Supabase (PostgreSQL, Auth, Storage, RLS, Realtime); backend próprio em Python 3.13+/FastAPI 0.117+/Pydantic 2.10+, empacotado como função serverless da Vercel (`api/index.py`); PWA com Service Worker e manifest próprios |
 
@@ -1229,3 +1229,25 @@ Nesta release, **Essencial, Profissional e Elite são apresentados como Em desen
 - nenhuma migration nova.
 
 `npm run check` aprovou 21 páginas mobile sincronizadas, 11 casos dinâmicos de rotas, 22 HTML mobile, 48 HTML no total, 38 arquivos JS e 9/9 testes FastAPI. A tentativa de renderização com Chromium/Playwright foi bloqueada pela política do ambiente (`ERR_BLOCKED_BY_ADMINISTRATOR`), portanto a checagem visual final deve ser feita após o deploy em aparelho real.
+
+---
+
+## 32. Hotfix de estabilidade — Barber Hub 1.7.4
+
+Esta seção prevalece sobre as Seções 30/31 em desempenho da Home desktop e comportamento do Service Worker. API 1.2 e migrations até 15 permanecem inalteradas.
+
+### 32.1 Home desktop
+
+A Home desktop deixou de usar `bhListarEstabelecimentos()` apenas para calcular “abertos agora”. Essa consulta incluía horários, dias bloqueados, profissionais/vínculos, serviços e promoções de todos os estabelecimentos visíveis. A 1.7.4 usa `bhListarStatusEstabelecimentos()`, que consulta apenas os campos necessários para `bhCalcularStatus()`.
+
+### 32.2 PWA e Service Worker
+
+O cache passa a ser `barberhub-v1.7.4`. O pré-cache foi reduzido e passa a ser sequencial. Navegações HTML priorizam a rede e não são gravadas automaticamente no cache de runtime; `/api/` continua fora do Service Worker. O registro ocorre após `load`/idle e não força `reg.update()` em toda página.
+
+### 32.3 Renderer desktop
+
+`mobile-app.js` não inicia mais acima de 900 px. MutationObservers de tabelas processam somente os nós alterados. A camada `release-1.7.4.css` remove `backdrop-filter` permanente do cabeçalho sticky no desktop como defesa contra falhas de repaint/composição do Chromium.
+
+### 32.4 Validação
+
+`npm run check` aprovou 21 páginas mobile sincronizadas, 11 casos de roteamento, 12 invariantes novas de estabilidade desktop/PWA, 48 HTML, 38 arquivos JavaScript, validação estrutural Python e 9/9 testes FastAPI.

@@ -440,26 +440,23 @@ function bhAdicionarIdentidadePagina(){
 
 
 function bhPrepararTabelasMobile(raiz = document) {
-  raiz.querySelectorAll("table").forEach(tabela => {
+  const tabelas = new Set();
+  if (raiz?.matches?.("table")) tabelas.add(raiz);
+  raiz?.querySelectorAll?.("table").forEach(tabela => tabelas.add(tabela));
+  const tabelaPai = raiz?.closest?.("table");
+  if (tabelaPai) tabelas.add(tabelaPai);
+  tabelas.forEach(tabela => {
     const titulos = [...tabela.querySelectorAll("thead th")].map(th => th.textContent.trim());
     tabela.querySelectorAll("tbody tr").forEach(linha => {
-      [...linha.children].forEach((celula, indice) => {
-        if (!celula.dataset.label) celula.dataset.label = titulos[indice] || "Informação";
-      });
+      [...linha.children].forEach((celula, indice) => { if (!celula.dataset.label) celula.dataset.label = titulos[indice] || "Informação"; });
     });
   });
 }
 
 function bhObservarTabelasDinamicas() {
   bhPrepararTabelasMobile();
-  let agendado = false;
-  const observer = new MutationObserver(() => {
-    if (agendado) return;
-    agendado = true;
-    requestAnimationFrame(() => {
-      bhPrepararTabelasMobile();
-      agendado = false;
-    });
+  const observer = new MutationObserver(registros => {
+    for (const registro of registros) for (const node of registro.addedNodes) if (node.nodeType === Node.ELEMENT_NODE) bhPrepararTabelasMobile(node);
   });
   observer.observe(document.body, { childList: true, subtree: true });
 }
@@ -560,9 +557,17 @@ function bhCriarDockMobile(perfil, contadores = {}){
   window.addEventListener("hashchange", marcarAtivo);
 }
 function bhPrepararPWA(){
-  if('serviceWorker' in navigator&&location.protocol.startsWith('http')) navigator.serviceWorker.register(bhUrl('service-worker.js'),{updateViaCache:'none'}).then(reg=>reg.update().catch(()=>{})).catch(console.warn);
-  let deferred;
-
+  if (!('serviceWorker' in navigator) || !location.protocol.startsWith('http')) return;
+  const registrar = () => {
+    navigator.serviceWorker.register(bhUrl('service-worker.js'), { updateViaCache: 'none' })
+      .catch(error => console.warn('Barber Hub: Service Worker indisponível.', error));
+  };
+  const aposCarregar = () => {
+    if ('requestIdleCallback' in window) requestIdleCallback(registrar, { timeout: 2500 });
+    else setTimeout(registrar, 1200);
+  };
+  if (document.readyState === 'complete') aposCarregar();
+  else window.addEventListener('load', aposCarregar, { once: true });
 }
 
 function bhAplicarSEO(){

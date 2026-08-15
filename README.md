@@ -1,4 +1,15 @@
-# Barber Hub — versão 1.7.3
+# Barber Hub — versão 1.7.4
+
+
+## Hotfix 1.7.4 — estabilidade desktop
+
+- A Home desktop não baixa mais o catálogo completo (equipe, serviços e promoções) apenas para calcular o número de estabelecimentos abertos.
+- Service Worker com pré-cache reduzido e sequencial, sem dezenas de requisições paralelas no primeiro acesso.
+- Navegações HTML priorizam rede e não entram automaticamente no cache de runtime.
+- Registro do Service Worker é adiado para `load`/idle e não força `update()` em cada página.
+- `mobile-app.js` deixa de manter MutationObserver e adaptações mobile em desktop largo.
+- Observers de tabelas passaram a processar apenas o conteúdo alterado.
+- O blur persistente do cabeçalho sticky é desativado no desktop para reduzir risco de falha de repaint/composição do Chromium.
 
 O Barber Hub é um **marketplace digital de serviços** com gestão integrada para barbearias. Clientes descobrem estabelecimentos, verificam disponibilidade, conhecem serviços/equipe e agendam; profissionais administram operação, agenda, portfólio e reputação. Uma plataforma de **The Gamers Tech**.
 
