@@ -1,6 +1,14 @@
-# Barber Hub — versão 1.7.2
+# Barber Hub — versão 1.7.3
 
 O Barber Hub é um **marketplace digital de serviços** com gestão integrada para barbearias. Clientes descobrem estabelecimentos, verificam disponibilidade, conhecem serviços/equipe e agendam; profissionais administram operação, agenda, portfólio e reputação. Uma plataforma de **The Gamers Tech**.
+
+## Hotfix 1.7.3 — instalação resiliente do Service Worker
+
+- remove a duplicação de `./mobile/index.html` na lista de pré-cache;
+- deduplica preventivamente a lista com `Set`, evitando `Cache.addAll(): duplicate requests`;
+- substitui o `cache.addAll()` por pré-cache individual tolerante a falhas, para um único asset não impedir a instalação inteira do Service Worker;
+- cache PWA atualizado para `barberhub-v1.7.3`;
+- mantém a correção 1.7.2 para `Response body is already used`.
 
 ## Hotfix 1.7.2 — Service Worker e congelamento visual
 

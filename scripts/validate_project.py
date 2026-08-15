@@ -80,8 +80,8 @@ def main() -> int:
                 warnings.append(f"{relative}: confira o rótulo do controle #{control_id}")
 
     sw = (ROOT / "service-worker.js").read_text(encoding="utf-8")
-    if "barberhub-v1.7.2" not in sw:
-        errors.append("service-worker.js não usa o cache barberhub-v1.7.2")
+    if "barberhub-v1.7.3" not in sw:
+        errors.append("service-worker.js não usa o cache barberhub-v1.7.3")
     if "cache.put(event.request, response.clone())" in sw:
         errors.append("service-worker.js voltou a clonar a Response de forma assíncrona/tardia")
     if "const cacheCopy = response.clone()" not in sw:

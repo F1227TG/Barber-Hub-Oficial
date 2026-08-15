@@ -1,10 +1,10 @@
 /*
- * Barber Hub PWA — cache 1.7.2
+ * Barber Hub PWA — cache 1.7.3
  * Network-first para conteúdo; API nunca é armazenada. A experiência instalada
  * inicia na interface HTML dedicada em /mobile.
  */
-const CACHE = 'barberhub-v1.7.2';
-const CORE = [
+const CACHE = 'barberhub-v1.7.3';
+const CORE_SOURCE = [
   './', './index.html', './offline.html', './mobile/index.html',
   './css/framework.css', './css/global.css', './css/pages.css', './css/index.css', './css/mobile-app.css', './css/release-1.4.1.css', './css/product-redesign.css', './css/release-1.6.css', './css/release-1.7.css', './css/release-1.7.1.css',
   './vendor/bootstrap.min.css', './vendor/bootstrap.bundle.min.js',
@@ -13,12 +13,28 @@ const CORE = [
   './js/home.js', './js/device-router.js', './js/portal.js', './js/notificacoes.js', './js/barbearia.js', './js/booking-modal.js', './js/conta.js',
   './js/cliente.js', './js/painel.js', './js/admin.js', './js/contato.js', './js/mobile-shell-v1.7.js', './js/mobile-native-v1.7.1.js', './js/mobile-home-v1.6.js',
   './html/admin.html', './html/agendamento.html', './html/barbearia.html', './html/beauty-hub.html', './html/cadastro-barbearia.html', './html/cadastro.html', './html/cliente.html', './html/conta.html', './html/contato.html', './html/login.html', './html/mapa-sistema.html', './html/notificacoes.html', './html/painel.html', './html/planos.html', './html/portal.html', './html/privacidade.html', './html/recuperar-senha.html', './html/redefinir-senha.html', './html/servicos.html', './html/sobre.html', './html/termos.html',
-  './mobile/admin.html', './mobile/agendamento.html', './mobile/barbearia.html', './mobile/beauty-hub.html', './mobile/cadastro-barbearia.html', './mobile/cadastro.html', './mobile/cliente.html', './mobile/conta.html', './mobile/contato.html', './mobile/index.html', './mobile/login.html', './mobile/mapa-sistema.html', './mobile/notificacoes.html', './mobile/painel.html', './mobile/planos.html', './mobile/portal.html', './mobile/privacidade.html', './mobile/recuperar-senha.html', './mobile/redefinir-senha.html', './mobile/servicos.html', './mobile/sobre.html', './mobile/termos.html',
+  './mobile/admin.html', './mobile/agendamento.html', './mobile/barbearia.html', './mobile/beauty-hub.html', './mobile/cadastro-barbearia.html', './mobile/cadastro.html', './mobile/cliente.html', './mobile/conta.html', './mobile/contato.html', './mobile/login.html', './mobile/mapa-sistema.html', './mobile/notificacoes.html', './mobile/painel.html', './mobile/planos.html', './mobile/portal.html', './mobile/privacidade.html', './mobile/recuperar-senha.html', './mobile/redefinir-senha.html', './mobile/servicos.html', './mobile/sobre.html', './mobile/termos.html',
   './img/logomarcaTRANSPARENTE.png', './img/android-chrome-192x192.png', './img/android-chrome-512x512.png', './img/favicon.ico'
 ];
 
+// Defesa extra: mesmo que um asset seja adicionado duas vezes no futuro,
+// o instalador nunca enviará requisições duplicadas ao Cache API.
+const CORE = [...new Set(CORE_SOURCE)];
+
 self.addEventListener('install', event => {
-  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(CORE)).then(() => self.skipWaiting()));
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE);
+    const results = await Promise.allSettled(CORE.map(asset => cache.add(asset)));
+    const failures = results
+      .map((result, index) => ({ result, asset: CORE[index] }))
+      .filter(({ result }) => result.status === 'rejected');
+
+    if (failures.length) {
+      console.warn('[Barber Hub SW] alguns assets não entraram no pré-cache:', failures.map(({ asset, result }) => ({ asset, reason: String(result.reason) })));
+    }
+
+    await self.skipWaiting();
+  })());
 });
 
 self.addEventListener('activate', event => {

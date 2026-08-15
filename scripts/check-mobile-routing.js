@@ -1,4 +1,4 @@
-/** Auditoria 1.7.2: caminhos mobile estáticos + dinâmicos + navegação em JS. */
+/** Auditoria 1.7.3: caminhos mobile estáticos + dinâmicos + navegação em JS. */
 const fs = require("node:fs");
 const vm = require("node:vm");
 const path = require("node:path");
@@ -85,4 +85,4 @@ if (errors.length) {
   console.error(`Roteamento mobile reprovado (${errors.length}):\n- ${errors.join("\n- ")}`);
   process.exit(1);
 }
-console.log(`Roteamento mobile 1.7.2: ${cases.length} casos dinâmicos + ${mobileFiles.length} páginas + navegação JS aprovados.`);
+console.log(`Roteamento mobile 1.7.3: ${cases.length} casos dinâmicos + ${mobileFiles.length} páginas + navegação JS aprovados.`);
