@@ -30,10 +30,15 @@
       button.setAttribute("aria-disabled", installed ? "true" : "false");
       const label = button.querySelector("[data-install-label]");
       const helper = button.querySelector("[data-install-helper]");
-      if (label) label.textContent = installed ? "Barber Hub instalado" : "Instalar Barber Hub no celular";
-      if (helper) helper.textContent = installed
+      const labelText = installed ? "Barber Hub instalado" : "Instalar Barber Hub no celular";
+      const helperText = installed
         ? "Você já está usando a experiência de aplicativo."
         : "Acesso rápido, tela cheia e atalho na tela inicial.";
+      // textContent recria o nó de texto e dispara MutationObserver mesmo
+      // quando o valor visual não mudou. Só escrevemos quando necessário para
+      // impedir um ciclo infinito após as métricas animadas da Home atualizarem.
+      if (label && label.textContent !== labelText) label.textContent = labelText;
+      if (helper && helper.textContent !== helperText) helper.textContent = helperText;
     });
   }
 
@@ -108,7 +113,14 @@
   }
 
   function observeDynamicContent() {
-    const observer = new MutationObserver(() => {
+    const selector = "table, thead, tbody, tr, th, td, [data-install-app], [data-install-label], [data-install-helper]";
+    const hasRelevantElement = node => node.nodeType === Node.ELEMENT_NODE && (
+      node.matches?.(selector) || node.querySelector?.(selector)
+    );
+    const observer = new MutationObserver(records => {
+      // Alterações em nós de texto (por exemplo, contadores animados) não
+      // exigem reprocessar tabelas ou botões de instalação.
+      if (!records.some(record => [...record.addedNodes].some(hasRelevantElement))) return;
       labelDynamicTables();
       updateInstallButtons();
     });
