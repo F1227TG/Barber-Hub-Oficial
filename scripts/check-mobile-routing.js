@@ -17,6 +17,18 @@ function evaluate(pathname) {
   return context;
 }
 
+function evaluateFile(pathname) {
+  const href = `file://${pathname}`;
+  const context = {
+    location: { pathname, href, protocol: "file:" },
+    window: { location: { href } },
+    URL, URLSearchParams, Date, Intl, console, setTimeout, clearTimeout,
+  };
+  vm.createContext(context);
+  vm.runInContext(source, context, { filename: "utils.js" });
+  return context;
+}
+
 const cases = [
   ["/index.html", "html/portal.html", "/html/portal.html"],
   ["/html/cliente.html", "html/portal.html", "/html/portal.html"],
@@ -35,6 +47,43 @@ const errors = [];
 for (const [pathname, input, expected] of cases) {
   const actual = evaluate(pathname).bhUrl(input);
   if (actual !== expected) errors.push(`${pathname}: bhUrl(${input}) => ${actual}; esperado ${expected}`);
+}
+
+const fileCases = [
+  ["/C:/barber-hub/index.html", "html/portal.html", "./html/portal.html"],
+  ["/C:/barber-hub/html/cliente.html", "html/portal.html", "../html/portal.html"],
+  ["/C:/barber-hub/mobile/index.html", "html/portal.html", "./portal.html"],
+  ["/C:/barber-hub/mobile/cliente.html", "img/logomarcaTRANSPARENTE.png", "../img/logomarcaTRANSPARENTE.png"],
+];
+for (const [pathname, input, expected] of fileCases) {
+  const actual = evaluateFile(pathname).bhUrl(input);
+  if (actual !== expected) errors.push(`file://${pathname}: bhUrl(${input}) => ${actual}; esperado ${expected}`);
+}
+
+const deviceSource = fs.readFileSync(path.join(root, "js", "device-router.js"), "utf8");
+function routeDevice({ href, pathname, search = "", hash = "" }) {
+  let redirected = null;
+  const context = {
+    location: { href, pathname, search, hash, replace: value => { redirected = value; } },
+    localStorage: { getItem: () => null },
+    navigator: { standalone: false },
+    matchMedia: query => ({ matches: query.includes("max-width") }),
+    URL, URLSearchParams,
+  };
+  vm.createContext(context);
+  vm.runInContext(deviceSource, context, { filename: "device-router.js" });
+  return redirected;
+}
+
+const deviceCases = [
+  [{ href: "https://barberhuboficial.vercel.app/index.html", pathname: "/index.html" }, "https://barberhuboficial.vercel.app/mobile/index.html"],
+  [{ href: "https://barberhuboficial.vercel.app/html/portal.html", pathname: "/html/portal.html" }, "https://barberhuboficial.vercel.app/mobile/portal.html"],
+  [{ href: "file:///C:/barber-hub/index.html", pathname: "/C:/barber-hub/index.html" }, "file:///C:/barber-hub/mobile/index.html"],
+  [{ href: "file:///C:/barber-hub/html/portal.html", pathname: "/C:/barber-hub/html/portal.html" }, "file:///C:/barber-hub/mobile/portal.html"],
+];
+for (const [input, expected] of deviceCases) {
+  const actual = routeDevice(input);
+  if (actual !== expected) errors.push(`device-router ${input.href} => ${actual}; esperado ${expected}`);
 }
 
 const mobileDir = path.join(root, "mobile");
@@ -85,4 +134,4 @@ if (errors.length) {
   console.error(`Roteamento mobile reprovado (${errors.length}):\n- ${errors.join("\n- ")}`);
   process.exit(1);
 }
-console.log(`Roteamento mobile 1.8.0: ${cases.length} casos dinâmicos + ${mobileFiles.length} páginas + navegação JS aprovados.`);
+console.log(`Roteamento mobile 1.8.0: ${cases.length} casos web + ${fileCases.length} casos file:// + ${deviceCases.length} redirecionamentos + ${mobileFiles.length} páginas aprovados.`);

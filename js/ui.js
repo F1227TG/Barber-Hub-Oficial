@@ -247,6 +247,26 @@ function bhFecharDrawer() {
   document.body.classList.remove("drawer-open");
 }
 
+function bhLiberarTravasOrfas() {
+  const drawerAtivo = document.querySelector("#appDrawer.aberto, .filters.mobile-open");
+  if (!drawerAtivo) {
+    document.body.classList.remove("drawer-open");
+    document.getElementById("drawerOverlay")?.classList.remove("ativo");
+    document.querySelector(".mobile-filter-backdrop.ativo")?.classList.remove("ativo");
+  }
+
+  const modalAtivo = document.querySelector(".modal.show, .modal.aberto, .marketplace-filter-modal.ativo, .booking-modal.ativo");
+  if (!modalAtivo) {
+    document.body.classList.remove("modal-open");
+    if (document.body.style.overflow === "hidden") document.body.style.overflow = "";
+    document.querySelectorAll(".modal-backdrop").forEach(backdrop => backdrop.remove());
+  }
+
+  document.body.classList.remove("mobile-nav-leaving");
+}
+
+window.addEventListener("pageshow", bhLiberarTravasOrfas);
+
 function bhConfigurarAcessibilidade() {
   document.querySelectorAll("[data-a11y]").forEach(botao => {
     botao.addEventListener("click", () => {
@@ -325,6 +345,7 @@ function bhAssinarNavegacaoTempoReal(perfil, contadores) {
 }
 
 async function bhInicializarInterface() {
+  bhLiberarTravasOrfas();
   bhAplicarPreferencias();
   let perfil = null;
   if (bhSupabasePronto()) {

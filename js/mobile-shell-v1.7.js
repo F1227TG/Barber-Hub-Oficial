@@ -37,6 +37,7 @@
 
   function appUrl(path) {
     if (typeof global.bhUrl === "function") return global.bhUrl(`html/${path}`);
+    if (location.protocol === "file:") return `./${path}`;
     return `/mobile/${path}`;
   }
 

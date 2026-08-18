@@ -20,6 +20,12 @@
       if (parsed.origin !== location.origin) return null;
       const file = parsed.pathname.split("/").pop() || "index.html";
       if (!MOBILE_PAGES.has(file)) return null;
+      if (location.protocol === "file:") {
+        const local = new URL(`./${file}`, location.href);
+        local.search = parsed.search;
+        local.hash = parsed.hash;
+        return local;
+      }
       parsed.pathname = `/mobile/${file}`;
       return parsed;
     } catch (_) {
@@ -34,7 +40,7 @@
       if (!raw || raw.startsWith("#") || /^(mailto:|tel:|javascript:)/i.test(raw)) return;
       const normalized = mobileUrl(raw);
       if (!normalized) return;
-      anchor.href = `${normalized.pathname}${normalized.search}${normalized.hash}`;
+      anchor.href = normalized.href;
     });
   }
 
