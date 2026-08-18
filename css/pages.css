@@ -2225,7 +2225,7 @@ body.claro .feature:hover {
   padding:36px;
   border:1px solid var(--gold-border);
   border-radius:30px;
-  background:linear-gradient(180deg,transparent,rgba(0,0,0,.72)),url('../img/backgrounds/barber-home-bg.png') center/cover;
+  background:linear-gradient(180deg,transparent,rgba(0,0,0,.72)),url('../img/backgrounds/sobre-craft.webp') center/cover;
   box-shadow:var(--shadow)
 }
 
@@ -2607,7 +2607,7 @@ body.claro .feature:hover {
 
 .favorite-card-cover {
   min-height:150px;
-  background:linear-gradient(180deg,transparent,rgba(0,0,0,.62)),url('../img/backgrounds/barber-home-bg.png') center/cover
+  background:linear-gradient(180deg,transparent,rgba(0,0,0,.62)),url('../img/placeholders/barbearia-02.webp') center/cover
 }
 
 .favorite-card-body {

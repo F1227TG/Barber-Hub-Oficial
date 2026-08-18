@@ -1,4 +1,4 @@
-# Arquitetura do Barber Hub 1.6
+# Arquitetura do Barber Hub 1.8
 
 ## Visão geral
 
@@ -78,14 +78,16 @@ A página `agendamento.html` é apenas compatibilidade/deep-link.
 
 ## Banco
 
-A migration 15 adiciona:
+O schema acumulado até a migration 15 já contém FTS/ranking do marketplace, rate limiting e reforços de segurança. A **migration 16** adiciona a camada comercial funcional:
 
-- `search_vector` em estabelecimentos/serviços;
-- índices GIN;
-- `buscar_marketplace`;
-- `estabelecimento_aberto_agora`;
-- `api_rate_limits` + RPC atômica;
-- `auditoria_admin`.
+- colunas de capacidades e limites nos planos;
+- `calcular_entitlements_estabelecimento` como resolvedor central cumulativo;
+- `agenda_online_disponivel` para refletir plano efetivo na experiência pública;
+- `admin_atribuir_plano` para upgrade/downgrade transacional;
+- triggers de enforcement para agenda, profissionais, promoções e portfólio;
+- policy pública de promoções condicionada ao plano efetivo;
+- prioridade de marketplace condicionada à assinatura efetiva;
+- assinatura em Realtime para atualização imediata do painel.
 
 ## Segurança por camada
 
@@ -94,3 +96,23 @@ A migration 15 adiciona:
 - **PostgreSQL:** integridade, RLS, constraints e transações/RPC.
 - **Supabase Auth:** login, confirmação de e-mail, recuperação e CAPTCHA.
 - **Vercel:** secrets, CSP, HTTPS e execução serverless.
+
+
+## Assinaturas e entitlements (1.8)
+
+A regra comercial deixou de ser apenas metadado de UI. `sql/16_assinaturas_entitlements_beneficios.sql` resolve o plano efetivo e seus benefícios cumulativos, e o PostgreSQL aplica limites críticos. A API 1.3 expõe a leitura de entitlements ao proprietário e a atribuição de plano ao administrador.
+
+```text
+Admin → API /admin/.../subscription → RPC admin_atribuir_plano
+                                      │
+                                      ▼
+                         assinaturas + calcular_entitlements
+                                      │
+                    ┌─────────────────┼──────────────────┐
+                    ▼                 ▼                  ▼
+               painel/CRM       triggers de limite   ranking marketplace
+                    │                 │                  │
+                    └──── Realtime ───┴──────────────────┘
+```
+
+O frontend pode ocultar/bloquear recursos para UX, mas agenda, equipe, promoções e portfólio têm enforcement no banco. O mobile continua derivado da mesma fonte funcional de `/html`, então não existe uma segunda regra de assinatura.

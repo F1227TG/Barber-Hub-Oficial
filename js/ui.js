@@ -71,6 +71,7 @@ function bhLinksPorPerfil(perfil, contadores = {}) {
   }
   if (perfil.tipo === "admin") return [
     ["html/admin.html", "admin", "Administração", "bi-shield-lock"],
+    ["html/admin-assinaturas.html", "admin-assinaturas", "Assinaturas", "bi-gem"],
     ["html/mapa-sistema.html", "mapa-sistema", "Mapa do sistema", "bi-diagram-3"],
     ["html/planos.html", "planos", "Planos", "bi-wallet2"],
     ["html/notificacoes.html", "notificacoes", "Notificações", "bi-bell", "notificacoes"],
@@ -148,6 +149,7 @@ function bhLinksExtrasDrawer(perfil, contadores = {}) {
     ["html/contato.html", "Suporte", "bi-headset"]
   ];
   if (perfil?.tipo === "admin") return [
+    ["html/admin-assinaturas.html", "Assinaturas e benefícios", "bi-gem"],
     ["html/mapa-sistema.html", "Mapa do sistema", "bi-diagram-3"],
     ["html/planos.html", "Planos e oferta", "bi-wallet2"],
     ["html/notificacoes.html", "Central de avisos", "bi-bell"],
@@ -432,7 +434,7 @@ function bhAnimarConteudo(){
 }
 
 function bhAdicionarIdentidadePagina(){
-  const mapa={index:'HUB',portal:'EXPLORAR',barbearia:'PERFIL',agendamento:'AGENDA',painel:'GESTÃO',cliente:'CONTA',admin:'ADMIN',contato:'SUPORTE',login:'ENTRAR',cadastro:'CRIAR',servicos:'RECURSOS',planos:'PLANOS','beauty-hub':'BEAUTY',notificacoes:'AVISOS',sobre:'SOBRE',conta:'CONTA'};
+  const mapa={index:'HUB',portal:'EXPLORAR',barbearia:'PERFIL',agendamento:'AGENDA',painel:'GESTÃO',cliente:'CONTA',admin:'ADMIN','admin-assinaturas':'ASSINATURAS',contato:'SUPORTE',login:'ENTRAR',cadastro:'CRIAR',servicos:'RECURSOS',planos:'PLANOS','beauty-hub':'BEAUTY',notificacoes:'AVISOS',sobre:'SOBRE',conta:'CONTA'};
   const nome=(location.pathname.split('/').pop()||'index.html').replace('.html','');
   const hero=document.querySelector('.page-hero,.hero,.auth-wrap,.onboarding-page');
   if(hero&&mapa[nome]&&!hero.querySelector('.page-identity')){const el=document.createElement('span');el.className='page-identity';el.textContent=mapa[nome];hero.appendChild(el)}
@@ -440,23 +442,26 @@ function bhAdicionarIdentidadePagina(){
 
 
 function bhPrepararTabelasMobile(raiz = document) {
-  const tabelas = new Set();
-  if (raiz?.matches?.("table")) tabelas.add(raiz);
-  raiz?.querySelectorAll?.("table").forEach(tabela => tabelas.add(tabela));
-  const tabelaPai = raiz?.closest?.("table");
-  if (tabelaPai) tabelas.add(tabelaPai);
-  tabelas.forEach(tabela => {
+  raiz.querySelectorAll("table").forEach(tabela => {
     const titulos = [...tabela.querySelectorAll("thead th")].map(th => th.textContent.trim());
     tabela.querySelectorAll("tbody tr").forEach(linha => {
-      [...linha.children].forEach((celula, indice) => { if (!celula.dataset.label) celula.dataset.label = titulos[indice] || "Informação"; });
+      [...linha.children].forEach((celula, indice) => {
+        if (!celula.dataset.label) celula.dataset.label = titulos[indice] || "Informação";
+      });
     });
   });
 }
 
 function bhObservarTabelasDinamicas() {
   bhPrepararTabelasMobile();
-  const observer = new MutationObserver(registros => {
-    for (const registro of registros) for (const node of registro.addedNodes) if (node.nodeType === Node.ELEMENT_NODE) bhPrepararTabelasMobile(node);
+  let agendado = false;
+  const observer = new MutationObserver(() => {
+    if (agendado) return;
+    agendado = true;
+    requestAnimationFrame(() => {
+      bhPrepararTabelasMobile();
+      agendado = false;
+    });
   });
   observer.observe(document.body, { childList: true, subtree: true });
 }
@@ -557,17 +562,9 @@ function bhCriarDockMobile(perfil, contadores = {}){
   window.addEventListener("hashchange", marcarAtivo);
 }
 function bhPrepararPWA(){
-  if (!('serviceWorker' in navigator) || !location.protocol.startsWith('http')) return;
-  const registrar = () => {
-    navigator.serviceWorker.register(bhUrl('service-worker.js'), { updateViaCache: 'none' })
-      .catch(error => console.warn('Barber Hub: Service Worker indisponível.', error));
-  };
-  const aposCarregar = () => {
-    if ('requestIdleCallback' in window) requestIdleCallback(registrar, { timeout: 2500 });
-    else setTimeout(registrar, 1200);
-  };
-  if (document.readyState === 'complete') aposCarregar();
-  else window.addEventListener('load', aposCarregar, { once: true });
+  if('serviceWorker' in navigator&&location.protocol.startsWith('http')) navigator.serviceWorker.register(bhUrl('service-worker.js'),{updateViaCache:'none'}).then(reg=>reg.update().catch(()=>{})).catch(console.warn);
+  let deferred;
+
 }
 
 function bhAplicarSEO(){

@@ -96,27 +96,21 @@
     updateInstallButtons();
   }
 
-  function labelDynamicTables(root = document) {
-    const tables = new Set();
-    if (root?.matches?.("table")) tables.add(root);
-    root?.querySelectorAll?.("table").forEach(table => tables.add(table));
-    const parentTable = root?.closest?.("table");
-    if (parentTable) tables.add(parentTable);
-    tables.forEach(table => {
+  function labelDynamicTables() {
+    document.querySelectorAll("table").forEach(table => {
       const labels = [...table.querySelectorAll("thead th")].map(item => item.textContent.trim());
-      table.querySelectorAll("tbody tr").forEach(row => [...row.children].forEach((cell,index) => { if (labels[index] && !cell.dataset.label) cell.dataset.label = labels[index]; }));
+      table.querySelectorAll("tbody tr").forEach(row => {
+        [...row.children].forEach((cell, index) => {
+          if (labels[index] && !cell.dataset.label) cell.dataset.label = labels[index];
+        });
+      });
     });
   }
 
   function observeDynamicContent() {
-    const observer = new MutationObserver(records => {
-      let installControlAdded = false;
-      for (const record of records) for (const node of record.addedNodes) {
-        if (node.nodeType !== Node.ELEMENT_NODE) continue;
-        labelDynamicTables(node);
-        if (node.matches?.("[data-install-app]") || node.querySelector?.("[data-install-app]")) installControlAdded = true;
-      }
-      if (installControlAdded) updateInstallButtons();
+    const observer = new MutationObserver(() => {
+      labelDynamicTables();
+      updateInstallButtons();
     });
     observer.observe(document.body, { childList: true, subtree: true });
   }

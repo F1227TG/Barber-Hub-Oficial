@@ -1,17 +1,41 @@
-# Barber Hub — versão 1.7.4
-
-
-## Hotfix 1.7.4 — estabilidade desktop
-
-- A Home desktop não baixa mais o catálogo completo (equipe, serviços e promoções) apenas para calcular o número de estabelecimentos abertos.
-- Service Worker com pré-cache reduzido e sequencial, sem dezenas de requisições paralelas no primeiro acesso.
-- Navegações HTML priorizam rede e não entram automaticamente no cache de runtime.
-- Registro do Service Worker é adiado para `load`/idle e não força `update()` em cada página.
-- `mobile-app.js` deixa de manter MutationObserver e adaptações mobile em desktop largo.
-- Observers de tabelas passaram a processar apenas o conteúdo alterado.
-- O blur persistente do cabeçalho sticky é desativado no desktop para reduzir risco de falha de repaint/composição do Chromium.
+# Barber Hub — versão 1.8.0
 
 O Barber Hub é um **marketplace digital de serviços** com gestão integrada para barbearias. Clientes descobrem estabelecimentos, verificam disponibilidade, conhecem serviços/equipe e agendam; profissionais administram operação, agenda, portfólio e reputação. Uma plataforma de **The Gamers Tech**.
+
+## Entrega 1.8.0 — Assinaturas funcionais e valor para o estabelecimento
+
+A 1.8 transforma os planos de apresentação em regras de produto reais. O administrador atribui um plano ao estabelecimento em uma página própria e os **entitlements cumulativos** entram em vigor imediatamente no painel web/mobile, na API e no PostgreSQL.
+
+- nova migration `16_assinaturas_entitlements_beneficios.sql`;
+- API própria **1.3.0**;
+- página administrativa `admin-assinaturas.html` para atribuir plano, status, validade e observação;
+- herança automática: Profissional inclui Essencial; Elite inclui Profissional + Essencial + Gratuito;
+- enforcement no banco para agenda online, quantidade de profissionais, portfólio, destaques e promoções;
+- assinatura expirada/pausada perde os benefícios pagos sem anunciar agenda ou promoções públicas indevidamente;
+- downgrade preserva histórico/dados e desativa somente capacidades que excedem o plano;
+- carteira de clientes/CRM no painel a partir de atendimentos reais;
+- promoções públicas gerenciáveis pelo estabelecimento;
+- relatórios essenciais, relatórios avançados por profissional/serviço e exportação CSV conforme plano;
+- prioridade de relevância no marketplace para Profissional/Elite;
+- atualização Realtime de assinatura no painel, sem exigir logout/login;
+- desktop e `/mobile` compartilham a mesma regra funcional via sincronização automática.
+
+### Matriz efetiva
+
+| Benefício | Gratuito | Essencial | Profissional | Elite |
+|---|---:|---:|---:|---:|
+| Agenda online | — | ✓ | ✓ | ✓ |
+| Carteira de clientes | — | ✓ | ✓ | ✓ |
+| Promoções | — | ✓ | ✓ | ✓ |
+| Relatórios essenciais | — | ✓ | ✓ | ✓ |
+| Profissionais ativos | 1 | 1 | 3 | 10 |
+| Portfólio | 10 | 50 | 150 | 500 |
+| Destaques de portfólio | 1 | 2 | 3 | 5 |
+| Relatórios avançados | — | — | ✓ | ✓ |
+| Exportação CSV | — | — | ✓ | ✓ |
+| Prioridade marketplace | — | — | adicional | máxima |
+
+> A cobrança automática ainda não foi integrada. A ativação comercial é administrativa, mas os benefícios e limites já são funcionais de ponta a ponta.
 
 ## Hotfix 1.7.3 — instalação resiliente do Service Worker
 
@@ -92,13 +116,13 @@ As páginas funcionais em `/html/*.html` são a fonte usada por `scripts/sync_mo
 
 ## Banco de dados
 
-A 1.7 **não adiciona migration**. O banco continua no schema acumulado até:
+A 1.8 adiciona a migration de assinaturas funcionais:
 
 ```text
-sql/15_marketplace_fts_api_seguranca.sql
+sql/16_assinaturas_entitlements_beneficios.sql
 ```
 
-Em banco novo, execute as migrations `01` → `15` em ordem. Não reaplique migrations antigas sobre produção com dados reais.
+Em banco novo, execute as migrations `01` → `16` em ordem. Em produção já existente, aplique **somente a migration 16** depois de confirmar que `01` → `15` já estão presentes. Não edite nem reaplique migrations antigas sobre dados reais.
 
 ## Variáveis da API na Vercel
 
@@ -158,28 +182,29 @@ A validação inclui paridade mobile, regressão de URLs, referências locais, s
 
 ## Documentação principal
 
-- `docs/PRD_BARBER_HUB.md` — PRD atual com revisão da 1.7;
+- `docs/PRD_BARBER_HUB.md` — PRD atual com revisão da 1.8;
 - `ARCHITECTURE.md` — arquitetura e limites entre camadas;
 - `docs/API_BARBER_HUB_V1.md` — API e configuração;
-- `docs/barberhub-api-v1.openapi.yaml` — contrato estático da API 1.2;
+- `docs/barberhub-api-v1.openapi.yaml` — contrato estático da API 1.3;
 - `docs/MAPA_DE_NAVEGACAO.md` — mapa web/mobile atualizado;
-- `docs/ATUALIZACAO_1_7.md` — notas da release 1.7;
-- `docs/VERIFICACAO_1_7.md` — verificação técnica da release;
+- `docs/ATUALIZACAO_1_8.md` — notas e ordem de publicação da release 1.8;
+- `docs/VERIFICACAO_1_8.md` — verificação técnica da release 1.8;
 - `docs/SEGURANCA_1_6.md` — base de e-mail, CAPTCHA, rate limiting e logs;
 - `docs/ANTIGRAVITY.md` — uso do projeto com Google Antigravity.
 
 ## Deploy
 
 1. confirme que produção já possui as migrations `01` → `15`;
-2. confirme as variáveis da Vercel;
-3. execute `npm run check`;
-4. faça commit/push;
-5. após o deploy, teste em navegador real/PWA: menu hambúrguer, login/logout, Conta, Cliente, Painel, Admin, Beauty Hub, Explorar e um fluxo de agendamento;
-6. valide `/api/v1/health`, `/api/v1/marketplace/search?limit=3` e `/api/docs`.
+2. aplique `sql/16_assinaturas_entitlements_beneficios.sql` no Supabase de produção;
+3. confirme as variáveis da Vercel;
+4. execute `npm run check`;
+5. faça commit/push;
+6. após o deploy, teste upgrade/downgrade dos quatro planos, painel desktop/mobile, agenda, profissionais, portfólio, promoções, relatórios e marketplace;
+7. valide `/api/v1/health`, `/api/v1/admin/subscriptions`, `/api/v1/marketplace/search?limit=3` e `/api/docs`.
 
 ```bash
 git status
 git add .
-git commit -m "fix: atualiza Barber Hub para versão 1.7.1"
+git commit -m "feat: implementa assinaturas funcionais no Barber Hub 1.8.0"
 git push origin main
 ```

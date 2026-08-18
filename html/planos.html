@@ -19,7 +19,8 @@
 <link href="../css/pages.css" rel="stylesheet"/>
 <link href="../manifest.webmanifest" rel="manifest"/>
 <link href="../css/mobile-app.css" rel="stylesheet"/><link href="../css/release-1.4.1.css" rel="stylesheet"/>
-<link href="../css/product-redesign.css" rel="stylesheet"/><link href="../css/release-1.6.css" rel="stylesheet"/><link href="../css/release-1.7.css" rel="stylesheet"/><link href="../css/release-1.7.1.css" rel="stylesheet"/><link href="../css/release-1.7.4.css" rel="stylesheet"/></head>
+<link href="../css/product-redesign.css" rel="stylesheet"/><link href="../css/release-1.6.css" rel="stylesheet"/><link href="../css/release-1.7.css" rel="stylesheet"/><link href="../css/release-1.7.1.css" rel="stylesheet"/><link href="../css/release-1.8.css" rel="stylesheet"/><link href="../css/brand-assets-1.8.css" rel="stylesheet"/>
+</head>
 <body class="plans-page page-planos"><script src="../js/device-router.js"></script>
 <!-- Cabeçalho e navegação principal -->
 <header class="header">
@@ -125,6 +126,7 @@
 <p class="texto-section" id="planoAtualTexto">
         Quando houver um estabelecimento vinculado, esta área mostrará limites e recursos disponíveis.
        </p>
+<div class="plan-current-benefits" id="planoAtualRecursos"></div>
 </div>
 <div class="plan-current-stats" id="planoAtualStats">
 <div class="summary-item">
@@ -166,7 +168,7 @@
         Escolha pela fase do negócio, não pela quantidade de cobranças.
        </h2>
 <p class="texto-section">
-        Os preços abaixo representam a proposta comercial atual e podem ser refinados após o programa piloto.
+        Os planos já controlam benefícios e limites reais do estabelecimento. Nesta fase, a ativação é administrada pela equipe Barber Hub; cobrança automática ainda não está integrada.
        </p>
 </div>
 <div class="monthly-badge">
@@ -225,9 +227,9 @@
         Criar perfil grátis
        </a></div>
 </article>
-<article class="plan-card muted development">
-<span class="plan-ribbon development-ribbon">
-        Em desenvolvimento
+<article class="plan-card recommended">
+<span class="plan-ribbon">
+        Mais indicado
        </span>
 <span class="plan-eyebrow">
         Profissional autônomo
@@ -260,27 +262,27 @@
 <li>
 <i class="bi bi-check2">
 </i>
-         Notificações e histórico
+         Carteira de clientes
         </li>
 <li>
 <i class="bi bi-check2">
 </i>
-         Até 50 publicações
+         Promoções na página pública
         </li>
 <li>
 <i class="bi bi-check2">
 </i>
-         Relatório semanal básico
+         Até 50 publicações e 2 destaques
+        </li>
+<li>
+<i class="bi bi-check2">
+</i>
+         Relatórios essenciais
         </li>
 </ul>
-<div class="plan-card-action"><p class="plan-fit"><i class="bi bi-tools"></i><span>Recursos e regras comerciais ainda estão sendo finalizados.</span></p><button class="btn btn-dark" disabled type="button">
-        Em desenvolvimento
-       </button></div>
+<div class="plan-card-action"><p class="plan-fit"><i class="bi bi-lightning-charge"></i><span>Benefícios liberados imediatamente quando o plano é ativado.</span></p><a class="btn btn-primary" href="contato.html">Solicitar ativação</a></div>
 </article>
-<article class="plan-card muted development">
-<span class="plan-ribbon development-ribbon">
-        Em desenvolvimento
-       </span>
+<article class="plan-card">
 <span class="plan-eyebrow">
         Equipe
        </span>
@@ -317,30 +319,30 @@
 <li>
 <i class="bi bi-check2">
 </i>
-         Metas e comissões
+         Exportação CSV da operação
         </li>
 <li>
 <i class="bi bi-check2">
 </i>
-         Até 150 publicações
+         Até 150 publicações e 3 destaques
+        </li>
+<li>
+<i class="bi bi-check2">
+</i>
+         Prioridade adicional no marketplace
         </li>
 </ul>
-<div class="plan-card-action"><p class="plan-fit"><i class="bi bi-tools"></i><span>Gestão de equipe e relatórios avançados seguem em desenvolvimento.</span></p><button class="btn btn-dark" disabled type="button">
-        Em desenvolvimento
-       </button></div>
+<div class="plan-card-action"><p class="plan-fit"><i class="bi bi-graph-up-arrow"></i><span>Para equipes que já precisam medir desempenho e crescer com dados.</span></p><a class="btn btn-dark" href="contato.html">Solicitar ativação</a></div>
 </article>
-<article class="plan-card muted development">
-<span class="plan-ribbon development-ribbon">
-        Em desenvolvimento
-       </span>
+<article class="plan-card">
 <span class="plan-eyebrow">
-        Expansão futura
+        Alta capacidade
        </span>
 <h3>
         Elite
        </h3>
 <p class="plan-description">
-        Múltiplas unidades, estoque, automações e maior destaque.
+        Para operações maiores que precisam de capacidade ampliada e máxima prioridade de descoberta.
        </p>
 <div class="plan-price">
 <strong>
@@ -354,32 +356,30 @@
 <li>
 <i class="bi bi-check2">
 </i>
-         Gestão avançada
+         Tudo do Profissional
         </li>
 <li>
 <i class="bi bi-check2">
 </i>
-         Mais profissionais e unidades
+         Até 10 profissionais
         </li>
 <li>
 <i class="bi bi-check2">
 </i>
-         Estoque e automações
+         Até 500 publicações
         </li>
 <li>
 <i class="bi bi-check2">
 </i>
-         Personalização visual
+         Até 5 destaques de portfólio
         </li>
 <li>
 <i class="bi bi-check2">
 </i>
-         Prioridade no portal
+         Prioridade máxima no marketplace
         </li>
 </ul>
-<div class="plan-card-action"><p class="plan-fit"><i class="bi bi-person-check"></i><span>Planejado para negócios em expansão e múltiplas unidades.</span></p><button class="btn btn-dark" disabled="" type="button">
-        Em desenvolvimento
-       </button></div>
+<div class="plan-card-action"><p class="plan-fit"><i class="bi bi-gem"></i><span>Todos os benefícios anteriores, com os maiores limites disponíveis.</span></p><a class="btn btn-dark" href="contato.html">Solicitar ativação</a></div>
 </article>
 </div>
 </div>
@@ -496,108 +496,17 @@
 </tr>
 </thead>
 <tbody>
-<tr>
-<td>
-          Página pública
-         </td>
-<td>
-          ✓
-         </td>
-<td>
-          ✓
-         </td>
-<td>
-          ✓
-         </td>
-<td>
-          ✓
-         </td>
-</tr>
-<tr>
-<td>
-          Agenda online
-         </td>
-<td>
-          —
-         </td>
-<td>
-          ✓
-         </td>
-<td>
-          ✓
-         </td>
-<td>
-          ✓
-         </td>
-</tr>
-<tr>
-<td>
-          Publicações
-         </td>
-<td>
-          10
-         </td>
-<td>
-          50
-         </td>
-<td>
-          150
-         </td>
-<td>
-          ampliado
-         </td>
-</tr>
-<tr>
-<td>
-          Profissionais
-         </td>
-<td>
-          1
-         </td>
-<td>
-          1
-         </td>
-<td>
-          até 3
-         </td>
-<td>
-          ampliado
-         </td>
-</tr>
-<tr>
-<td>
-          Relatórios
-         </td>
-<td>
-          básico
-         </td>
-<td>
-          básico
-         </td>
-<td>
-          avançado
-         </td>
-<td>
-          avançado
-         </td>
-</tr>
-<tr>
-<td>
-          Destaque no portal
-         </td>
-<td>
-          —
-         </td>
-<td>
-          —
-         </td>
-<td>
-          limitado
-         </td>
-<td>
-          máximo
-         </td>
-</tr>
+<tr><td>Página pública e reputação</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+<tr><td>Agenda online</td><td>—</td><td>✓</td><td>✓</td><td>✓</td></tr>
+<tr><td>Carteira de clientes</td><td>—</td><td>✓</td><td>✓</td><td>✓</td></tr>
+<tr><td>Promoções públicas</td><td>—</td><td>✓</td><td>✓</td><td>✓</td></tr>
+<tr><td>Publicações no portfólio</td><td>10</td><td>50</td><td>150</td><td>500</td></tr>
+<tr><td>Destaques de portfólio</td><td>1</td><td>2</td><td>3</td><td>5</td></tr>
+<tr><td>Profissionais ativos</td><td>1</td><td>1</td><td>até 3</td><td>até 10</td></tr>
+<tr><td>Relatórios essenciais</td><td>—</td><td>✓</td><td>✓</td><td>✓</td></tr>
+<tr><td>Relatórios por profissional/receita</td><td>—</td><td>—</td><td>✓</td><td>✓</td></tr>
+<tr><td>Exportação CSV</td><td>—</td><td>—</td><td>✓</td><td>✓</td></tr>
+<tr><td>Prioridade no marketplace</td><td>—</td><td>—</td><td>Adicional</td><td>Máxima</td></tr>
 </tbody>
 </table>
 </div>

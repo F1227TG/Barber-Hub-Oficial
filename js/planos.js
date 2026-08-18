@@ -17,6 +17,12 @@ function bhRenderizarStatsPlano(stats = []) {
   `).join("");
 }
 
+function bhRenderizarRecursosPlano(recursos = []) {
+  const alvo = document.getElementById("planoAtualRecursos");
+  if (!alvo) return;
+  alvo.innerHTML = recursos.length ? recursos.map(item => `<span><i class="bi bi-check2-circle"></i>${escapeHTML(item)}</span>`).join("") : "";
+}
+
 async function bhCarregarPlanoAtual() {
   const titulo = document.getElementById("planoAtualTitulo");
   const texto = document.getElementById("planoAtualTexto");
@@ -29,8 +35,9 @@ async function bhCarregarPlanoAtual() {
       bhRenderizarStatsPlano([
         { valor: "10", label: "Publicações grátis" },
         { valor: "1", label: "Profissional grátis" },
-        { valor: "Opcional", label: "Upgrade futuro" }
+        { valor: "Admin", label: "Ativação de upgrade" }
       ]);
+      bhRenderizarRecursosPlano([]);
       return;
     }
 
@@ -64,7 +71,7 @@ async function bhCarregarPlanoAtual() {
     titulo.textContent = `${resumo.estabelecimento.nome} está no plano ${planoNome}.`;
     texto.textContent = statusAssinatura === "teste"
       ? "Seu estabelecimento está em período de teste. Este é um ótimo momento para validar agenda, galeria e rotina do painel."
-      : `Status atual da assinatura: ${statusAssinatura}. Você pode usar esta página para apresentar upgrades e futuras opções de cobrança.`;
+      : `Status atual da assinatura: ${statusAssinatura}. Os benefícios do plano são aplicados automaticamente ao painel. A cobrança automática ainda não está integrada.`;
     card.classList.toggle("is-highlight", true);
 
     const limitePublicacoes = resumo.plano?.limite_publicacoes || 10;
@@ -74,6 +81,7 @@ async function bhCarregarPlanoAtual() {
       { valor: `${resumo.uso.profissionais}/${limiteProfissionais}`, label: "Profissionais" },
       { valor: resumo.uso.aceitaAgendamento ? "Ativa" : (resumo.plano?.permite_agenda ? "Disponível" : "Indisponível"), label: "Agenda online" }
     ]);
+    bhRenderizarRecursosPlano(resumo.entitlements?.recursos || resumo.plano?.recursos || []);
   } catch (erro) {
     console.warn("Falha ao carregar resumo do plano.", erro);
     titulo.textContent = "Plano atual indisponível no momento.";

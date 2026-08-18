@@ -33,7 +33,7 @@ function bhMarketplaceAgendaBoolean() {
 
 function bhMarketplaceCard(item, { destaque = false } = {}) {
   const status = bhCalcularStatus(item);
-  const imagem = item.capaUrl || item.fotoUrl || "../img/logoblack.png";
+  const imagem = item.capaUrl || item.fotoUrl || "../img/placeholders/barbearia-01.webp";
   const tipo = item.tipoEstabelecimento === "salao" ? "Salão" : "Barbearia";
   const avaliacao = Number(item.avaliacao || 0);
   const servicosAtivos = (item.servicos || []).filter(servico => servico.ativo && servico.publico);

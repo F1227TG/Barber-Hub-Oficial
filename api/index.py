@@ -22,12 +22,15 @@ from backend.models import (
     AppointmentCancelRequest,
     AppointmentCreate,
     AppointmentStatusUpdate,
+    AdminSubscriptionUpdate,
     DeleteAccountRequest,
     EstablishmentStatusUpdate,
     EstablishmentUpdate,
     PasswordRecoveryRequest,
     ProfessionalCreate,
     ProfessionalUpdate,
+    PromotionCreate,
+    PromotionUpdate,
     ServiceCreate,
     ServiceUpdate,
     SupportTicketCreate,
@@ -40,7 +43,7 @@ from backend.services import catalog as catalog_service
 from backend.services import management as management_service
 from backend.services import support as support_service
 
-API_VERSION = "1.2.0"
+API_VERSION = "1.3.0"
 
 app = FastAPI(
     title="Barber Hub API",
@@ -249,6 +252,14 @@ async def update_establishment_status(
     return ok(await management_service.update_establishment_status(establishment_id, payload, auth))
 
 
+@app.get("/api/v1/establishments/{establishment_id}/entitlements")
+async def establishment_entitlements(
+    establishment_id: str,
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    return ok(await management_service.get_entitlements(establishment_id, auth))
+
+
 @app.post("/api/v1/services", status_code=status.HTTP_201_CREATED)
 async def create_service(
     request: Request,
@@ -311,6 +322,37 @@ async def delete_professional(
     return ok(await management_service.delete_professional(professional_id, auth))
 
 
+@app.post("/api/v1/promotions", status_code=status.HTTP_201_CREATED)
+async def create_promotion(
+    request: Request,
+    payload: PromotionCreate,
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "promotions-create", limit=20, window_seconds=300, identity=auth.user_id)
+    return ok(await management_service.create_promotion(payload, auth), status.HTTP_201_CREATED)
+
+
+@app.patch("/api/v1/promotions/{promotion_id}")
+async def update_promotion(
+    promotion_id: str,
+    request: Request,
+    payload: PromotionUpdate,
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "promotions-update", limit=60, window_seconds=300, identity=auth.user_id)
+    return ok(await management_service.update_promotion(promotion_id, payload, auth))
+
+
+@app.delete("/api/v1/promotions/{promotion_id}")
+async def delete_promotion(
+    promotion_id: str,
+    request: Request,
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "promotions-delete", limit=20, window_seconds=300, identity=auth.user_id)
+    return ok(await management_service.delete_promotion(promotion_id, auth))
+
+
 @app.get("/api/v1/support/tickets")
 async def list_support_tickets(auth: AuthContext = Depends(require_user)) -> JSONResponse:
     return ok(await support_service.list_for_user(auth))
@@ -363,6 +405,31 @@ async def admin_password_recovery(
         target_type="user",
         target_id=user_id,
         details={"reason_provided": bool(payload.motivo)},
+        request_id=getattr(request.state, "request_id", None),
+    )
+    return ok(result)
+
+
+@app.get("/api/v1/admin/subscriptions")
+async def admin_subscriptions(auth: AuthContext = Depends(require_admin)) -> JSONResponse:
+    return ok(await admin_service.list_subscriptions(auth))
+
+
+@app.patch("/api/v1/admin/establishments/{establishment_id}/subscription")
+async def admin_assign_subscription(
+    establishment_id: str,
+    request: Request,
+    payload: AdminSubscriptionUpdate,
+    auth: AuthContext = Depends(require_admin),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "admin-subscription-update", limit=40, window_seconds=600, identity=auth.user_id)
+    result = await admin_service.assign_subscription(establishment_id, payload, auth)
+    await admin_service.audit_action(
+        auth,
+        action="subscription_changed",
+        target_type="establishment",
+        target_id=establishment_id,
+        details={"plan": payload.plano_slug, "status": payload.status},
         request_id=getattr(request.state, "request_id", None),
     )
     return ok(result)

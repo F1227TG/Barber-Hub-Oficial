@@ -121,12 +121,16 @@
       auth: true,
       body: { status, motivo }
     }),
+    getEntitlements: establishmentId => request(`establishments/${encodeURIComponent(establishmentId)}/entitlements`, { auth: true }),
     createService: data => request("services", { method: "POST", auth: true, body: data }),
     updateService: (serviceId, data) => request(`services/${encodeURIComponent(serviceId)}`, { method: "PATCH", auth: true, body: data }),
     deleteService: serviceId => request(`services/${encodeURIComponent(serviceId)}`, { method: "DELETE", auth: true }),
     createProfessional: data => request("professionals", { method: "POST", auth: true, body: data }),
     updateProfessional: (professionalId, data) => request(`professionals/${encodeURIComponent(professionalId)}`, { method: "PATCH", auth: true, body: data }),
     deleteProfessional: professionalId => request(`professionals/${encodeURIComponent(professionalId)}`, { method: "DELETE", auth: true }),
+    createPromotion: data => request("promotions", { method: "POST", auth: true, body: data }),
+    updatePromotion: (promotionId, data) => request(`promotions/${encodeURIComponent(promotionId)}`, { method: "PATCH", auth: true, body: data }),
+    deletePromotion: promotionId => request(`promotions/${encodeURIComponent(promotionId)}`, { method: "DELETE", auth: true }),
     createSupportTicket: data => request("support/tickets", { method: "POST", body: data }),
     listSupportTickets: () => request("support/tickets", { auth: true }),
     deleteAccount: confirmation => request("account", {
@@ -135,6 +139,8 @@
       body: { confirmacao: confirmation }
     }),
     adminOverview: () => request("admin/overview", { auth: true }),
+    adminSubscriptions: () => request("admin/subscriptions", { auth: true }),
+    adminAssignSubscription: (establishmentId, data) => request(`admin/establishments/${encodeURIComponent(establishmentId)}/subscription`, { method: "PATCH", auth: true, body: data }),
     sendPasswordRecovery: (userId, motivo = "") => request(
       `admin/users/${encodeURIComponent(userId)}/password-recovery`,
       { method: "POST", auth: true, body: { motivo } }

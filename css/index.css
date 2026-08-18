@@ -108,7 +108,7 @@
 .phone-banner {
   height:165px;
   border-radius:22px;
-  background:linear-gradient(135deg,var(--gold-soft),transparent),url('../img/logoblack.png') center/contain no-repeat,var(--surface-2);
+  background:linear-gradient(135deg,var(--gold-soft),transparent),url('../img/branding/barber-hub-logo.png') center/contain no-repeat,var(--surface-2);
   border:1px solid var(--border);
   margin-bottom:17px
 }
@@ -284,7 +284,7 @@
 
 /* ===== Barber Hub hero com background real ===== */
 .hero {
-  background-image: radial-gradient(circle at 15% 20%,var(--gold-soft),transparent 31%), radial-gradient(circle at 86% 20%,color-mix(in srgb,var(--gold) 10%,transparent),transparent 29%), linear-gradient(90deg,color-mix(in srgb,var(--bg) 96%,transparent) 0%,color-mix(in srgb,var(--bg) 84%,transparent) 42%,color-mix(in srgb,var(--bg) 52%,transparent) 100%), url('../img/backgrounds/barber-home-bg.png');
+  background-image: radial-gradient(circle at 15% 20%,var(--gold-soft),transparent 31%), radial-gradient(circle at 86% 20%,color-mix(in srgb,var(--gold) 10%,transparent),transparent 29%), linear-gradient(90deg,color-mix(in srgb,var(--bg) 96%,transparent) 0%,color-mix(in srgb,var(--bg) 84%,transparent) 42%,color-mix(in srgb,var(--bg) 52%,transparent) 100%), url('../img/backgrounds/barber-home-hero.webp');
   background-size:auto,auto,auto,cover;
   background-position:center,center,center,center;
 }
@@ -302,7 +302,7 @@
 }
 
 .phone-banner {
-  background:linear-gradient(135deg,rgba(0,0,0,.12),rgba(0,0,0,.58)),url('../img/backgrounds/barber-home-bg.png') center/cover no-repeat,var(--surface-2)
+  background:linear-gradient(135deg,rgba(0,0,0,.12),rgba(0,0,0,.58)),url('../img/backgrounds/barber-home-hero.webp') center/cover no-repeat,var(--surface-2)
 }
 
 .float-card {
@@ -313,7 +313,7 @@
 .home-redesign .home-hero-new {
   min-height:auto;
   padding:78px 0 72px;
-  background: radial-gradient(circle at 18% 18%,color-mix(in srgb,var(--gold) 22%,transparent),transparent 30%), linear-gradient(90deg,color-mix(in srgb,var(--bg) 97%,transparent) 0%,color-mix(in srgb,var(--bg) 90%,transparent) 46%,color-mix(in srgb,var(--bg) 58%,transparent) 100%), url('../img/backgrounds/barber-home-bg.png') center/cover no-repeat
+  background: radial-gradient(circle at 18% 18%,color-mix(in srgb,var(--gold) 22%,transparent),transparent 30%), linear-gradient(90deg,color-mix(in srgb,var(--bg) 97%,transparent) 0%,color-mix(in srgb,var(--bg) 90%,transparent) 46%,color-mix(in srgb,var(--bg) 58%,transparent) 100%), url('../img/backgrounds/barber-home-hero.webp') center/cover no-repeat
 }
 
 .home-hero-layout {
@@ -445,7 +445,7 @@
 .app-business-image {
   position:relative;
   min-height:210px;
-  background:linear-gradient(180deg,transparent,rgba(0,0,0,.58)),url('../img/backgrounds/barber-home-bg.png') center/cover
+  background:linear-gradient(180deg,transparent,rgba(0,0,0,.58)),url('../img/placeholders/barbearia-01.webp') center/cover
 }
 
 .app-business-image .status {
@@ -1007,7 +1007,7 @@
 @media(max-width:700px) {
   .home-redesign .home-hero-new {
     padding:42px 0 30px;
-    background:radial-gradient(circle at 12% 12%,var(--gold-soft),transparent 33%),linear-gradient(180deg,color-mix(in srgb,var(--bg) 92%,transparent),var(--bg)),url('../img/backgrounds/barber-home-bg.png') center/cover
+    background:radial-gradient(circle at 12% 12%,var(--gold-soft),transparent 33%),linear-gradient(180deg,color-mix(in srgb,var(--bg) 92%,transparent),var(--bg)),url('../img/backgrounds/barber-home-hero.webp') center/cover
   }
   .home-hero-layout {
     gap:32px

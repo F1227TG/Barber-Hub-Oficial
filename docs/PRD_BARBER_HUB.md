@@ -25,7 +25,7 @@
 | Tipo de produto | Aplicação web + interface HTML mobile dedicada, instalável como PWA, multi-tenant (múltiplos estabelecimentos independentes), com backend próprio (API Python/FastAPI) sobre infraestrutura Supabase |
 | Empresa/divisão | The Gamers Tech |
 | Estágio atual | Produto em produção ativa (deploy Vercel), evoluindo por versões incrementais e documentadas (1.1 → 1.6). Não há, no repositório, uma declaração formal de "MVP concluído" — ver critério proposto na Seção 22 |
-| Versão analisada | Front-end/PWA **1.7.4** (`package.json`, cache do Service Worker `barberhub-v1.7.4`) · API própria **1.2.0** (`pyproject.toml`, `api/index.py`) · Schema de banco até a migration **15** (`15_marketplace_fts_api_seguranca.sql`) |
+| Versão analisada | Front-end/PWA **1.8.0** (`package.json`, cache do Service Worker `barberhub-v1.8.0`) · API própria **1.3.0** (`pyproject.toml`, `api/index.py`) · Schema de banco até a migration **16** (`16_assinaturas_entitlements_beneficios.sql`) |
 | Repositório analisado | `Barber-Hub-Oficial-main.zip`, domínio de referência `barberhuboficial.vercel.app` |
 | Stack confirmada em código | HTML/CSS/JS vanilla + Bootstrap 5.3.6 (local, em camada `@layer`); Supabase (PostgreSQL, Auth, Storage, RLS, Realtime); backend próprio em Python 3.13+/FastAPI 0.117+/Pydantic 2.10+, empacotado como função serverless da Vercel (`api/index.py`); PWA com Service Worker e manifest próprios |
 
@@ -1230,24 +1230,94 @@ Nesta release, **Essencial, Profissional e Elite são apresentados como Em desen
 
 `npm run check` aprovou 21 páginas mobile sincronizadas, 11 casos dinâmicos de rotas, 22 HTML mobile, 48 HTML no total, 38 arquivos JS e 9/9 testes FastAPI. A tentativa de renderização com Chromium/Playwright foi bloqueada pela política do ambiente (`ERR_BLOCKED_BY_ADMINISTRATOR`), portanto a checagem visual final deve ser feita após o deploy em aparelho real.
 
+
 ---
 
-## 32. Hotfix de estabilidade — Barber Hub 1.7.4
+## 32. Revisão funcional — Barber Hub 1.8.0
 
-Esta seção prevalece sobre as Seções 30/31 em desempenho da Home desktop e comportamento do Service Worker. API 1.2 e migrations até 15 permanecem inalteradas.
+> Esta seção prevalece sobre referências anteriores que tratavam Essencial, Profissional e Elite apenas como apresentação ou “em desenvolvimento”. A cobrança automática continua fora do escopo, porém **a atribuição administrativa e todos os benefícios listados abaixo passam a ser regras funcionais do produto**.
 
-### 32.1 Home desktop
+### 32.1 Princípio: entitlement cumulativo
 
-A Home desktop deixou de usar `bhListarEstabelecimentos()` apenas para calcular “abertos agora”. Essa consulta incluía horários, dias bloqueados, profissionais/vínculos, serviços e promoções de todos os estabelecimentos visíveis. A 1.7.4 usa `bhListarStatusEstabelecimentos()`, que consulta apenas os campos necessários para `bhCalcularStatus()`.
+A migration 16 introduz um resolvedor central `calcular_entitlements_estabelecimento`. O plano efetivo é determinado pela assinatura ativa/teste e pela validade; qualquer assinatura pausada, atrasada, cancelada, expirada ou fora do período cai para as capacidades do Perfil gratuito. Os benefícios são cumulativos por `ordenacao`: um plano superior herda os recursos dos níveis anteriores. Limites numéricos usam o maior limite até o nível atual; capacidades booleanas são agregadas cumulativamente.
 
-### 32.2 PWA e Service Worker
+O Perfil gratuito deixa de funcionar como “teste de 90 dias”: registros gratuitos legados em `teste` são normalizados para uma assinatura gratuita ativa sem vencimento.
 
-O cache passa a ser `barberhub-v1.7.4`. O pré-cache foi reduzido e passa a ser sequencial. Navegações HTML priorizam a rede e não são gravadas automaticamente no cache de runtime; `/api/` continua fora do Service Worker. O registro ocorre após `load`/idle e não força `reg.update()` em toda página.
+### 32.2 Matriz funcional de benefícios
 
-### 32.3 Renderer desktop
+| Capacidade | Gratuito | Essencial | Profissional | Elite |
+|---|---:|---:|---:|---:|
+| Página pública, reputação, contatos e status | ✓ | ✓ | ✓ | ✓ |
+| Agenda online | — | ✓ | ✓ | ✓ |
+| Carteira de clientes/recorrência | — | ✓ | ✓ | ✓ |
+| Promoções públicas | — | ✓ | ✓ | ✓ |
+| Relatórios essenciais | — | ✓ | ✓ | ✓ |
+| Profissionais ativos | 1 | 1 | 3 | 10 |
+| Publicações de portfólio | 10 | 50 | 150 | 500 |
+| Destaques de portfólio | 1 | 2 | 3 | 5 |
+| Relatórios por profissional/receita | — | — | ✓ | ✓ |
+| Exportação CSV | — | — | ✓ | ✓ |
+| Prioridade no marketplace | — | — | adicional | máxima |
 
-`mobile-app.js` não inicia mais acima de 900 px. MutationObservers de tabelas processam somente os nós alterados. A camada `release-1.7.4.css` remove `backdrop-filter` permanente do cabeçalho sticky no desktop como defesa contra falhas de repaint/composição do Chromium.
+### 32.3 Administração de assinaturas
 
-### 32.4 Validação
+`html/admin-assinaturas.html` e sua versão gerada em `/mobile` formam a central de assinaturas. O administrador busca um estabelecimento, escolhe plano/status/validade, registra uma observação interna e confirma a alteração. O frontend usa `PATCH /api/v1/admin/establishments/{id}/subscription`, que chama a RPC protegida `admin_atribuir_plano`.
 
-`npm run check` aprovou 21 páginas mobile sincronizadas, 11 casos de roteamento, 12 invariantes novas de estabilidade desktop/PWA, 48 HTML, 38 arquivos JavaScript, validação estrutural Python e 9/9 testes FastAPI.
+A troca é imediata:
+
+- upgrade de um plano sem agenda para um plano com agenda habilita a agenda do estabelecimento;
+- downgrade para nível sem agenda desabilita a agenda;
+- profissionais excedentes não são apagados: são inativados e podem ser reativados após novo upgrade;
+- promoções são desativadas se o plano perder esse benefício;
+- publicações excedentes são preservadas como dados, mas passam para `arquivada` até que o proprietário decida republicá-las após um upgrade;
+- o painel assina mudanças da tabela `assinaturas` via Realtime e recarrega os entitlements sem exigir novo login.
+
+### 32.4 Enforcement no servidor/banco
+
+A 1.8 não depende apenas de esconder botões. Triggers do PostgreSQL impedem cadastro/reativação acima do limite de profissionais, criação de agendamento sem benefício de agenda, promoção ativa sem benefício e novas publicações/destaques além do limite efetivo. A API Python também faz pré-validações para devolver mensagens de produto mais claras antes do erro de banco.
+
+A função pública mínima `agenda_online_disponivel(id)` combina a preferência operacional do estabelecimento com o entitlement. Assim, uma assinatura que vence ou é pausada não continua anunciando “Agendar” apenas porque `aceita_agendamento` estava verdadeiro. A busca do marketplace também usa esse valor efetivo. Promoções públicas recebem proteção equivalente por `promocoes_publicas_disponiveis(id)` + RLS.
+
+### 32.5 Novos benefícios operacionais
+
+**Carteira de clientes (Essencial+)** — painel derivado de agendamentos reais, com clientes atendidos, recorrência, ticket médio, total movimentado e última atividade, além de busca por nome/contato.
+
+**Promoções (Essencial+)** — CRUD de oferta com título, descrição, código, percentual, período e status. A policy pública verifica também o entitlement efetivo: uma promoção antiga com `ativo=true` deixa de ser exibida se a assinatura perder o benefício por pausa, cancelamento ou vencimento.
+
+**Relatórios essenciais (Essencial+)** — serviços mais usados e horários de maior procura.
+
+**Relatórios avançados (Profissional+)** — volume de atendimentos por profissional, receita por serviço e exportação CSV dos atendimentos.
+
+**Descoberta (Profissional/Elite)** — o ranking FTS do marketplace recebe bônus limitado de prioridade comercial (nível 1 ou 2), mantendo relevância textual, destaque editorial, avaliação e disponibilidade na composição.
+
+### 32.6 API 1.3
+
+Novos endpoints:
+
+- `GET /api/v1/establishments/{id}/entitlements`;
+- `POST /api/v1/promotions`;
+- `PATCH /api/v1/promotions/{id}`;
+- `DELETE /api/v1/promotions/{id}`;
+- `GET /api/v1/admin/subscriptions`;
+- `PATCH /api/v1/admin/establishments/{id}/subscription`.
+
+O OpenAPI versionado foi regenerado a partir do FastAPI 1.3.0.
+
+### 32.7 Desktop/mobile e design
+
+As páginas funcionais continuam tendo `/html` como fonte e `/mobile` como derivação verificada. A nova central administrativa de assinaturas e as novas seções do painel entram nos dois ambientes. A camada `release-1.8.css` é estrutural (grade, estados bloqueados, responsividade, tabelas/cards funcionais) e não redefine a identidade estética global. O Service Worker 1.8 mantém a arquitetura resiliente consolidada na 1.7.3; View Transitions cross-document permanecem desativadas.
+
+### 32.8 Critérios de publicação
+
+- [x] migration 16 criada;
+- [x] herança cumulativa implementada;
+- [x] atribuição administrativa de plano implementada;
+- [x] limites críticos protegidos no PostgreSQL;
+- [x] central de clientes e promoções adicionadas;
+- [x] relatórios/exportação condicionados por entitlement;
+- [x] prioridade de marketplace condicionada por plano;
+- [x] página admin de assinaturas em desktop/mobile;
+- [x] API 1.3 e OpenAPI atualizados;
+- [ ] executar migration 16 no Supabase de produção;
+- [ ] publicar frontend/API 1.8 na Vercel;
+- [ ] testar upgrade e downgrade reais com uma conta de estabelecimento em cada plano.

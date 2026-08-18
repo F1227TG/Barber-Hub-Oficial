@@ -21,7 +21,8 @@
 <meta content="yes" name="apple-mobile-web-app-capable"/>
 <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
 <link href="../css/mobile-app.css" rel="stylesheet"/><link href="../css/release-1.4.1.css" rel="stylesheet"/>
-<link href="../css/product-redesign.css" rel="stylesheet"/><link href="../css/release-1.6.css" rel="stylesheet"/><link href="../css/release-1.7.css" rel="stylesheet"/><link href="../css/release-1.7.1.css" rel="stylesheet"/><link href="../css/release-1.7.4.css" rel="stylesheet"/></head>
+<link href="../css/product-redesign.css" rel="stylesheet"/><link href="../css/release-1.6.css" rel="stylesheet"/><link href="../css/release-1.7.css" rel="stylesheet"/><link href="../css/release-1.7.1.css" rel="stylesheet"/><link href="../css/release-1.8.css" rel="stylesheet"/><link href="../css/brand-assets-1.8.css" rel="stylesheet"/>
+</head>
 <body class="page-painel"><script src="../js/device-router.js"></script>
 <!-- Cabeçalho e navegação principal -->
 <header class="header">
@@ -113,6 +114,14 @@
       <span aria-hidden="true" class="nav-badge" data-badge-agenda="" hidden="">
 </span>
 </button>
+<button class="btn btn-dark" data-panel="secClientes" data-plan-feature="permite_clientes">
+<i class="bi bi-person-lines-fill"></i>
+      Clientes
+     </button>
+<button class="btn btn-dark" data-panel="secPromocoes" data-plan-feature="permite_promocoes">
+<i class="bi bi-megaphone"></i>
+      Promoções
+     </button>
 <button class="btn btn-dark" data-panel="secServicos">
 <i class="bi bi-scissors">
 </i>
@@ -123,7 +132,7 @@
 </i>
       Equipe
      </button>
-<button class="btn btn-dark" data-panel="secRelatorios">
+<button class="btn btn-dark" data-panel="secRelatorios" data-plan-feature="permite_relatorios">
 <i class="bi bi-bar-chart">
 </i>
       Relatórios
@@ -175,7 +184,21 @@
 <div class="professional-command-center" id="painelCommandCenter">
 <div class="command-primary"><span class="command-eyebrow">Operação de hoje</span><h2 id="painelProximoTitulo">Sua agenda em um só olhar</h2><p id="painelProximoDetalhe">Carregando o próximo atendimento...</p><div style="margin-top:14px"><button class="btn btn-primary btn-small" data-panel="secAgenda" type="button"><i class="bi bi-calendar-week"></i> Abrir agenda</button></div></div>
 <div class="command-actions"><button class="btn btn-outline" data-panel="secServicos" type="button"><i class="bi bi-plus-lg"></i> Serviço</button><button class="btn btn-outline" data-panel="secBarbeiros" type="button"><i class="bi bi-person-plus"></i> Profissional</button><button class="btn btn-outline" data-panel="secGaleria" type="button"><i class="bi bi-camera"></i> Publicar</button><button class="btn btn-outline" data-panel="secConfig" type="button"><i class="bi bi-calendar-x"></i> Bloquear dia</button></div>
-</div><div class="quick-status-card" id="quickStatusCard">
+</div><article class="panel-plan-overview" id="painelPlanoOverview">
+<div class="panel-plan-copy">
+<span class="tag"><i class="bi bi-gem"></i> Plano atual</span>
+<h3 id="painelPlanoNome">Carregando plano...</h3>
+<p id="painelPlanoDescricao">Os benefícios liberados aparecem aqui automaticamente.</p>
+<div class="panel-plan-features" id="painelPlanoRecursos"></div>
+</div>
+<div class="panel-plan-usage">
+<div><span>Equipe</span><strong id="painelPlanoEquipe">0/1</strong></div>
+<div><span>Portfólio</span><strong id="painelPlanoPortfolio">0/10</strong></div>
+<div><span>Agenda</span><strong id="painelPlanoAgenda">Bloqueada</strong></div>
+<a class="btn btn-outline btn-small" href="planos.html"><i class="bi bi-arrow-up-right-circle"></i> Ver benefícios</a>
+</div>
+</article>
+<div class="quick-status-card" id="quickStatusCard">
 <div class="quick-status-copy">
 <span>
         Como o estabelecimento aparece agora
@@ -293,6 +316,23 @@
 </table>
 </div>
 </section>
+<section class="panel-section" id="secClientes" data-plan-section="permite_clientes">
+<div class="section-top">
+<div>
+<span class="tag"><i class="bi bi-person-heart"></i> Relacionamento</span>
+<h2 class="titulo-section">Carteira de clientes</h2>
+<p class="texto-section">Veja recorrência, última visita e valor movimentado por cliente a partir dos atendimentos reais.</p>
+</div>
+<div class="client-summary" id="clientesResumoPainel"></div>
+</div>
+<div class="grid grid-3 panel-grid" id="clientesKpisPainel"></div>
+<div class="card">
+<div class="card-body">
+<div class="section-top compact"><div><h3>Clientes atendidos</h3><p>Ordenados por relacionamento e atividade recente.</p></div><input aria-label="Buscar cliente" class="input-compact" id="buscarClientePainel" placeholder="Buscar cliente" type="search"/></div>
+<div class="client-roster" id="listaClientesPainel"></div>
+</div>
+</div>
+</section>
 <section class="panel-section" id="secServicos">
 <h2 class="titulo-section">
       Serviços e cortes
@@ -403,13 +443,40 @@
 </div>
 </div>
 </section>
+<section class="panel-section" id="secPromocoes" data-plan-section="permite_promocoes">
+<div class="section-top">
+<div>
+<span class="tag"><i class="bi bi-megaphone"></i> Conversão</span>
+<h2 class="titulo-section">Promoções</h2>
+<p class="texto-section">Crie ofertas que aparecem diretamente na página pública do estabelecimento.</p>
+</div>
+<span class="status concluido" id="promocoesPlanoStatus">Benefício ativo</span>
+</div>
+<div class="grid grid-2 panel-grid">
+<form class="form-card" id="formPromocao">
+<input id="promocaoId" type="hidden"/>
+<div class="form-grid">
+<div class="campo full"><label for="promocaoTitulo">Título</label><input id="promocaoTitulo" maxlength="120" required/></div>
+<div class="campo full"><label for="promocaoDescricao">Descrição</label><textarea id="promocaoDescricao" maxlength="600" required></textarea></div>
+<div class="campo"><label for="promocaoCodigo">Código <span class="muted">(opcional)</span></label><input id="promocaoCodigo" maxlength="40"/></div>
+<div class="campo"><label for="promocaoDesconto">Desconto % <span class="muted">(opcional)</span></label><input id="promocaoDesconto" min="0" max="100" step="0.01" type="number"/></div>
+<div class="campo"><label for="promocaoInicio">Início</label><input id="promocaoInicio" type="date"/></div>
+<div class="campo"><label for="promocaoFim">Fim</label><input id="promocaoFim" type="date"/></div>
+</div>
+<label class="check-line"><input aria-label="Publicar promoção" checked id="promocaoAtiva" type="checkbox"/><span>Publicar promoção</span></label>
+<div class="modal-actions"><button class="btn btn-primary" type="submit"><i class="bi bi-megaphone"></i> Salvar promoção</button><button class="btn btn-outline" hidden id="cancelarEdicaoPromocao" type="button">Cancelar edição</button></div>
+</form>
+<div class="card"><div class="card-body"><h3>Promoções do estabelecimento</h3><div class="divisor"></div><div class="promotion-manager-list" id="listaPromocoesPainel"></div></div></div>
+</div>
+</section>
 <section class="panel-section" id="secRelatorios">
 <h2 class="titulo-section">
       Relatórios
      </h2>
 <p class="texto-section">
-      Análise baseada nos agendamentos reais registrados.
+      Análise baseada nos agendamentos reais registrados. Recursos avançados aparecem automaticamente conforme o plano.
      </p>
+<div class="report-plan-toolbar"><span id="relatorioNivelPlano">Relatórios essenciais</span><button class="btn btn-outline btn-small" hidden id="exportarRelatorioCsv" type="button"><i class="bi bi-download"></i> Exportar CSV</button></div>
 <div class="grid grid-2 panel-grid">
 <div class="card">
 <div class="card-body">
@@ -434,6 +501,10 @@
 </div>
 </div>
 </div>
+<div class="grid grid-2 panel-grid report-advanced" id="relatoriosAvancados" hidden>
+<div class="card"><div class="card-body"><h3>Desempenho por profissional</h3><div class="divisor"></div><div class="chart-bars" id="chartProfissionais"></div></div></div>
+<div class="card"><div class="card-body"><h3>Receita por serviço</h3><div class="divisor"></div><div class="chart-bars" id="chartReceitaServicos"></div></div></div>
+</div>
 </section>
 <section class="panel-section" id="secGaleria">
 <div class="section-top">
@@ -454,8 +525,8 @@
 <strong id="portfolioContagem">
         0
        </strong>
-<span>
-        / 50 publicações
+<span id="portfolioLimiteTexto">
+        / 10 publicações
        </span>
 </div>
 </div>
@@ -666,7 +737,7 @@
       A identidade visual do seu espaço é atualizada pelas configurações abaixo.
      </p>
 <div class="business-preview">
-<img alt="Capa" class="business-cover-preview" id="configCapaPreview" src="../img/logoblack.png"/>
+<img alt="Capa" class="business-cover-preview" id="configCapaPreview" src="../img/backgrounds/barbearia-hero-default.webp"/>
 <img alt="Foto" class="business-logo-preview" id="configFotoPreview" src="../img/logomarcaTRANSPARENTE.png"/>
 <div>
 <h3 id="previewBusinessName">

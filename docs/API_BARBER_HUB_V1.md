@@ -1,4 +1,4 @@
-# API própria do Barber Hub — Python/FastAPI 1.2
+# API própria do Barber Hub — Python/FastAPI 1.3
 
 ## Objetivo
 
@@ -23,12 +23,12 @@ backend/rate_limit.py        rate limiting distribuído
 backend/supabase.py          gateway HTTP assíncrono
 backend/services/catalog.py  marketplace/FTS
 backend/services/appointments.py agendamentos
-backend/services/management.py  estabelecimento/serviços/profissionais sob RLS
+backend/services/management.py  estabelecimento/serviços/profissionais/promoções sob RLS
 backend/services/support.py  suporte
-backend/services/admin.py    overview/health/auditoria/recuperação
+backend/services/admin.py    overview/health/auditoria/recuperação/assinaturas
 ```
 
-## Endpoints 1.2
+## Endpoints 1.3
 
 | Método | Rota | Acesso | Responsabilidade |
 |---|---|---|---|
@@ -41,22 +41,34 @@ backend/services/admin.py    overview/health/auditoria/recuperação
 | DELETE | `/api/v1/appointments/{id}` | autenticado | cancelar agendamento permitido |
 | PATCH | `/api/v1/establishments/{id}` | dono sob RLS | editar dados/configurações do próprio estabelecimento |
 | PATCH | `/api/v1/establishments/{id}/status` | dono sob RLS | status Automático/Aberto/Fechado |
+| GET | `/api/v1/establishments/{id}/entitlements` | dono/admin | plano efetivo, limites e benefícios cumulativos |
 | POST | `/api/v1/services` | dono sob RLS | criar serviço com validação Pydantic |
 | PATCH | `/api/v1/services/{id}` | dono sob RLS | editar serviço |
 | DELETE | `/api/v1/services/{id}` | dono sob RLS | arquivar serviço sem quebrar histórico |
 | POST | `/api/v1/professionals` | dono sob RLS | adicionar profissional |
 | PATCH | `/api/v1/professionals/{id}` | dono sob RLS | editar profissional |
 | DELETE | `/api/v1/professionals/{id}` | dono sob RLS | arquivar profissional sem quebrar histórico |
+| POST | `/api/v1/promotions` | dono sob RLS + entitlement | criar promoção pública |
+| PATCH | `/api/v1/promotions/{id}` | dono sob RLS + entitlement | editar/ativar promoção |
+| DELETE | `/api/v1/promotions/{id}` | dono sob RLS | desativar promoção |
 | GET | `/api/v1/support/tickets` | autenticado | tickets do usuário |
 | POST | `/api/v1/support/tickets` | público/autenticado | abrir ticket |
 | DELETE | `/api/v1/account` | autenticado | exclusão da própria conta |
 | GET | `/api/v1/admin/overview` | admin | totais globais |
 | GET | `/api/v1/admin/health` | admin | saúde API/DB/Auth + versão |
 | POST | `/api/v1/admin/users/{id}/password-recovery` | admin | recuperação de senha + auditoria |
+| GET | `/api/v1/admin/subscriptions` | admin | workspace de planos, estabelecimentos e assinaturas |
+| PATCH | `/api/v1/admin/establishments/{id}/subscription` | admin | atribuir plano/status/validade e recalcular benefícios |
 | GET | `/api/v1/admin/navigation-audit` | admin | estado do mapa interno |
 
 Swagger: `/api/docs`  
 OpenAPI executável: `/api/openapi.json`
+
+## Assinaturas e entitlements — 1.8
+
+A API 1.3 integra a migration 16. O proprietário consulta o plano efetivo por `/establishments/{id}/entitlements`; o administrador altera a assinatura pela rota administrativa. A escrita chama a RPC `admin_atribuir_plano`, que recalcula os benefícios cumulativos e aplica downgrade/upgrade de forma transacional.
+
+Os limites críticos não dependem apenas do frontend: agenda, profissionais, promoções e portfólio também são validados no PostgreSQL. Assinaturas pausadas, canceladas, atrasadas ou vencidas caem para o conjunto de benefícios do Perfil gratuito sem apagar o histórico do estabelecimento.
 
 ## Busca do marketplace
 
@@ -119,4 +131,4 @@ Não existe endpoint para exibir senha. A recuperação administrativa envia um 
 
 ## Escritas de gestão e dupla validação
 
-As rotas de estabelecimento, serviços e profissionais usam o **token do usuário** ao falar com o PostgREST. Assim, a entrada é validada em Python/Pydantic e o PostgreSQL RLS continua sendo uma segunda barreira de autorização de propriedade. A `SUPABASE_SECRET_KEY` não é usada para contornar RLS nessas rotas. Exclusões de serviço/profissional são arquivamentos lógicos para preservar agendamentos históricos.
+As rotas de estabelecimento, serviços, profissionais e promoções usam o **token do usuário** ao falar com o PostgREST. Assim, a entrada é validada em Python/Pydantic e o PostgreSQL RLS continua sendo uma segunda barreira de autorização de propriedade. A `SUPABASE_SECRET_KEY` não é usada para contornar RLS nessas rotas. Exclusões de serviço/profissional são arquivamentos lógicos para preservar agendamentos históricos.

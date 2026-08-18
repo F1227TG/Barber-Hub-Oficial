@@ -92,6 +92,9 @@ async def search(
         meta = metadata.get(str(row.get("id")), {})
         row["marketplace_rank"] = float(meta.get("relevancia") or 0)
         row["aberto_agora"] = bool(meta.get("aberto_agora", False))
+        # A configuração local só vira agenda pública quando o plano efetivo
+        # também contém o benefício (inclusive após expiração/pausa).
+        row["aceita_agendamento"] = bool(meta.get("agenda_disponivel", False))
     total = int(rank_rows[0].get("total") or 0) if rank_rows else 0
     return {
         "items": rows,

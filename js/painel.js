@@ -11,6 +11,7 @@ let bhPainelEstabelecimento = null;
 let bhPainelAgendamentos = [];
 let bhPainelPortfolio = [];
 let bhPainelAvaliacoes = [];
+let bhPainelPlanoResumo = null;
 let bhPortfolioFiltro = "todas";
 let bhPortfolioArquivos = [];
 let bhPortfolioSubmitStatus = "rascunho";
@@ -54,14 +55,108 @@ async function bhAplicarStatusRapido(modo, botao) {
   }
 }
 
+function bhPlanoPermite(chave) {
+  if (!chave) return true;
+  return Boolean(bhPainelPlanoResumo?.entitlements?.[chave]);
+}
+
+function bhNomeBeneficioPlano(chave) {
+  return ({
+    permite_agenda: "Agenda online",
+    permite_clientes: "Carteira de clientes",
+    permite_promocoes: "Promoções",
+    permite_relatorios: "Relatórios",
+    permite_relatorios_avancados: "Relatórios avançados",
+    permite_exportacao: "Exportação CSV"
+  })[chave] || "Este recurso";
+}
+
 function bhAtivarSecaoPainel(id) {
+  const secaoAlvo = document.getElementById(id);
+  const recurso = secaoAlvo?.dataset.planSection;
+  if (recurso && !bhPlanoPermite(recurso)) {
+    mostrarToast("aviso", `${bhNomeBeneficioPlano(recurso)} não está no plano atual`, "Abra Planos para conhecer o próximo nível e os benefícios herdados.");
+    return false;
+  }
   document.querySelectorAll(".panel-section").forEach(secao => secao.classList.toggle("ativo", secao.id === id));
   document.querySelectorAll("[data-panel]").forEach(botao => {
     botao.classList.toggle("btn-primary", botao.dataset.panel === id);
     botao.classList.toggle("btn-dark", botao.dataset.panel !== id);
   });
   history.replaceState(null, "", `#${id.replace("sec", "").toLowerCase()}`);
+  return true;
 }
+
+function bhAplicarEntitlementsPainel() {
+  const ent = bhPainelPlanoResumo?.entitlements || {};
+  document.querySelectorAll("[data-plan-feature]").forEach(botao => {
+    const liberado = Boolean(ent[botao.dataset.planFeature]);
+    botao.classList.toggle("plan-locked", !liberado);
+    botao.setAttribute("aria-disabled", String(!liberado));
+    if (!liberado) botao.title = `${bhNomeBeneficioPlano(botao.dataset.planFeature)} — faça upgrade para liberar`;
+    else botao.removeAttribute("title");
+    let cadeado = botao.querySelector(".plan-lock-icon");
+    if (!liberado && !cadeado) {
+      cadeado = document.createElement("i");
+      cadeado.className = "bi bi-lock-fill plan-lock-icon";
+      cadeado.setAttribute("aria-hidden", "true");
+      botao.appendChild(cadeado);
+    } else if (liberado && cadeado) cadeado.remove();
+  });
+
+  const agendaLiberada = Boolean(ent.permite_agenda);
+  document.querySelectorAll("[data-agenda-mode]").forEach(botao => {
+    botao.disabled = !agendaLiberada;
+    if (!agendaLiberada) botao.title = "Agenda online disponível a partir do Essencial";
+  });
+  const agendaSelect = document.getElementById("configAgenda");
+  if (agendaSelect && !agendaLiberada) agendaSelect.value = "nao";
+
+  const ativos = (bhPainelEstabelecimento?.barbeiros || []).filter(item => item.ativo).length;
+  const limiteProfissionais = Number(ent.limite_profissionais || 1);
+  const submitEquipe = document.querySelector("#formBarbeiro button[type='submit']");
+  if (submitEquipe) {
+    const atingiu = ativos >= limiteProfissionais;
+    submitEquipe.disabled = atingiu;
+    submitEquipe.innerHTML = atingiu
+      ? `<i class="bi bi-lock-fill"></i> Limite do plano (${ativos}/${limiteProfissionais})`
+      : `<i class="bi bi-person-plus"></i> Adicionar profissional`;
+  }
+
+  const limiteTexto = document.getElementById("portfolioLimiteTexto");
+  if (limiteTexto) limiteTexto.textContent = `/ ${Number(ent.limite_publicacoes || 10)} publicações`;
+  const advanced = document.getElementById("relatoriosAvancados");
+  if (advanced) advanced.hidden = !Boolean(ent.permite_relatorios_avancados);
+  const exportar = document.getElementById("exportarRelatorioCsv");
+  if (exportar) exportar.hidden = !Boolean(ent.permite_exportacao);
+  const nivel = document.getElementById("relatorioNivelPlano");
+  if (nivel) nivel.textContent = ent.permite_relatorios_avancados ? "Relatórios avançados ativos" : "Relatórios essenciais";
+}
+
+function bhRenderPlanoPainel() {
+  const resumo = bhPainelPlanoResumo;
+  if (!resumo) return;
+  const ent = resumo.entitlements || {};
+  const nome = document.getElementById("painelPlanoNome");
+  const descricao = document.getElementById("painelPlanoDescricao");
+  const recursos = document.getElementById("painelPlanoRecursos");
+  if (nome) nome.textContent = ent.plano_nome || "Perfil gratuito";
+  if (descricao) {
+    const status = ent.assinatura_status || resumo.assinatura?.status || "ativa";
+    descricao.textContent = status === "teste"
+      ? "Período de teste ativo. Os benefícios abaixo já estão liberados para o estabelecimento."
+      : `Assinatura ${status}. Benefícios cumulativos liberados automaticamente pelo plano.`;
+  }
+  if (recursos) recursos.innerHTML = (ent.recursos || []).slice(0, 8).map(recurso => `<span><i class="bi bi-check2-circle"></i>${escapeHTML(recurso)}</span>`).join("");
+  const equipe = document.getElementById("painelPlanoEquipe");
+  const portfolio = document.getElementById("painelPlanoPortfolio");
+  const agenda = document.getElementById("painelPlanoAgenda");
+  if (equipe) equipe.textContent = `${resumo.uso.profissionais}/${ent.limite_profissionais || 1}`;
+  if (portfolio) portfolio.textContent = `${resumo.uso.publicacoes}/${ent.limite_publicacoes || 10}`;
+  if (agenda) agenda.textContent = ent.permite_agenda ? (resumo.uso.aceitaAgendamento ? "Ativa" : "Disponível") : "Bloqueada";
+  bhAplicarEntitlementsPainel();
+}
+
 
 function bhRenderKpisPainel() {
   const hoje = new Date();
@@ -146,18 +241,128 @@ function bhRenderProfissionaisPainel() {
     </div>`).join("") : `<div class="empty compact">Nenhum profissional cadastrado.</div>`;
 }
 
+function bhClientesDerivados() {
+  const mapa = new Map();
+  const validos = bhPainelAgendamentos.filter(item => !["cancelado","recusado"].includes(item.status));
+  validos.forEach(item => {
+    const chave = item.cliente_id || item.cliente_email || item.cliente_nome;
+    if (!chave) return;
+    const atual = mapa.get(chave) || {
+      id: chave, nome: item.cliente_nome || "Cliente", email: item.cliente_email || "", telefone: item.cliente_telefone || "",
+      visitas: 0, concluidas: 0, valor: 0, ultima: null, proxima: null
+    };
+    atual.visitas += 1;
+    if (item.status === "concluido") {
+      atual.concluidas += 1;
+      atual.valor += Number(item.valor || 0);
+    }
+    const data = `${item.data}T${bhHoraCurta(item.hora_inicio || "00:00")}`;
+    if (!atual.ultima || data > atual.ultima) atual.ultima = data;
+    if (["pendente","confirmado"].includes(item.status) && data >= new Date().toISOString().slice(0,16) && (!atual.proxima || data < atual.proxima)) atual.proxima = data;
+    mapa.set(chave, atual);
+  });
+  return [...mapa.values()].sort((a,b) => b.concluidas - a.concluidas || b.valor - a.valor || String(b.ultima).localeCompare(String(a.ultima)));
+}
+
+function bhRenderClientesPainel() {
+  const lista = document.getElementById("listaClientesPainel");
+  if (!lista) return;
+  const clientes = bhClientesDerivados();
+  const termo = document.getElementById("buscarClientePainel")?.value.trim().toLowerCase() || "";
+  const filtrados = clientes.filter(item => !termo || [item.nome,item.email,item.telefone].join(" ").toLowerCase().includes(termo));
+  const concluidos = bhPainelAgendamentos.filter(item => item.status === "concluido");
+  const recorrentes = clientes.filter(item => item.concluidas >= 2).length;
+  const receita = concluidos.reduce((soma,item)=>soma+Number(item.valor||0),0);
+  const ticket = concluidos.length ? receita / concluidos.length : 0;
+  const kpis = document.getElementById("clientesKpisPainel");
+  if (kpis) kpis.innerHTML = `
+    <article class="dashboard-detail-card"><span><i class="bi bi-people"></i> Clientes</span><strong>${clientes.length}</strong><small>perfis atendidos na agenda</small></article>
+    <article class="dashboard-detail-card"><span><i class="bi bi-arrow-repeat"></i> Recorrentes</span><strong>${recorrentes}</strong><small>com 2+ atendimentos concluídos</small></article>
+    <article class="dashboard-detail-card"><span><i class="bi bi-receipt"></i> Ticket médio</span><strong>${bhMoeda(ticket)}</strong><small>sobre atendimentos concluídos</small></article>`;
+  const resumo = document.getElementById("clientesResumoPainel");
+  if (resumo) resumo.textContent = clientes.length ? `${recorrentes} recorrente${recorrentes===1?"":"s"} · ${concluidos.length} atendimento${concluidos.length===1?"":"s"} concluído${concluidos.length===1?"":"s"}` : "Sem histórico ainda";
+  lista.innerHTML = filtrados.length ? filtrados.map(item => `
+    <article class="client-row-card">
+      <div class="client-row-main"><div class="avatar">${escapeHTML(item.nome.slice(0,2).toUpperCase())}</div><div><strong>${escapeHTML(item.nome)}</strong><span>${escapeHTML(item.email || item.telefone || "Contato não informado")}</span></div></div>
+      <div class="client-row-metrics"><span><b>${item.concluidas}</b> concluídos</span><span><b>${bhMoeda(item.valor)}</b> movimentado</span><span><b>${item.ultima ? new Date(item.ultima).toLocaleDateString("pt-BR") : "—"}</b> última atividade</span></div>
+    </article>`).join("") : `<div class="empty compact">Nenhum cliente encontrado.</div>`;
+}
+
+function bhLimparFormPromocao() {
+  const form = document.getElementById("formPromocao");
+  if (!form) return;
+  form.reset();
+  document.getElementById("promocaoId").value = "";
+  document.getElementById("promocaoAtiva").checked = true;
+  document.getElementById("cancelarEdicaoPromocao").hidden = true;
+}
+
+function bhRenderPromocoesPainel() {
+  const lista = document.getElementById("listaPromocoesPainel");
+  if (!lista) return;
+  const itens = [...(bhPainelEstabelecimento?.promocoes || [])].sort((a,b) => Number(b.ativo)-Number(a.ativo) || String(b.created_at).localeCompare(String(a.created_at)));
+  lista.innerHTML = itens.length ? itens.map(item => `
+    <article class="promotion-manage-card ${item.ativo ? "active" : "inactive"}">
+      <div><div class="card-meta"><span class="status ${item.ativo ? "concluido" : "cancelado"}">${item.ativo ? "Ativa" : "Inativa"}</span>${item.desconto_percentual != null ? `<span class="badge">${Number(item.desconto_percentual).toLocaleString("pt-BR")}% OFF</span>` : ""}</div><strong>${escapeHTML(item.titulo)}</strong><p>${escapeHTML(item.descricao)}</p><small>${item.codigo ? `Código: ${escapeHTML(item.codigo)} · ` : ""}${item.termina_em ? `até ${bhFormatarData(item.termina_em)}` : "sem data final"}</small></div>
+      <div class="item-actions"><button class="icon-btn" data-promocao-editar="${item.id}" title="Editar"><i class="bi bi-pencil"></i></button><button class="icon-btn ${item.ativo ? "danger" : "success"}" data-promocao-toggle="${item.id}" data-ativo="${item.ativo}" title="${item.ativo ? "Desativar" : "Ativar"}"><i class="bi ${item.ativo ? "bi-pause-circle" : "bi-play-circle"}"></i></button></div>
+    </article>`).join("") : `<div class="empty compact"><i class="bi bi-megaphone big"></i><p>Nenhuma promoção cadastrada.</p></div>`;
+}
+
+function bhEditarPromocao(id) {
+  const item = (bhPainelEstabelecimento?.promocoes || []).find(p => p.id === id);
+  if (!item) return;
+  document.getElementById("promocaoId").value = item.id;
+  document.getElementById("promocaoTitulo").value = item.titulo || "";
+  document.getElementById("promocaoDescricao").value = item.descricao || "";
+  document.getElementById("promocaoCodigo").value = item.codigo || "";
+  document.getElementById("promocaoDesconto").value = item.desconto_percentual ?? "";
+  document.getElementById("promocaoInicio").value = item.inicia_em || "";
+  document.getElementById("promocaoFim").value = item.termina_em || "";
+  document.getElementById("promocaoAtiva").checked = Boolean(item.ativo);
+  document.getElementById("cancelarEdicaoPromocao").hidden = false;
+  document.getElementById("formPromocao").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function bhExportarRelatorioCsv() {
+  if (!bhPlanoPermite("permite_exportacao")) {
+    mostrarToast("aviso", "Exportação não liberada", "A exportação CSV está disponível a partir do plano Profissional.");
+    return;
+  }
+  const linhas = [["Data","Hora","Cliente","Serviços","Profissional","Status","Valor"]];
+  bhPainelAgendamentos.forEach(item => linhas.push([item.data,bhHoraCurta(item.hora_inicio),item.cliente_nome||"",bhAgendamentoServicosTexto(item),item.profissionais?.nome||"",item.status||"",Number(item.valor||0).toFixed(2)]));
+  const csv = "\ufeff" + linhas.map(linha => linha.map(valor => `"${String(valor).replaceAll('"','""')}"`).join(";")).join("\n");
+  const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+  const link = document.createElement("a");
+  link.href = url; link.download = `barber-hub-relatorio-${bhHojeISO()}.csv`; document.body.appendChild(link); link.click(); link.remove(); URL.revokeObjectURL(url);
+}
+
 function bhRenderRelatoriosPainel() {
   const analise = bhAnalisarAgendamentos(bhPainelAgendamentos);
-  const renderBarras = (objeto, alvo) => {
+  const renderBarras = (objeto, alvo, formatador = valor => String(valor)) => {
+    const elemento = document.getElementById(alvo);
+    if (!elemento) return;
     const entradas = Object.entries(objeto).sort((a, b) => b[1] - a[1]).slice(0, 8);
     const max = Math.max(...entradas.map(item => item[1]), 1);
-    document.getElementById(alvo).innerHTML = entradas.length ? entradas.map(([nome, valor]) => `
-      <div class="bar-row"><span>${escapeHTML(nome)}</span><div class="bar-bg"><div class="bar-fill" style="width:${(valor / max) * 100}%"></div></div><strong>${valor}</strong></div>
+    elemento.innerHTML = entradas.length ? entradas.map(([nome, valor]) => `
+      <div class="bar-row"><span>${escapeHTML(nome)}</span><div class="bar-bg"><div class="bar-fill" style="width:${(valor / max) * 100}%"></div></div><strong>${escapeHTML(formatador(valor))}</strong></div>
     `).join("") : `<div class="empty compact">Ainda não há dados suficientes.</div>`;
   };
   renderBarras(analise.contagemServicos, "chartServicos");
   renderBarras(analise.contagemHoras, "chartHorarios");
+
+  if (bhPlanoPermite("permite_relatorios_avancados")) {
+    const profissionais = {};
+    const receitaServicos = {};
+    bhPainelAgendamentos.filter(item => item.status === "concluido").forEach(item => {
+      const pro = item.profissionais?.nome || "Profissional";
+      profissionais[pro] = (profissionais[pro] || 0) + 1;
+      bhAgendamentoServicos(item).forEach(servico => { receitaServicos[servico.nome] = (receitaServicos[servico.nome] || 0) + Number(servico.preco || 0); });
+    });
+    renderBarras(profissionais, "chartProfissionais");
+    renderBarras(receitaServicos, "chartReceitaServicos", valor => bhMoeda(valor));
+  }
 }
+
 
 function bhRenderConfiguracoesPainel() {
   const b = bhPainelEstabelecimento;
@@ -173,7 +378,7 @@ function bhRenderConfiguracoesPainel() {
   document.getElementById("configAgenda").value = b.aceitaAgendamento ? "sim" : "nao";
   bhSincronizarControlesPainel();
   document.getElementById("configFotoPreview").src = b.fotoUrl || "../img/logomarcaTRANSPARENTE.png";
-  document.getElementById("configCapaPreview").src = b.capaUrl || "../img/logoblack.png";
+  document.getElementById("configCapaPreview").src = b.capaUrl || "../img/backgrounds/barbearia-hero-default.webp";
 
   document.querySelectorAll(".horario-config-painel").forEach(row => {
     const dia = Number(row.dataset.dia);
@@ -342,7 +547,7 @@ function bhEditarPortfolio(id) {
 function bhRenderPortfolioPainel() {
   bhPopularCamposPortfolio();
   const contagem = document.getElementById("portfolioContagem");
-  if (contagem) contagem.textContent = bhPainelPortfolio.length;
+  if (contagem) contagem.textContent = bhPainelPortfolio.filter(item => item.status !== "arquivada").length;
   const lista = document.getElementById("listaPortfolioPainel");
   if (!lista) return;
   const itens = bhPortfolioFiltro === "todas" ? bhPainelPortfolio : bhPainelPortfolio.filter(item => item.status === bhPortfolioFiltro);
@@ -403,10 +608,11 @@ async function bhRecarregarPainel() {
     location.href = bhUrl("html/cadastro-barbearia.html");
     return;
   }
-  [bhPainelAgendamentos, bhPainelPortfolio, bhPainelAvaliacoes] = await Promise.all([
+  [bhPainelAgendamentos, bhPainelPortfolio, bhPainelAvaliacoes, bhPainelPlanoResumo] = await Promise.all([
     bhListarAgendamentosEstabelecimento(bhPainelEstabelecimento.id),
     bhListarMeuPortfolio(bhPainelEstabelecimento.id),
-    bhListarAvaliacoesMeuEstabelecimento(bhPainelEstabelecimento.id).catch(erro => { console.warn("Avaliações ainda não disponíveis.", erro); return []; })
+    bhListarAvaliacoesMeuEstabelecimento(bhPainelEstabelecimento.id).catch(erro => { console.warn("Avaliações ainda não disponíveis.", erro); return []; }),
+    bhObterResumoAssinaturaBarbeiro().catch(erro => { console.warn("Plano indisponível.", erro); return null; })
   ]);
   document.getElementById("painelUserNome").textContent = bhPainelPerfil.nome;
   document.getElementById("painelUserTipo").textContent = bhPainelPerfil.tipo === "admin" ? "Administrador" : "Proprietário";
@@ -415,11 +621,20 @@ async function bhRecarregarPainel() {
   bhRenderAgendaPainel();
   bhRenderServicosPainel();
   bhRenderProfissionaisPainel();
+  bhRenderPlanoPainel();
+  bhRenderClientesPainel();
+  bhRenderPromocoesPainel();
   bhRenderRelatoriosPainel();
   bhRenderConfiguracoesPainel();
   bhRenderPaginaPublicaPreview();
   bhRenderPortfolioPainel();
   bhRenderAvaliacoesPainel();
+  // Configuração e listas podem reconstruir controles; reaplica locks/limites
+  // no fim para que um downgrade não deixe um controle visualmente ativo.
+  bhAplicarEntitlementsPainel();
+  const ativa = document.querySelector(".panel-section.ativo");
+  const recursoAtivo = ativa?.dataset.planSection;
+  if (recursoAtivo && !bhPlanoPermite(recursoAtivo)) bhAtivarSecaoPainel("secDashboard");
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -440,7 +655,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   document.querySelectorAll("[data-panel]").forEach(botao => botao.addEventListener("click", () => bhAtivarSecaoPainel(botao.dataset.panel)));
   const hash = location.hash.replace("#", "");
-  const mapaHash = { agenda: "secAgenda", servicos: "secServicos", equipe: "secBarbeiros", relatorios: "secRelatorios", galeria: "secGaleria", avaliacoes: "secAvaliacoes", configuracoes: "secConfig", pagina: "secPagina" };
+  const mapaHash = { agenda: "secAgenda", clientes: "secClientes", promocoes: "secPromocoes", servicos: "secServicos", equipe: "secBarbeiros", relatorios: "secRelatorios", galeria: "secGaleria", avaliacoes: "secAvaliacoes", configuracoes: "secConfig", pagina: "secPagina" };
   if (mapaHash[hash]) bhAtivarSecaoPainel(mapaHash[hash]);
 
   document.querySelectorAll("[data-horario-aberto]").forEach(check => check.addEventListener("change", () => {
@@ -554,6 +769,51 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
 
+  document.getElementById("buscarClientePainel")?.addEventListener("input", bhRenderClientesPainel);
+  document.getElementById("exportarRelatorioCsv")?.addEventListener("click", bhExportarRelatorioCsv);
+
+  document.getElementById("cancelarEdicaoPromocao")?.addEventListener("click", bhLimparFormPromocao);
+  document.getElementById("formPromocao")?.addEventListener("submit", async evento => {
+    evento.preventDefault();
+    if (!bhPlanoPermite("permite_promocoes")) {
+      mostrarToast("aviso", "Promoções não liberadas", "Esse benefício está disponível a partir do plano Essencial.");
+      return;
+    }
+    const botao = evento.currentTarget.querySelector("button[type='submit']");
+    bhSetButtonLoading(botao, true, "Salvando...");
+    try {
+      const id = document.getElementById("promocaoId").value;
+      const dados = {
+        titulo: document.getElementById("promocaoTitulo").value.trim(),
+        descricao: document.getElementById("promocaoDescricao").value.trim(),
+        codigo: document.getElementById("promocaoCodigo").value.trim() || null,
+        desconto_percentual: document.getElementById("promocaoDesconto").value ? Number(document.getElementById("promocaoDesconto").value) : null,
+        inicia_em: document.getElementById("promocaoInicio").value || null,
+        termina_em: document.getElementById("promocaoFim").value || null,
+        ativo: document.getElementById("promocaoAtiva").checked
+      };
+      if (id) await bhAtualizarPromocao(id, dados);
+      else await bhCriarPromocao({ estabelecimento_id: bhPainelEstabelecimento.id, ...dados });
+      bhLimparFormPromocao();
+      mostrarToast("sucesso", id ? "Promoção atualizada" : "Promoção criada", "A página pública reflete a alteração automaticamente.");
+      await bhRecarregarPainel();
+    } catch (erro) { mostrarToast("erro", "Não foi possível salvar a promoção", bhErroMensagem(erro)); }
+    finally { bhSetButtonLoading(botao, false); }
+  });
+
+  document.getElementById("listaPromocoesPainel")?.addEventListener("click", async evento => {
+    const editar = evento.target.closest("[data-promocao-editar]");
+    const toggle = evento.target.closest("[data-promocao-toggle]");
+    if (editar) return bhEditarPromocao(editar.dataset.promocaoEditar);
+    if (!toggle) return;
+    try {
+      const ativar = toggle.dataset.ativo !== "true";
+      await bhAtualizarPromocao(toggle.dataset.promocaoToggle, { ativo: ativar });
+      mostrarToast("sucesso", ativar ? "Promoção ativada" : "Promoção pausada", "A página pública foi atualizada.");
+      await bhRecarregarPainel();
+    } catch (erro) { mostrarToast("erro", "Ação não concluída", bhErroMensagem(erro)); }
+  });
+
   document.getElementById("portfolioFotos").addEventListener("change", evento => {
     const arquivos = [...(evento.target.files || [])];
     const editando = bhPortfolioItemPorId(document.getElementById("portfolioId").value);
@@ -604,6 +864,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     const id = document.getElementById("portfolioId").value;
     const estadoAnterior = id ? bhPortfolioItemPorId(id)?.status : null;
     try {
+      const limitePortfolio = Number(bhPainelPlanoResumo?.entitlements?.limite_publicacoes || 10);
+      const portfolioEmUso = bhPainelPortfolio.filter(item => item.status !== "arquivada").length;
+      if (!id && portfolioEmUso >= limitePortfolio) {
+        throw new Error(`Seu plano permite até ${limitePortfolio} publicações. Faça upgrade para ampliar o portfólio.`);
+      }
       const dados = bhDadosFormPortfolio(status);
       if (!id) {
         await bhCriarPublicacaoPortfolio(bhPainelEstabelecimento.id, dados, bhPortfolioArquivos);
@@ -712,6 +977,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         foto ? bhUploadImagem(foto, "estabelecimento/foto") : Promise.resolve(bhPainelEstabelecimento.fotoUrl),
         capa ? bhUploadImagem(capa, "estabelecimento/capa") : Promise.resolve(bhPainelEstabelecimento.capaUrl)
       ]);
+      if (document.getElementById("configAgenda").value === "sim" && !bhPlanoPermite("permite_agenda")) {
+        throw new Error("A agenda online está disponível a partir do plano Essencial.");
+      }
       await bhAtualizarEstabelecimento(bhPainelEstabelecimento.id, {
         nome: document.getElementById("configNome").value.trim(),
         telefone: document.getElementById("configTelefone").value.trim(),
@@ -776,10 +1044,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 window.addEventListener("hashchange", () => {
-  const mapa = { agenda: "secAgenda", servicos: "secServicos", equipe: "secBarbeiros", relatorios: "secRelatorios", galeria: "secGaleria", avaliacoes: "secAvaliacoes", configuracoes: "secConfig", pagina: "secPagina" };
+  const mapa = { agenda: "secAgenda", clientes: "secClientes", promocoes: "secPromocoes", servicos: "secServicos", equipe: "secBarbeiros", relatorios: "secRelatorios", galeria: "secGaleria", avaliacoes: "secAvaliacoes", configuracoes: "secConfig", pagina: "secPagina" };
   const alvo = mapa[location.hash.replace("#", "")];
   if (alvo) bhAtivarSecaoPainel(alvo);
 });
 
-function bhAssinarPainelTempoReal(){if(!window.supabaseClient||!bhPainelEstabelecimento)return;window.supabaseClient.channel(`painel-${bhPainelEstabelecimento.id}`).on('postgres_changes',{event:'*',schema:'public',table:'agendamentos',filter:`estabelecimento_id=eq.${bhPainelEstabelecimento.id}`},async()=>{await bhRecarregarPainel();mostrarToast('info','Agenda atualizada','Uma alteração chegou em tempo real.')}).subscribe()}
+function bhAssinarPainelTempoReal(){if(!window.supabaseClient||!bhPainelEstabelecimento)return;window.supabaseClient.channel(`painel-${bhPainelEstabelecimento.id}`).on('postgres_changes',{event:'*',schema:'public',table:'agendamentos',filter:`estabelecimento_id=eq.${bhPainelEstabelecimento.id}`},async()=>{await bhRecarregarPainel();mostrarToast('info','Agenda atualizada','Uma alteração chegou em tempo real.')}).on('postgres_changes',{event:'*',schema:'public',table:'assinaturas',filter:`estabelecimento_id=eq.${bhPainelEstabelecimento.id}`},async()=>{await bhRecarregarPainel();mostrarToast('sucesso','Plano atualizado','Os benefícios da assinatura foram atualizados sem precisar sair da conta.')}).subscribe()}
 document.addEventListener('DOMContentLoaded',()=>setTimeout(bhAssinarPainelTempoReal,1800));

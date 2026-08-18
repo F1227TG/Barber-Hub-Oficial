@@ -302,7 +302,6 @@
 
   function iniciar() {
     if (document.body.classList.contains("mobile-native")) return;
-    if (!window.matchMedia("(max-width: 900px)").matches) return;
     rotularPagina();
     configurarAtalhosContextuais();
     configurarFiltroPortal();

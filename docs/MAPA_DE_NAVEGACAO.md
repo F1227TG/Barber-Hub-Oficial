@@ -175,3 +175,14 @@ Essas regras são verificadas automaticamente por `scripts/check-mobile-routing.
 ## Regra de navegação atual
 
 O usuário não navega para uma página de “Agendar” como destino principal. Ele escolhe um estabelecimento e abre o fluxo contextual em modal. No admin, a navegação global representa somente destinos distintos; se algo é apenas uma seção interna do dashboard, permanece como seção.
+
+
+## Barber Hub 1.8 — Assinaturas
+
+- `/html/admin-assinaturas.html` → central administrativa de planos, status, validade e benefícios.
+- `/mobile/admin-assinaturas.html` → equivalente mobile gerado da mesma fonte funcional.
+- `/html/painel.html#clientes` → carteira de clientes (Essencial+).
+- `/html/painel.html#promocoes` → gestão de promoções (Essencial+).
+- `/html/painel.html#relatorios` → relatórios essenciais/avançados conforme entitlement.
+
+A navegação admin global aponta para **Assinaturas** como página real, não como âncora de `admin.html`.

@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Barber Hub API
   description: API própria do Barber Hub, executada em Python/FastAPI.
-  version: 1.2.0
+  version: 1.3.0
 paths:
   /api/v1/health:
     get:
@@ -298,6 +298,37 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/establishments/{establishment_id}/entitlements:
+    get:
+      summary: Establishment Entitlements
+      operationId: establishment_entitlements_api_v1_establishments__establishment_id__entitlements_get
+      parameters:
+      - name: establishment_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Establishment Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /api/v1/services:
     post:
       summary: Create Service
@@ -494,6 +525,104 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/promotions:
+    post:
+      summary: Create Promotion
+      operationId: create_promotion_api_v1_promotions_post
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PromotionCreate'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/promotions/{promotion_id}:
+    patch:
+      summary: Update Promotion
+      operationId: update_promotion_api_v1_promotions__promotion_id__patch
+      parameters:
+      - name: promotion_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Promotion Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PromotionUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      summary: Delete Promotion
+      operationId: delete_promotion_api_v1_promotions__promotion_id__delete
+      parameters:
+      - name: promotion_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Promotion Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /api/v1/support/tickets:
     get:
       summary: List Support Tickets
@@ -667,6 +796,68 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/admin/subscriptions:
+    get:
+      summary: Admin Subscriptions
+      operationId: admin_subscriptions_api_v1_admin_subscriptions_get
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/admin/establishments/{establishment_id}/subscription:
+    patch:
+      summary: Admin Assign Subscription
+      operationId: admin_assign_subscription_api_v1_admin_establishments__establishment_id__subscription_patch
+      parameters:
+      - name: establishment_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Establishment Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminSubscriptionUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /api/v1/admin/navigation-audit:
     get:
       summary: Navigation Audit
@@ -694,6 +885,43 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
 components:
   schemas:
+    AdminSubscriptionUpdate:
+      properties:
+        plano_slug:
+          type: string
+          enum:
+          - gratuito
+          - essencial
+          - profissional
+          - elite
+          title: Plano Slug
+        status:
+          type: string
+          enum:
+          - teste
+          - ativa
+          - atrasada
+          - pausada
+          - cancelada
+          - expirada
+          title: Status
+          default: ativa
+        periodo_fim:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          title: Periodo Fim
+        observacoes:
+          anyOf:
+          - type: string
+            maxLength: 800
+          - type: 'null'
+          title: Observacoes
+      type: object
+      required:
+      - plano_slug
+      title: AdminSubscriptionUpdate
     AppointmentCancelRequest:
       properties:
         motivo:
@@ -1066,6 +1294,109 @@ components:
           title: Aceita Agendamento
       type: object
       title: ProfessionalUpdate
+    PromotionCreate:
+      properties:
+        estabelecimento_id:
+          type: string
+          format: uuid
+          title: Estabelecimento Id
+        titulo:
+          type: string
+          maxLength: 120
+          minLength: 3
+          title: Titulo
+        descricao:
+          type: string
+          maxLength: 600
+          minLength: 3
+          title: Descricao
+        codigo:
+          anyOf:
+          - type: string
+            maxLength: 40
+          - type: 'null'
+          title: Codigo
+        desconto_percentual:
+          anyOf:
+          - type: number
+            maximum: 100.0
+            minimum: 0.0
+          - type: string
+            pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+          - type: 'null'
+          title: Desconto Percentual
+        inicia_em:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          title: Inicia Em
+        termina_em:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          title: Termina Em
+        ativo:
+          type: boolean
+          title: Ativo
+          default: true
+      type: object
+      required:
+      - estabelecimento_id
+      - titulo
+      - descricao
+      title: PromotionCreate
+    PromotionUpdate:
+      properties:
+        titulo:
+          anyOf:
+          - type: string
+            maxLength: 120
+            minLength: 3
+          - type: 'null'
+          title: Titulo
+        descricao:
+          anyOf:
+          - type: string
+            maxLength: 600
+            minLength: 3
+          - type: 'null'
+          title: Descricao
+        codigo:
+          anyOf:
+          - type: string
+            maxLength: 40
+          - type: 'null'
+          title: Codigo
+        desconto_percentual:
+          anyOf:
+          - type: number
+            maximum: 100.0
+            minimum: 0.0
+          - type: string
+            pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+          - type: 'null'
+          title: Desconto Percentual
+        inicia_em:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          title: Inicia Em
+        termina_em:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          title: Termina Em
+        ativo:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Ativo
+      type: object
+      title: PromotionUpdate
     ServiceCreate:
       properties:
         estabelecimento_id:
@@ -1254,5 +1585,3 @@ components:
       - msg
       - type
       title: ValidationError
-servers:
-- url: https://barberhuboficial.vercel.app

@@ -107,27 +107,6 @@ function bhNormalizarEstabelecimento(row) {
   };
 }
 
-async function bhListarStatusEstabelecimentos() {
-  const client = bhExigirSupabase();
-  const { data, error } = await client
-    .from("estabelecimentos")
-    .select(`id,status_manual,motivo_status,horarios_funcionamento(dia_semana,aberto,abre,fecha),dias_bloqueados(data,motivo)`)
-    .eq("visivel", true)
-    .eq("onboarding_concluido", true);
-  if (error) throw error;
-  return (data || []).map(row => {
-    const horarios = {};
-    (row.horarios_funcionamento || []).forEach(item => { horarios[BH_DIAS_CHAVE[item.dia_semana]] = item.aberto ? { abre: bhHoraCurta(item.abre), fecha: bhHoraCurta(item.fecha) } : null; });
-    return {
-      id: row.id,
-      statusManual: row.status_manual,
-      motivoStatus: row.motivo_status,
-      horarios,
-      diasFechados: (row.dias_bloqueados || []).map(item => ({ data: item.data, motivo: item.motivo }))
-    };
-  });
-}
-
 async function bhListarEstabelecimentos({ tipo = null, busca = null } = {}) {
   const client = bhExigirSupabase();
   let query = client
@@ -218,6 +197,16 @@ async function bhObterEstabelecimento(idOuSlug) {
   query = uuid ? query.eq("id", idOuSlug) : query.eq("slug", idOuSlug);
   const { data, error } = await query.maybeSingle();
   if (error) throw error;
+  if (!data) return null;
+  // A configuração `aceita_agendamento` pertence ao estabelecimento, mas a
+  // exposição pública depende também do plano efetivo. Isso evita anunciar
+  // agenda de assinatura expirada/pausada até que o admin altere outro campo.
+  try {
+    const { data: agendaEfetiva, error: agendaErro } = await client.rpc("agenda_online_disponivel", { p_estabelecimento_id: data.id });
+    if (!agendaErro && typeof agendaEfetiva === "boolean") data.aceita_agendamento = agendaEfetiva;
+  } catch (erroAgenda) {
+    console.warn("[Barber Hub] Não foi possível validar a agenda do plano.", erroAgenda);
+  }
   return bhNormalizarEstabelecimento(data);
 }
 
@@ -648,6 +637,39 @@ async function bhAdminResumo() {
       avaliacoes: avaliacoes.count || 0
     }
   };
+}
+
+async function bhAdminListarAssinaturas() {
+  if (window.bhBackendApi?.adminSubscriptions) {
+    try { return await window.bhBackendApi.adminSubscriptions(); }
+    catch (erro) { if (!bhBackendPodeUsarFallback(erro)) throw erro; }
+  }
+  const client = bhExigirSupabase();
+  const [plans, establishments, profiles, subscriptions] = await Promise.all([
+    client.from("planos").select("*").eq("ativo", true).order("ordenacao"),
+    client.from("estabelecimentos").select("id,owner_id,nome,cidade,estado,aceita_agendamento,created_at").order("created_at", { ascending: false }).limit(500),
+    client.from("perfis").select("id,nome,email,tipo,ativo").limit(1000),
+    client.from("assinaturas").select("*,planos(id,slug,nome,ordenacao)").limit(500)
+  ]);
+  [plans, establishments, profiles, subscriptions].forEach(resultado => { if (resultado.error) throw resultado.error; });
+  return { plans: plans.data || [], establishments: establishments.data || [], profiles: profiles.data || [], subscriptions: subscriptions.data || [] };
+}
+
+async function bhAdminAtribuirPlano(estabelecimentoId, dados) {
+  if (window.bhBackendApi?.adminAssignSubscription) {
+    try { return await window.bhBackendApi.adminAssignSubscription(estabelecimentoId, dados); }
+    catch (erro) { if (!bhBackendPodeUsarFallback(erro)) throw erro; }
+  }
+  const client = bhExigirSupabase();
+  const { data, error } = await client.rpc("admin_atribuir_plano", {
+    p_estabelecimento_id: estabelecimentoId,
+    p_plano_slug: dados.plano_slug,
+    p_status: dados.status || "ativa",
+    p_periodo_fim: dados.periodo_fim || null,
+    p_observacoes: dados.observacoes || null
+  });
+  if (error) throw error;
+  return Array.isArray(data) ? data[0] : data;
 }
 
 async function bhAdminAtualizarTicket(id, dados) {
@@ -1109,6 +1131,39 @@ async function bhAdminAtualizarDenunciaPortfolio(id, dados) {
 }
 
 // ============================================================
+// PROMOÇÕES
+// ============================================================
+async function bhCriarPromocao(payload) {
+  if (window.bhBackendApi?.createPromotion) {
+    try { return await window.bhBackendApi.createPromotion(payload); }
+    catch (erro) { if (!bhBackendPodeUsarFallback(erro)) throw erro; }
+  }
+  const client = bhExigirSupabase();
+  const { data, error } = await client.from("promocoes").insert(payload).select().single();
+  if (error) throw error;
+  return data;
+}
+
+async function bhAtualizarPromocao(id, dados) {
+  if (window.bhBackendApi?.updatePromotion) {
+    try { return await window.bhBackendApi.updatePromotion(id, dados); }
+    catch (erro) { if (!bhBackendPodeUsarFallback(erro)) throw erro; }
+  }
+  const client = bhExigirSupabase();
+  const { data, error } = await client.from("promocoes").update(dados).eq("id", id).select().single();
+  if (error) throw error;
+  return data;
+}
+
+async function bhExcluirPromocao(id) {
+  if (window.bhBackendApi?.deletePromotion) {
+    try { return await window.bhBackendApi.deletePromotion(id); }
+    catch (erro) { if (!bhBackendPodeUsarFallback(erro)) throw erro; }
+  }
+  return bhAtualizarPromocao(id, { ativo: false });
+}
+
+// ============================================================
 // PLANOS / ASSINATURAS
 // ============================================================
 async function bhListarPlanos() {
@@ -1140,38 +1195,85 @@ async function bhObterMinhaAssinatura() {
   return data ? { ...data, estabelecimento } : null;
 }
 
+async function bhObterEntitlementsEstabelecimento(estabelecimentoId) {
+  if (!estabelecimentoId) return null;
+  if (window.bhBackendApi?.getEntitlements) {
+    try {
+      return await window.bhBackendApi.getEntitlements(estabelecimentoId);
+    } catch (erro) {
+      if (!bhBackendPodeUsarFallback(erro)) throw erro;
+      console.warn("[Barber Hub] Entitlements via API indisponíveis; usando RPC local.", erro);
+    }
+  }
+  const client = bhExigirSupabase();
+  const { data, error } = await client.rpc("obter_meus_entitlements", { p_estabelecimento_id: estabelecimentoId });
+  if (error) throw error;
+  return Array.isArray(data) ? data[0] : data;
+}
+
 async function bhObterResumoAssinaturaBarbeiro() {
   const estabelecimento = await bhObterMeuEstabelecimento();
   if (!estabelecimento) return null;
+
   let assinatura = null;
   try { assinatura = await bhObterMinhaAssinatura(); }
-  catch (erro) { console.warn("Assinatura indisponível, usando plano gratuito como fallback.", erro); }
+  catch (erro) { console.warn("Assinatura indisponível.", erro); }
+
+  let entitlements = null;
+  try { entitlements = await bhObterEntitlementsEstabelecimento(estabelecimento.id); }
+  catch (erro) { console.warn("Entitlements indisponíveis; usando fallback gratuito.", erro); }
 
   const client = bhExigirSupabase();
   const { count: totalPublicacoes } = await client
     .from("portfolio_publicacoes")
     .select("id", { count: "exact", head: true })
-    .eq("estabelecimento_id", estabelecimento.id);
+    .eq("estabelecimento_id", estabelecimento.id)
+    .neq("status", "arquivada");
 
-  const resumo = assinatura?.planos || {
-    nome: "Perfil gratuito",
-    slug: "gratuito",
-    preco_semanal: 0,
-    preco_mensal: 0,
+  const fallback = {
+    plano_nome: "Perfil gratuito",
+    plano_slug: "gratuito",
+    plano_ordenacao: 1,
     limite_profissionais: 1,
     limite_publicacoes: 10,
+    limite_destaques_portfolio: 1,
     permite_agenda: false,
     permite_relatorios: false,
-    permite_equipe: false
+    permite_equipe: false,
+    permite_clientes: false,
+    permite_promocoes: false,
+    permite_relatorios_avancados: false,
+    permite_exportacao: false,
+    prioridade_marketplace: 0,
+    recursos: ["Página pública", "Status aberto/fechado"]
   };
+  const efetivo = { ...fallback, ...(entitlements || {}) };
 
   return {
     assinatura,
     estabelecimento,
-    plano: resumo,
+    entitlements: efetivo,
+    plano: {
+      nome: efetivo.plano_nome,
+      slug: efetivo.plano_slug,
+      ordenacao: efetivo.plano_ordenacao,
+      limite_profissionais: efetivo.limite_profissionais,
+      limite_publicacoes: efetivo.limite_publicacoes,
+      limite_destaques_portfolio: efetivo.limite_destaques_portfolio,
+      permite_agenda: efetivo.permite_agenda,
+      permite_relatorios: efetivo.permite_relatorios,
+      permite_equipe: efetivo.permite_equipe,
+      permite_clientes: efetivo.permite_clientes,
+      permite_promocoes: efetivo.permite_promocoes,
+      permite_relatorios_avancados: efetivo.permite_relatorios_avancados,
+      permite_exportacao: efetivo.permite_exportacao,
+      prioridade_marketplace: efetivo.prioridade_marketplace,
+      recursos: efetivo.recursos || []
+    },
     uso: {
-      profissionais: estabelecimento.barbeiros?.length || 0,
+      profissionais: (estabelecimento.barbeiros || []).filter(item => item.ativo).length,
       publicacoes: totalPublicacoes || 0,
+      promocoes: (estabelecimento.promocoes || []).filter(item => item.ativo).length,
       aceitaAgendamento: Boolean(estabelecimento.aceitaAgendamento)
     }
   };

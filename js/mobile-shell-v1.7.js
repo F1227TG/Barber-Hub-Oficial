@@ -24,6 +24,7 @@
     cadastro: ["Criar conta", "Comece no Barber Hub"],
     "cadastro-barbearia": ["Cadastrar negócio", "Configure seu estabelecimento"],
     admin: ["Administração", "Saúde e controle da plataforma"],
+    "admin-assinaturas": ["Assinaturas", "Planos e benefícios"],
     sobre: ["Sobre", "A proposta do Barber Hub"],
     servicos: ["Recursos", "O que a plataforma oferece"],
     "beauty-hub": ["Beauty Hub", "Expansão do ecossistema"],

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<meta content="Administração de assinaturas, planos e benefícios do Barber Hub." name="description"/>
+<title>Assinaturas | Barber Hub</title>
+<link href="../img/favicon.ico" rel="shortcut icon" type="image/x-icon"/>
+<link href="../img/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="../css/framework.css" rel="stylesheet"/>
+<link href="../css/global.css" rel="stylesheet"/>
+<link href="../css/pages.css" rel="stylesheet"/>
+<link href="../manifest.webmanifest" rel="manifest"/>
+<link href="../css/mobile-app.css" rel="stylesheet"/>
+<link href="../css/release-1.4.1.css" rel="stylesheet"/>
+<link href="../css/product-redesign.css" rel="stylesheet"/>
+<link href="../css/release-1.6.css" rel="stylesheet"/>
+<link href="../css/release-1.7.css" rel="stylesheet"/>
+<link href="../css/release-1.7.1.css" rel="stylesheet"/>
+<link href="../css/release-1.8.css" rel="stylesheet"/>
+<link href="../css/brand-assets-1.8.css" rel="stylesheet"/>
+<meta content="noindex,follow" name="robots"/><link href="https://barberhuboficial.vercel.app/html/admin-assinaturas" rel="canonical"/></head>
+<body class="admin-page page-admin-subscriptions mobile-native">
+<header class="header"><div class="container nav"><a class="logo" href="/mobile/index.html"><img alt="Barber Hub" src="../img/logomarcaTRANSPARENTE.png"/><span>Barber Hub<small>The Gamers Tech</small></span></a><nav class="menu" id="menuPrincipal"></nav><div class="nav-actions"><button aria-label="Alternar tema" class="btn-tema" id="btnTema" title="Alternar tema"><i class="bi bi-circle-half"></i></button><a class="btn btn-outline btn-small account-link" data-auth-link="" href="/mobile/conta.html"><i class="bi bi-person-circle"></i><span data-user-name="">Conta</span></a><button aria-label="Abrir menu lateral" class="btn-menu" id="btnMenu"><i class="bi bi-list"></i></button></div></div></header>
+<main>
+<section class="page-hero admin-hero admin-subscriptions-hero"><div class="container admin-hero-grid"><div><div class="breadcrumb">Administração / Assinaturas</div><span class="tag"><i class="bi bi-gem"></i> Planos funcionais</span><h1>Benefícios liberados pelo plano, sem configuração manual dispersa.</h1><p>Escolha um estabelecimento, atribua o plano e os recursos cumulativos entram em vigor imediatamente. Downgrades preservam dados, mas voltam a aplicar os limites do nível efetivo.</p></div><div class="admin-health-card"><span>Motor de planos</span><strong><i class="bi bi-shield-check"></i> Entitlements ativos</strong><small>Migration 16 + API 1.3</small><a class="btn btn-outline btn-small" href="/mobile/admin.html"><i class="bi bi-arrow-left"></i> Voltar ao Admin</a><a class="btn btn-outline btn-small" href="/mobile/planos.html"><i class="bi bi-eye"></i> Ver página comercial</a></div></div></section>
+<section class="section"><div class="container">
+<div class="admin-kpi-grid subscriptions-kpi-grid">
+<article class="admin-kpi"><i class="bi bi-shop"></i><div><span>Estabelecimentos</span><strong id="subKpiEstabelecimentos">0</strong><small>com assinatura registrada</small></div></article>
+<article class="admin-kpi"><i class="bi bi-gem"></i><div><span>Planos pagos</span><strong id="subKpiPagos">0</strong><small>Essencial ou superior</small></div></article>
+<article class="admin-kpi"><i class="bi bi-hourglass-split"></i><div><span>Em teste</span><strong id="subKpiTeste">0</strong><small>assinaturas em período de teste</small></div></article>
+<article class="admin-kpi"><i class="bi bi-calendar-check"></i><div><span>Agenda liberada</span><strong id="subKpiAgenda">0</strong><small>estabelecimentos com agenda ativa</small></div></article>
+</div>
+<div class="subscription-workspace">
+<section class="subscription-catalog card"><div class="card-body"><div class="section-top compact"><div><span class="tag">Catálogo</span><h2>Planos e herança</h2><p>Um nível superior herda automaticamente os benefícios dos níveis anteriores.</p></div></div><div class="subscription-plan-stack" id="adminPlanCatalog"></div></div></section>
+<section class="subscription-editor card" id="subscriptionEditor"><div class="card-body"><div class="section-top compact"><div><span class="tag"><i class="bi bi-sliders"></i> Atribuir plano</span><h2 id="subscriptionEditorTitle">Selecione um estabelecimento</h2><p id="subscriptionEditorSubtitle">Use o botão Gerenciar na tabela abaixo.</p></div></div><form id="formAdminAssinatura"><input id="assinaturaEstabelecimentoId" type="hidden"/><div class="form-grid"><div class="campo full"><label for="assinaturaPlano">Plano</label><select id="assinaturaPlano" required></select></div><div class="campo"><label for="assinaturaStatus">Status</label><select id="assinaturaStatus"><option value="ativa">Ativa</option><option value="teste">Teste</option><option value="pausada">Pausada</option><option value="atrasada">Atrasada</option><option value="cancelada">Cancelada</option><option value="expirada">Expirada</option></select></div><div class="campo"><label for="assinaturaPeriodoFim">Válida até <span class="muted">(opcional)</span></label><input id="assinaturaPeriodoFim" type="date"/></div><div class="campo full"><label for="assinaturaObservacoes">Observações internas</label><textarea id="assinaturaObservacoes" maxlength="800" placeholder="Ex.: parceiro fundador, cortesia, teste comercial..."></textarea></div></div><div class="subscription-impact" id="subscriptionImpact"><i class="bi bi-lightning-charge"></i><p>Ao salvar, o Barber Hub recalcula agenda, equipe, promoções, relatórios, CRM, portfólio e prioridade no marketplace.</p></div><button class="btn btn-primary full" disabled id="salvarAssinaturaAdmin" type="submit"><i class="bi bi-check2-circle"></i> Aplicar assinatura</button></form></div></section>
+</div>
+<section class="admin-section subscription-list-section"><div class="admin-section-head"><div><span class="tag">Contas</span><h2>Assinaturas dos estabelecimentos</h2><p>Busque pelo negócio ou proprietário e altere o nível sem editar o banco manualmente.</p></div><div class="admin-tools"><input aria-label="Buscar estabelecimento ou proprietário" id="buscarAdminAssinaturas" placeholder="Buscar estabelecimento ou proprietário" type="search"/><select aria-label="Filtrar por plano" id="filtroAdminPlano"><option value="todos">Todos os planos</option></select><select aria-label="Filtrar por status da assinatura" id="filtroAdminAssinaturaStatus"><option value="todos">Todos os status</option><option value="ativa">Ativa</option><option value="teste">Teste</option><option value="pausada">Pausada</option><option value="atrasada">Atrasada</option><option value="cancelada">Cancelada</option><option value="expirada">Expirada</option></select></div></div><div class="table-wrap"><table><thead><tr><th>Estabelecimento</th><th>Proprietário</th><th>Plano</th><th>Status</th><th>Período</th><th>Agenda</th><th>Ação</th></tr></thead><tbody id="tbodyAdminAssinaturas"></tbody></table></div></section>
+</div></section>
+</main>
+<footer class="footer"><div class="container"><div class="footer-grid"><div class="footer-brand"><a class="logo" href="/mobile/index.html"><img alt="Barber Hub" src="../img/logomarcaTRANSPARENTE.png"/><span>Barber Hub<small>Uma plataforma de The Gamers Tech</small></span></a><p>Descoberta, agenda e gestão para conectar clientes e negócios de beleza.</p></div><div><h4>Plataforma</h4><p><a href="/mobile/portal.html">Explorar locais</a></p><p><a href="/mobile/planos.html">Planos</a></p><p><a href="/mobile/sobre.html">Sobre</a></p></div><div><h4>Administração</h4><p><a href="/mobile/admin.html">Visão geral</a></p><p><a href="/mobile/admin-assinaturas.html">Assinaturas</a></p><p><a href="/mobile/mapa-sistema.html">Mapa do sistema</a></p></div><div><h4>Confiança</h4><p><a href="/mobile/privacidade.html">Privacidade</a></p><p><a href="/mobile/termos.html">Termos de uso</a></p><p><a href="/mobile/conta.html">Conta e segurança</a></p></div></div><div class="copy">© 2026 Barber Hub. Uma plataforma de The Gamers Tech.</div></div></footer>
+<div class="toast" id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../js/supabase-config.js"></script><script src="../js/supabase-client.js"></script><script src="../js/security.js"></script><script src="../js/backend-api.js"></script><script src="../js/utils.js"></script><script src="../js/toast.js"></script><script src="../js/auth.js"></script><script src="../js/api.js"></script><script src="../js/status.js"></script><script src="../vendor/bootstrap.bundle.min.js"></script><script src="../js/ui.js"></script><script src="../js/admin-assinaturas.js"></script><script src="../js/mobile-app.js"></script><script src="../js/product-redesign.js"></script>
+<script src="../js/mobile-shell-v1.7.js"></script><script src="../js/mobile-native-v1.7.1.js"></script></body></html>

@@ -3,7 +3,7 @@
 import asyncio
 
 from backend.errors import ApiError
-from backend.models import DeleteAccountRequest, PasswordRecoveryRequest
+from backend.models import AdminSubscriptionUpdate, DeleteAccountRequest, PasswordRecoveryRequest
 from backend.security import AuthContext
 from backend.supabase import gateway
 
@@ -91,7 +91,7 @@ async def health_details(auth: AuthContext) -> dict[str, object]:
     """Protected health view for the administrative dashboard.
 
     Reaching this function already proves that the bearer token was validated by
-    Supabase Auth. In addition to normal database counts, we probe the 1.6 FTS
+    Supabase Auth. In addition to normal database counts, we probe the 1.8 FTS
     RPC so the admin can distinguish "API online" from "marketplace migration
     missing" after a deploy.
     """
@@ -116,7 +116,7 @@ async def health_details(auth: AuthContext) -> dict[str, object]:
     except Exception:
         marketplace = {"status": "migration_required", "engine": "postgres-fts"}
     return {
-        "api": {"status": "online", "version": "1.2.0"},
+        "api": {"status": "online", "version": "1.3.0"},
         "database": {"status": "online", "provider": "supabase-postgres"},
         "auth": {"status": "online", "provider": "supabase-auth"},
         "marketplace": marketplace,
@@ -151,3 +151,69 @@ async def audit_action(
     except Exception as exc:
         # Audit logging must not break the primary admin action.
         print(f"[Barber Hub API] audit write failed: {exc!r}")
+
+
+async def list_subscriptions(_auth: AuthContext) -> dict[str, object]:
+    """Return the administrative subscription workspace in one request."""
+    plans, establishments, profiles, subscriptions = await asyncio.gather(
+        gateway.rest(
+            "planos",
+            method="GET",
+            admin=True,
+            params={"select": "*", "ativo": "eq.true", "order": "ordenacao.asc"},
+        ),
+        gateway.rest(
+            "estabelecimentos",
+            method="GET",
+            admin=True,
+            params={
+                "select": "id,owner_id,nome,cidade,estado,aceita_agendamento,created_at",
+                "order": "created_at.desc",
+                "limit": "500",
+            },
+        ),
+        gateway.rest(
+            "perfis",
+            method="GET",
+            admin=True,
+            params={"select": "id,nome,email,tipo,ativo", "limit": "1000"},
+        ),
+        gateway.rest(
+            "assinaturas",
+            method="GET",
+            admin=True,
+            params={
+                "select": "id,estabelecimento_id,plano_id,status,inicio_em,teste_termina_em,periodo_atual_inicio,periodo_atual_fim,observacoes,updated_at,planos(id,slug,nome,ordenacao)",
+                "limit": "500",
+            },
+        ),
+    )
+    return {
+        "plans": plans or [],
+        "establishments": establishments or [],
+        "profiles": profiles or [],
+        "subscriptions": subscriptions or [],
+    }
+
+
+async def assign_subscription(
+    establishment_id: str,
+    payload: AdminSubscriptionUpdate,
+    auth: AuthContext,
+) -> dict[str, object]:
+    rows = await gateway.rest(
+        "admin_atribuir_plano",
+        method="POST",
+        token=auth.token,
+        rpc=True,
+        json={
+            "p_estabelecimento_id": establishment_id,
+            "p_plano_slug": payload.plano_slug,
+            "p_status": payload.status,
+            "p_periodo_fim": payload.periodo_fim.isoformat() if payload.periodo_fim else None,
+            "p_observacoes": payload.observacoes,
+        },
+    )
+    if isinstance(rows, list):
+        return rows[0] if rows else {}
+    return rows or {}

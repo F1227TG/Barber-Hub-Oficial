@@ -23,7 +23,7 @@ function bhRenderFavoritosCliente() {
     return;
   }
   lista.innerHTML = bhClienteFavoritos.map(item => {
-    const imagem = item.capaUrl || item.fotoUrl || "../img/logoblack.png";
+    const imagem = item.capaUrl || item.fotoUrl || "../img/placeholders/barbearia-02.webp";
     return `<article class="favorite-card">
       <a class="favorite-cover" href="barbearia.html?id=${item.id}" style="--favorite-cover:url('${escapeHTML(imagem)}')"><span class="status ${bhCalcularStatus(item).classe}">${escapeHTML(bhCalcularStatus(item).texto)}</span>${item.verificado ? `<span class="verified-mini"><i class="bi bi-patch-check-fill"></i> Verificado</span>` : ""}</a>
       <div class="favorite-body"><div><h3>${escapeHTML(item.nome)}</h3><p><i class="bi bi-geo-alt"></i> ${escapeHTML([item.bairro,item.cidade].filter(Boolean).join(", "))}</p></div><div class="favorite-actions"><a class="btn btn-primary btn-small" href="barbearia.html?id=${item.id}&agendar=1"><i class="bi bi-calendar2-plus"></i> Agendar</a><button class="icon-btn danger" type="button" data-remover-favorito="${item.id}" title="Remover dos favoritos"><i class="bi bi-heart-fill"></i></button></div></div>

@@ -3,7 +3,7 @@
   "use strict";
 
   const MOBILE_PAGES = new Set([
-    "index.html","admin.html","agendamento.html","barbearia.html","beauty-hub.html",
+    "index.html","admin.html","admin-assinaturas.html","agendamento.html","barbearia.html","beauty-hub.html",
     "cadastro-barbearia.html","cadastro.html","cliente.html","conta.html","contato.html",
     "login.html","mapa-sistema.html","notificacoes.html","painel.html","planos.html",
     "portal.html","privacidade.html","recuperar-senha.html","redefinir-senha.html",

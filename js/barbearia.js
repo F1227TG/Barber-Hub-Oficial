@@ -212,7 +212,7 @@ function bhRenderDetalheEstabelecimento(item) {
     </div>
   `).join("") || `<div class="empty">Equipe ainda não publicada.</div>`;
   const promocoes = item.promocoes.filter(p => p.ativo).map(p => `<div class="promo"><strong>${escapeHTML(p.titulo)}</strong><p>${escapeHTML(p.descricao)}</p></div>`).join("") || `<p class="texto-section">Nenhuma promoção ativa no momento.</p>`;
-  const imagem = item.capaUrl || item.fotoUrl || "../img/logoblack.png";
+  const imagem = item.capaUrl || item.fotoUrl || "../img/backgrounds/barbearia-hero-default.webp";
   const whatsapp = bhNormalizarWhatsApp(item.whatsapp || item.telefone);
   const tipoLabel = item.tipoEstabelecimento === "salao" ? "Salão de beleza" : "Barbearia";
 
@@ -280,6 +280,7 @@ function bhRenderDetalheEstabelecimento(item) {
 
   main.innerHTML = `
     <section class="page-hero business-hero" style="--business-cover:url('${escapeHTML(imagem)}')">
+      <img alt="" aria-hidden="true" class="brand-barber-pole brand-barber-pole-business" src="../img/decor/poste-barbearia.png">
       <div class="container">
         <div class="breadcrumb">Portal / ${escapeHTML(item.cidade)} / ${escapeHTML(item.nome)}</div>
         <div class="card-meta">${bhRenderStatus(item)} <span class="badge">${tipoLabel}</span></div>

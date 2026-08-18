@@ -1,0 +1,313 @@
+/*
+ * Barber Hub 1.8.0 — integração oficial dos assets de produção.
+ * Mantém a interface SaaS nas áreas operacionais e aplica fotografia editorial
+ * somente nos pontos institucionais, de descoberta e de apresentação pública.
+ */
+
+/* Identidade compacta oficial em cabeçalhos, rodapés e telas de autenticação. */
+.logo img,
+.phone-logo img,
+.mobile-app-brand img,
+.mobile-app-logo img {
+  background:transparent;
+  border:0;
+  border-radius:14px;
+  object-fit:contain;
+  box-shadow:0 8px 24px rgba(0,0,0,.22)
+}
+
+body.claro .logo img,
+body.claro .phone-logo img,
+body.claro .mobile-app-brand img,
+body.claro .mobile-app-logo img {
+  content:url('../img/branding/barber-hub-compacta-fundo-claro.png')
+}
+
+.brand-horizontal-logo {
+  width:min(100%,380px);
+  height:auto;
+  margin:0 0 22px;
+  object-fit:contain;
+  object-position:left center
+}
+
+.brand-wordmark-logo {
+  width:min(100%,230px);
+  height:auto;
+  margin-bottom:14px;
+  object-fit:contain;
+  object-position:left center
+}
+
+/* Home: cada fotografia tem uma função própria e preserva a leitura do texto. */
+.home-redesign .home-hero-new,
+.hero.home-hero-new {
+  background:
+    radial-gradient(circle at 18% 18%,rgba(213,169,65,.18),transparent 31%),
+    linear-gradient(90deg,rgba(7,7,6,.98) 0%,rgba(7,7,6,.92) 43%,rgba(7,7,6,.40) 76%,rgba(7,7,6,.16) 100%),
+    url('../img/backgrounds/barber-home-hero.webp') center/cover no-repeat
+}
+
+body.claro .home-redesign .home-hero-new,
+body.claro .hero.home-hero-new {
+  background:
+    linear-gradient(90deg,rgba(250,248,242,.97) 0%,rgba(250,248,242,.90) 46%,rgba(250,248,242,.42) 100%),
+    url('../img/backgrounds/barber-home-hero.webp') center/cover no-repeat
+}
+
+.phone-banner {
+  background:
+    linear-gradient(135deg,rgba(5,5,4,.14),rgba(5,5,4,.62)),
+    url('../img/branding/barber-hub-logo.png') center/68% auto no-repeat,
+    url('../img/backgrounds/barber-home-hero.webp') center/cover no-repeat,
+    var(--surface-2)
+}
+
+.app-business-image {
+  background:
+    linear-gradient(180deg,transparent,rgba(0,0,0,.68)),
+    url('../img/placeholders/barbearia-01.webp') center/cover no-repeat
+}
+
+.home-problem-solution .split-story {
+  position:relative;
+  overflow:hidden;
+  padding:clamp(28px,4vw,56px);
+  border:1px solid var(--gold-border);
+  border-radius:32px;
+  background:
+    linear-gradient(90deg,rgba(8,8,7,.97) 0%,rgba(8,8,7,.90) 48%,rgba(8,8,7,.68) 100%),
+    url('../img/backgrounds/home-institucional.webp') center/cover no-repeat;
+  box-shadow:var(--shadow)
+}
+
+.home-problem-solution .story-copy h2,
+.home-problem-solution .story-copy p {
+  color:#f7f3e9
+}
+
+.home-problem-solution .story-copy p {
+  color:#cbc5b8
+}
+
+.home-brand-signature .brand-signature {
+  position:relative;
+  overflow:hidden;
+  padding:clamp(32px,5vw,64px);
+  border:1px solid rgba(215,174,72,.32);
+  border-radius:32px;
+  background:
+    linear-gradient(100deg,rgba(7,7,6,.98) 0%,rgba(7,7,6,.92) 48%,rgba(7,7,6,.58) 100%),
+    url('../img/backgrounds/home-assinatura.webp') center/cover no-repeat;
+  box-shadow:0 28px 70px rgba(0,0,0,.22)
+}
+
+.home-brand-signature .brand-signature h2,
+.home-brand-signature .brand-signature strong {
+  color:#fff
+}
+
+.home-brand-signature .brand-signature p {
+  color:#cbc5b8
+}
+
+/* Portal: fotografia editorial própria, com o poste oficial como asset separado. */
+.marketplace-hero {
+  min-height:420px;
+  display:flex;
+  align-items:center;
+  padding:72px 0 64px;
+  background:
+    linear-gradient(90deg,rgba(7,7,6,.98) 0%,rgba(7,7,6,.91) 44%,rgba(7,7,6,.48) 78%,rgba(7,7,6,.28) 100%),
+    url('../img/backgrounds/portal-hero.webp') center/cover no-repeat;
+  border-bottom:1px solid rgba(215,174,72,.24)
+}
+
+.marketplace-hero-inner {
+  position:relative;
+  z-index:2;
+  padding-right:clamp(118px,13vw,210px)
+}
+
+.marketplace-hero h1,
+.marketplace-hero .marketplace-hero-copy>p {
+  color:#fff
+}
+
+.marketplace-hero .marketplace-hero-copy>p,
+.marketplace-hero .breadcrumb {
+  color:#cbc5b8
+}
+
+.marketplace-mini-guide {
+  background:rgba(9,9,8,.72);
+  border-color:rgba(215,174,72,.30);
+  backdrop-filter:blur(12px)
+}
+
+.brand-barber-pole {
+  position:absolute;
+  z-index:1;
+  width:auto;
+  height:min(82%,390px);
+  pointer-events:none;
+  user-select:none;
+  object-fit:contain;
+  filter:drop-shadow(0 24px 34px rgba(0,0,0,.48))
+}
+
+.brand-barber-pole-portal {
+  right:clamp(18px,3.8vw,72px);
+  bottom:-28px;
+  opacity:.93
+}
+
+/* Perfil público: capa cadastrada ou placeholder próprio; poste real sem CSS falso. */
+.business-hero {
+  min-height:460px;
+  display:flex;
+  align-items:center;
+  background-image:
+    linear-gradient(90deg,rgba(7,7,6,.97) 0%,rgba(7,7,6,.88) 47%,rgba(7,7,6,.38) 100%),
+    var(--business-cover);
+  background-size:cover;
+  background-position:center
+}
+
+.business-hero>.container {
+  position:relative;
+  z-index:2;
+  padding-right:clamp(110px,13vw,210px)
+}
+
+.business-hero h1,
+.business-hero p {
+  color:#fff
+}
+
+.brand-barber-pole-business {
+  right:clamp(18px,3.8vw,72px);
+  bottom:-32px;
+  height:min(78%,370px);
+  opacity:.90
+}
+
+/* O SVG legado continha um segundo poste estilizado. Mantemos só o PNG real. */
+body:not(.beauty-mode) .page-hero::before {
+  background:
+    radial-gradient(circle at 88% 18%,rgba(213,169,65,.12),transparent 30%),
+    linear-gradient(135deg,rgba(7,7,6,.22),transparent 72%);
+  opacity:1
+}
+
+body:not(.beauty-mode) .business-hero::before {
+  display:none
+}
+
+/* Remove o poste desenhado por listras da versão antiga e restaura o overlay. */
+body:not(.beauty-mode) .page-hero::after,
+body:not(.beauty-mode) .admin-hero::after,
+body:not(.beauty-mode) .marketplace-hero::after {
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:-1;
+  width:auto;
+  height:auto;
+  right:auto;
+  top:auto;
+  transform:none;
+  border:0;
+  border-radius:0;
+  opacity:1;
+  background:linear-gradient(90deg,var(--bg) 0%,color-mix(in srgb,var(--bg) 88%,transparent) 52%,transparent 100%);
+  box-shadow:none;
+  pointer-events:none
+}
+
+.marketplace-hero::after,
+.business-hero::after {
+  background:linear-gradient(180deg,rgba(0,0,0,.08),rgba(0,0,0,.20))!important
+}
+
+/* Sobre: cena de ofício e wordmark oficial. */
+.about-manifesto {
+  position:relative;
+  overflow:hidden;
+  background:
+    linear-gradient(180deg,rgba(0,0,0,.04),rgba(0,0,0,.82)),
+    url('../img/backgrounds/sobre-craft.webp') center/cover no-repeat
+}
+
+.about-manifesto::before {
+  content:"";
+  position:absolute;
+  width:190px;
+  height:190px;
+  right:-34px;
+  top:-28px;
+  background:url('../img/branding/barber-hub-simbolo-b.png') center/contain no-repeat;
+  opacity:.13;
+  filter:grayscale(1)
+}
+
+.about-manifesto>* {
+  position:relative;
+  z-index:1
+}
+
+/* Fallbacks visuais coerentes quando o estabelecimento ainda não enviou capa. */
+.favorite-cover,
+.favorite-card-cover {
+  background-image:
+    linear-gradient(180deg,rgba(0,0,0,.02),rgba(0,0,0,.48)),
+    var(--favorite-cover,url('../img/placeholders/barbearia-02.webp'))
+}
+
+@media(max-width:1040px) {
+  .marketplace-hero-inner,
+  .business-hero>.container {
+    padding-right:130px
+  }
+
+  .home-problem-solution .split-story,
+  .home-brand-signature .brand-signature {
+    gap:32px
+  }
+}
+
+@media(max-width:760px) {
+  .home-redesign .home-hero-new,
+  .hero.home-hero-new {
+    background:
+      linear-gradient(180deg,rgba(7,7,6,.90),rgba(7,7,6,.98)),
+      url('../img/backgrounds/barber-home-hero.webp') 62% center/cover no-repeat
+  }
+
+  .marketplace-hero {
+    min-height:0;
+    padding:34px 0 28px;
+    background:
+      linear-gradient(180deg,rgba(7,7,6,.82),rgba(7,7,6,.98)),
+      url('../img/backgrounds/portal-hero.webp') center/cover no-repeat
+  }
+
+  .marketplace-hero-inner,
+  .business-hero>.container {
+    padding-right:0
+  }
+
+  .brand-barber-pole {
+    display:none
+  }
+
+  .home-problem-solution .split-story,
+  .home-brand-signature .brand-signature {
+    padding:26px;
+    border-radius:24px
+  }
+
+  .brand-horizontal-logo {
+    width:min(100%,280px)
+  }
+}
