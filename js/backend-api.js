@@ -38,6 +38,15 @@
       throw error;
     }
 
+    const liveServerLocal = ["localhost", "127.0.0.1", "::1"].includes(location.hostname)
+      && ["5500", "5501", "5502"].includes(location.port);
+    if (liveServerLocal || location.protocol === "file:") {
+      const error = new Error("Backend próprio indisponível neste servidor local; usando fallback de desenvolvimento.");
+      error.code = "BACKEND_NOT_CONFIGURED";
+      error.status = 503;
+      throw error;
+    }
+
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeout);
 

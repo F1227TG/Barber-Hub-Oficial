@@ -14,7 +14,8 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 HTML_DIR = ROOT / "html"
 MOBILE_DIR = ROOT / "mobile"
-SHELL = '<script src="../js/mobile-shell-v1.7.js"></script><script src="../js/mobile-native-v1.7.1.js"></script>'
+SHELL = '<script src="../js/mobile-shell-v1.7.js"></script><script src="../js/mobile-native-v1.7.1.js"></script><script src="../js/mobile-redesign-1.8.js"></script>'
+MOBILE_STYLE = '<link href="../css/mobile-redesign-1.8.css" rel="stylesheet"/>'
 MOBILE_PAGE_NAMES = {path.name for path in HTML_DIR.glob("*.html")} | {"index.html"}
 
 
@@ -67,12 +68,14 @@ def transform(source: Path) -> str:
     html = normalize_mobile_hrefs(html)
 
     canonical = f'https://barberhuboficial.vercel.app/html/{source.stem}'
-    mobile_meta = f'<meta content="noindex,follow" name="robots"/><link href="{canonical}" rel="canonical"/>'
+    mobile_meta = f'<meta content="yes" name="mobile-web-app-capable"/><meta content="noindex,follow" name="robots"/><link href="{canonical}" rel="canonical"/>'
     html = re.sub(r'<meta content="noindex,follow" name="robots"/><link href="https://barberhuboficial\.vercel\.app/html/[^"]+" rel="canonical"/>', "", html)
-    html = html.replace("</head>", mobile_meta + "</head>", 1)
+    html = html.replace('<meta content="yes" name="mobile-web-app-capable"/>', "")
+    html = html.replace("</head>", mobile_meta + MOBILE_STYLE + "</head>", 1)
 
     html = re.sub(r'<script src="\.\./js/mobile-shell-v1\.[0-9.]+\.js"></script>', "", html)
     html = html.replace('<script src="../js/mobile-native-v1.7.1.js"></script>', "")
+    html = html.replace('<script src="../js/mobile-redesign-1.8.js"></script>', "")
     html = html.replace("</body>", SHELL + "</body>", 1)
     return html
 

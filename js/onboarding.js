@@ -106,8 +106,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     const botao = document.getElementById("btnFinalizarOnboarding");
     bhSetButtonLoading(botao, true, "Criando seu espaço...");
     try {
-      const foto = document.getElementById("fotoArquivo").files?.[0];
-      const capa = document.getElementById("capaArquivo").files?.[0];
+      const foto = window.bhArquivoImagem?.(document.getElementById("fotoArquivo")) || document.getElementById("fotoArquivo").files?.[0];
+      const capa = window.bhArquivoImagem?.(document.getElementById("capaArquivo")) || document.getElementById("capaArquivo").files?.[0];
       const [fotoUrl, capaUrl] = await Promise.all([
         foto ? bhUploadImagem(foto, "estabelecimento/foto") : Promise.resolve(null),
         capa ? bhUploadImagem(capa, "estabelecimento/capa") : Promise.resolve(null)

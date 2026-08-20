@@ -152,13 +152,18 @@ function bhMarketplaceAbrirFiltros() {
   document.getElementById("filtroAgendamento").value = bhMarketplaceState.agenda;
   modal.classList.add("ativo");
   modal.setAttribute("aria-hidden", "false");
+  document.body.classList.add("marketplace-filters-open");
   document.body.style.overflow = "hidden";
+  requestAnimationFrame(() => modal.querySelector("[data-fechar-filtros]")?.focus());
 }
 
 function bhMarketplaceFecharFiltros() {
   const modal = document.getElementById("filtrosMarketplace");
   if (!modal) return;
+  const trigger = document.getElementById("abrirFiltrosMarketplace");
   modal.classList.remove("ativo");
+  document.body.classList.remove("marketplace-filters-open");
+  trigger?.focus?.({ preventScroll:true });
   modal.setAttribute("aria-hidden", "true");
   document.body.style.overflow = "";
 }

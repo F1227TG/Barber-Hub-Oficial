@@ -41,6 +41,41 @@
     return `/mobile/${path}`;
   }
 
+  const backFallbacks = {
+    barbearia: "portal.html",
+    cliente: "index.html",
+    conta: "index.html",
+    notificacoes: "index.html",
+    contato: "index.html",
+    planos: "index.html",
+    login: "index.html",
+    cadastro: "index.html",
+    "cadastro-barbearia": "painel.html",
+    painel: "index.html",
+    admin: "index.html",
+    "admin-assinaturas": "admin.html",
+    sobre: "index.html",
+    servicos: "index.html",
+    "beauty-hub": "index.html",
+    privacidade: "conta.html",
+    termos: "conta.html",
+    "recuperar-senha": "login.html",
+    "redefinir-senha": "login.html",
+    "mapa-sistema": "admin.html",
+    agendamento: "portal.html"
+  };
+
+  function goBack() {
+    try {
+      const ref = document.referrer ? new URL(document.referrer, location.href) : null;
+      if (ref && ref.origin === location.origin && history.length > 1) {
+        history.back();
+        return;
+      }
+    } catch (_) {}
+    location.href = appUrl(backFallbacks[pageName] || "index.html");
+  }
+
   function link(path, icon, text, active = false, badge = "") {
     const badgeHtml = badge ? `<span class="nav-badge" ${badge} hidden aria-hidden="true"></span>` : "";
     return `<a href="${appUrl(path)}" class="${active ? "ativo" : ""}"><i class="bi ${icon}"></i><span>${text}</span>${badgeHtml}</a>`;
@@ -51,7 +86,13 @@
       table.classList.add("responsive-table");
       const labels = [...table.querySelectorAll("thead th")].map(th => th.textContent.trim());
       table.querySelectorAll("tbody tr").forEach(row => {
-        [...row.children].forEach((cell, index) => {
+        const cells = [...row.children];
+        cells.forEach((cell, index) => {
+          if (Number(cell.getAttribute("colspan") || 1) > 1 || cells.length === 1) {
+            cell.dataset.label = "";
+            cell.classList.add("mobile-table-full-row");
+            return;
+          }
           if (!cell.dataset.label) cell.dataset.label = labels[index] || "Informação";
         });
       });
@@ -70,8 +111,10 @@
     const [title, subtitle] = labels[pageName] || ["Barber Hub", "Uma plataforma de The Gamers Tech"];
     const header = document.createElement("header");
     header.className = "mobile-app-header";
+    const backButton = pageName === "index" ? "" : `<button class="icon-btn mobile-app-back" type="button" id="mobileBackButton" aria-label="Voltar"><i class="bi bi-chevron-left"></i></button>`;
     header.innerHTML = `<div class="mobile-app-header-inner">
-      <a class="mobile-app-brand" href="${appUrl("index.html")}"><img src="../img/logomarcaTRANSPARENTE.png" alt=""><span><strong>${esc(title)}</strong><span>${esc(subtitle)}</span></span></a>
+      ${backButton}
+      <a class="mobile-app-brand" href="${appUrl("index.html")}"><img src="../img/branding/barber-hub-compacta.png" alt=""><span><strong>${esc(title)}</strong><span>${esc(subtitle)}</span></span></a>
       <div class="mobile-app-header-actions">
         <button class="icon-btn" type="button" id="mobileThemeButton" aria-label="Alternar tema"><i class="bi bi-circle-half"></i></button>
         <a class="icon-btn" href="${appUrl("notificacoes.html")}" aria-label="Notificações"><i class="bi bi-bell"></i><span class="nav-badge" data-badge-notificacoes hidden aria-hidden="true"></span></a>
@@ -79,6 +122,8 @@
       </div>
     </div>`;
     document.body.prepend(header);
+
+    header.querySelector("#mobileBackButton")?.addEventListener("click", goBack);
 
     header.querySelector("#mobileThemeButton")?.addEventListener("click", () => {
       const claro = !document.body.classList.contains("claro");

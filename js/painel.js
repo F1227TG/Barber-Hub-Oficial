@@ -739,7 +739,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const botao = form.querySelector("button[type='submit']");
     bhSetButtonLoading(botao, true, "Salvando...");
     try {
-      const avatarFile = document.getElementById("barbAvatar")?.files?.[0];
+      const avatarFile = window.bhArquivoImagem?.(document.getElementById("barbAvatar")) || document.getElementById("barbAvatar")?.files?.[0];
       const avatarUrl = avatarFile ? await bhUploadImagem(avatarFile, "profissionais") : null;
       await bhCriarProfissional(bhPainelEstabelecimento.id, {
         nome: document.getElementById("barbNome").value.trim(),
@@ -815,7 +815,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   document.getElementById("portfolioFotos").addEventListener("change", evento => {
-    const arquivos = [...(evento.target.files || [])];
+    const arquivos = window.bhArquivosImagem?.(evento.target) || [...(evento.target.files || [])];
     const editando = bhPortfolioItemPorId(document.getElementById("portfolioId").value);
     const existentes = editando?.midias?.length || 0;
     if (arquivos.some(file => file.size > BH_PORTFOLIO_MAX_ORIGINAL)) {
@@ -971,8 +971,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     const botao = evento.currentTarget.querySelector("button[type='submit']");
     bhSetButtonLoading(botao, true, "Atualizando...");
     try {
-      const foto = document.getElementById("configFoto").files?.[0];
-      const capa = document.getElementById("configCapa").files?.[0];
+      const foto = window.bhArquivoImagem?.(document.getElementById("configFoto")) || document.getElementById("configFoto").files?.[0];
+      const capa = window.bhArquivoImagem?.(document.getElementById("configCapa")) || document.getElementById("configCapa").files?.[0];
       const [fotoUrl, capaUrl] = await Promise.all([
         foto ? bhUploadImagem(foto, "estabelecimento/foto") : Promise.resolve(bhPainelEstabelecimento.fotoUrl),
         capa ? bhUploadImagem(capa, "estabelecimento/capa") : Promise.resolve(bhPainelEstabelecimento.capaUrl)

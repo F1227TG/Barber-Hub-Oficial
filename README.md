@@ -2,6 +2,11 @@
 
 O Barber Hub é um **marketplace digital de serviços** com gestão integrada para barbearias. Clientes descobrem estabelecimentos, verificam disponibilidade, conhecem serviços/equipe e agendam; profissionais administram operação, agenda, portfólio e reputação. Uma plataforma de **The Gamers Tech**.
 
+
+## Refino mobile 1.8 — experiência exclusiva
+
+A interface `/mobile` recebeu uma camada própria de UX: menos texto institucional, navegação mais direta, filtro do marketplace em bottom sheet, conta em formato de hub, editor de imagens com crop/zoom e remoção do CTA de instalação dentro da versão mobile. Detalhes em `docs/REDESIGN_MOBILE_1_8.md`.
+
 ## Entrega 1.8.0 — Assinaturas funcionais e valor para o estabelecimento
 
 A 1.8 transforma os planos de apresentação em regras de produto reais. O administrador atribui um plano ao estabelecimento em uma página própria e os **entitlements cumulativos** entram em vigor imediatamente no painel web/mobile, na API e no PostgreSQL.

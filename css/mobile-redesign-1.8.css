@@ -1,0 +1,685 @@
+/*
+ * Barber Hub 1.8 — experiência mobile exclusiva.
+ * Mobile não é desktop reduzido: menos texto, ação mais rápida, navegação tipo app.
+ */
+body.mobile-native{
+  --mobile-header-h:68px;
+  --mobile-dock-h:74px;
+  --mobile-gutter:16px;
+  --mobile-radius:20px;
+  padding-bottom:calc(var(--mobile-dock-h) + env(safe-area-inset-bottom) + 12px)!important;
+  background:
+    radial-gradient(circle at 92% 0,color-mix(in srgb,var(--gold) 9%,transparent),transparent 28%),
+    var(--bg);
+}
+body.mobile-native>.header{display:none!important}
+body.mobile-native>.footer{display:none!important}
+body.mobile-native .container{width:calc(100% - (var(--mobile-gutter) * 2));margin-inline:auto}
+body.mobile-native .section{padding:28px 0}
+body.mobile-native .section+.section{border-top:0}
+body.mobile-native .breadcrumb{display:none!important}
+body.mobile-native .page-hero{padding:24px 0 18px;min-height:0;background:linear-gradient(180deg,var(--bg-2),var(--bg));border-bottom:1px solid var(--border)}
+body.mobile-native .page-hero .tag{margin-bottom:8px}
+body.mobile-native .page-hero h1{font-size:clamp(1.8rem,8vw,2.45rem);line-height:1.02;letter-spacing:-.045em;margin:0;max-width:94%}
+body.mobile-native .page-hero p{margin-top:10px;font-size:.88rem;line-height:1.5;max-width:34rem;color:var(--muted);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+body.mobile-native .titulo-section{font-size:clamp(1.45rem,7vw,2rem);line-height:1.08;letter-spacing:-.035em}
+body.mobile-native .texto-section{font-size:.86rem;line-height:1.55}
+body.mobile-native .section-top{margin-bottom:16px}
+body.mobile-native .section-top.compact{margin-bottom:12px}
+body.mobile-native .card,
+body.mobile-native .form-card,
+body.mobile-native .account-section,
+body.mobile-native .admin-section,
+body.mobile-native .panel-section{border-radius:var(--mobile-radius)}
+body.mobile-native .form-card{padding:18px}
+body.mobile-native .btn{min-height:46px;border-radius:14px}
+body.mobile-native .btn-small{min-height:40px}
+body.mobile-native .campo input,
+body.mobile-native .campo select,
+body.mobile-native .campo textarea{min-height:48px;border-radius:14px}
+body.mobile-native .campo textarea{min-height:120px}
+body.mobile-native .form-grid{gap:12px}
+body.mobile-native .grid{gap:12px}
+body.mobile-native .empty{border-radius:18px;padding:22px 16px}
+
+/* Header de app */
+body.mobile-native .mobile-app-header{
+  height:calc(var(--mobile-header-h) + env(safe-area-inset-top));
+  padding-top:env(safe-area-inset-top);
+  background:color-mix(in srgb,var(--bg) 92%,transparent);
+  border-bottom:1px solid color-mix(in srgb,var(--border) 82%,transparent);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px)
+}
+body.mobile-native .mobile-app-header-inner{height:var(--mobile-header-h);padding:0 14px;gap:10px}
+body.mobile-native .mobile-app-brand{min-width:0;gap:10px}
+body.mobile-native .mobile-app-brand img{width:43px;height:43px;border-radius:13px;box-shadow:none}
+body.mobile-native .mobile-app-brand>span{min-width:0}
+body.mobile-native .mobile-app-brand strong{display:block;font-size:.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.mobile-native .mobile-app-brand>span>span{display:block;margin-top:1px;color:var(--muted);font-size:.62rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:190px}
+body.mobile-native .mobile-app-header-actions{gap:5px}
+body.mobile-native .mobile-app-header-actions .icon-btn{width:40px;height:40px;border-radius:13px;background:transparent}
+body.mobile-native .mobile-app-header-actions .icon-btn:hover{background:var(--surface-soft)}
+
+/* Dock */
+body.mobile-native .mobile-app-dock{
+  left:10px;right:10px;bottom:calc(8px + env(safe-area-inset-bottom));
+  width:auto;height:66px;padding:6px;
+  border:1px solid color-mix(in srgb,var(--border) 86%,transparent);
+  border-radius:22px;
+  background:color-mix(in srgb,var(--surface) 94%,transparent);
+  box-shadow:0 18px 48px rgba(0,0,0,.36);
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)
+}
+body.mobile-native .mobile-app-dock a{min-width:0;min-height:52px;border-radius:16px;gap:3px;color:var(--muted)}
+body.mobile-native .mobile-app-dock a i{font-size:1.08rem}
+body.mobile-native .mobile-app-dock a span:not(.nav-badge){font-size:.57rem;font-weight:780;white-space:nowrap}
+body.mobile-native .mobile-app-dock a.ativo{background:linear-gradient(180deg,var(--gold-soft),color-mix(in srgb,var(--gold-soft) 45%,transparent));color:var(--gold-2)}
+
+/* Drawer: identidade/conta clicável */
+body.mobile-native .app-drawer{width:min(89vw,360px);padding-bottom:calc(18px + env(safe-area-inset-bottom))}
+body.mobile-native .drawer-head{padding-bottom:14px;border-bottom:1px solid var(--border)}
+body.mobile-native .drawer-head .logo img{content:url('../img/branding/barber-hub-compacta.png');width:48px;height:48px;box-shadow:none}
+body.mobile-native .drawer-user-link{display:grid;grid-template-columns:48px minmax(0,1fr) 28px;align-items:center;gap:12px;width:100%;padding:13px;margin:12px 0;border:1px solid var(--border);border-radius:18px;background:linear-gradient(145deg,var(--surface-soft),transparent);transition:.18s ease}
+body.mobile-native .drawer-user-link:hover,
+body.mobile-native .drawer-user-link:focus-visible{border-color:var(--gold-border);background:var(--gold-soft)}
+body.mobile-native .drawer-user-link .drawer-avatar{width:48px;height:48px;border-radius:15px}
+body.mobile-native .drawer-user-link .drawer-user-copy{min-width:0}
+body.mobile-native .drawer-user-link strong,
+body.mobile-native .drawer-user-link span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.mobile-native .drawer-user-link .drawer-user-arrow{display:grid;place-items:center;color:var(--muted)}
+body.mobile-native .drawer-section{margin-top:12px}
+body.mobile-native .drawer-links{gap:6px}
+body.mobile-native .drawer-links a{min-height:48px;border-radius:14px}
+body.mobile-native .drawer-auth-actions{padding-top:12px}
+body.mobile-native [data-install-app]{display:none!important}
+
+/* Home: ativo real, menos marketing e mais ação */
+body.mobile-native.page-home .mobile-home-hero{padding:24px 0 20px;min-height:0}
+body.mobile-native.page-home .mobile-home-barber-lines{
+  width:80px;height:230px;right:-5px;top:42px;opacity:.20;transform:rotate(7deg);
+  background:url('../img/decor/poste-barbearia.png') center/contain no-repeat!important;
+  filter:drop-shadow(0 16px 22px rgba(0,0,0,.45));border-radius:0
+}
+body.mobile-native.page-home .mobile-home-mark{width:48px;height:48px;margin:17px 0 10px;border-radius:15px;transform:none;background:var(--surface);color:var(--gold-2);box-shadow:none}
+body.mobile-native.page-home .mobile-home-hero h1{font-size:clamp(2.2rem,11.5vw,3rem);max-width:290px}
+body.mobile-native.page-home .mobile-home-hero>.container>p{max-width:290px;margin-top:11px;font-size:.86rem;line-height:1.5}
+body.mobile-native.page-home .mobile-home-hero-actions{margin-top:17px}
+body.mobile-native.page-home .mobile-home-proof{margin-top:11px}
+body.mobile-native.page-home .mobile-home-actions-section{padding:18px 0 10px!important}
+body.mobile-native.page-home .mobile-home-action-grid{gap:9px}
+body.mobile-native.page-home .mobile-action-card{min-height:132px;padding:14px;border-radius:18px}
+body.mobile-native.page-home .mobile-action-card span{font-size:.65rem}
+body.mobile-native.page-home .mobile-home-status-section{padding:18px 0!important}
+
+/* Portal: mobile é busca primeiro, hero compacto. */
+body.mobile-native.page-portal .marketplace-hero{min-height:0;padding:22px 0 18px;background:linear-gradient(180deg,rgba(7,7,6,.74),rgba(7,7,6,.98)),url('../img/backgrounds/portal-hero.webp') 58% center/cover no-repeat}
+body.mobile-native.page-portal .marketplace-hero-copy .tag{margin-bottom:7px}
+body.mobile-native.page-portal .marketplace-hero-copy h1{font-size:1.85rem;max-width:290px;margin:0;color:#fff}
+body.mobile-native.page-portal .marketplace-hero-copy>p{display:none}
+body.mobile-native.page-portal .marketplace-mini-guide{display:none}
+body.mobile-native.page-portal .brand-barber-pole{display:none}
+body.mobile-native.page-portal .marketplace-search-zone{position:sticky;top:calc(var(--mobile-header-h) + env(safe-area-inset-top));z-index:80;padding:10px 0 4px;background:linear-gradient(180deg,color-mix(in srgb,var(--bg) 98%,transparent) 0%,color-mix(in srgb,var(--bg) 94%,transparent) 80%,transparent 100%);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+body.mobile-native.page-portal .marketplace-searchbar{display:grid;grid-template-columns:minmax(0,1fr) 48px;gap:8px}
+body.mobile-native.page-portal .marketplace-search-input{min-height:48px;border-radius:16px}
+body.mobile-native.page-portal .marketplace-filter-button{width:48px;min-width:48px;padding:0;border-radius:16px;position:relative}
+body.mobile-native.page-portal .marketplace-filter-button>span:not(.marketplace-filter-count){display:none}
+body.mobile-native.page-portal .marketplace-filter-count{position:absolute;right:-4px;top:-5px;min-width:19px;height:19px;padding:0 5px;display:grid;place-items:center;border-radius:999px;background:var(--gold-2);color:#17130c;font-size:.62rem;font-weight:900}
+body.mobile-native.page-portal .marketplace-filter-count:empty{display:none}
+body.mobile-native.page-portal .marketplace-quick-filters{gap:7px;padding:9px 0 5px;scroll-snap-type:x proximity}
+body.mobile-native.page-portal .marketplace-chip{min-height:36px;padding:0 11px;border-radius:999px;scroll-snap-align:start;white-space:nowrap;font-size:.69rem}
+body.mobile-native.page-portal .marketplace-section{padding:22px 0}
+body.mobile-native.page-portal .marketplace-section-head{margin-bottom:12px}
+body.mobile-native.page-portal .marketplace-section-head p{display:none}
+body.mobile-native.page-portal .marketplace-section-head h2{font-size:1.22rem}
+body.mobile-native.page-portal .marketplace-grid,
+body.mobile-native.page-portal .marketplace-featured-grid{gap:12px}
+
+/* Filtro tipo e-commerce / bottom sheet funcional */
+body.mobile-native.page-portal .marketplace-filter-modal{display:block!important;visibility:hidden;pointer-events:none;opacity:0;transition:opacity .2s ease,visibility .2s ease}
+body.mobile-native.page-portal .marketplace-filter-modal.ativo{visibility:visible;pointer-events:auto;opacity:1}
+body.mobile-native.page-portal .marketplace-filter-backdrop{background:rgba(0,0,0,.68);backdrop-filter:blur(3px)}
+body.mobile-native.page-portal .marketplace-filter-dialog{
+  position:absolute;left:0;right:0;bottom:0;top:auto;width:100%;max-height:min(88dvh,760px);overflow:hidden;
+  display:grid;grid-template-rows:auto minmax(0,1fr) auto;padding:0;
+  border:1px solid var(--border);border-bottom:0;border-radius:28px 28px 0 0;background:var(--surface);
+  transform:translateY(104%);transition:transform .28s cubic-bezier(.2,.78,.2,1);box-shadow:0 -24px 70px rgba(0,0,0,.42)
+}
+body.mobile-native.page-portal .marketplace-filter-modal.ativo .marketplace-filter-dialog{transform:translateY(0)}
+body.mobile-native.page-portal .marketplace-filter-dialog::before{content:"";position:absolute;top:8px;left:50%;width:44px;height:4px;transform:translateX(-50%);border-radius:999px;background:color-mix(in srgb,var(--muted) 42%,transparent)}
+body.mobile-native.page-portal .marketplace-filter-dialog>header{margin:0;padding:24px 16px 13px;border-bottom:1px solid var(--border);background:var(--surface)}
+body.mobile-native.page-portal .marketplace-filter-dialog>header .tag{display:none}
+body.mobile-native.page-portal .marketplace-filter-dialog>header h2{font-size:1.28rem}
+body.mobile-native.page-portal .marketplace-filter-dialog>header button{width:40px;height:40px;border-radius:13px}
+body.mobile-native.page-portal .marketplace-filter-grid{display:grid;gap:18px;overflow:auto;padding:16px;-webkit-overflow-scrolling:touch}
+body.mobile-native.page-portal .marketplace-filter-grid>.campo{display:grid;gap:9px}
+body.mobile-native.page-portal .marketplace-filter-grid>.campo>label{font-size:.77rem;font-weight:900;color:var(--text)}
+body.mobile-native.page-portal .marketplace-filter-grid select{display:none!important}
+body.mobile-native.page-portal .mobile-filter-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+body.mobile-native.page-portal .mobile-filter-option{min-height:46px;padding:9px 11px;text-align:left;border:1px solid var(--border);border-radius:14px;background:var(--surface-soft);color:var(--muted);font-size:.72rem;font-weight:780;transition:.15s ease}
+body.mobile-native.page-portal .mobile-filter-option.ativo{border-color:var(--gold-border);background:var(--gold-soft);color:var(--gold-2);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--gold) 14%,transparent)}
+body.mobile-native.page-portal .marketplace-filter-actions{display:grid;grid-template-columns:.8fr 1.2fr;gap:9px;padding:12px 16px calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--border);background:color-mix(in srgb,var(--surface) 96%,transparent);backdrop-filter:blur(15px)}
+body.mobile-native.page-portal .marketplace-filter-actions .btn{width:100%}
+
+/* Sobre: mantém essência e corta narrativa redundante. */
+body.mobile-native.page-sobre .about-hero{padding-bottom:20px}
+body.mobile-native.page-sobre .about-hero-grid{display:grid;grid-template-columns:1fr;gap:16px}
+body.mobile-native.page-sobre .about-hero h1{font-size:2rem}
+body.mobile-native.page-sobre .about-hero p{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+body.mobile-native.page-sobre .about-manifesto{min-height:190px;padding:20px;border-radius:22px}
+body.mobile-native.page-sobre .about-manifesto .brand-wordmark-logo{width:170px}
+body.mobile-native.page-sobre .about-manifesto blockquote{font-size:1.35rem}
+body.mobile-native.page-sobre .about-purpose{padding-top:22px}
+body.mobile-native.page-sobre .about-split{display:grid;grid-template-columns:1fr;gap:16px}
+body.mobile-native.page-sobre .about-sticky-copy{position:static}
+body.mobile-native.page-sobre .about-sticky-copy .texto-section{display:none}
+body.mobile-native.page-sobre .about-values-list{gap:9px}
+body.mobile-native.page-sobre .about-values-list article{padding:14px;border-radius:17px}
+body.mobile-native.page-sobre .about-values-list article p{font-size:.76rem;line-height:1.45}
+body.mobile-native.page-sobre .about-two-sides{padding-top:18px}
+body.mobile-native.page-sobre .dual-experience{grid-template-columns:1fr;gap:10px}
+body.mobile-native.page-sobre .experience-panel{padding:18px;border-radius:20px}
+body.mobile-native.page-sobre .experience-panel ul{display:none}
+body.mobile-native.page-sobre .about-brand-section{display:none}
+body.mobile-native.page-sobre .about-final-section{padding-top:18px}
+
+/* Planos: comparação confortável no celular. */
+body.mobile-native.page-planos .plans-hero-new p{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+body.mobile-native.page-planos .pricing-section{padding-top:20px}
+body.mobile-native.page-planos .pricing-grid{display:flex!important;overflow-x:auto;gap:12px;scroll-snap-type:x mandatory;padding:2px 2px 12px;margin-inline:-2px}
+body.mobile-native.page-planos .plan-card{min-width:min(86vw,330px);scroll-snap-align:center;border-radius:22px}
+body.mobile-native.page-planos .plan-card ul li:nth-child(n+6){display:none}
+body.mobile-native.page-planos .faq-section details{border-radius:16px}
+
+/* Suporte: tópicos primeiro, texto secundário reduzido. */
+body.mobile-native.page-contato .support-hero p{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+body.mobile-native.page-contato .support-topics-section{padding-top:20px}
+body.mobile-native.page-contato .support-topic-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+body.mobile-native.page-contato .support-topic-card{min-height:116px;padding:14px;border-radius:18px}
+body.mobile-native.page-contato .support-workspace .container{grid-template-columns:1fr}
+body.mobile-native.page-contato .support-sidebar{position:static}
+
+/* Autenticação: foco no formulário, sem excesso institucional. */
+body.mobile-native.page-login main,
+body.mobile-native.page-cadastro main,
+body.mobile-native.page-recuperar-senha main,
+body.mobile-native.page-redefinir-senha main{min-height:calc(100dvh - var(--mobile-header-h) - var(--mobile-dock-h));display:grid;align-items:start;padding-top:22px}
+body.mobile-native.page-login .auth-layout,
+body.mobile-native.page-cadastro .auth-layout{grid-template-columns:1fr}
+body.mobile-native .auth-visual{display:none!important}
+body.mobile-native .auth-card{border-radius:24px;padding:20px}
+
+/* Conta — hub interativo criado por conta.js. */
+body.mobile-native.page-conta .page-hero{display:none}
+body.mobile-native.page-conta main>.section{padding-top:18px}
+body.mobile-native.page-conta .account-hub-container{width:calc(100% - 24px)}
+body.mobile-native.page-conta .account-hub-layout{display:grid;grid-template-columns:1fr;gap:12px}
+body.mobile-native.page-conta .account-hub-sidebar{position:static;padding:16px;border-radius:22px}
+body.mobile-native.page-conta .account-hub-profile{grid-template-columns:64px minmax(0,1fr);gap:12px}
+body.mobile-native.page-conta .profile-photo-edit{grid-column:1/-1;margin:0;padding-top:12px;border-top:1px solid var(--border)}
+body.mobile-native.page-conta .profile-photo-edit img{width:72px;height:72px;border-radius:22px}
+body.mobile-native.page-conta .account-hub-menu{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:14px}
+body.mobile-native.page-conta .account-hub-menu button{min-width:0;min-height:58px;padding:8px 5px;display:grid;place-items:center;gap:3px;text-align:center;border-radius:14px}
+body.mobile-native.page-conta .account-hub-menu button i{font-size:1rem}
+body.mobile-native.page-conta .account-hub-menu button span{font-size:.61rem}
+body.mobile-native.page-conta .account-hub-links{grid-template-columns:1fr 1fr;gap:7px}
+body.mobile-native.page-conta .account-hub-links a{min-height:46px;border-radius:14px;font-size:.7rem}
+body.mobile-native.page-conta .account-hub-workspace{min-width:0}
+body.mobile-native.page-conta .account-hub-panel{display:none!important;margin:0;padding:18px;border-radius:22px}
+body.mobile-native.page-conta .account-hub-panel.ativo{display:block!important;animation:bh-account-in .18s ease both}
+@keyframes bh-account-in{from{opacity:.3;transform:translateY(5px)}to{opacity:1;transform:none}}
+body.mobile-native.page-conta .account-hub-panel .section-top h2{font-size:1.35rem}
+body.mobile-native.page-conta .danger-zone{grid-template-columns:1fr}
+body.mobile-native.page-conta .danger-zone-icon{display:none}
+
+/* Cliente/painel: primeiro a ação, depois detalhes. */
+body.mobile-native.page-cliente .page-hero,
+body.mobile-native.page-painel .page-hero{padding-bottom:15px}
+body.mobile-native.page-cliente .page-hero p,
+body.mobile-native.page-painel .page-hero p{display:none}
+body.mobile-native.page-cliente .client-command-center,
+body.mobile-native.page-painel .professional-command-center{margin-top:0}
+body.mobile-native.page-painel .dashboard{grid-template-columns:1fr!important;gap:12px}
+body.mobile-native.page-painel .sidebar{position:static!important;display:flex!important;overflow-x:auto;gap:7px;padding:8px;border-radius:18px;scrollbar-width:none}
+body.mobile-native.page-painel .sidebar::-webkit-scrollbar{display:none}
+body.mobile-native.page-painel .sidebar .sidebar-title,
+body.mobile-native.page-painel .sidebar .sidebar-status{display:none!important}
+body.mobile-native.page-painel .sidebar button{flex:0 0 auto;min-height:42px;padding:0 12px;border-radius:13px;white-space:nowrap}
+body.mobile-native.page-painel .painel-content{min-width:0}
+body.mobile-native.page-painel .panel-section{padding:16px!important}
+body.mobile-native.page-painel .kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+body.mobile-native.page-painel .kpi{min-width:0;min-height:92px}
+body.mobile-native.page-painel .kpi span{font-size:.65rem}
+body.mobile-native.page-painel .panel-plan-overview{border-radius:18px}
+body.mobile-native.page-painel .client-row-card{border-radius:17px}
+body.mobile-native.page-painel .horario-config{grid-template-columns:1fr 1fr;gap:8px}
+body.mobile-native.page-painel .horario-config .day-toggle{grid-column:1/-1}
+body.mobile-native.page-painel .horario-config>span{display:none}
+
+/* Admin: móvel serve para resolver rápido. */
+body.mobile-native.page-admin .admin-hero-new p{display:none}
+body.mobile-native.page-admin .admin-detail-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+body.mobile-native.page-admin .admin-section{padding:16px}
+body.mobile-native.page-admin .admin-tools{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+body.mobile-native.page-admin .admin-tools input{grid-column:1/-1}
+
+/* Legais: leitura progressiva e confortável. */
+body.mobile-native.page-privacidade .legal-layout,
+body.mobile-native.page-termos .legal-layout{grid-template-columns:1fr}
+body.mobile-native.page-privacidade .legal-nav,
+body.mobile-native.page-termos .legal-nav{position:static;display:flex;overflow-x:auto;gap:7px;padding:8px;border-radius:16px}
+body.mobile-native.page-privacidade .legal-nav a,
+body.mobile-native.page-termos .legal-nav a{white-space:nowrap;flex:0 0 auto}
+
+@media(max-width:370px){
+  body.mobile-native{--mobile-gutter:13px}
+  body.mobile-native .mobile-app-brand>span>span{display:none}
+  body.mobile-native .mobile-app-header-actions .icon-btn{width:38px;height:38px}
+  body.mobile-native.page-conta .account-hub-menu{grid-template-columns:1fr 1fr}
+  body.mobile-native.page-contato .support-topic-grid{grid-template-columns:1fr}
+}
+
+/* Página pública: mais visual que o restante do app, sem repetir o desktop. */
+body.mobile-native.page-barbearia .mobile-business-cover{height:210px;background:linear-gradient(180deg,rgba(0,0,0,.02),rgba(8,8,7,.72)),var(--business-cover) center/cover no-repeat}
+body.mobile-native.page-barbearia .mobile-business-summary{margin-top:-48px;padding:17px;border-radius:23px;background:color-mix(in srgb,var(--surface) 96%,transparent);backdrop-filter:blur(14px)}
+body.mobile-native.page-barbearia .mobile-business-title-row h1{font-size:1.48rem}
+body.mobile-native.page-barbearia .mobile-business-content{gap:10px;padding-top:4px}
+body.mobile-native.page-barbearia .mobile-business-block{padding:16px;border-radius:20px}
+body.mobile-native.page-barbearia .portfolio-public-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+body.mobile-native.page-barbearia .portfolio-public-card{border-radius:16px;overflow:hidden}
+body.mobile-native.page-barbearia .reviews-public-list{max-height:360px}
+body.mobile-native.page-barbearia .mobile-business-sticky{left:10px;right:10px;bottom:calc(82px + env(safe-area-inset-bottom));padding:6px;border-radius:18px}
+body.mobile-native.page-barbearia .mobile-business-sticky .btn{min-height:48px;border-radius:14px}
+
+/* Agendamento: uma decisão por vez. */
+body.mobile-native .booking-modal-dialog{background:var(--bg)}
+body.mobile-native .booking-modal-header{padding:calc(14px + env(safe-area-inset-top)) 16px 13px;background:color-mix(in srgb,var(--surface) 96%,transparent);backdrop-filter:blur(14px)}
+body.mobile-native .booking-modal-header small{display:none}
+body.mobile-native .booking-modal-body{padding:16px 16px 110px}
+body.mobile-native .booking-modal-progress{position:sticky;top:-16px;z-index:3;margin:-16px -16px 18px;padding:12px 16px;background:var(--bg)}
+body.mobile-native .booking-modal-panel>h3{font-size:1.28rem}
+body.mobile-native .booking-modal-panel>p{font-size:.78rem;line-height:1.45;margin-bottom:13px}
+body.mobile-native .booking-service-choice,
+body.mobile-native .booking-professional-choice{padding:13px;border-radius:15px}
+body.mobile-native .booking-modal-slots .slot-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+body.mobile-native .booking-modal-slots .slot{min-height:44px;border-radius:13px}
+body.mobile-native .booking-review-card{padding:14px;border-radius:15px}
+body.mobile-native .booking-modal-footer{position:fixed;left:0;right:0;bottom:0;z-index:5;padding:10px 14px calc(10px + env(safe-area-inset-bottom));background:color-mix(in srgb,var(--surface) 96%,transparent);backdrop-filter:blur(14px)}
+
+/* Onboarding profissional: wizard real, cada etapa respira. */
+body.mobile-native.page-cadastro-barbearia .onboarding-layout{grid-template-columns:1fr}
+body.mobile-native.page-cadastro-barbearia .onboarding-sidebar{position:static;display:flex;overflow-x:auto;gap:7px;padding:8px;border-radius:17px;scrollbar-width:none}
+body.mobile-native.page-cadastro-barbearia .onboarding-sidebar>*{flex:0 0 auto}
+body.mobile-native.page-cadastro-barbearia .step-panel{padding:16px;border-radius:20px}
+body.mobile-native.page-cadastro-barbearia .onboarding-actions{position:sticky;bottom:calc(var(--mobile-dock-h) + 10px);z-index:20;margin-top:14px;padding:9px;border:1px solid var(--border);border-radius:18px;background:color-mix(in srgb,var(--surface) 94%,transparent);backdrop-filter:blur(14px)}
+body.mobile-native.page-cadastro-barbearia .onboarding-actions .btn{flex:1}
+
+/* Notificações e cliente: leitura em blocos curtos. */
+body.mobile-native.page-notificacoes .notifications-hero{padding-bottom:14px}
+body.mobile-native.page-notificacoes .notification-item{border-radius:17px;padding:14px}
+body.mobile-native.page-cliente .account-section{padding:16px;margin-bottom:10px}
+body.mobile-native.page-cliente .client-detail-grid{gap:8px}
+
+/* Recursos: leitura em cards curtos. */
+body.mobile-native.page-servicos .page-hero p{display:none}
+body.mobile-native.page-servicos main>.section{padding-top:20px}
+body.mobile-native.page-servicos .grid-3{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+body.mobile-native.page-servicos .feature{min-height:150px;padding:15px;border-radius:18px}
+body.mobile-native.page-servicos .feature .icon{width:42px;height:42px;border-radius:13px}
+body.mobile-native.page-servicos .feature h3{font-size:.92rem;margin-top:12px}
+body.mobile-native.page-servicos .feature p{font-size:.69rem;line-height:1.4;margin-top:5px}
+
+/* Beauty é teaser no mobile, não documentação de roadmap. */
+body.mobile-native.page-beauty-hub .beauty-hero{padding:28px 0 22px;min-height:0}
+body.mobile-native.page-beauty-hub .beauty-grid{grid-template-columns:1fr;gap:18px}
+body.mobile-native.page-beauty-hub .beauty-hero h1{font-size:2rem;line-height:1.03}
+body.mobile-native.page-beauty-hub .beauty-hero p{font-size:.84rem;line-height:1.5}
+body.mobile-native.page-beauty-hub .beauty-visual-stage{min-height:220px;transform:scale(.9);transform-origin:center}
+body.mobile-native.page-beauty-hub main>.section:not(.beauty-roadmap-section){padding:20px 0}
+body.mobile-native.page-beauty-hub main>.section:not(.beauty-roadmap-section) .section-top .texto-section{display:none}
+body.mobile-native.page-beauty-hub main>.section:not(.beauty-roadmap-section) .grid{grid-template-columns:1fr;gap:8px}
+body.mobile-native.page-beauty-hub main>.section:not(.beauty-roadmap-section) .feature{padding:14px;border-radius:17px}
+body.mobile-native.page-beauty-hub main>.section:not(.beauty-roadmap-section) .feature p{display:none}
+body.mobile-native.page-beauty-hub .beauty-roadmap-section{display:none}
+
+/* Mapa do sistema é ferramenta técnica: compacto no celular. */
+body.mobile-native.page-mapa-sistema .system-map-intro p{display:none}
+body.mobile-native.page-mapa-sistema .system-map-grid{grid-template-columns:1fr;gap:10px}
+body.mobile-native.page-mapa-sistema .system-map-role{padding:14px;border-radius:18px}
+body.mobile-native.page-mapa-sistema .system-map-role>header p{display:none}
+body.mobile-native.page-mapa-sistema .system-map-item{padding:11px;border-radius:14px}
+body.mobile-native.page-mapa-sistema .system-map-item p{display:none}
+
+/* Assinaturas/admin secundário: controles sem aperto. */
+body.mobile-native.page-admin-subscriptions .subscription-workspace{grid-template-columns:1fr;gap:12px;margin:16px 0}
+body.mobile-native.page-admin-subscriptions .subscription-catalog,
+body.mobile-native.page-admin-subscriptions .subscription-editor,
+body.mobile-native.page-admin-subscriptions .subscription-list-section{padding:15px;border-radius:19px}
+body.mobile-native.page-admin-subscriptions .subscription-plan-stack{gap:7px}
+body.mobile-native.page-admin-subscriptions .subscription-plan-mini{padding:12px;border-radius:15px}
+
+@media(max-width:350px){body.mobile-native.page-servicos .grid-3{grid-template-columns:1fr}}
+
+/* ========================================================================== */
+/* 1.8.1 — correções de QA mobile após teste em dispositivo                  */
+/* ========================================================================== */
+
+/* Header: voltar é ação nativa da experiência, sem depender do botão físico. */
+body.mobile-native .mobile-app-header-inner{
+  grid-template-columns:auto minmax(0,1fr) auto;
+  display:grid;
+  align-items:center;
+}
+body.mobile-native .mobile-app-back{
+  width:40px;
+  height:40px;
+  margin-right:-2px;
+  border:1px solid var(--border);
+  border-radius:13px;
+  background:var(--surface-soft);
+  color:var(--text);
+}
+body.mobile-native .mobile-app-brand{overflow:hidden}
+body.mobile-native .mobile-app-brand>span{max-width:100%}
+body.mobile-native .mobile-app-header-actions{justify-self:end}
+@media(max-width:390px){
+  body.mobile-native .mobile-app-brand img{width:38px;height:38px;border-radius:12px}
+  body.mobile-native .mobile-app-brand>span>span{max-width:125px}
+}
+
+/* Drawer mobile ocupa a tela inteira. Evita a folha encolhida e mantém scroll. */
+body.mobile-native .app-drawer{
+  inset:0!important;
+  width:100vw!important;
+  max-width:none!important;
+  height:100dvh!important;
+  max-height:none!important;
+  padding:calc(14px + env(safe-area-inset-top)) 14px calc(20px + env(safe-area-inset-bottom))!important;
+  border:0!important;
+  border-radius:0!important;
+  transform:translateX(102%)!important;
+  overflow-y:auto!important;
+  overscroll-behavior:contain;
+  background:var(--bg)!important;
+}
+body.mobile-native .app-drawer::before{display:none!important}
+body.mobile-native .app-drawer.aberto{transform:translateX(0)!important}
+body.mobile-native .drawer-head{
+  position:sticky;
+  top:calc(-14px - env(safe-area-inset-top));
+  z-index:3;
+  padding:14px 0 12px;
+  background:color-mix(in srgb,var(--bg) 96%,transparent);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+}
+body.mobile-native .drawer-links,
+body.mobile-native .drawer-business-links .drawer-links{grid-template-columns:repeat(2,minmax(0,1fr))}
+body.mobile-native .drawer-legal-links{grid-template-columns:1fr!important}
+body.mobile-native .drawer-auth-actions{padding-bottom:12px}
+
+/* Tabelas: linhas vazias/colspan não devem renderizar o rótulo da 1ª coluna. */
+body.mobile-native table.responsive-table td.mobile-table-full-row{
+  display:block!important;
+  width:100%!important;
+  padding:0!important;
+}
+body.mobile-native table.responsive-table td.mobile-table-full-row::before,
+body.mobile-native table.responsive-table td[colspan]::before{display:none!important;content:none!important}
+body.mobile-native table.responsive-table td.mobile-table-full-row>.empty,
+body.mobile-native table.responsive-table td[colspan]>.empty{width:100%;margin:0}
+
+/* Conta: card compacto, foto controlada e navegação legível. */
+body.mobile-native.page-conta .account-hub-container{width:calc(100% - 24px)!important}
+body.mobile-native.page-conta .account-hub-sidebar{
+  padding:14px!important;
+  border:1px solid var(--border);
+  background:var(--surface);
+  box-shadow:none;
+}
+body.mobile-native.page-conta .account-hub-profile{
+  display:grid!important;
+  grid-template-columns:64px minmax(0,1fr)!important;
+  align-items:center!important;
+  gap:12px!important;
+}
+body.mobile-native.page-conta .account-hub-avatar,
+body.mobile-native.page-conta .account-hub-avatar-fallback{
+  width:64px!important;
+  height:64px!important;
+  max-width:64px!important;
+  aspect-ratio:1;
+  border-radius:18px!important;
+  object-fit:cover!important;
+}
+body.mobile-native.page-conta .account-hub-profile>div:last-child{min-width:0}
+body.mobile-native.page-conta .account-hub-profile strong,
+body.mobile-native.page-conta .account-hub-profile small,
+body.mobile-native.page-conta .account-hub-profile span{
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+body.mobile-native.page-conta .profile-photo-edit{
+  display:block!important;
+  margin:13px 0 0!important;
+  padding:13px 0 0!important;
+  border-top:1px solid var(--border)!important;
+}
+body.mobile-native.page-conta .profile-photo-edit>img{display:none!important}
+body.mobile-native.page-conta .profile-photo-edit>div{width:100%}
+body.mobile-native.page-conta .profile-photo-edit .btn{width:100%;justify-content:center}
+body.mobile-native.page-conta .profile-photo-edit p{margin:7px 0 0;text-align:center;font-size:.66rem;color:var(--muted)}
+body.mobile-native.page-conta .account-hub-menu{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:7px!important;
+  margin-top:13px!important;
+}
+body.mobile-native.page-conta .account-hub-menu button{
+  min-height:64px!important;
+  padding:8px 4px!important;
+  display:flex!important;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:4px!important;
+  border:1px solid var(--border)!important;
+  background:var(--surface-soft)!important;
+  color:var(--muted)!important;
+}
+body.mobile-native.page-conta .account-hub-menu button.ativo{
+  border-color:var(--gold-border)!important;
+  background:var(--gold-soft)!important;
+  color:var(--gold-2)!important;
+}
+body.mobile-native.page-conta .account-hub-links{margin-top:8px!important;padding-top:8px!important}
+body.mobile-native.page-conta .account-hub-links a{justify-content:center;text-align:center;padding:8px}
+body.mobile-native.page-conta .account-hub-workspace{width:100%;min-width:0}
+body.mobile-native.page-conta .account-hub-panel{
+  width:100%;
+  min-width:0;
+  padding:16px!important;
+  border:1px solid var(--border)!important;
+  background:var(--surface)!important;
+}
+body.mobile-native.page-conta .account-hub-panel .form-grid{grid-template-columns:1fr!important}
+body.mobile-native.page-conta .account-hub-panel .campo{min-width:0}
+body.mobile-native.page-conta .account-hub-panel input{width:100%;min-width:0}
+
+/* Exclusão de conta: uma única coluna e hierarquia limpa. */
+body.mobile-native.page-conta .danger-zone{padding:16px!important}
+body.mobile-native.page-conta .danger-zone-content{
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  gap:12px!important;
+  align-items:start!important;
+  min-width:0;
+}
+body.mobile-native.page-conta .danger-zone-content>*{min-width:0;max-width:100%}
+body.mobile-native.page-conta .danger-zone-content h2{
+  margin:0!important;
+  font-size:1.35rem!important;
+  line-height:1.15!important;
+  overflow-wrap:normal!important;
+  word-break:normal!important;
+}
+body.mobile-native.page-conta .danger-zone-content>p{
+  margin:0!important;
+  font-size:.82rem;
+  line-height:1.55;
+}
+body.mobile-native.page-conta .danger-zone-content>.btn{width:100%;margin-top:2px}
+body.mobile-native.page-conta .delete-account-form{
+  width:100%;
+  margin-top:4px;
+  padding-top:14px;
+}
+body.mobile-native.page-conta .delete-account-form .form-grid{grid-template-columns:1fr!important}
+body.mobile-native.page-conta .delete-actions{grid-template-columns:1fr!important}
+body.mobile-native.page-conta .delete-actions .btn{width:100%}
+
+/* Portal: filtro sempre acima da dock, com corpo rolável e ações visíveis. */
+body.mobile-native.marketplace-filters-open .mobile-app-dock{opacity:0;pointer-events:none;transform:translateY(110%)}
+body.mobile-native.page-portal .marketplace-filter-modal{z-index:5000!important}
+body.mobile-native.page-portal .marketplace-filter-dialog{
+  left:8px!important;
+  right:8px!important;
+  bottom:8px!important;
+  width:auto!important;
+  max-height:calc(100dvh - 16px)!important;
+  border:1px solid var(--border)!important;
+  border-radius:24px!important;
+  padding:0!important;
+}
+body.mobile-native.page-portal .marketplace-filter-grid{
+  min-height:0;
+  overflow-y:auto!important;
+  overscroll-behavior:contain;
+  padding:14px 14px 20px!important;
+}
+body.mobile-native.page-portal .marketplace-filter-actions{
+  position:relative;
+  z-index:2;
+  padding:10px 14px calc(10px + env(safe-area-inset-bottom))!important;
+}
+body.mobile-native.page-portal .mobile-filter-label{font-size:.77rem;font-weight:900;color:var(--text)}
+body.mobile-native.page-portal .marketplace-page{padding-bottom:0!important}
+body.mobile-native.page-portal .marketplace-section:last-of-type{padding-bottom:10px!important}
+body.mobile-native.page-portal .marketplace-load-more:empty{display:none}
+
+/* Página do estabelecimento: conteúdo final não fica atrás de CTA + dock. */
+body.mobile-native.page-barbearia #barbeariaDetalhe{overflow:visible!important;min-height:0!important}
+body.mobile-native.page-barbearia .mobile-business-content{
+  padding-bottom:calc(178px + env(safe-area-inset-bottom))!important;
+  overflow:visible!important;
+}
+body.mobile-native.page-barbearia .mobile-business-details{overflow:hidden}
+body.mobile-native.page-barbearia .mobile-business-details-body{padding-bottom:20px}
+body.mobile-native.page-barbearia .mobile-business-sticky{z-index:930!important}
+
+/* Tickets: no mobile a resposta fica recolhida e abre sob demanda. */
+body.mobile-native.page-contato .support-ticket-card{min-width:0}
+body.mobile-native.page-contato .support-ticket-main{width:100%;min-width:0}
+body.mobile-native.page-contato .support-ticket-main>div:last-child{min-width:0}
+body.mobile-native.page-contato .support-ticket-main strong{overflow-wrap:anywhere;word-break:normal}
+body.mobile-native.page-contato .support-ticket-response-mobile{
+  grid-column:1/-1;
+  display:block!important;
+  width:100%;
+  min-width:0;
+  padding:0!important;
+  overflow:hidden;
+  border:1px solid var(--border);
+  border-radius:15px;
+  background:var(--surface-soft);
+}
+body.mobile-native.page-contato .support-ticket-response-mobile summary{
+  min-height:48px;
+  padding:0 13px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  list-style:none;
+  color:var(--text);
+  font-size:.78rem;
+  font-weight:850;
+  cursor:pointer;
+}
+body.mobile-native.page-contato .support-ticket-response-mobile summary::-webkit-details-marker{display:none}
+body.mobile-native.page-contato .support-ticket-response-mobile summary span{display:flex;align-items:center;gap:8px;min-width:0}
+body.mobile-native.page-contato .support-ticket-response-mobile summary i:first-child{color:var(--gold-2)}
+body.mobile-native.page-contato .support-ticket-response-mobile[open] summary>i:last-child{transform:rotate(180deg)}
+body.mobile-native.page-contato .support-ticket-response-mobile>p{
+  display:block!important;
+  width:100%!important;
+  min-width:0!important;
+  margin:0!important;
+  padding:12px 13px 14px!important;
+  border:0!important;
+  border-top:1px solid var(--border)!important;
+  color:var(--muted)!important;
+  font-size:.8rem!important;
+  line-height:1.55!important;
+  overflow-wrap:break-word!important;
+  word-break:normal!important;
+  white-space:normal!important;
+}
+
+/* Comparação de planos: no mobile mostramos apenas o que muda em cada nível. */
+body.mobile-native.page-planos .mobile-plan-comparison-source{display:none!important}
+body.mobile-native.page-planos .mobile-plan-comparison{display:grid;gap:13px}
+body.mobile-native.page-planos .mobile-plan-comparison-head>span{
+  color:var(--gold-2);font-size:.68rem;font-weight:900;text-transform:uppercase;letter-spacing:.08em
+}
+body.mobile-native.page-planos .mobile-plan-comparison-head h2{margin:5px 0 4px;font-size:1.45rem;line-height:1.08}
+body.mobile-native.page-planos .mobile-plan-comparison-head p{color:var(--muted);font-size:.79rem;line-height:1.45}
+body.mobile-native.page-planos .mobile-plan-deltas{display:grid;gap:8px}
+body.mobile-native.page-planos .mobile-plan-deltas details{
+  border:1px solid var(--border);
+  border-radius:18px;
+  background:var(--surface);
+  overflow:hidden;
+}
+body.mobile-native.page-planos .mobile-plan-deltas details[open]{border-color:var(--gold-border)}
+body.mobile-native.page-planos .mobile-plan-deltas summary{
+  min-height:62px;
+  padding:10px 14px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  list-style:none;
+  cursor:pointer;
+}
+body.mobile-native.page-planos .mobile-plan-deltas summary::-webkit-details-marker{display:none}
+body.mobile-native.page-planos .mobile-plan-deltas summary span{min-width:0}
+body.mobile-native.page-planos .mobile-plan-deltas summary b{display:block;color:var(--text);font-size:.94rem}
+body.mobile-native.page-planos .mobile-plan-deltas summary small{display:block;margin-top:2px;color:var(--muted);font-size:.68rem}
+body.mobile-native.page-planos .mobile-plan-deltas details[open] summary>i{transform:rotate(180deg)}
+body.mobile-native.page-planos .mobile-plan-deltas ul{display:grid;gap:0;margin:0;padding:0 14px 12px;list-style:none}
+body.mobile-native.page-planos .mobile-plan-deltas li{
+  position:relative;
+  padding:9px 0 9px 22px;
+  border-top:1px solid var(--border);
+  color:var(--muted);
+  font-size:.76rem;
+  line-height:1.4;
+}
+body.mobile-native.page-planos .mobile-plan-deltas li::before{
+  content:"✓";position:absolute;left:0;top:9px;color:var(--gold-2);font-weight:900
+}
+
+/* Cards e textos longos: nunca esmagar palavra em colunas impossíveis. */
+body.mobile-native .card,
+body.mobile-native .account-section,
+body.mobile-native .panel-section,
+body.mobile-native .support-ticket-card{min-width:0}
+body.mobile-native .card strong,
+body.mobile-native .card p,
+body.mobile-native .card span,
+body.mobile-native .account-section strong,
+body.mobile-native .account-section p,
+body.mobile-native .account-section span{word-break:normal;overflow-wrap:break-word}

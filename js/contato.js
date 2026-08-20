@@ -55,7 +55,9 @@ function bhRenderTicket(ticket) {
         </div>
       </div>
       <span class="status ${concluido ? "concluido" : "pendente"}">${escapeHTML(bhSupportStatusLabel(ticket.status))}</span>
-      ${ticket.resposta ? `<div class="support-ticket-response"><i class="bi bi-chat-left-text"></i><p><strong>Resposta da equipe</strong>${escapeHTML(ticket.resposta)}</p></div>` : ""}
+      ${ticket.resposta ? (document.body.classList.contains("mobile-native")
+        ? `<details class="support-ticket-response support-ticket-response-mobile"><summary><span><i class="bi bi-chat-left-text"></i> Resposta da equipe</span><i class="bi bi-chevron-down"></i></summary><p>${escapeHTML(ticket.resposta)}</p></details>`
+        : `<div class="support-ticket-response"><i class="bi bi-chat-left-text"></i><p><strong>Resposta da equipe</strong>${escapeHTML(ticket.resposta)}</p></div>`) : ""}
     </article>`;
 }
 

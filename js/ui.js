@@ -187,21 +187,22 @@ function bhCriarDrawer(perfil, contadores = {}) {
   const legais = bhLinksLegaisDrawer().map(link => bhRenderLinkExtraDrawer(link, contadores)).join("");
   drawer.innerHTML = `
     <div class="drawer-overlay" id="drawerOverlay"></div>
-    <aside class="app-drawer" id="appDrawer" aria-hidden="true">
+    <aside class="app-drawer" id="appDrawer" aria-hidden="true" inert>
       <div class="drawer-head">
         <a class="logo" href="${bhUrl("index.html")}">
-          <img src="${bhUrl("img/logomarcaTRANSPARENTE.png")}" alt="Barber Hub">
+          <img src="${bhUrl("img/branding/barber-hub-compacta.png")}" alt="Barber Hub">
           <span>Barber Hub<small>${perfil?.tipo === "barbeiro" ? "Meu negócio" : perfil?.tipo === "admin" ? "Administração" : "The Gamers Tech"}</small></span>
         </a>
         <button class="icon-btn" id="fecharDrawer" aria-label="Fechar menu"><i class="bi bi-x-lg"></i></button>
       </div>
-      <div class="drawer-user">
+      <a class="drawer-user drawer-user-link" href="${perfil ? bhUrl("html/conta.html") : bhUrl("html/login.html")}" aria-label="${perfil ? "Abrir minha conta" : "Entrar ou criar conta"}">
         <div class="drawer-avatar">${escapeHTML(perfil?.nome?.slice(0, 1)?.toUpperCase() || "B")}</div>
-        <div>
+        <div class="drawer-user-copy">
           <strong>${escapeHTML(perfil?.nome || "Visitante")}</strong>
-          <span>${perfil ? escapeHTML(perfil.tipo) : "Entre para acessar sua conta"}</span>
+          <span>${perfil ? escapeHTML(perfil.tipo) : "Entrar ou criar conta"}</span>
         </div>
-      </div>
+        <div class="drawer-user-arrow"><i class="bi bi-chevron-right"></i></div>
+      </a>
       <nav class="drawer-links">${links}</nav>
       ${extras ? `<div class="drawer-section drawer-business-links"><h3>${perfil?.tipo === "barbeiro" ? "Gestão do negócio" : perfil?.tipo === "admin" ? "Administração" : "Sua conta"}</h3><nav class="drawer-links">${extras}</nav></div>` : ""}
       <div class="drawer-section drawer-legal-section"><h3>Informações e políticas</h3><nav class="drawer-links drawer-legal-links">${legais}</nav></div>
@@ -216,26 +217,31 @@ function bhCriarDrawer(perfil, contadores = {}) {
       </div>
       ${perfil ? `
         <div class="drawer-auth-actions">
-          <button class="btn btn-outline full" data-install-app type="button"><i class="bi bi-phone"></i> Instalar aplicativo</button>
+          ${document.body.classList.contains("mobile-native") ? "" : `<button class="btn btn-outline full" data-install-app type="button"><i class="bi bi-phone"></i> Instalar aplicativo</button>`}
           <button class="btn btn-danger full" id="drawerLogout"><i class="bi bi-box-arrow-right"></i> Sair da conta</button>
         </div>` : `
         <div class="drawer-auth-actions">
           <a class="btn btn-primary full" href="${bhUrl("html/login.html")}"><i class="bi bi-box-arrow-in-right"></i> Entrar</a>
           <a class="btn btn-outline full" href="${bhUrl("html/cadastro.html")}"><i class="bi bi-person-plus"></i> Criar conta</a>
-          <button class="btn btn-outline full" data-install-app type="button"><i class="bi bi-phone"></i> Instalar aplicativo</button>
+          ${document.body.classList.contains("mobile-native") ? "" : `<button class="btn btn-outline full" data-install-app type="button"><i class="bi bi-phone"></i> Instalar aplicativo</button>`}
         </div>`}
     </aside>
   `;
   document.body.appendChild(drawer);
 }
 
+let bhDrawerReturnFocus = null;
+
 function bhAbrirDrawer() {
   const drawer = document.getElementById("appDrawer");
   const overlay = document.getElementById("drawerOverlay");
+  bhDrawerReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
   drawer?.classList.add("aberto");
   overlay?.classList.add("ativo");
+  drawer?.removeAttribute("inert");
   drawer?.setAttribute("aria-hidden", "false");
   document.body.classList.add("drawer-open");
+  requestAnimationFrame(() => drawer?.querySelector("#fecharDrawer")?.focus());
 }
 
 function bhFecharDrawer() {
@@ -243,8 +249,12 @@ function bhFecharDrawer() {
   const overlay = document.getElementById("drawerOverlay");
   drawer?.classList.remove("aberto");
   overlay?.classList.remove("ativo");
-  drawer?.setAttribute("aria-hidden", "true");
   document.body.classList.remove("drawer-open");
+  // Move o foco para fora do drawer antes de ocultá-lo da árvore acessível.
+  if (bhDrawerReturnFocus?.isConnected) bhDrawerReturnFocus.focus({ preventScroll:true });
+  else document.querySelector("#mobileMenuButton, #btnMenu")?.focus?.({ preventScroll:true });
+  drawer?.setAttribute("aria-hidden", "true");
+  drawer?.setAttribute("inert", "");
 }
 
 function bhLiberarTravasOrfas() {

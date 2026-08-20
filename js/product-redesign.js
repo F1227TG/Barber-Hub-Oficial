@@ -77,6 +77,11 @@
   }
 
   function configureInstall() {
+    const mobileNative = document.body.classList.contains("mobile-native") || location.pathname.includes("/mobile/");
+    if (mobileNative) {
+      document.querySelectorAll("[data-install-app]").forEach(node => node.remove());
+      return;
+    }
     window.addEventListener("beforeinstallprompt", event => {
       event.preventDefault();
       installPrompt = event;
