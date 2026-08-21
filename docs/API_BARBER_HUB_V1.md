@@ -1,4 +1,4 @@
-# API própria do Barber Hub — Python/FastAPI 1.3
+# API própria do Barber Hub — Python/FastAPI 1.3.1
 
 ## Objetivo
 
@@ -17,6 +17,7 @@ Supabase Auth + PostgreSQL/PostgREST + RPC
 ```text
 api/index.py                 rotas, erros, request id e logging
 backend/config.py            variáveis de ambiente
+backend/domain/              regras puras executáveis offline
 backend/models.py            contratos Pydantic
 backend/security.py          sessão/admin/e-mail confirmado
 backend/rate_limit.py        rate limiting distribuído
@@ -28,11 +29,12 @@ backend/services/support.py  suporte
 backend/services/admin.py    overview/health/auditoria/recuperação/assinaturas
 ```
 
-## Endpoints 1.3
+## Endpoints 1.3.1
 
 | Método | Rota | Acesso | Responsabilidade |
 |---|---|---|---|
 | GET | `/api/v1/health` | público | estado/runtime/versão |
+| GET | `/api/v1/public-config` | público + rate limit | configuração segura de navegador (site key pública) |
 | GET | `/api/v1/catalog/summary` | público | indicadores agregados |
 | GET | `/api/v1/marketplace/search` | público | FTS, filtros, ranking e paginação |
 | GET | `/api/v1/marketplace/featured` | público | destaques Barber Hub |
@@ -66,7 +68,7 @@ OpenAPI executável: `/api/openapi.json`
 
 ## Assinaturas e entitlements — 1.8
 
-A API 1.3 integra a migration 16. O proprietário consulta o plano efetivo por `/establishments/{id}/entitlements`; o administrador altera a assinatura pela rota administrativa. A escrita chama a RPC `admin_atribuir_plano`, que recalcula os benefícios cumulativos e aplica downgrade/upgrade de forma transacional.
+A API 1.3.1 integra a migration 16 e a proteção adicional da migration 17. O proprietário consulta o plano efetivo por `/establishments/{id}/entitlements`; o administrador altera a assinatura pela rota administrativa. A escrita chama a RPC `admin_atribuir_plano`, que recalcula os benefícios cumulativos e aplica downgrade/upgrade de forma transacional.
 
 Os limites críticos não dependem apenas do frontend: agenda, profissionais, promoções e portfólio também são validados no PostgreSQL. Assinaturas pausadas, canceladas, atrasadas ou vencidas caem para o conjunto de benefícios do Perfil gratuito sem apagar o histórico do estabelecimento.
 
@@ -117,6 +119,7 @@ SUPABASE_PUBLISHABLE_KEY
 SUPABASE_SECRET_KEY
 BARBER_HUB_ALLOWED_ORIGINS
 BARBER_HUB_PASSWORD_REDIRECT_URL
+BARBER_HUB_TURNSTILE_SITE_KEY
 ```
 
 `SUPABASE_SECRET_KEY` é exclusiva do servidor.
@@ -127,7 +130,11 @@ A API usa `async`/`await` e `httpx.AsyncClient`. Para o perfil atual, o principa
 
 ## Senhas
 
-Não existe endpoint para exibir senha. A recuperação administrativa envia um fluxo seguro ao e-mail do titular; senhas continuam armazenadas apenas como hash no Supabase Auth.
+Não existe endpoint para exibir senha. O Supabase Auth mantém o hash bcrypt em `auth.users.encrypted_password`; esse valor não é reversível e não é duplicado no schema `public`. A recuperação administrativa envia um fluxo seguro ao e-mail do titular.
+
+## Regras offline
+
+`backend/domain/appointments.py` e `backend/domain/plans.py` não dependem de serviços externos. Use `npm run check:offline` para validar máquina de estados e limites básicos sem Supabase, Vercel ou FastAPI Cloud.
 
 ## Escritas de gestão e dupla validação
 

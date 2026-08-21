@@ -1,4 +1,4 @@
-"""Barber Hub API v1.2.
+"""Barber Hub API v1.3.1.
 
 FastAPI is the server-side validation layer of the marketplace. Supabase keeps
 Auth, PostgreSQL, Storage and Realtime responsibilities; sensitive business
@@ -43,7 +43,7 @@ from backend.services import catalog as catalog_service
 from backend.services import management as management_service
 from backend.services import support as support_service
 
-API_VERSION = "1.3.0"
+API_VERSION = "1.3.1"
 
 app = FastAPI(
     title="Barber Hub API",
@@ -164,6 +164,16 @@ async def health() -> JSONResponse:
     })
 
 
+@app.get("/api/v1/public-config")
+async def public_config(request: Request) -> JSONResponse:
+    """Expose only browser-safe runtime configuration; secrets never leave the API."""
+    await enforce_rate_limit(request, "public-config", limit=120, window_seconds=60)
+    return ok({
+        "turnstile_site_key": settings.turnstile_site_key or None,
+        "captcha_required": bool(settings.turnstile_site_key),
+    })
+
+
 @app.get("/api/v1/catalog/summary")
 async def catalog_summary(request: Request) -> JSONResponse:
     await enforce_rate_limit(request, "catalog-summary", limit=120, window_seconds=60)
@@ -255,8 +265,10 @@ async def update_establishment_status(
 @app.get("/api/v1/establishments/{establishment_id}/entitlements")
 async def establishment_entitlements(
     establishment_id: str,
+    request: Request,
     auth: AuthContext = Depends(require_user),
 ) -> JSONResponse:
+    await enforce_rate_limit(request, "establishment-entitlements", limit=60, window_seconds=60, identity=auth.user_id)
     return ok(await management_service.get_entitlements(establishment_id, auth))
 
 
@@ -354,7 +366,11 @@ async def delete_promotion(
 
 
 @app.get("/api/v1/support/tickets")
-async def list_support_tickets(auth: AuthContext = Depends(require_user)) -> JSONResponse:
+async def list_support_tickets(
+    request: Request,
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "support-list", limit=60, window_seconds=60, identity=auth.user_id)
     return ok(await support_service.list_for_user(auth))
 
 
@@ -381,12 +397,20 @@ async def delete_account(
 
 
 @app.get("/api/v1/admin/overview")
-async def admin_overview(auth: AuthContext = Depends(require_admin)) -> JSONResponse:
+async def admin_overview(
+    request: Request,
+    auth: AuthContext = Depends(require_admin),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "admin-overview", limit=60, window_seconds=60, identity=auth.user_id)
     return ok(await admin_service.overview(auth))
 
 
 @app.get("/api/v1/admin/health")
-async def admin_health(auth: AuthContext = Depends(require_admin)) -> JSONResponse:
+async def admin_health(
+    request: Request,
+    auth: AuthContext = Depends(require_admin),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "admin-health", limit=60, window_seconds=60, identity=auth.user_id)
     return ok(await admin_service.health_details(auth))
 
 
@@ -411,7 +435,11 @@ async def admin_password_recovery(
 
 
 @app.get("/api/v1/admin/subscriptions")
-async def admin_subscriptions(auth: AuthContext = Depends(require_admin)) -> JSONResponse:
+async def admin_subscriptions(
+    request: Request,
+    auth: AuthContext = Depends(require_admin),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "admin-subscriptions", limit=60, window_seconds=60, identity=auth.user_id)
     return ok(await admin_service.list_subscriptions(auth))
 
 
@@ -436,5 +464,9 @@ async def admin_assign_subscription(
 
 
 @app.get("/api/v1/admin/navigation-audit")
-async def navigation_audit(auth: AuthContext = Depends(require_admin)) -> JSONResponse:
+async def navigation_audit(
+    request: Request,
+    auth: AuthContext = Depends(require_admin),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "admin-navigation-audit", limit=60, window_seconds=60, identity=auth.user_id)
     return ok(await admin_service.navigation_audit(auth))

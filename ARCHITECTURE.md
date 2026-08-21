@@ -1,4 +1,4 @@
-# Arquitetura do Barber Hub 1.8
+# Arquitetura do Barber Hub 1.8.2
 
 ## Visão geral
 
@@ -67,6 +67,7 @@ A página `agendamento.html` é apenas compatibilidade/deep-link.
 ## Backend Python
 
 - `api/index.py`: rotas FastAPI, middleware de request id e logs estruturados;
+- `backend/domain/`: regras puras de agendamento e planos, testáveis sem rede;
 - `backend/security.py`: autenticação/token, admin e e-mail confirmado;
 - `backend/rate_limit.py`: limitação distribuída;
 - `backend/services/catalog.py`: marketplace;
@@ -88,6 +89,14 @@ O schema acumulado até a migration 15 já contém FTS/ranking do marketplace, r
 - policy pública de promoções condicionada ao plano efetivo;
 - prioridade de marketplace condicionada à assinatura efetiva;
 - assinatura em Realtime para atualização imediata do painel.
+
+A **migration 17** endurece os limites de confiança levantados na auditoria:
+
+- moderação administrativa separada da visibilidade escolhida pelo proprietário;
+- máquina de estados de agendamentos no PostgreSQL;
+- locks transacionais para limites de plano e validação de reativação;
+- contador de curtidas derivado da tabela de curtidas;
+- policies públicas que excluem estabelecimentos suspensos.
 
 ## Segurança por camada
 
@@ -116,3 +125,7 @@ Admin → API /admin/.../subscription → RPC admin_atribuir_plano
 ```
 
 O frontend pode ocultar/bloquear recursos para UX, mas agenda, equipe, promoções e portfólio têm enforcement no banco. O mobile continua derivado da mesma fonte funcional de `/html`, então não existe uma segunda regra de assinatura.
+
+## Desenvolvimento offline da API
+
+`backend/domain` não importa FastAPI, HTTPX ou Supabase. Serviços orquestram essas regras e o gateway externo fica em `backend/supabase.py`. O comando `npm run check:offline` valida regras críticas mesmo sem credenciais ou conectividade.

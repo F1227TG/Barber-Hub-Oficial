@@ -1,5 +1,5 @@
 /**
- * Auditoria local do Barber Hub 1.8.0.
+ * Auditoria local do Barber Hub 1.8.2.
  *
  * Não depende de bibliotecas externas. O script verifica estrutura, referências
  * locais, IDs duplicados, presença da API Python e vazamento acidental de
@@ -47,10 +47,13 @@ const required = [
   "backend/services/appointments.py",
   "backend/services/catalog.py",
   "backend/services/management.py",
+  "backend/domain/appointments.py",
+  "backend/domain/plans.py",
   "backend/rate_limit.py",
   "sql/14_api_python_agendamento_multisservicos.sql",
   "sql/15_marketplace_fts_api_seguranca.sql",
   "sql/16_assinaturas_entitlements_beneficios.sql",
+  "sql/17_correcao_auditoria_seguranca.sql",
   "mobile/index.html",
   "mobile/portal.html",
   "docs/PRD_BARBER_HUB.md",
@@ -152,6 +155,10 @@ const migration16 = fs.readFileSync(path.join(root, "sql/16_assinaturas_entitlem
 for (const expected of ["calcular_entitlements_estabelecimento", "admin_atribuir_plano", "agenda_online_disponivel", "validar_profissional_limite_plano", "validar_promocao_plano", "limite_destaques_portfolio", "prioridade_marketplace"]) {
   if (!migration16.toLowerCase().includes(expected.toLowerCase())) errors.push(`Migration 16 não contém: ${expected}`);
 }
+const migration17 = fs.readFileSync(path.join(root, "sql/17_correcao_auditoria_seguranca.sql"), "utf8");
+for (const expected of ["suspenso_pela_moderacao", "validar_transicao_status_agendamento", "pg_advisory_xact_lock", "curtidas_count", "commit;"]) {
+  if (!migration17.toLowerCase().includes(expected.toLowerCase())) errors.push(`Migration 17 não contém: ${expected}`);
+}
 for (const page of ["html/painel.html", "html/planos.html", "html/admin.html", "html/admin-assinaturas.html", "mobile/painel.html", "mobile/planos.html", "mobile/admin.html", "mobile/admin-assinaturas.html"]) {
   const content = fs.readFileSync(path.join(root, page), "utf8");
   if (!content.includes("release-1.8.css")) errors.push(`${page} não carrega release-1.8.css.`);
@@ -160,7 +167,7 @@ for (const page of ["html/painel.html", "html/planos.html", "html/admin.html", "
 // Regressões do Service Worker: a 1.7.2 falhou no Chromium porque
 // ./mobile/index.html aparecia duas vezes em cache.addAll().
 const serviceWorker = fs.readFileSync(path.join(root, "service-worker.js"), "utf8");
-if (!serviceWorker.includes("barberhub-v1.8.0")) errors.push("Service Worker não usa o cache barberhub-v1.8.0.");
+if (!serviceWorker.includes("barberhub-v1.8.2")) errors.push("Service Worker não usa o cache barberhub-v1.8.2.");
 if (serviceWorker.includes("cache.addAll(CORE)")) errors.push("Service Worker voltou a usar cache.addAll(CORE), que falha com requisições duplicadas.");
 if (!serviceWorker.includes("const CORE = [...new Set(CORE_SOURCE)]")) errors.push("Service Worker não deduplica a lista CORE preventivamente.");
 const coreMatch = serviceWorker.match(/const CORE_SOURCE = \[([\s\S]*?)\n\];/);
@@ -177,7 +184,7 @@ if (errors.length) {
   process.exit(1);
 }
 
-console.log(`Barber Hub 1.8.0: ${required.length} arquivos centrais encontrados.`);
+console.log(`Barber Hub 1.8.2: ${required.length} arquivos centrais encontrados.`);
 console.log(`${htmlFiles.length} páginas HTML verificadas, sem IDs duplicados ou links locais quebrados.`);
 console.log(`${jsFiles.length} arquivos JavaScript passaram por node --check.`);
 console.log("Nenhuma chave secreta foi encontrada nos arquivos públicos auditados.");

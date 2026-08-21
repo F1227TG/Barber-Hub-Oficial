@@ -1,4 +1,4 @@
-# Mapa de navegação do Barber Hub 1.7
+# Mapa de navegação do Barber Hub 1.8.2
 
 O Barber Hub possui duas apresentações da mesma plataforma: web (`/html`) e app mobile (`/mobile`). Regras de negócio, API e scripts de domínio são compartilhados. Na 1.7, as páginas funcionais mobile são sincronizadas a partir das equivalentes web para impedir deriva de recursos.
 
@@ -68,6 +68,7 @@ Admin
   ├── Pendências / conclusão / verificação / agenda online
   ├── Usuários
   ├── Estabelecimentos
+  │   └── Visíveis / ocultos pelo proprietário / suspensos pela moderação
   ├── Agendamentos
   ├── Avaliações
   ├── Moderação

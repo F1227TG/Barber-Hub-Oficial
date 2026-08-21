@@ -25,7 +25,7 @@
 | Tipo de produto | Aplicação web + interface HTML mobile dedicada, instalável como PWA, multi-tenant (múltiplos estabelecimentos independentes), com backend próprio (API Python/FastAPI) sobre infraestrutura Supabase |
 | Empresa/divisão | The Gamers Tech |
 | Estágio atual | Produto em produção ativa (deploy Vercel), evoluindo por versões incrementais e documentadas (1.1 → 1.6). Não há, no repositório, uma declaração formal de "MVP concluído" — ver critério proposto na Seção 22 |
-| Versão analisada | Front-end/PWA **1.8.0** (`package.json`, cache do Service Worker `barberhub-v1.8.0`) · API própria **1.3.0** (`pyproject.toml`, `api/index.py`) · Schema de banco até a migration **16** (`16_assinaturas_entitlements_beneficios.sql`) |
+| Versão analisada | Front-end/PWA **1.8.2** (`package.json`, cache do Service Worker `barberhub-v1.8.2`) · API própria **1.3.1** (`pyproject.toml`, `api/index.py`) · Schema versionado até a migration **17** (`17_correcao_auditoria_seguranca.sql`) |
 | Repositório analisado | `Barber-Hub-Oficial-main.zip`, domínio de referência `barberhuboficial.vercel.app` |
 | Stack confirmada em código | HTML/CSS/JS vanilla + Bootstrap 5.3.6 (local, em camada `@layer`); Supabase (PostgreSQL, Auth, Storage, RLS, Realtime); backend próprio em Python 3.13+/FastAPI 0.117+/Pydantic 2.10+, empacotado como função serverless da Vercel (`api/index.py`); PWA com Service Worker e manifest próprios |
 
@@ -1321,3 +1321,13 @@ As páginas funcionais continuam tendo `/html` como fonte e `/mobile` como deriv
 - [ ] executar migration 16 no Supabase de produção;
 - [ ] publicar frontend/API 1.8 na Vercel;
 - [ ] testar upgrade e downgrade reais com uma conta de estabelecimento em cada plano.
+
+---
+
+## 33. Revisão de segurança — Barber Hub 1.8.2
+
+A auditoria diferencial V01–V06 está registrada em `docs/RELATORIO_SEGURANCA_1_8_2.md`. A migration 17 separa suspensão administrativa da visibilidade do proprietário, protege campos derivados, impõe a máquina de estados de agendamentos, serializa limites por estabelecimento e deriva curtidas da tabela fonte.
+
+A API 1.3.1 completa os buckets de rate limiting e entrega apenas a site key pública do Turnstile em runtime. Regras essenciais de agendamento e plano passaram para `backend/domain`, permitindo regressão offline sem Supabase/Vercel. CAPTCHA continua dependente de configuração no Supabase Auth/Cloudflare.
+
+A arquitetura permanece monorepo: mobile compartilha domínio e módulos JavaScript, enquanto a API preserva fronteira própria em `/api` e `/backend`. A decisão e os gatilhos para uma separação futura estão em `docs/DECISAO_REPOSITORIOS_1_8_2.md`.

@@ -2,12 +2,23 @@ openapi: 3.1.0
 info:
   title: Barber Hub API
   description: API própria do Barber Hub, executada em Python/FastAPI.
-  version: 1.3.0
+  version: 1.3.1
 paths:
   /api/v1/health:
     get:
       summary: Health
       operationId: health_api_v1_health_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /api/v1/public-config:
+    get:
+      summary: Public Config
+      description: Expose only browser-safe runtime configuration; secrets never leave the API.
+      operationId: public_config_api_v1_public_config_get
       responses:
         '200':
           description: Successful Response

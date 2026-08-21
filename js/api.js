@@ -1476,7 +1476,7 @@ async function bhAdminAtualizarPerfil(id, dados) {
 async function bhAdminAtualizarEstabelecimento(id, dados) {
   const client = bhExigirSupabase();
   const permitido = {};
-  ["visivel", "verificado", "destaque", "suspenso_motivo"].forEach(chave => { if (dados[chave] !== undefined) permitido[chave] = dados[chave]; });
+  ["visivel", "verificado", "destaque", "suspenso_pela_moderacao", "suspenso_motivo"].forEach(chave => { if (dados[chave] !== undefined) permitido[chave] = dados[chave]; });
   if (dados.verificado === true) permitido.verificado_em = new Date().toISOString();
   if (dados.verificado === false) permitido.verificado_em = null;
   const perfil = await bhGetPerfil();

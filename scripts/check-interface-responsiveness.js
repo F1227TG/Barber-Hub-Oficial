@@ -1,4 +1,4 @@
-/** Regressão 1.8.0: impede ciclos do observador global sobre mutações de texto. */
+/** Regressão 1.8.2: impede ciclos do observador global sobre mutações de texto. */
 const fs = require("node:fs");
 const path = require("node:path");
 
@@ -16,7 +16,7 @@ if (!source.includes("helper.textContent !== helperText")) {
 if (!source.includes("record.addedNodes") || !source.includes("Node.ELEMENT_NODE")) {
   errors.push("o observador não filtra mutações para elementos relevantes");
 }
-if (!serviceWorker.includes("barberhub-v1.8.0-interface-responsive-r3")) {
+if (!serviceWorker.includes("barberhub-v1.8.2-security-r1")) {
   errors.push("a revisão do cache não foi atualizada para o hotfix de responsividade");
 }
 
