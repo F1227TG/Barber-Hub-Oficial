@@ -1,4 +1,4 @@
-# Mapa de navegação do Barber Hub 1.8.2
+# Mapa de navegação do Barber Hub 1.9.0
 
 O Barber Hub possui duas apresentações da mesma plataforma: web (`/html`) e app mobile (`/mobile`). Regras de negócio, API e scripts de domínio são compartilhados. Na 1.7, as páginas funcionais mobile são sincronizadas a partir das equivalentes web para impedir deriva de recursos.
 
@@ -49,8 +49,21 @@ Painel
   ├── Hoje / A confirmar / Equipe / Reputação
   ├── Status automático / aberto / fechado
   ├── Agenda
+  │   ├── Dia / semana
+  │   ├── Encaixes
+  │   ├── Bloqueios
+  │   └── Reagendamento / confirmação / falta
+  ├── Clientes / CRM
+  │   ├── Segmentos
+  │   └── Ficha / preferências / notas
+  ├── Financeiro
+  │   ├── Resumo e lançamentos
+  │   ├── Ajustes / fechamento
+  │   └── Comissões
   ├── Serviços
-  ├── Profissionais (+ foto)
+  ├── Equipe
+  │   ├── Profissionais (+ foto)
+  │   └── Acessos e papéis
   ├── Horários e dias bloqueados
   ├── Portfólio
   ├── Avaliações
@@ -115,7 +128,7 @@ Início | Explorar | Agenda | Avisos | Conta
 ### Profissional
 
 ```text
-Painel | Agenda | Explorar | Avisos | Conta
+Painel | Agenda | Clientes | Financeiro | Mais
 ```
 
 ### Administrador
@@ -155,6 +168,20 @@ Essas regras são verificadas automaticamente por `scripts/check-mobile-routing.
 │   ├── POST /
 │   ├── PATCH /{id}/status
 │   └── DELETE /{id}
+├── schedule
+│   ├── GET /range
+│   ├── POST /walk-ins
+│   └── POST / DELETE /blocks
+├── crm/clients
+│   ├── GET /
+│   ├── GET / PATCH /{id}
+│   └── POST /{id}/notes
+├── finance
+│   ├── GET /summary /entries
+│   ├── POST /adjustments /closings
+│   └── GET / POST / PATCH /commission-rules
+├── team/members
+│   └── GET / POST / PATCH
 ├── establishments
 │   ├── PATCH /{id}
 │   └── PATCH /{id}/status

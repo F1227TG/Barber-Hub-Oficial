@@ -25,7 +25,7 @@
 | Tipo de produto | Aplicação web + interface HTML mobile dedicada, instalável como PWA, multi-tenant (múltiplos estabelecimentos independentes), com backend próprio (API Python/FastAPI) sobre infraestrutura Supabase |
 | Empresa/divisão | The Gamers Tech |
 | Estágio atual | Produto em produção ativa (deploy Vercel), evoluindo por versões incrementais e documentadas (1.1 → 1.6). Não há, no repositório, uma declaração formal de "MVP concluído" — ver critério proposto na Seção 22 |
-| Versão analisada | Front-end/PWA **1.8.2** (`package.json`, cache do Service Worker `barberhub-v1.8.2`) · API própria **1.3.1** (`pyproject.toml`, `api/index.py`) · Schema versionado até a migration **17** (`17_correcao_auditoria_seguranca.sql`) |
+| Versão analisada | Front-end/PWA **1.9.0** (`package.json`, cache do Service Worker `barberhub-v1.9.0-operation-r2`) · API própria **1.4.0** (`pyproject.toml`, `api/index.py`) · Schema local versionado até a migration **23** (`23_advisors_pos_deploy_1_9.sql`) |
 | Repositório analisado | `Barber-Hub-Oficial-main.zip`, domínio de referência `barberhuboficial.vercel.app` |
 | Stack confirmada em código | HTML/CSS/JS vanilla + Bootstrap 5.3.6 (local, em camada `@layer`); Supabase (PostgreSQL, Auth, Storage, RLS, Realtime); backend próprio em Python 3.13+/FastAPI 0.117+/Pydantic 2.10+, empacotado como função serverless da Vercel (`api/index.py`); PWA com Service Worker e manifest próprios |
 
@@ -1331,3 +1331,28 @@ A auditoria diferencial V01–V06 está registrada em `docs/RELATORIO_SEGURANCA_
 A API 1.3.1 completa os buckets de rate limiting e entrega apenas a site key pública do Turnstile em runtime. Regras essenciais de agendamento e plano passaram para `backend/domain`, permitindo regressão offline sem Supabase/Vercel. CAPTCHA continua dependente de configuração no Supabase Auth/Cloudflare.
 
 A arquitetura permanece monorepo: mobile compartilha domínio e módulos JavaScript, enquanto a API preserva fronteira própria em `/api` e `/backend`. A decisão e os gatilhos para uma separação futura estão em `docs/DECISAO_REPOSITORIOS_1_8_2.md`.
+
+---
+
+## 34. Operação & Crescimento — Barber Hub 1.9.0
+
+A 1.9.0 introduz os quatro módulos que sustentam o uso diário: Agenda profissional 2.0, CRM persistente, financeiro/comissões e acesso individual da equipe. O fluxo de valor passa a ser **Agenda → Cliente → Dinheiro → Retenção**.
+
+O PostgreSQL recebe as migrations 18–22 com nove tabelas protegidas por RLS, eventos e snapshots de atendimento, papéis operacionais, entitlements por plano, RPCs transacionais e proteções de concorrência. A API 1.4.0 expõe contratos próprios para agenda, CRM, financeiro e equipe. Regras de período, segmentação, comissão e papel ficam testáveis offline.
+
+No produto, `js/painel-operacao-1.9.js` isola a nova experiência sem substituir a arquitetura vanilla existente. `css/release-1.9.css` reaproveita os tokens escuros/quentes e dourados, adicionando hierarquia operacional, estados completos e layouts próprios para desktop/mobile. A navegação profissional instalada prioriza `Painel | Agenda | Clientes | Financeiro | Mais`.
+
+### 34.1 Estado de publicação
+
+- [x] migrations 18–22 preparadas;
+- [x] Agenda 2.0, CRM, financeiro e equipe implementados na API;
+- [x] painel desktop/mobile e estilos 1.9 implementados;
+- [x] matriz comercial e documentação atualizadas;
+- [x] regressões offline adicionadas;
+- [ ] aplicar e verificar migrations 11–17 no ambiente alvo;
+- [ ] aplicar e verificar migrations 18–22;
+- [ ] habilitar CAPTCHA e proteção contra senhas vazadas;
+- [ ] executar Advisors e testes de papéis no Supabase;
+- [ ] publicar frontend/PWA 1.9.0 e API 1.4.0.
+
+A futura 1.9.3 consolidará os antigos escopos 1.9.1 e 1.9.2 em **Retenção & Inteligência**.

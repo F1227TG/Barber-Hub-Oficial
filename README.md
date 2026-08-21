@@ -1,6 +1,24 @@
-# Barber Hub — versão 1.8.2
+# Barber Hub — versão 1.9.0
 
 O Barber Hub é um **marketplace digital de serviços** com gestão integrada para barbearias. Clientes descobrem estabelecimentos, verificam disponibilidade, conhecem serviços/equipe e agendam; profissionais administram operação, agenda, portfólio e reputação. Uma plataforma de **The Gamers Tech**.
+
+## Entrega 1.9.0 — Operação & Crescimento
+
+A 1.9.0 adiciona Agenda profissional 2.0, CRM persistente, financeiro/fechamento, comissões e acesso individual da equipe. A API própria passa à versão **1.4.0** e o painel recebe uma camada visual responsiva em `css/release-1.9.css`, preservando a direção premium escura/quente e dourada.
+
+Principais arquivos da entrega:
+
+- `docs/ATUALIZACAO_1_9_0.md` — resumo funcional;
+- `docs/RELATORIO_SEGURANCA_1_9_0.md` — proteções e dependências externas;
+- `docs/MIGRATIONS_DEPLOY_1_9.md` — histórico aplicado das migrations 11–23;
+- `docs/CONFIGURACAO_EXTERNA_1_9.md` — CAPTCHA, Auth, URLs e variáveis restantes;
+- `docs/MATRIZ_PLANOS_1_9.md` — recursos e limites comerciais;
+- `docs/VERIFICACAO_1_9_0.md` — resultados e limites da regressão local;
+- `sql/18_*.sql` até `sql/23_*.sql` — banco operacional e hardening pós-Advisors;
+- `sql/verificar_22_operacao_1_9.sql` — verificação posterior;
+- `js/painel-operacao-1.9.js` e `css/release-1.9.css` — experiência desktop/mobile.
+
+As migrations 11–23 já foram aplicadas no Supabase conectado. Antes do deploy do código, configure CAPTCHA, proteção contra senhas vazadas, URLs e variáveis conforme `docs/CONFIGURACAO_EXTERNA_1_9.md`.
 
 ## Entrega 1.8.2 — Segurança diferencial
 
@@ -133,14 +151,15 @@ As páginas funcionais em `/html/*.html` são a fonte usada por `scripts/sync_mo
 
 ## Banco de dados
 
-A 1.8 usa a migration de assinaturas e a 1.8.2 adiciona o endurecimento da auditoria:
+A 1.9 usa as migrations de assinaturas, auditoria e operação:
 
 ```text
 sql/16_assinaturas_entitlements_beneficios.sql
 sql/17_correcao_auditoria_seguranca.sql
+sql/18_agenda_equipe_operacional_1_9.sql ... sql/23_advisors_pos_deploy_1_9.sql
 ```
 
-Em banco novo, execute as migrations `01` → `17` em ordem. O Supabase conectado foi encontrado somente até a migration 10; portanto, em produção, valide backup/homologação e aplique `11` → `17` em ordem. Não edite nem reaplique migrations antigas sobre dados reais.
+Em banco novo, execute as migrations `01` → `23` em ordem. No Supabase conectado, `11` → `23` foram aplicadas em 21/08/2026 e verificadas. Não edite nem reaplique migrations antigas sobre dados reais.
 
 ## Variáveis da API na Vercel
 
@@ -217,13 +236,11 @@ A validação inclui paridade mobile, regressão de URLs, referências locais, s
 
 ## Deploy
 
-1. confirme backup e use homologação;
-2. aplique as migrations pendentes `11` → `17` em ordem;
-3. execute `sql/verificar_17_correcao_auditoria.sql`;
-4. confirme as variáveis da API e o Turnstile no Supabase Auth;
-5. execute `npm run check`;
-6. publique código 1.8.2/API 1.3.1;
-7. valide V01–V06, planos e os fluxos desktop/mobile antes de promover a produção.
+1. confirme backup e o histórico remoto até `23_advisors_pos_deploy_1_9`;
+2. configure Auth, URLs, variáveis e Turnstile conforme `docs/CONFIGURACAO_EXTERNA_1_9.md`;
+3. execute `npm run check`;
+4. publique frontend/PWA 1.9.0 e API 1.4.0 juntos;
+5. valide V01–V06, planos, papéis e os fluxos desktop/mobile antes de promover a produção.
 
 ```bash
 git status

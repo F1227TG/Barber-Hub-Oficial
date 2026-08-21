@@ -2,7 +2,7 @@
   "id": "./",
   "name": "Barber Hub",
   "short_name": "Barber Hub",
-  "description": "Marketplace de serviços para encontrar barbearias, consultar disponibilidade e agendar em poucos toques.",
+  "description": "Marketplace, agenda profissional, CRM e gestão financeira para barbearias.",
   "start_url": "./mobile/index.html",
   "scope": "./",
   "display": "standalone",

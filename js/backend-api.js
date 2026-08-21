@@ -120,6 +120,44 @@
       auth: true,
       body: { status, motivo }
     }),
+    scheduleRange: ({ establishmentId, start, end, professionalId = null }) => {
+      const params = new URLSearchParams({ establishment_id: establishmentId, start, end });
+      if (professionalId) params.set("professional_id", professionalId);
+      return request(`schedule/range?${params.toString()}`, { auth: true });
+    },
+    createWalkIn: data => request("schedule/walk-ins", { method: "POST", auth: true, body: data }),
+    createScheduleBlock: data => request("schedule/blocks", { method: "POST", auth: true, body: data }),
+    deleteScheduleBlock: blockId => request(`schedule/blocks/${encodeURIComponent(blockId)}`, { method: "DELETE", auth: true }),
+    rescheduleAppointment: (appointmentId, data) => request(`appointments/${encodeURIComponent(appointmentId)}/reschedule`, { method: "PATCH", auth: true, body: data }),
+    confirmAppointment: (appointmentId, origem, confirmacao) => request(`appointments/${encodeURIComponent(appointmentId)}/confirmation`, { method: "PATCH", auth: true, body: { origem, confirmacao } }),
+    markNoShow: appointmentId => request(`appointments/${encodeURIComponent(appointmentId)}/no-show`, { method: "PATCH", auth: true }),
+    listCrmClients: ({ establishmentId, query = "", segment = "", cursorLast = null, cursorId = null, limit = 30 }) => {
+      const params = new URLSearchParams({ establishment_id: establishmentId, limit: String(limit) });
+      if (query) params.set("q", query);
+      if (segment) params.set("segment", segment);
+      if (cursorLast) params.set("cursor_last", cursorLast);
+      if (cursorId) params.set("cursor_id", cursorId);
+      return request(`crm/clients?${params.toString()}`, { auth: true });
+    },
+    getCrmClient: clientId => request(`crm/clients/${encodeURIComponent(clientId)}`, { auth: true }),
+    updateCrmClient: (clientId, data) => request(`crm/clients/${encodeURIComponent(clientId)}`, { method: "PATCH", auth: true, body: data }),
+    addCrmNote: (clientId, conteudo) => request(`crm/clients/${encodeURIComponent(clientId)}/notes`, { method: "POST", auth: true, body: { conteudo } }),
+    financeSummary: ({ establishmentId, start, end }) => {
+      const params = new URLSearchParams({ establishment_id: establishmentId, start, end });
+      return request(`finance/summary?${params.toString()}`, { auth: true });
+    },
+    financeEntries: ({ establishmentId, start, end, limit = 100 }) => {
+      const params = new URLSearchParams({ establishment_id: establishmentId, start, end, limit: String(limit) });
+      return request(`finance/entries?${params.toString()}`, { auth: true });
+    },
+    createFinancialAdjustment: data => request("finance/adjustments", { method: "POST", auth: true, body: data }),
+    closeFinancialDay: data => request("finance/closings", { method: "POST", auth: true, body: data }),
+    commissionRules: establishmentId => request(`finance/commission-rules?establishment_id=${encodeURIComponent(establishmentId)}`, { auth: true }),
+    createCommissionRule: data => request("finance/commission-rules", { method: "POST", auth: true, body: data }),
+    updateCommissionRule: (ruleId, data) => request(`finance/commission-rules/${encodeURIComponent(ruleId)}`, { method: "PATCH", auth: true, body: data }),
+    teamMembers: establishmentId => request(`team/members?establishment_id=${encodeURIComponent(establishmentId)}`, { auth: true }),
+    linkTeamMember: data => request("team/members", { method: "POST", auth: true, body: data }),
+    updateTeamMember: (memberId, data) => request(`team/members/${encodeURIComponent(memberId)}`, { method: "PATCH", auth: true, body: data }),
     updateEstablishment: (establishmentId, data) => request(`establishments/${encodeURIComponent(establishmentId)}`, {
       method: "PATCH",
       auth: true,

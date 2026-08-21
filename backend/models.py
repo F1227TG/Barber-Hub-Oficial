@@ -1,6 +1,6 @@
 """Validated request models exposed by the Barber Hub API."""
 
-from datetime import date, time
+from datetime import date, datetime, time
 from decimal import Decimal
 from typing import Literal
 from uuid import UUID
@@ -31,6 +31,129 @@ class AppointmentStatusUpdate(BaseModel):
 
 class AppointmentCancelRequest(BaseModel):
     motivo: str = Field(default="Cancelado pelo cliente", min_length=3, max_length=500)
+
+
+class AppointmentReschedule(BaseModel):
+    profissional_id: UUID
+    data: date
+    hora_inicio: time
+
+
+class AppointmentConfirmation(BaseModel):
+    origem: Literal["cliente", "estabelecimento"]
+    confirmacao: Literal["confirmada", "recusada"]
+
+
+class WalkInCreate(BaseModel):
+    estabelecimento_id: UUID
+    profissional_id: UUID
+    servicos_ids: list[UUID] = Field(min_length=1, max_length=8)
+    cliente_nome: str = Field(min_length=2, max_length=140)
+    cliente_email: EmailStr | None = None
+    cliente_telefone: str | None = Field(default=None, max_length=40)
+    data: date
+    hora_inicio: time
+    observacao: str | None = Field(default=None, max_length=800)
+
+    @field_validator("servicos_ids")
+    @classmethod
+    def unique_walk_in_services(cls, value: list[UUID]) -> list[UUID]:
+        if len(value) != len(set(value)):
+            raise ValueError("Não repita o mesmo serviço.")
+        return value
+
+
+class ScheduleBlockCreate(BaseModel):
+    estabelecimento_id: UUID
+    profissional_id: UUID | None = None
+    inicio: datetime
+    fim: datetime
+    tipo: Literal["bloqueio", "pausa", "indisponibilidade"] = "bloqueio"
+    motivo: str | None = Field(default=None, max_length=300)
+
+    @field_validator("inicio")
+    @classmethod
+    def validate_block_timezone(cls, value: datetime):
+        if value.tzinfo is None or value.utcoffset() is None:
+            raise ValueError("Informe o fuso horário do início do bloqueio.")
+        return value
+
+    @field_validator("fim")
+    @classmethod
+    def validate_block_period(cls, value: datetime, info):
+        if value.tzinfo is None or value.utcoffset() is None:
+            raise ValueError("Informe o fuso horário do fim do bloqueio.")
+        start = info.data.get("inicio")
+        if start and value <= start:
+            raise ValueError("O fim do bloqueio precisa ser posterior ao início.")
+        return value
+
+
+class CRMClientUpdate(BaseModel):
+    preferencias: str | None = Field(default=None, max_length=2000)
+    tags: list[str] | None = Field(default=None, max_length=12)
+    permite_whatsapp: bool | None = None
+
+
+class CRMNoteCreate(BaseModel):
+    conteudo: str = Field(min_length=2, max_length=2000)
+
+
+class FinancialAdjustmentCreate(BaseModel):
+    estabelecimento_id: UUID
+    competencia: date
+    natureza: Literal["credito", "debito"]
+    valor: Decimal = Field(gt=0, le=1_000_000)
+    descricao: str = Field(min_length=2, max_length=180)
+    motivo: str = Field(min_length=3, max_length=500)
+
+
+class CommissionRuleCreate(BaseModel):
+    estabelecimento_id: UUID
+    profissional_id: UUID | None = None
+    servico_id: UUID | None = None
+    tipo: Literal["percentual", "fixo"]
+    valor: Decimal = Field(ge=0, le=1_000_000)
+    ativo: bool = True
+
+    @field_validator("valor")
+    @classmethod
+    def validate_commission_value(cls, value: Decimal, info):
+        if info.data.get("tipo") == "percentual" and value > 100:
+            raise ValueError("A comissão percentual não pode ultrapassar 100%.")
+        return value
+
+
+class CommissionRuleUpdate(BaseModel):
+    tipo: Literal["percentual", "fixo"] | None = None
+    valor: Decimal | None = Field(default=None, ge=0, le=1_000_000)
+    ativo: bool | None = None
+
+
+class DayClosingCreate(BaseModel):
+    estabelecimento_id: UUID
+    data: date
+    observacao: str | None = Field(default=None, max_length=800)
+
+
+class TeamMemberLink(BaseModel):
+    estabelecimento_id: UUID
+    email: EmailStr
+    papel: Literal["gerente", "recepcao", "profissional"]
+    profissional_id: UUID | None = None
+
+    @field_validator("profissional_id")
+    @classmethod
+    def validate_professional_link(cls, value: UUID | None, info):
+        if info.data.get("papel") == "profissional" and value is None:
+            raise ValueError("Vincule o papel profissional a um cadastro da equipe.")
+        return value
+
+
+class TeamMemberUpdate(BaseModel):
+    papel: Literal["gerente", "recepcao", "profissional"] | None = None
+    profissional_id: UUID | None = None
+    status: Literal["ativo", "suspenso", "removido"] | None = None
 
 
 class EstablishmentUpdate(BaseModel):

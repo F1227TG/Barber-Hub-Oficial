@@ -144,9 +144,9 @@
       dock.innerHTML = [
         link("painel.html", "bi-grid", "Painel", pageName === "painel"),
         link("painel.html#agenda", "bi-calendar-week", "Agenda"),
-        link("portal.html", "bi-compass", "Explorar", pageName === "portal" || pageName === "barbearia"),
-        link("notificacoes.html", "bi-bell", "Avisos", pageName === "notificacoes", "data-badge-notificacoes"),
-        link("conta.html", "bi-person", "Conta", pageName === "conta")
+        link("painel.html#clientes", "bi-person-lines-fill", "Clientes"),
+        link("painel.html#financeiro", "bi-wallet2", "Financeiro"),
+        link("conta.html", "bi-grid-3x3-gap", "Mais", pageName === "conta")
       ].join("");
     } else if (profile?.tipo === "admin") {
       dock.innerHTML = [

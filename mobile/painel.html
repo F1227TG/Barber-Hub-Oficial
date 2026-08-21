@@ -21,7 +21,7 @@
 <meta content="yes" name="apple-mobile-web-app-capable"/>
 <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
 <link href="../css/mobile-app.css" rel="stylesheet"/><link href="../css/release-1.4.1.css" rel="stylesheet"/>
-<link href="../css/product-redesign.css" rel="stylesheet"/><link href="../css/release-1.6.css" rel="stylesheet"/><link href="../css/release-1.7.css" rel="stylesheet"/><link href="../css/release-1.7.1.css" rel="stylesheet"/><link href="../css/release-1.8.css" rel="stylesheet"/><link href="../css/brand-assets-1.8.css" rel="stylesheet"/>
+<link href="../css/product-redesign.css" rel="stylesheet"/><link href="../css/release-1.6.css" rel="stylesheet"/><link href="../css/release-1.7.css" rel="stylesheet"/><link href="../css/release-1.7.1.css" rel="stylesheet"/><link href="../css/release-1.8.css" rel="stylesheet"/><link href="../css/brand-assets-1.8.css" rel="stylesheet"/><link href="../css/release-1.9.css" rel="stylesheet"/>
 <link href="../css/image-editor.css" rel="stylesheet"/><meta content="yes" name="mobile-web-app-capable"/><meta content="noindex,follow" name="robots"/><link href="https://barberhuboficial.vercel.app/html/painel" rel="canonical"/><link href="../css/mobile-redesign-1.8.css" rel="stylesheet"/></head>
 <body class="page-painel mobile-native">
 <!-- Cabeçalho e navegação principal -->
@@ -114,9 +114,13 @@
       <span aria-hidden="true" class="nav-badge" data-badge-agenda="" hidden="">
 </span>
 </button>
-<button class="btn btn-dark" data-panel="secClientes" data-plan-feature="permite_clientes">
+<button class="btn btn-dark" data-panel="secClientes" data-plan-feature="permite_crm">
 <i class="bi bi-person-lines-fill"></i>
       Clientes
+     </button>
+<button class="btn btn-dark" data-panel="secFinanceiro" data-plan-feature="permite_financeiro">
+<i class="bi bi-wallet2"></i>
+      Financeiro
      </button>
 <button class="btn btn-dark" data-panel="secPromocoes" data-plan-feature="permite_promocoes">
 <i class="bi bi-megaphone"></i>
@@ -278,12 +282,31 @@
 </div>
 </section>
 <section class="panel-section" id="secAgenda">
-<h2 class="titulo-section">
-      Agenda
-     </h2>
-<p class="texto-section">
-      Confirme, conclua, recuse ou cancele atendimentos.
-     </p>
+<div class="section-top operation-heading">
+<div>
+<span class="tag"><i class="bi bi-calendar2-week"></i> Agenda profissional 2.0</span>
+<h2 class="titulo-section">O ritmo da sua operação</h2>
+<p class="texto-section">Visualize o dia ou a semana, crie encaixes, bloqueie intervalos e resolva cada atendimento sem sair da agenda.</p>
+</div>
+<div class="operation-heading-actions">
+<button class="btn btn-outline btn-small" data-agenda-action="bloqueio" data-plan-feature="permite_agenda_avancada" type="button"><i class="bi bi-slash-circle"></i> Bloquear horário</button>
+<button class="btn btn-primary btn-small" data-agenda-action="encaixe" data-plan-feature="permite_agenda_avancada" type="button"><i class="bi bi-plus-lg"></i> Novo encaixe</button>
+</div>
+</div>
+<div class="operation-toolbar" aria-label="Filtros da agenda">
+<div class="view-switch" role="group" aria-label="Modo de visualização"><button class="ativo" data-agenda-view="dia" type="button">Dia</button><button data-agenda-view="semana" type="button">Semana</button></div>
+<label class="toolbar-field" for="agendaDataReferencia19"><span>Data</span><input id="agendaDataReferencia19" type="date"/></label>
+<label class="toolbar-field grow" for="agendaProfissionalFiltro19"><span>Profissional</span><select id="agendaProfissionalFiltro19"><option value="">Toda a equipe</option></select></label>
+<button aria-label="Atualizar agenda" class="icon-btn" id="agendaAtualizar19" title="Atualizar agenda" type="button"><i class="bi bi-arrow-clockwise"></i></button>
+</div>
+<div class="operation-kpis" id="agendaKpis19" aria-live="polite"><article class="operation-kpi skeleton-card"></article><article class="operation-kpi skeleton-card"></article><article class="operation-kpi skeleton-card"></article><article class="operation-kpi skeleton-card"></article></div>
+<div class="operation-composer" hidden="" id="agendaComposer19"></div>
+<div class="schedule-workspace">
+<div class="schedule-board" id="agendaTimeline19"><div class="operation-state loading"><span class="state-spinner"></span><strong>Preparando sua agenda</strong><small>Organizando horários e bloqueios.</small></div></div>
+<aside class="schedule-rail" id="agendaSide19"><div class="operation-state compact"><i class="bi bi-calendar-check"></i><strong>Resumo do período</strong><small>Os próximos atendimentos aparecerão aqui.</small></div></aside>
+</div>
+<details class="operation-details">
+<summary><span><i class="bi bi-list-ul"></i> Lista detalhada</span><small>ações e histórico do agendamento</small></summary>
 <div class="table-wrap">
 <table>
 <thead>
@@ -315,22 +338,35 @@
 </tbody>
 </table>
 </div>
+</details>
 </section>
-<section class="panel-section" id="secClientes" data-plan-section="permite_clientes">
+<section class="panel-section" id="secClientes" data-plan-section="permite_crm">
 <div class="section-top">
 <div>
-<span class="tag"><i class="bi bi-person-heart"></i> Relacionamento</span>
-<h2 class="titulo-section">Carteira de clientes</h2>
-<p class="texto-section">Veja recorrência, última visita e valor movimentado por cliente a partir dos atendimentos reais.</p>
+<span class="tag"><i class="bi bi-person-heart"></i> CRM 2.0</span>
+<h2 class="titulo-section">Cada cliente com contexto</h2>
+<p class="texto-section">Histórico, frequência, gastos, preferências, faltas e anotações internas em uma ficha persistente.</p>
 </div>
 <div class="client-summary" id="clientesResumoPainel"></div>
 </div>
-<div class="grid grid-3 panel-grid" id="clientesKpisPainel"></div>
-<div class="card">
-<div class="card-body">
-<div class="section-top compact"><div><h3>Clientes atendidos</h3><p>Ordenados por relacionamento e atividade recente.</p></div><input aria-label="Buscar cliente" class="input-compact" id="buscarClientePainel" placeholder="Buscar cliente" type="search"/></div>
-<div class="client-roster" id="listaClientesPainel"></div>
+<div class="operation-kpis" id="clientesKpisPainel"></div>
+<div class="crm-toolbar">
+<div class="search-field"><i class="bi bi-search"></i><input aria-label="Buscar cliente" id="buscarClientePainel" placeholder="Buscar por nome, telefone ou e-mail" type="search"/></div>
+<div class="segment-chips" id="crmSegmentos19" role="group" aria-label="Segmentos de clientes"><button class="ativo" data-crm-segment="" type="button">Todos</button><button data-crm-segment="novo" type="button">Novos</button><button data-crm-segment="recorrente" type="button">Recorrentes</button><button data-crm-segment="inativo" type="button">Inativos</button><button data-crm-segment="em_risco" type="button">Em risco</button></div>
 </div>
+<div class="crm-workspace">
+<div class="crm-roster" id="listaClientesPainel"><div class="operation-state loading"><span class="state-spinner"></span><strong>Carregando clientes</strong><small>Montando a carteira do estabelecimento.</small></div></div>
+<aside class="crm-profile" id="crmDetalhe19"><div class="operation-state"><i class="bi bi-person-badge"></i><strong>Selecione um cliente</strong><small>Abra uma ficha para consultar preferências, gastos e anotações.</small></div></aside>
+</div>
+</section>
+<section class="panel-section" id="secFinanceiro" data-plan-section="permite_financeiro">
+<div class="section-top operation-heading"><div><span class="tag"><i class="bi bi-graph-up-arrow"></i> Financeiro operacional</span><h2 class="titulo-section">Do atendimento ao fechamento</h2><p class="texto-section">Receita, ticket médio, comissões e ajustes calculados a partir dos atendimentos concluídos.</p></div><div class="operation-heading-actions"><button class="btn btn-outline btn-small" data-finance-action="ajuste" type="button"><i class="bi bi-plus-slash-minus"></i> Novo ajuste</button><button class="btn btn-primary btn-small" data-finance-action="fechamento" type="button"><i class="bi bi-lock"></i> Fechar o dia</button></div></div>
+<div class="operation-toolbar finance-period"><label class="toolbar-field" for="financeInicio19"><span>De</span><input id="financeInicio19" type="date"/></label><label class="toolbar-field" for="financeFim19"><span>Até</span><input id="financeFim19" type="date"/></label><button class="btn btn-dark btn-small" id="financeAtualizar19" type="button"><i class="bi bi-arrow-clockwise"></i> Atualizar</button></div>
+<div class="operation-kpis" id="financeKpis19"><article class="operation-kpi skeleton-card"></article><article class="operation-kpi skeleton-card"></article><article class="operation-kpi skeleton-card"></article><article class="operation-kpi skeleton-card"></article></div>
+<div class="operation-composer" hidden="" id="financeComposer19"></div>
+<div class="finance-workspace">
+<article class="finance-ledger card"><div class="card-body"><div class="section-top compact"><div><h3>Movimentações</h3><p>Entradas e saídas consolidadas no período.</p></div><span class="status concluido" id="financePeriodoLabel19">Período atual</span></div><div class="ledger-list" id="financeLancamentos19"><div class="operation-state loading"><span class="state-spinner"></span><strong>Calculando resultados</strong></div></div></div></article>
+<aside class="finance-side"><article class="card"><div class="card-body"><div class="section-top compact"><div><h3>Comissões</h3><p>Regras por profissional ou serviço.</p></div><button aria-label="Adicionar regra" class="icon-btn" data-finance-action="comissao" data-plan-feature="permite_comissoes" type="button"><i class="bi bi-plus-lg"></i></button></div><div class="commission-list" id="financeComissoes19"><div class="operation-state compact"><i class="bi bi-percent"></i><strong>Carregando regras</strong></div></div></div></article><article class="finance-note"><i class="bi bi-shield-check"></i><div><strong>Valores protegidos</strong><span>O navegador recebe apenas dados permitidos para seu estabelecimento e sua função.</span></div></article></aside>
 </div>
 </section>
 <section class="panel-section" id="secServicos">
@@ -440,6 +476,13 @@
 <div class="barber-list" id="listaBarbeirosPainel">
 </div>
 </div>
+</div>
+</div>
+<div class="team-access card" data-feature-gate="permite_equipe_acesso">
+<div class="card-body">
+<div class="section-top compact"><div><span class="tag"><i class="bi bi-person-lock"></i> Acesso individual</span><h3>Quem pode entrar no painel</h3><p>Vincule uma conta existente e escolha o papel operacional de cada pessoa.</p></div><button class="btn btn-outline btn-small" data-team-action="vincular" data-plan-feature="permite_equipe_acesso" type="button"><i class="bi bi-person-plus"></i> Vincular acesso</button></div>
+<div class="operation-composer" hidden="" id="teamComposer19"></div>
+<div class="team-access-list" id="teamAcessos19"><div class="operation-state compact"><i class="bi bi-people"></i><strong>Carregando acessos</strong></div></div>
 </div>
 </div>
 </section>
@@ -1066,6 +1109,7 @@
 <script src="../js/image-editor.js"></script>
 <script src="../js/painel.js">
 </script>
+<script src="../js/painel-operacao-1.9.js"></script>
 <script src="../js/mobile-app.js"></script>
 <script src="../js/product-redesign.js"></script><script src="../js/mobile-shell-v1.7.js"></script><script src="../js/mobile-native-v1.7.1.js"></script><script src="../js/mobile-redesign-1.8.js"></script></body>
 </html>

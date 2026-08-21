@@ -37,7 +37,7 @@ class ApiSmokeTests(TestCase):
     def test_health_reports_api_version(self) -> None:
         response = self.client.get("/api/v1/health")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["data"]["version"], "1.3.1")
+        self.assertEqual(response.json()["data"]["version"], "1.4.0")
 
     def test_support_validation_is_standardized(self) -> None:
         response = self.client.post("/api/v1/support/tickets", json={})
@@ -112,6 +112,34 @@ class ApiSmokeTests(TestCase):
                 "descricao": "Desconto de fidelidade",
                 "desconto_percentual": 10,
             },
+        )
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json()["error"]["code"], "UNAUTHORIZED")
+
+    def test_agenda_2_route_requires_session(self) -> None:
+        response = self.client.get(
+            "/api/v1/schedule/range?establishment_id=00000000-0000-0000-0000-000000000001&start=2026-08-20&end=2026-08-20"
+        )
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json()["error"]["code"], "UNAUTHORIZED")
+
+    def test_crm_route_requires_session(self) -> None:
+        response = self.client.get(
+            "/api/v1/crm/clients?establishment_id=00000000-0000-0000-0000-000000000001"
+        )
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json()["error"]["code"], "UNAUTHORIZED")
+
+    def test_finance_route_requires_session(self) -> None:
+        response = self.client.get(
+            "/api/v1/finance/summary?establishment_id=00000000-0000-0000-0000-000000000001&start=2026-08-01&end=2026-08-20"
+        )
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json()["error"]["code"], "UNAUTHORIZED")
+
+    def test_team_route_requires_session(self) -> None:
+        response = self.client.get(
+            "/api/v1/team/members?establishment_id=00000000-0000-0000-0000-000000000001"
         )
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.json()["error"]["code"], "UNAUTHORIZED")

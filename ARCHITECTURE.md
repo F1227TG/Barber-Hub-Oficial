@@ -1,4 +1,4 @@
-# Arquitetura do Barber Hub 1.8.2
+# Arquitetura do Barber Hub 1.9.0
 
 ## Visão geral
 
@@ -67,11 +67,15 @@ A página `agendamento.html` é apenas compatibilidade/deep-link.
 ## Backend Python
 
 - `api/index.py`: rotas FastAPI, middleware de request id e logs estruturados;
-- `backend/domain/`: regras puras de agendamento e planos, testáveis sem rede;
+- `backend/domain/`: regras puras de agendamento, planos, agenda, CRM, finanças e permissões, testáveis sem rede;
 - `backend/security.py`: autenticação/token, admin e e-mail confirmado;
 - `backend/rate_limit.py`: limitação distribuída;
 - `backend/services/catalog.py`: marketplace;
 - `backend/services/appointments.py`: criar/cancelar/status;
+- `backend/services/schedule.py`: Agenda 2.0 e RPCs transacionais;
+- `backend/services/crm.py`: carteira persistente e notas internas;
+- `backend/services/finance.py`: resumo, ajustes, comissões e fechamento;
+- `backend/services/team.py`: vínculos e papéis operacionais;
 - `backend/services/management.py`: edição de estabelecimento, serviços e profissionais com Pydantic + token do usuário + RLS;
 - `backend/services/admin.py`: overview, health, recuperação e auditoria;
 - `backend/services/support.py`: tickets;
@@ -97,6 +101,17 @@ A **migration 17** endurece os limites de confiança levantados na auditoria:
 - locks transacionais para limites de plano e validação de reativação;
 - contador de curtidas derivado da tabela de curtidas;
 - policies públicas que excluem estabelecimentos suspensos.
+
+As **migrations 18–23** adicionam e endurecem a base operacional 1.9:
+
+- agenda por intervalo/profissional, eventos, confirmação, reagendamento e no-show;
+- CRM persistente por estabelecimento;
+- lançamentos, comissões e fechamento diário;
+- papéis de equipe e acesso individual;
+  - entitlements operacionais, RLS consolidado e encaixe transacional;
+  - índices de FKs, políticas sem duplicação e bloqueio de RPCs exclusivas de gatilho.
+
+As migrations 11–23 foram aplicadas no ambiente conectado em 21/08/2026 e aprovadas pelos verificadores 17, 22 e 23. A configuração externa restante está em `docs/CONFIGURACAO_EXTERNA_1_9.md`.
 
 ## Segurança por camada
 
@@ -128,4 +143,4 @@ O frontend pode ocultar/bloquear recursos para UX, mas agenda, equipe, promoçõ
 
 ## Desenvolvimento offline da API
 
-`backend/domain` não importa FastAPI, HTTPX ou Supabase. Serviços orquestram essas regras e o gateway externo fica em `backend/supabase.py`. O comando `npm run check:offline` valida regras críticas mesmo sem credenciais ou conectividade.
+`backend/domain` não importa FastAPI, HTTPX ou Supabase. Serviços orquestram essas regras e o gateway externo fica em `backend/supabase.py`. O comando `npm run check:offline` valida regras críticas mesmo sem credenciais ou conectividade. O monorepo continua sendo a escolha da 1.9.0; uma separação da API/mobile só deve ocorrer quando houver ciclo de deploy e equipe realmente independentes.

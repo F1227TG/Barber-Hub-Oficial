@@ -1244,6 +1244,12 @@ async function bhObterResumoAssinaturaBarbeiro() {
     permite_promocoes: false,
     permite_relatorios_avancados: false,
     permite_exportacao: false,
+    permite_agenda_avancada: false,
+    permite_crm: false,
+    permite_financeiro: false,
+    permite_comissoes: false,
+    permite_equipe_acesso: false,
+    limite_membros_equipe: 0,
     prioridade_marketplace: 0,
     recursos: ["Página pública", "Status aberto/fechado"]
   };
@@ -1267,6 +1273,12 @@ async function bhObterResumoAssinaturaBarbeiro() {
       permite_promocoes: efetivo.permite_promocoes,
       permite_relatorios_avancados: efetivo.permite_relatorios_avancados,
       permite_exportacao: efetivo.permite_exportacao,
+      permite_agenda_avancada: efetivo.permite_agenda_avancada,
+      permite_crm: efetivo.permite_crm,
+      permite_financeiro: efetivo.permite_financeiro,
+      permite_comissoes: efetivo.permite_comissoes,
+      permite_equipe_acesso: efetivo.permite_equipe_acesso,
+      limite_membros_equipe: efetivo.limite_membros_equipe,
       prioridade_marketplace: efetivo.prioridade_marketplace,
       recursos: efetivo.recursos || []
     },

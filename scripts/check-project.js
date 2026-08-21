@@ -1,5 +1,5 @@
 /**
- * Auditoria local do Barber Hub 1.8.2.
+ * Auditoria local do Barber Hub 1.9.0.
  *
  * Não depende de bibliotecas externas. O script verifica estrutura, referências
  * locais, IDs duplicados, presença da API Python e vazamento acidental de
@@ -26,6 +26,7 @@ const required = [
   "css/release-1.7.css",
   "css/release-1.7.1.css",
   "css/release-1.8.css",
+  "css/release-1.9.css",
   "css/brand-assets-1.8.css",
   "img/branding/barber-hub-compacta.png",
   "img/branding/barber-hub-horizontal.png",
@@ -41,6 +42,7 @@ const required = [
   "js/mobile-shell-v1.7.js",
   "js/mobile-native-v1.7.1.js",
   "js/backend-api.js",
+  "js/painel-operacao-1.9.js",
   "api/index.py",
   "backend/config.py",
   "backend/security.py",
@@ -49,11 +51,21 @@ const required = [
   "backend/services/management.py",
   "backend/domain/appointments.py",
   "backend/domain/plans.py",
+  "backend/domain/schedule.py",
+  "backend/domain/crm.py",
+  "backend/domain/finance.py",
+  "backend/domain/permissions.py",
   "backend/rate_limit.py",
   "sql/14_api_python_agendamento_multisservicos.sql",
   "sql/15_marketplace_fts_api_seguranca.sql",
   "sql/16_assinaturas_entitlements_beneficios.sql",
   "sql/17_correcao_auditoria_seguranca.sql",
+  "sql/18_agenda_equipe_operacional_1_9.sql",
+  "sql/19_crm_operacional_1_9.sql",
+  "sql/20_financeiro_comissoes_1_9.sql",
+  "sql/21_entitlements_operacionais_1_9.sql",
+  "sql/22_encaixes_hardening_operacional_1_9.sql",
+  "sql/verificar_22_operacao_1_9.sql",
   "mobile/index.html",
   "mobile/portal.html",
   "docs/PRD_BARBER_HUB.md",
@@ -167,7 +179,7 @@ for (const page of ["html/painel.html", "html/planos.html", "html/admin.html", "
 // Regressões do Service Worker: a 1.7.2 falhou no Chromium porque
 // ./mobile/index.html aparecia duas vezes em cache.addAll().
 const serviceWorker = fs.readFileSync(path.join(root, "service-worker.js"), "utf8");
-if (!serviceWorker.includes("barberhub-v1.8.2")) errors.push("Service Worker não usa o cache barberhub-v1.8.2.");
+if (!serviceWorker.includes("barberhub-v1.9.0")) errors.push("Service Worker não usa o cache barberhub-v1.9.0.");
 if (serviceWorker.includes("cache.addAll(CORE)")) errors.push("Service Worker voltou a usar cache.addAll(CORE), que falha com requisições duplicadas.");
 if (!serviceWorker.includes("const CORE = [...new Set(CORE_SOURCE)]")) errors.push("Service Worker não deduplica a lista CORE preventivamente.");
 const coreMatch = serviceWorker.match(/const CORE_SOURCE = \[([\s\S]*?)\n\];/);
@@ -184,7 +196,7 @@ if (errors.length) {
   process.exit(1);
 }
 
-console.log(`Barber Hub 1.8.2: ${required.length} arquivos centrais encontrados.`);
+console.log(`Barber Hub 1.9.0: ${required.length} arquivos centrais encontrados.`);
 console.log(`${htmlFiles.length} páginas HTML verificadas, sem IDs duplicados ou links locais quebrados.`);
 console.log(`${jsFiles.length} arquivos JavaScript passaram por node --check.`);
 console.log("Nenhuma chave secreta foi encontrada nos arquivos públicos auditados.");

@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Barber Hub API
   description: API própria do Barber Hub, executada em Python/FastAPI.
-  version: 1.3.1
+  version: 1.4.0
 paths:
   /api/v1/health:
     get:
@@ -894,6 +894,147 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/schedule/range:
+    get:
+      summary: List Operational Schedule Range
+      operationId: schedule_range_api_v1_schedule_range_get
+      responses:
+        '200': {description: Successful Response}
+  /api/v1/schedule/walk-ins:
+    post:
+      summary: Create Walk In
+      operationId: create_walk_in_api_v1_schedule_walk_ins_post
+      responses:
+        '201': {description: Successful Response}
+  /api/v1/schedule/blocks:
+    post:
+      summary: Create Schedule Block
+      operationId: create_schedule_block_api_v1_schedule_blocks_post
+      responses:
+        '201': {description: Successful Response}
+  /api/v1/schedule/blocks/{block_id}:
+    delete:
+      summary: Delete Schedule Block
+      operationId: delete_schedule_block_api_v1_schedule_blocks_block_id_delete
+      parameters:
+      - {name: block_id, in: path, required: true, schema: {type: string}}
+      responses:
+        '200': {description: Successful Response}
+  /api/v1/appointments/{appointment_id}/reschedule:
+    patch:
+      summary: Reschedule Appointment
+      operationId: reschedule_appointment_api_v1_appointments_appointment_id_reschedule_patch
+      parameters:
+      - {name: appointment_id, in: path, required: true, schema: {type: string}}
+      responses:
+        '200': {description: Successful Response}
+  /api/v1/appointments/{appointment_id}/confirmation:
+    patch:
+      summary: Register Appointment Confirmation
+      operationId: confirm_appointment_api_v1_appointments_appointment_id_confirmation_patch
+      parameters:
+      - {name: appointment_id, in: path, required: true, schema: {type: string}}
+      responses:
+        '200': {description: Successful Response}
+  /api/v1/appointments/{appointment_id}/no-show:
+    patch:
+      summary: Register Appointment No Show
+      operationId: no_show_appointment_api_v1_appointments_appointment_id_no_show_patch
+      parameters:
+      - {name: appointment_id, in: path, required: true, schema: {type: string}}
+      responses:
+        '200': {description: Successful Response}
+  /api/v1/crm/clients:
+    get:
+      summary: List CRM Clients
+      operationId: list_crm_clients_api_v1_crm_clients_get
+      responses:
+        '200': {description: Successful Response}
+  /api/v1/crm/clients/{client_id}:
+    get:
+      summary: Get CRM Client
+      operationId: get_crm_client_api_v1_crm_clients_client_id_get
+      parameters:
+      - {name: client_id, in: path, required: true, schema: {type: string}}
+      responses:
+        '200': {description: Successful Response}
+    patch:
+      summary: Update CRM Client
+      operationId: update_crm_client_api_v1_crm_clients_client_id_patch
+      parameters:
+      - {name: client_id, in: path, required: true, schema: {type: string}}
+      responses:
+        '200': {description: Successful Response}
+  /api/v1/crm/clients/{client_id}/notes:
+    post:
+      summary: Add CRM Note
+      operationId: add_crm_note_api_v1_crm_clients_client_id_notes_post
+      parameters:
+      - {name: client_id, in: path, required: true, schema: {type: string}}
+      responses:
+        '201': {description: Successful Response}
+  /api/v1/finance/summary:
+    get:
+      summary: Financial Summary
+      operationId: finance_summary_api_v1_finance_summary_get
+      responses:
+        '200': {description: Successful Response}
+  /api/v1/finance/entries:
+    get:
+      summary: List Financial Entries
+      operationId: finance_entries_api_v1_finance_entries_get
+      responses:
+        '200': {description: Successful Response}
+  /api/v1/finance/adjustments:
+    post:
+      summary: Create Financial Adjustment
+      operationId: create_financial_adjustment_api_v1_finance_adjustments_post
+      responses:
+        '201': {description: Successful Response}
+  /api/v1/finance/closings:
+    post:
+      summary: Close Financial Day
+      operationId: close_financial_day_api_v1_finance_closings_post
+      responses:
+        '201': {description: Successful Response}
+  /api/v1/finance/commission-rules:
+    get:
+      summary: List Commission Rules
+      operationId: commission_rules_api_v1_finance_commission_rules_get
+      responses:
+        '200': {description: Successful Response}
+    post:
+      summary: Create Commission Rule
+      operationId: create_commission_rule_api_v1_finance_commission_rules_post
+      responses:
+        '201': {description: Successful Response}
+  /api/v1/finance/commission-rules/{rule_id}:
+    patch:
+      summary: Update Commission Rule
+      operationId: update_commission_rule_api_v1_finance_commission_rules_rule_id_patch
+      parameters:
+      - {name: rule_id, in: path, required: true, schema: {type: string}}
+      responses:
+        '200': {description: Successful Response}
+  /api/v1/team/members:
+    get:
+      summary: List Team Members
+      operationId: team_members_api_v1_team_members_get
+      responses:
+        '200': {description: Successful Response}
+    post:
+      summary: Link Team Member
+      operationId: link_team_member_api_v1_team_members_post
+      responses:
+        '201': {description: Successful Response}
+  /api/v1/team/members/{member_id}:
+    patch:
+      summary: Update Team Member
+      operationId: update_team_member_api_v1_team_members_member_id_patch
+      parameters:
+      - {name: member_id, in: path, required: true, schema: {type: string}}
+      responses:
+        '200': {description: Successful Response}
 components:
   schemas:
     AdminSubscriptionUpdate:

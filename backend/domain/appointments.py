@@ -4,10 +4,11 @@ from __future__ import annotations
 
 APPOINTMENT_TRANSITIONS: dict[str, frozenset[str]] = {
     "pendente": frozenset({"confirmado", "recusado", "cancelado"}),
-    "confirmado": frozenset({"concluido", "cancelado"}),
+    "confirmado": frozenset({"concluido", "cancelado", "faltou"}),
     "recusado": frozenset(),
     "concluido": frozenset(),
     "cancelado": frozenset(),
+    "faltou": frozenset(),
 }
 
 

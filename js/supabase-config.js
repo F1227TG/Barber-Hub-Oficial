@@ -4,7 +4,11 @@
   Nunca use service_role ou secret key no navegador.
 */
 const SUPABASE_URL = "https://dhkqnfqrfqrpumrjjrcy.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRoa3FuZnFyZnFycHVtcmpqcmN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3NjI0MzEsImV4cCI6MjA5OTMzODQzMX0.rF13C80O6ePH9RKSON089-T7IhhwndRWN05EZQ1k_ho";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_idNGCP5OcCJQOL3rzkRVLw_nw-d3FJm";
+
+// Alias temporário para módulos legados. O valor continua sendo uma chave
+// pública própria para navegador; nunca substitua por sb_secret/service_role.
+const SUPABASE_ANON_KEY = SUPABASE_PUBLISHABLE_KEY;
 
 /*
  * Cloudflare Turnstile. Em produção, security.js carrega a site key pública de

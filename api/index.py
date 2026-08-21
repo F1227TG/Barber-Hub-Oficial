@@ -1,4 +1,4 @@
-"""Barber Hub API v1.3.1.
+"""Barber Hub API v1.4.0.
 
 FastAPI is the server-side validation layer of the marketplace. Supabase keeps
 Auth, PostgreSQL, Storage and Realtime responsibilities; sensitive business
@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import time
+from datetime import date, datetime
 from uuid import uuid4
 
 from fastapi import Depends, FastAPI, Header, Query, Request, status
@@ -20,12 +21,20 @@ from backend.config import settings
 from backend.errors import ApiError
 from backend.models import (
     AppointmentCancelRequest,
+    AppointmentConfirmation,
     AppointmentCreate,
+    AppointmentReschedule,
     AppointmentStatusUpdate,
     AdminSubscriptionUpdate,
+    CRMClientUpdate,
+    CRMNoteCreate,
+    CommissionRuleCreate,
+    CommissionRuleUpdate,
+    DayClosingCreate,
     DeleteAccountRequest,
     EstablishmentStatusUpdate,
     EstablishmentUpdate,
+    FinancialAdjustmentCreate,
     PasswordRecoveryRequest,
     ProfessionalCreate,
     ProfessionalUpdate,
@@ -33,17 +42,25 @@ from backend.models import (
     PromotionUpdate,
     ServiceCreate,
     ServiceUpdate,
+    ScheduleBlockCreate,
     SupportTicketCreate,
+    TeamMemberLink,
+    TeamMemberUpdate,
+    WalkInCreate,
 )
 from backend.rate_limit import enforce as enforce_rate_limit
 from backend.security import AuthContext, require_admin, require_user
 from backend.services import admin as admin_service
 from backend.services import appointments as appointment_service
 from backend.services import catalog as catalog_service
+from backend.services import crm as crm_service
+from backend.services import finance as finance_service
 from backend.services import management as management_service
+from backend.services import schedule as schedule_service
 from backend.services import support as support_service
+from backend.services import team as team_service
 
-API_VERSION = "1.3.1"
+API_VERSION = "1.4.0"
 
 app = FastAPI(
     title="Barber Hub API",
@@ -238,6 +255,241 @@ async def cancel_appointment(
 ) -> JSONResponse:
     await enforce_rate_limit(request, "appointments-cancel", limit=20, window_seconds=300, identity=auth.user_id)
     return ok(await appointment_service.cancel(appointment_id, payload, auth))
+
+
+@app.get("/api/v1/schedule/range")
+async def schedule_range(
+    request: Request,
+    establishment_id: str = Query(min_length=36, max_length=36),
+    start: date = Query(),
+    end: date = Query(),
+    professional_id: str | None = Query(default=None, min_length=36, max_length=36),
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    if end < start or (end - start).days > 31:
+        raise ApiError(422, "INVALID_SCHEDULE_RANGE", "Consulte no máximo 32 dias por vez.")
+    await enforce_rate_limit(request, "schedule-range", limit=120, window_seconds=60, identity=auth.user_id)
+    return ok(await schedule_service.list_range(establishment_id, start, end, professional_id, auth))
+
+
+@app.post("/api/v1/schedule/walk-ins", status_code=status.HTTP_201_CREATED)
+async def create_walk_in(
+    request: Request,
+    payload: WalkInCreate,
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "schedule-walk-in", limit=30, window_seconds=300, identity=auth.user_id)
+    return ok(await schedule_service.create_walk_in(payload, auth), status.HTTP_201_CREATED)
+
+
+@app.post("/api/v1/schedule/blocks", status_code=status.HTTP_201_CREATED)
+async def create_schedule_block(
+    request: Request,
+    payload: ScheduleBlockCreate,
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "schedule-block-create", limit=60, window_seconds=300, identity=auth.user_id)
+    return ok(await schedule_service.create_block(payload, auth), status.HTTP_201_CREATED)
+
+
+@app.delete("/api/v1/schedule/blocks/{block_id}")
+async def delete_schedule_block(
+    block_id: str,
+    request: Request,
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "schedule-block-delete", limit=60, window_seconds=300, identity=auth.user_id)
+    return ok(await schedule_service.delete_block(block_id, auth))
+
+
+@app.patch("/api/v1/appointments/{appointment_id}/reschedule")
+async def reschedule_appointment(
+    appointment_id: str,
+    request: Request,
+    payload: AppointmentReschedule,
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "appointments-reschedule", limit=40, window_seconds=300, identity=auth.user_id)
+    return ok(await schedule_service.reschedule(appointment_id, payload, auth))
+
+
+@app.patch("/api/v1/appointments/{appointment_id}/confirmation")
+async def confirm_appointment(
+    appointment_id: str,
+    request: Request,
+    payload: AppointmentConfirmation,
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "appointments-confirmation", limit=40, window_seconds=300, identity=auth.user_id)
+    return ok(await schedule_service.confirm(appointment_id, payload, auth))
+
+
+@app.patch("/api/v1/appointments/{appointment_id}/no-show")
+async def mark_appointment_no_show(
+    appointment_id: str,
+    request: Request,
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "appointments-no-show", limit=30, window_seconds=300, identity=auth.user_id)
+    return ok(await schedule_service.mark_no_show(appointment_id, auth))
+
+
+@app.get("/api/v1/crm/clients")
+async def list_crm_clients(
+    request: Request,
+    establishment_id: str = Query(min_length=36, max_length=36),
+    q: str | None = Query(default=None, max_length=120),
+    segment: str | None = Query(default=None, pattern="^(lead|novo|recorrente|em_risco|inativo)?$"),
+    cursor_last: datetime | None = Query(default=None),
+    cursor_id: str | None = Query(default=None, min_length=36, max_length=36),
+    limit: int = Query(default=30, ge=1, le=60),
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "crm-list", limit=90, window_seconds=60, identity=auth.user_id)
+    return ok(await crm_service.list_clients(establishment_id, q, segment, cursor_last, cursor_id, limit, auth))
+
+
+@app.get("/api/v1/crm/clients/{client_id}")
+async def get_crm_client(
+    client_id: str,
+    request: Request,
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "crm-detail", limit=120, window_seconds=60, identity=auth.user_id)
+    return ok(await crm_service.get_client(client_id, auth))
+
+
+@app.patch("/api/v1/crm/clients/{client_id}")
+async def update_crm_client(
+    client_id: str,
+    request: Request,
+    payload: CRMClientUpdate,
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "crm-update", limit=60, window_seconds=300, identity=auth.user_id)
+    return ok(await crm_service.update_client(client_id, payload, auth))
+
+
+@app.post("/api/v1/crm/clients/{client_id}/notes", status_code=status.HTTP_201_CREATED)
+async def add_crm_note(
+    client_id: str,
+    request: Request,
+    payload: CRMNoteCreate,
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "crm-note-create", limit=60, window_seconds=300, identity=auth.user_id)
+    return ok(await crm_service.add_note(client_id, payload, auth), status.HTTP_201_CREATED)
+
+
+@app.get("/api/v1/finance/summary")
+async def finance_summary(
+    request: Request,
+    establishment_id: str = Query(min_length=36, max_length=36),
+    start: date = Query(),
+    end: date = Query(),
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    if end < start or (end - start).days > 366:
+        raise ApiError(422, "INVALID_FINANCE_RANGE", "Consulte um período de até 367 dias.")
+    await enforce_rate_limit(request, "finance-summary", limit=90, window_seconds=60, identity=auth.user_id)
+    return ok(await finance_service.summary(establishment_id, start, end, auth))
+
+
+@app.get("/api/v1/finance/entries")
+async def finance_entries(
+    request: Request,
+    establishment_id: str = Query(min_length=36, max_length=36),
+    start: date = Query(),
+    end: date = Query(),
+    limit: int = Query(default=100, ge=1, le=500),
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    if end < start or (end - start).days > 366:
+        raise ApiError(422, "INVALID_FINANCE_RANGE", "Consulte um período de até 367 dias.")
+    await enforce_rate_limit(request, "finance-entries", limit=90, window_seconds=60, identity=auth.user_id)
+    return ok(await finance_service.list_entries(establishment_id, start, end, limit, auth))
+
+
+@app.post("/api/v1/finance/adjustments", status_code=status.HTTP_201_CREATED)
+async def create_financial_adjustment(
+    request: Request,
+    payload: FinancialAdjustmentCreate,
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "finance-adjustment", limit=30, window_seconds=300, identity=auth.user_id)
+    return ok(await finance_service.create_adjustment(payload, auth), status.HTTP_201_CREATED)
+
+
+@app.post("/api/v1/finance/closings", status_code=status.HTTP_201_CREATED)
+async def close_financial_day(
+    request: Request,
+    payload: DayClosingCreate,
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "finance-closing", limit=20, window_seconds=300, identity=auth.user_id)
+    return ok(await finance_service.close_day(payload, auth), status.HTTP_201_CREATED)
+
+
+@app.get("/api/v1/finance/commission-rules")
+async def commission_rules(
+    request: Request,
+    establishment_id: str = Query(min_length=36, max_length=36),
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "commission-rules-list", limit=60, window_seconds=60, identity=auth.user_id)
+    return ok(await finance_service.list_commission_rules(establishment_id, auth))
+
+
+@app.post("/api/v1/finance/commission-rules", status_code=status.HTTP_201_CREATED)
+async def create_commission_rule(
+    request: Request,
+    payload: CommissionRuleCreate,
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "commission-rules-create", limit=30, window_seconds=300, identity=auth.user_id)
+    return ok(await finance_service.create_commission_rule(payload, auth), status.HTTP_201_CREATED)
+
+
+@app.patch("/api/v1/finance/commission-rules/{rule_id}")
+async def update_commission_rule(
+    rule_id: str,
+    request: Request,
+    payload: CommissionRuleUpdate,
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "commission-rules-update", limit=60, window_seconds=300, identity=auth.user_id)
+    return ok(await finance_service.update_commission_rule(rule_id, payload, auth))
+
+
+@app.get("/api/v1/team/members")
+async def team_members(
+    request: Request,
+    establishment_id: str = Query(min_length=36, max_length=36),
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "team-list", limit=60, window_seconds=60, identity=auth.user_id)
+    return ok(await team_service.list_members(establishment_id, auth))
+
+
+@app.post("/api/v1/team/members", status_code=status.HTTP_201_CREATED)
+async def link_team_member(
+    request: Request,
+    payload: TeamMemberLink,
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "team-link", limit=20, window_seconds=600, identity=auth.user_id)
+    return ok(await team_service.link_member(payload, auth), status.HTTP_201_CREATED)
+
+
+@app.patch("/api/v1/team/members/{member_id}")
+async def update_team_member(
+    member_id: str,
+    request: Request,
+    payload: TeamMemberUpdate,
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "team-update", limit=40, window_seconds=300, identity=auth.user_id)
+    return ok(await team_service.update_member(member_id, payload, auth))
 
 
 @app.patch("/api/v1/establishments/{establishment_id}")
@@ -470,3 +722,10 @@ async def navigation_audit(
 ) -> JSONResponse:
     await enforce_rate_limit(request, "admin-navigation-audit", limit=60, window_seconds=60, identity=auth.user_id)
     return ok(await admin_service.navigation_audit(auth))
+    CRMClientUpdate,
+    CRMNoteCreate,
+    CommissionRuleCreate,
+    CommissionRuleUpdate,
+    DayClosingCreate,
+    FinancialAdjustmentCreate,
+    ScheduleBlockCreate,

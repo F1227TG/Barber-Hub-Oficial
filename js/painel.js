@@ -67,7 +67,12 @@ function bhNomeBeneficioPlano(chave) {
     permite_promocoes: "Promoções",
     permite_relatorios: "Relatórios",
     permite_relatorios_avancados: "Relatórios avançados",
-    permite_exportacao: "Exportação CSV"
+    permite_exportacao: "Exportação CSV",
+    permite_agenda_avancada: "Agenda profissional 2.0",
+    permite_crm: "CRM 2.0",
+    permite_financeiro: "Financeiro operacional",
+    permite_comissoes: "Comissões automáticas",
+    permite_equipe_acesso: "Acesso individual da equipe"
   })[chave] || "Este recurso";
 }
 
@@ -655,7 +660,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   document.querySelectorAll("[data-panel]").forEach(botao => botao.addEventListener("click", () => bhAtivarSecaoPainel(botao.dataset.panel)));
   const hash = location.hash.replace("#", "");
-  const mapaHash = { agenda: "secAgenda", clientes: "secClientes", promocoes: "secPromocoes", servicos: "secServicos", equipe: "secBarbeiros", relatorios: "secRelatorios", galeria: "secGaleria", avaliacoes: "secAvaliacoes", configuracoes: "secConfig", pagina: "secPagina" };
+  const mapaHash = { agenda: "secAgenda", clientes: "secClientes", financeiro: "secFinanceiro", promocoes: "secPromocoes", servicos: "secServicos", equipe: "secBarbeiros", relatorios: "secRelatorios", galeria: "secGaleria", avaliacoes: "secAvaliacoes", configuracoes: "secConfig", pagina: "secPagina" };
   if (mapaHash[hash]) bhAtivarSecaoPainel(mapaHash[hash]);
 
   document.querySelectorAll("[data-horario-aberto]").forEach(check => check.addEventListener("change", () => {
@@ -1044,7 +1049,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 window.addEventListener("hashchange", () => {
-  const mapa = { agenda: "secAgenda", clientes: "secClientes", promocoes: "secPromocoes", servicos: "secServicos", equipe: "secBarbeiros", relatorios: "secRelatorios", galeria: "secGaleria", avaliacoes: "secAvaliacoes", configuracoes: "secConfig", pagina: "secPagina" };
+  const mapa = { agenda: "secAgenda", clientes: "secClientes", financeiro: "secFinanceiro", promocoes: "secPromocoes", servicos: "secServicos", equipe: "secBarbeiros", relatorios: "secRelatorios", galeria: "secGaleria", avaliacoes: "secAvaliacoes", configuracoes: "secConfig", pagina: "secPagina" };
   const alvo = mapa[location.hash.replace("#", "")];
   if (alvo) bhAtivarSecaoPainel(alvo);
 });
