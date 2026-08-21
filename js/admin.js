@@ -18,7 +18,7 @@ function bhAdminFiltrarTexto(item, termo, campos) {
 function bhRenderAdminKpis() {
   const { counts, perfis, estabelecimentos, tickets, agendamentos, denuncias, avaliacoes } = bhAdminDados;
   const ativos = perfis.filter(item => item.ativo).length;
-  const visiveis = estabelecimentos.filter(item => item.visivel).length;
+  const visiveis = estabelecimentos.filter(item => item.visivel && !item.suspenso_pela_moderacao).length;
   const concluidos = agendamentos.filter(item => item.status === "concluido");
   const ticketsPendentes = tickets.filter(item => ["aberto","em_atendimento"].includes(item.status));
   const moderacao = denuncias.filter(item => ["aberta","analisando"].includes(item.status)).length + avaliacoes.filter(item => item.status === "em_analise").length;
@@ -59,8 +59,9 @@ function bhRenderAdminEstabelecimentos() {
   const filtro = document.getElementById("filtroAdminEstabelecimentos")?.value || "todos";
   const itens = bhAdminDados.estabelecimentos.filter(item => bhAdminFiltrarTexto(item, termo, ["nome","cidade","bairro"]) && (
     filtro === "todos" ||
-    (filtro === "visiveis" && item.visivel) ||
-    (filtro === "ocultos" && !item.visivel) ||
+    (filtro === "visiveis" && item.visivel && !item.suspenso_pela_moderacao) ||
+    (filtro === "ocultos" && !item.visivel && !item.suspenso_pela_moderacao) ||
+    (filtro === "suspensos" && item.suspenso_pela_moderacao) ||
     (filtro === "verificados" && item.verificado) ||
     (filtro === "destaques" && item.destaque)
   ));
@@ -70,8 +71,8 @@ function bhRenderAdminEstabelecimentos() {
     <td>${escapeHTML([item.bairro,item.cidade,item.estado].filter(Boolean).join(", "))}</td>
     <td><span class="status ${item.aceita_agendamento?"aberta":"fechada"}">${item.aceita_agendamento?"Ativa":"Desativada"}</span></td>
     <td>${Number(item.avaliacao||0)>0?`<span class="rating">${Number(item.avaliacao).toFixed(1)} ★</span>`:"Sem avaliações"}</td>
-    <td><div class="admin-state-stack"><span>${item.visivel?"Visível":"Oculto"}</span>${item.destaque?"<small>Destaque no portal</small>":""}</div></td>
-    <td><div class="admin-control-group"><a class="icon-btn" href="barbearia.html?id=${item.id}" target="_blank" title="Abrir página"><i class="bi bi-box-arrow-up-right"></i></a><button class="icon-btn ${item.verificado?"success":""}" data-admin-verificar="${item.id}" data-valor="${item.verificado}" title="${item.verificado?"Remover verificação":"Verificar"}"><i class="bi bi-patch-check"></i></button><button class="icon-btn ${item.destaque?"success":""}" data-admin-destaque="${item.id}" data-valor="${item.destaque}" title="${item.destaque?"Remover destaque":"Destacar"}"><i class="bi bi-pin-angle"></i></button><button class="icon-btn ${item.visivel?"danger":"success"}" data-admin-visibilidade="${item.id}" data-valor="${item.visivel}" title="${item.visivel?"Ocultar":"Publicar"}"><i class="bi ${item.visivel?"bi-eye-slash":"bi-eye"}"></i></button></div></td>
+    <td><div class="admin-state-stack"><span>${item.suspenso_pela_moderacao?"Suspenso":item.visivel?"Visível":"Oculto pelo proprietário"}</span>${item.suspenso_pela_moderacao?`<small>${escapeHTML(item.suspenso_motivo||"Moderação administrativa")}</small>`:item.destaque?"<small>Destaque no portal</small>":""}</div></td>
+    <td><div class="admin-control-group"><a class="icon-btn" href="barbearia.html?id=${item.id}" target="_blank" title="Abrir página"><i class="bi bi-box-arrow-up-right"></i></a><button class="icon-btn ${item.verificado?"success":""}" data-admin-verificar="${item.id}" data-valor="${item.verificado}" title="${item.verificado?"Remover verificação":"Verificar"}"><i class="bi bi-patch-check"></i></button><button class="icon-btn ${item.destaque?"success":""}" data-admin-destaque="${item.id}" data-valor="${item.destaque}" title="${item.destaque?"Remover destaque":"Destacar"}"><i class="bi bi-pin-angle"></i></button><button class="icon-btn ${item.suspenso_pela_moderacao?"success":"danger"}" data-admin-suspensao="${item.id}" data-valor="${item.suspenso_pela_moderacao}" title="${item.suspenso_pela_moderacao?"Restaurar publicação":"Suspender pela moderação"}"><i class="bi ${item.suspenso_pela_moderacao?"bi-shield-check":"bi-shield-x"}"></i></button></div></td>
   </tr>`).join("") : `<tr><td colspan="6"><div class="empty compact">Nenhum estabelecimento encontrado.</div></td></tr>`;
 }
 
@@ -199,7 +200,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   document.body.addEventListener("click", async evento => {
-    const vis = evento.target.closest("[data-admin-visibilidade]");
+    const suspensao = evento.target.closest("[data-admin-suspensao]");
     const ver = evento.target.closest("[data-admin-verificar]");
     const dest = evento.target.closest("[data-admin-destaque]");
     const ativo = evento.target.closest("[data-admin-ativo]");
@@ -224,7 +225,19 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
         return;
       }
-      if (vis) { await bhAdminAtualizarEstabelecimento(vis.dataset.adminVisibilidade,{visivel:vis.dataset.valor!=="true"}); mostrarToast("sucesso","Visibilidade atualizada","A alteração já está ativa no portal."); await bhRecarregarAdmin(); return; }
+      if (suspensao) {
+        const suspenso = suspensao.dataset.valor === "true";
+        if (suspenso && !await bhConfirmar({ titulo: "Restaurar estabelecimento", mensagem: "A suspensão administrativa será removida e a página voltará ao portal.", confirmarTexto: "Restaurar", trigger: suspensao })) return;
+        if (!suspenso && !await bhConfirmar({ titulo: "Suspender estabelecimento", mensagem: "A página sairá do marketplace e o proprietário não poderá republicá-la enquanto a suspensão estiver ativa.", confirmarTexto: "Suspender", perigo: true, trigger: suspensao })) return;
+        await bhAdminAtualizarEstabelecimento(suspensao.dataset.adminSuspensao, {
+          suspenso_pela_moderacao: !suspenso,
+          suspenso_motivo: suspenso ? null : "Suspenso pela administração.",
+          visivel: suspenso
+        });
+        mostrarToast("sucesso", suspenso ? "Estabelecimento restaurado" : "Estabelecimento suspenso", "A moderação já está ativa no portal.");
+        await bhRecarregarAdmin();
+        return;
+      }
       if (ver) { await bhAdminAtualizarEstabelecimento(ver.dataset.adminVerificar,{verificado:ver.dataset.valor!=="true"}); mostrarToast("sucesso","Verificação atualizada","O selo foi ajustado."); await bhRecarregarAdmin(); return; }
       if (dest) { await bhAdminAtualizarEstabelecimento(dest.dataset.adminDestaque,{destaque:dest.dataset.valor!=="true"}); mostrarToast("sucesso","Destaque atualizado","A prioridade do portal foi ajustada."); await bhRecarregarAdmin(); return; }
       if (ativo) { if(!await bhConfirmar({ titulo: `${ativo.dataset.valor==="true"?"Desativar":"Ativar"} conta`, mensagem: `${ativo.dataset.valor==="true"?"A pessoa perderá o acesso até que a conta seja reativada.":"A pessoa recuperará o acesso ao sistema."}`, confirmarTexto: ativo.dataset.valor==="true"?"Desativar":"Ativar", perigo: ativo.dataset.valor==="true", trigger: ativo })) return; await bhAdminAtualizarPerfil(ativo.dataset.adminAtivo,{ativo:ativo.dataset.valor!=="true"}); mostrarToast("sucesso","Conta atualizada","O status de acesso foi alterado."); await bhRecarregarAdmin(); return; }

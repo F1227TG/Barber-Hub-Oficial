@@ -18,9 +18,13 @@ A ativação é configuração do Supabase Auth e não é feita por migration SQ
 
 ## CAPTCHA
 
-`js/security.js` suporta Cloudflare Turnstile quando `BH_TURNSTILE_SITE_KEY` recebe uma site key pública. Login, cadastro e recuperação passam `captchaToken` ao Supabase Auth.
+`js/security.js` suporta Cloudflare Turnstile e carrega a site key pública em runtime por `/api/v1/public-config`, alimentada por `BARBER_HUB_TURNSTILE_SITE_KEY`. Login, cadastro e recuperação passam `captchaToken` ao Supabase Auth.
 
 A secret do CAPTCHA deve existir apenas no Supabase Dashboard. Nunca coloque secret no repositório.
+
+## Armazenamento de senhas
+
+O Supabase Auth registra somente o hash bcrypt em `auth.users.encrypted_password`. O Barber Hub não copia esse hash para tabelas públicas, não armazena senha reversível e não oferece visualização administrativa. Administradores enviam recuperação de senha com auditoria.
 
 ## Rate limiting
 

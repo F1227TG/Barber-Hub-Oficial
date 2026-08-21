@@ -12,6 +12,7 @@ from decimal import Decimal
 from typing import Any
 from uuid import UUID
 
+from backend.domain.plans import normalized_limit, plan_limit_reached
 from backend.errors import ApiError
 from backend.models import (
     EstablishmentStatusUpdate,
@@ -165,9 +166,9 @@ async def delete_service(service_id: str, auth: AuthContext) -> dict[str, Any]:
 async def create_professional(payload: ProfessionalCreate, auth: AuthContext) -> dict[str, Any]:
     establishment_id = str(payload.estabelecimento_id)
     entitlements = await get_entitlements(establishment_id, auth)
-    limit = max(int(entitlements.get("limite_profissionais") or 1), 1)
+    limit = normalized_limit(entitlements.get("limite_profissionais"))
     active = await _active_count("profissionais", establishment_id, auth)
-    if active >= limit:
+    if plan_limit_reached(active, limit):
         raise ApiError(403, "PLAN_LIMIT_REACHED", f"Seu plano permite até {limit} profissional(is) ativo(s).")
     return await _write(
         "profissionais",
@@ -194,9 +195,9 @@ async def update_professional(professional_id: str, payload: ProfessionalUpdate,
         if not rows[0].get("ativo"):
             establishment_id = str(rows[0]["estabelecimento_id"])
             entitlements = await get_entitlements(establishment_id, auth)
-            limit = max(int(entitlements.get("limite_profissionais") or 1), 1)
+            limit = normalized_limit(entitlements.get("limite_profissionais"))
             active = await _active_count("profissionais", establishment_id, auth)
-            if active >= limit:
+            if plan_limit_reached(active, limit):
                 raise ApiError(403, "PLAN_LIMIT_REACHED", f"Seu plano permite até {limit} profissional(is) ativo(s).")
     return await _write(
         "profissionais",

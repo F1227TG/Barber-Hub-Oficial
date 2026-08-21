@@ -19,8 +19,8 @@ backend_api = (ROOT / "js/backend-api.js").read_text(encoding="utf-8")
 plans = (ROOT / "html/planos.html").read_text(encoding="utf-8")
 package = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))
 
-check("frontend version 1.8.0", package.get("version") == "1.8.0")
-check("API version 1.3.0", 'API_VERSION = "1.3.0"' in api)
+check("frontend version 1.8.2", package.get("version") == "1.8.2")
+check("API version 1.3.1", 'API_VERSION = "1.3.1"' in api)
 check("migration 16 exists", bool(migration))
 check("central entitlement resolver", "calcular_entitlements_estabelecimento" in migration)
 check("cumulative inheritance by ordering", "p.ordenacao <= v_ordem" in migration and "bool_or" in migration and "max(p.limite_profissionais)" in migration)
@@ -44,7 +44,7 @@ check("paid plans no longer development placeholders", "Tudo do Essencial" in pl
 check("desktop admin subscriptions page", (ROOT / "html/admin-assinaturas.html").exists())
 check("mobile admin subscriptions page", (ROOT / "mobile/admin-assinaturas.html").exists())
 check("release 1.8 CSS", (ROOT / "css/release-1.8.css").exists())
-check("service worker cache 1.8", "barberhub-v1.8.0" in (ROOT / "service-worker.js").read_text(encoding="utf-8"))
+check("service worker cache 1.8.2", "barberhub-v1.8.2" in (ROOT / "service-worker.js").read_text(encoding="utf-8"))
 
 failed = [label for label, ok in checks if not ok]
 for label, ok in checks:

@@ -1,9 +1,9 @@
 /*
- * Barber Hub PWA — cache 1.8.0 — hotfix QA mobile
+ * Barber Hub PWA — cache 1.8.2 — auditoria de segurança
  * Network-first para conteúdo; API nunca é armazenada. A experiência instalada
  * inicia na interface HTML dedicada em /mobile.
  */
-const CACHE = 'barberhub-v1.8.0-mobile-qa-r5';
+const CACHE = 'barberhub-v1.8.2-security-r1';
 const CORE_SOURCE = [
   './', './index.html', './offline.html', './mobile/index.html',
   './css/framework.css', './css/global.css', './css/pages.css', './css/index.css', './css/mobile-app.css', './css/release-1.4.1.css', './css/product-redesign.css', './css/release-1.6.css', './css/release-1.7.css', './css/release-1.7.1.css', './css/release-1.8.css', './css/brand-assets-1.8.css', './css/mobile-redesign-1.8.css', './css/image-editor.css',

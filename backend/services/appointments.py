@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from backend.domain.appointments import can_transition
 from backend.errors import ApiError
 from backend.models import AppointmentCancelRequest, AppointmentCreate, AppointmentStatusUpdate
 from backend.security import AuthContext
@@ -58,11 +59,7 @@ async def cancel(appointment_id: str, payload: AppointmentCancelRequest, auth: A
 async def update_status(appointment_id: str, payload: AppointmentStatusUpdate, auth: AuthContext) -> dict[str, str]:
     current = await _visible_appointment(appointment_id, auth)
     previous = str(current.get("status") or "")
-    transitions = {
-        "pendente": {"confirmado", "recusado", "cancelado"},
-        "confirmado": {"concluido", "cancelado"},
-    }
-    if payload.status not in transitions.get(previous, set()):
+    if not can_transition(previous, payload.status):
         raise ApiError(
             409,
             "INVALID_APPOINTMENT_TRANSITION",

@@ -2,22 +2,43 @@
  * security.js — camada de segurança do navegador.
  * --------------------------------------------------------------------------
  * CAPTCHA melhora resistência a abuso, mas não substitui a validação Python,
- * RLS ou rate limiting. Quando BH_TURNSTILE_SITE_KEY estiver vazio, o módulo
- * permanece inativo sem quebrar os formulários.
+ * RLS ou rate limiting. A site key publica vem da API em producao e pode usar
+ * um fallback local sem expor a secret do provedor.
  * --------------------------------------------------------------------------
  */
 (function securityHelpers(global) {
   "use strict";
 
   let scriptPromise = null;
+  let configPromise = null;
+  let siteKey = typeof BH_TURNSTILE_SITE_KEY_FALLBACK !== "undefined"
+    ? String(BH_TURNSTILE_SITE_KEY_FALLBACK || "").trim()
+    : "";
   const widgets = new Map();
 
   function enabled() {
-    return typeof BH_TURNSTILE_SITE_KEY !== "undefined" && Boolean(String(BH_TURNSTILE_SITE_KEY).trim());
+    return Boolean(siteKey);
   }
 
-  function loadScript() {
-    if (!enabled()) return Promise.resolve(false);
+  async function resolveSiteKey() {
+    if (siteKey) return siteKey;
+    if (configPromise) return configPromise;
+    configPromise = fetch("/api/v1/public-config", {
+      headers: { Accept: "application/json" },
+      cache: "no-store"
+    })
+      .then(async response => {
+        if (!response.ok) return "";
+        const payload = await response.json();
+        siteKey = String(payload?.data?.turnstile_site_key || "").trim();
+        return siteKey;
+      })
+      .catch(() => "");
+    return configPromise;
+  }
+
+  async function loadScript() {
+    if (!await resolveSiteKey()) return false;
     if (global.turnstile) return Promise.resolve(true);
     if (scriptPromise) return scriptPromise;
     scriptPromise = new Promise((resolve, reject) => {
@@ -33,7 +54,7 @@
   }
 
   async function ensure(form) {
-    if (!enabled() || !form) return null;
+    if (!form || !await resolveSiteKey()) return null;
     await loadScript();
     let holder = form.querySelector("[data-barberhub-turnstile]");
     if (!holder) {
@@ -45,7 +66,7 @@
     }
     if (!widgets.has(form)) {
       const id = global.turnstile.render(holder, {
-        sitekey: BH_TURNSTILE_SITE_KEY,
+        sitekey: siteKey,
         theme: document.body.classList.contains("claro") ? "light" : "dark",
         size: "flexible"
       });
@@ -55,7 +76,7 @@
   }
 
   async function token(form) {
-    if (!enabled()) return undefined;
+    if (!await resolveSiteKey()) return undefined;
     const id = await ensure(form);
     const value = global.turnstile?.getResponse(id);
     if (!value) {
@@ -71,9 +92,8 @@
     if (id !== undefined && global.turnstile) global.turnstile.reset(id);
   }
 
-  global.bhSecurity = { enabled, ensure, token, reset };
+  global.bhSecurity = { enabled, ensure, token, reset, resolveSiteKey };
   document.addEventListener("DOMContentLoaded", () => {
-    if (!enabled()) return;
     ["formLogin", "formCadastro", "formRecuperarSenha"].forEach(id => {
       const form = document.getElementById(id);
       if (form) ensure(form).catch(console.warn);

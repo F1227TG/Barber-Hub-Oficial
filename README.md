@@ -1,6 +1,18 @@
-# Barber Hub — versão 1.8.0
+# Barber Hub — versão 1.8.2
 
 O Barber Hub é um **marketplace digital de serviços** com gestão integrada para barbearias. Clientes descobrem estabelecimentos, verificam disponibilidade, conhecem serviços/equipe e agendam; profissionais administram operação, agenda, portfólio e reputação. Uma plataforma de **The Gamers Tech**.
+
+## Entrega 1.8.2 — Segurança diferencial
+
+A 1.8.2 corrige os achados V01–V05 da auditoria no código e deixa V06 preparado para ativação externa. A direção visual e a experiência mobile premium da 1.8.1 foram preservadas.
+
+- migration `17_correcao_auditoria_seguranca.sql` para moderação, estados de agendamento, limites concorrentes e curtidas derivadas;
+- API própria **1.3.1**, com rate limiting completo e configuração pública segura do Turnstile;
+- regras puras em `backend/domain` e comando `npm run check:offline`;
+- relatório diferencial, verificação pós-migration, decisão de monorepo e roadmap 1.9;
+- senhas permanecem somente como hash bcrypt no Supabase Auth, sem cópia pública ou reversão.
+
+Consulte `docs/RELATORIO_SEGURANCA_1_8_2.md` antes de qualquer deploy.
 
 
 ## Refino mobile 1.8 — experiência exclusiva
@@ -121,13 +133,14 @@ As páginas funcionais em `/html/*.html` são a fonte usada por `scripts/sync_mo
 
 ## Banco de dados
 
-A 1.8 adiciona a migration de assinaturas funcionais:
+A 1.8 usa a migration de assinaturas e a 1.8.2 adiciona o endurecimento da auditoria:
 
 ```text
 sql/16_assinaturas_entitlements_beneficios.sql
+sql/17_correcao_auditoria_seguranca.sql
 ```
 
-Em banco novo, execute as migrations `01` → `16` em ordem. Em produção já existente, aplique **somente a migration 16** depois de confirmar que `01` → `15` já estão presentes. Não edite nem reaplique migrations antigas sobre dados reais.
+Em banco novo, execute as migrations `01` → `17` em ordem. O Supabase conectado foi encontrado somente até a migration 10; portanto, em produção, valide backup/homologação e aplique `11` → `17` em ordem. Não edite nem reaplique migrations antigas sobre dados reais.
 
 ## Variáveis da API na Vercel
 
@@ -137,6 +150,7 @@ SUPABASE_PUBLISHABLE_KEY
 SUPABASE_SECRET_KEY
 BARBER_HUB_ALLOWED_ORIGINS
 BARBER_HUB_PASSWORD_REDIRECT_URL
+BARBER_HUB_TURNSTILE_SITE_KEY
 ```
 
 A `SUPABASE_SECRET_KEY` nunca deve aparecer no frontend ou no GitHub.
@@ -148,8 +162,9 @@ O código trata signup sem sessão (fluxo de confirmação de e-mail) e possui i
 Para produção:
 
 1. ative **Confirm Email** no Supabase Auth;
-2. opcional/recomendado: habilite CAPTCHA no Supabase;
-3. se usar Turnstile, informe somente a **site key pública** em `js/supabase-config.js`; a secret permanece no painel Supabase.
+2. habilite CAPTCHA no Supabase Auth;
+3. informe a **site key pública** em `BARBER_HUB_TURNSTILE_SITE_KEY`; a secret permanece no Supabase Auth/Cloudflare;
+4. ative a proteção contra senhas vazadas no Supabase Auth.
 
 ## Desenvolvimento local
 
@@ -190,26 +205,29 @@ A validação inclui paridade mobile, regressão de URLs, referências locais, s
 - `docs/PRD_BARBER_HUB.md` — PRD atual com revisão da 1.8;
 - `ARCHITECTURE.md` — arquitetura e limites entre camadas;
 - `docs/API_BARBER_HUB_V1.md` — API e configuração;
-- `docs/barberhub-api-v1.openapi.yaml` — contrato estático da API 1.3;
+- `docs/barberhub-api-v1.openapi.yaml` — contrato estático da API 1.3.1;
 - `docs/MAPA_DE_NAVEGACAO.md` — mapa web/mobile atualizado;
 - `docs/ATUALIZACAO_1_8.md` — notas e ordem de publicação da release 1.8;
 - `docs/VERIFICACAO_1_8.md` — verificação técnica da release 1.8;
 - `docs/SEGURANCA_1_6.md` — base de e-mail, CAPTCHA, rate limiting e logs;
+- `docs/RELATORIO_SEGURANCA_1_8_2.md` — auditoria diferencial V01–V06 e checklist Supabase;
+- `docs/DECISAO_REPOSITORIOS_1_8_2.md` — decisão sobre mobile/API e critérios de separação;
+- `docs/ROADMAP_1_9_OPERACAO_CRESCIMENTO.md` — próxima fase de produto;
 - `docs/ANTIGRAVITY.md` — uso do projeto com Google Antigravity.
 
 ## Deploy
 
-1. confirme que produção já possui as migrations `01` → `15`;
-2. aplique `sql/16_assinaturas_entitlements_beneficios.sql` no Supabase de produção;
-3. confirme as variáveis da Vercel;
-4. execute `npm run check`;
-5. faça commit/push;
-6. após o deploy, teste upgrade/downgrade dos quatro planos, painel desktop/mobile, agenda, profissionais, portfólio, promoções, relatórios e marketplace;
-7. valide `/api/v1/health`, `/api/v1/admin/subscriptions`, `/api/v1/marketplace/search?limit=3` e `/api/docs`.
+1. confirme backup e use homologação;
+2. aplique as migrations pendentes `11` → `17` em ordem;
+3. execute `sql/verificar_17_correcao_auditoria.sql`;
+4. confirme as variáveis da API e o Turnstile no Supabase Auth;
+5. execute `npm run check`;
+6. publique código 1.8.2/API 1.3.1;
+7. valide V01–V06, planos e os fluxos desktop/mobile antes de promover a produção.
 
 ```bash
 git status
 git add .
-git commit -m "feat: implementa assinaturas funcionais no Barber Hub 1.8.0"
+git commit -m "fix: corrige auditoria de segurança no Barber Hub 1.8.2"
 git push origin main
 ```
