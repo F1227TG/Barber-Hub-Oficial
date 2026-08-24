@@ -16,7 +16,7 @@ if (!source.includes("helper.textContent !== helperText")) {
 if (!source.includes("record.addedNodes") || !source.includes("Node.ELEMENT_NODE")) {
   errors.push("o observador não filtra mutações para elementos relevantes");
 }
-if (!serviceWorker.includes("barberhub-v1.9.0-operation-r2")) {
+if (!serviceWorker.includes("barberhub-v1.9.3-mobile-r3")) {
   errors.push("a revisão do cache não foi atualizada para o hotfix de responsividade");
 }
 

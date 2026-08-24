@@ -22,7 +22,7 @@
 <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
 <link href="../css/mobile-app.css" rel="stylesheet"/><link href="../css/release-1.4.1.css" rel="stylesheet"/>
 <link href="../css/product-redesign.css" rel="stylesheet"/><link href="../css/release-1.6.css" rel="stylesheet"/><link href="../css/release-1.7.css" rel="stylesheet"/><link href="../css/release-1.7.1.css" rel="stylesheet"/><link href="../css/release-1.8.css" rel="stylesheet"/><link href="../css/brand-assets-1.8.css" rel="stylesheet"/>
-<link href="../css/image-editor.css" rel="stylesheet"/><meta content="yes" name="mobile-web-app-capable"/><meta content="noindex,follow" name="robots"/><link href="https://barberhuboficial.vercel.app/html/conta" rel="canonical"/><link href="../css/mobile-redesign-1.8.css" rel="stylesheet"/></head>
+<link href="../css/image-editor.css" rel="stylesheet"/><meta content="yes" name="mobile-web-app-capable"/><meta content="noindex,follow" name="robots"/><link href="https://barberhuboficial.vercel.app/html/conta" rel="canonical"/><link href="../css/mobile-redesign-1.8.css" rel="stylesheet"/><link href="../css/release-1.9.3.css" rel="stylesheet"/></head>
 <body class="page-conta mobile-native">
 <!-- Cabeçalho e navegação principal -->
 <header class="header">
@@ -148,7 +148,7 @@
          Alterar senha
         </h2>
 <p class="texto-section">
-         Use no mínimo 8 caracteres e evite reutilizar senhas de outros serviços.
+         Use uma combinação de letras maiúsculas e minúsculas, número e caractere especial. Os requisitos serão marcados abaixo.
         </p>
 </div>
 </div>
@@ -157,13 +157,13 @@
 <label for="contaNovaSenha">
          Nova senha
         </label>
-<input autocomplete="new-password" id="contaNovaSenha" minlength="8" required="" type="password"/>
+<input autocomplete="new-password" data-password-policy="" id="contaNovaSenha" minlength="8" required="" type="password"/>
 </div>
 <div class="campo">
 <label for="contaConfirmarSenha">
          Confirmar nova senha
         </label>
-<input autocomplete="new-password" id="contaConfirmarSenha" minlength="8" required="" type="password"/>
+<input autocomplete="new-password" data-password-confirm-for="contaNovaSenha" id="contaConfirmarSenha" minlength="8" required="" type="password"/>
 </div>
 </div>
 <button class="btn btn-outline" type="submit">
@@ -303,6 +303,7 @@
 </script>
 <script src="../js/ui.js">
 </script>
+<script src="../js/password-policy.js"></script>
 <script src="../js/image-editor.js"></script>
 <script src="../js/conta.js">
 </script>

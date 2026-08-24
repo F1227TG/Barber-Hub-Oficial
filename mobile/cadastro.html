@@ -22,7 +22,7 @@
 <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
 <link href="../css/mobile-app.css" rel="stylesheet"/><link href="../css/release-1.4.1.css" rel="stylesheet"/>
 <link href="../css/product-redesign.css" rel="stylesheet"/><link href="../css/release-1.6.css" rel="stylesheet"/><link href="../css/release-1.7.css" rel="stylesheet"/><link href="../css/release-1.7.1.css" rel="stylesheet"/><link href="../css/brand-assets-1.8.css" rel="stylesheet"/>
-<meta content="yes" name="mobile-web-app-capable"/><meta content="noindex,follow" name="robots"/><link href="https://barberhuboficial.vercel.app/html/cadastro" rel="canonical"/><link href="../css/mobile-redesign-1.8.css" rel="stylesheet"/></head>
+<meta content="yes" name="mobile-web-app-capable"/><meta content="noindex,follow" name="robots"/><link href="https://barberhuboficial.vercel.app/html/cadastro" rel="canonical"/><link href="../css/mobile-redesign-1.8.css" rel="stylesheet"/><link href="../css/release-1.9.3.css" rel="stylesheet"/></head>
 <body class="page-cadastro mobile-native">
 <!-- Cabeçalho e navegação principal -->
 <header class="header">
@@ -133,13 +133,13 @@
 <label for="senha">
         Senha
        </label>
-<input autocomplete="new-password" id="senha" minlength="8" required="" type="password"/>
+<input autocomplete="new-password" data-password-policy="" id="senha" minlength="8" required="" type="password"/>
 </div>
 <div class="campo">
 <label for="confirmarSenha">
         Confirmar senha
        </label>
-<input autocomplete="new-password" id="confirmarSenha" minlength="8" required="" type="password"/>
+<input autocomplete="new-password" data-password-confirm-for="senha" id="confirmarSenha" minlength="8" required="" type="password"/>
 </div>
 </div>
 <div class="info-box hidden" id="textoFluxoProfissional">
@@ -208,6 +208,7 @@
 </script>
 <script src="../js/ui.js">
 </script>
+<script src="../js/password-policy.js"></script>
 <script src="../js/cadastro.js">
 </script>
 <script src="../js/mobile-app.js"></script>

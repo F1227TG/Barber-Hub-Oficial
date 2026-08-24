@@ -1,8 +1,8 @@
-# Barber Hub 1.9.0 — migrations e preparação do deploy
+# Barber Hub 1.9.3 — migrations e preparação do deploy
 
-## Situação do ambiente conectado em 21/08/2026
+## Situação do ambiente conectado em 24/08/2026
 
-O histórico remoto chegava apenas ao equivalente da migration 10. As migrations 11–23 foram aplicadas, na ordem, ao projeto `dhkqnfqrfqrpumrjjrcy`. Os verificadores 17, 22 e 23 foram aprovados. O banco está alinhado ao código 1.9.0.
+O histórico remoto chegava apenas ao equivalente da migration 10. As migrations 11–23 foram aplicadas, na ordem, ao projeto `dhkqnfqrfqrpumrjjrcy`. Os verificadores 17, 22 e 23 foram aprovados. As migrations **24 e 25 foram geradas nesta release e ainda precisam ser aplicadas pelo responsável do projeto antes do deploy da API 1.5.0**.
 
 ## Backup e ensaio
 
@@ -38,6 +38,18 @@ O histórico remoto chegava apenas ao equivalente da migration 10. As migrations
 
 O verificador operacional retornou todos os campos booleanos como `true` e `total_tabelas_rls = 9`. A migration 23 removeu warnings de FKs sem índice, `auth.uid()` não inicializado e policies de leitura duplicadas.
 
+### Retenção & Inteligência 1.9.3 — aplicar agora
+
+No Supabase Dashboard, abra **SQL Editor → New query**. Para cada item abaixo, copie o arquivo inteiro, execute e confirme sucesso antes de prosseguir:
+
+1. `24_retencao_relacionamento_1_9_3.sql` — cria lista de espera, recorrências, fidelidade, cupons, campanhas, automações e novos entitlements;
+2. `25_inteligencia_permissoes_1_9_3.sql` — cria oportunidades, insights, metas, permissões granulares e integra as permissões às regras operacionais;
+3. `verificar_25_release_1_9_3.sql` — valida tabelas, RLS, RPCs, entitlements e `search_path`; não persiste alteração.
+
+Resultado esperado do terceiro arquivo: uma mensagem de validação e **zero linhas** na consulta final. Se houver exceção/linha, não publique e corrija o item informado.
+
+Depois, abra **Database → Migrations** (ou mantenha uma tabela de histórico própria, se o projeto foi iniciado pelo SQL Editor) e registre os nomes 24/25 para impedir reaplicação acidental. Não cole os dois arquivos em uma única execução: assim fica claro em qual etapa ocorreu uma eventual falha.
+
 ## Configuração externa obrigatória
 
 - habilitar CAPTCHA/Turnstile no Supabase Auth e configurar as chaves somente nos ambientes autorizados;
@@ -45,6 +57,8 @@ O verificador operacional retornou todos os campos booleanos como `true` e `tota
 - confirmar URLs de redirecionamento e e-mails de recuperação;
 - configurar `SUPABASE_URL`, chave pública no frontend e credenciais privadas somente no backend/deploy;
 - manter a RPC distribuída `consumir_api_rate_limit` disponível para todas as instâncias da API;
+- habilitar Supabase Cron e agendar `preparar_lembretes_193()` e `processar_automacoes_internas_193(200)`;
+- conectar um worker externo para filas `email`/`whatsapp`; o banco não envia esses canais sozinho;
 - revisar periodicamente Security Advisor e Performance Advisor;
 - validar políticas com contas separadas: cliente, profissional, recepção, gerente, proprietário, admin e usuário sem vínculo.
 
@@ -55,6 +69,6 @@ As migrations priorizam alterações aditivas. O rollback seguro é restaurar o 
 ## Estado dos Advisors
 
 - Performance: nenhum warning após a migration 23; apenas informações de índices ainda sem uso, esperado logo após a criação.
-- Security: proteção contra senhas vazadas pendente; RPCs `SECURITY DEFINER` intencionais continuam sinalizadas; `unaccent` e `btree_gist` permanecem no schema legado `public`; `api_rate_limits` segue sem policy pública porque é acessível somente pelo `service_role`.
+- Security: 37 itens antes da 1.9.3 — proteção contra senhas vazadas pendente; 33 grants de execução em RPCs `SECURITY DEFINER` a revisar (6 `anon`, 27 `authenticated`); `unaccent` e `btree_gist` no schema legado `public`; e `api_rate_limits` sem policy pública porque é fechado ao `service_role`.
 
 As ações manuais restantes estão detalhadas em `docs/CONFIGURACAO_EXTERNA_1_9.md`.

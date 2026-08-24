@@ -103,14 +103,14 @@ async function bhVerificarApiSuporte() {
     box.innerHTML = `
       <span class="support-api-dot"></span>
       <div>
-        <strong>${ready ? "API própria operacional" : "Configuração do backend pendente"}</strong>
-        <small>${ready ? "Tickets e validações estão passando pelo servidor." : "Configure as variáveis protegidas na Vercel."}</small>
+        <strong>${ready ? "Atendimento online" : "Atendimento temporariamente indisponível"}</strong>
+        <small>${ready ? "Você pode abrir e acompanhar tickets normalmente." : "Tente novamente em alguns instantes."}</small>
       </div>`;
   } catch (_) {
-    box.className = "support-api-state is-local";
+    box.className = "support-api-state is-warning";
     box.innerHTML = `
       <span class="support-api-dot"></span>
-      <div><strong>Modo de desenvolvimento local</strong><small>Use “vercel dev” para testar as rotas /api no computador.</small></div>`;
+      <div><strong>Não foi possível verificar agora</strong><small>Você ainda pode preencher o ticket e tentar enviar.</small></div>`;
   }
 }
 
@@ -196,6 +196,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       document.querySelectorAll("[data-support-template]").forEach(item => item.classList.remove("ativo"));
       document.getElementById("mensagem").dispatchEvent(new Event("input"));
       await bhRenderMeusTickets();
+      document.getElementById("supportHistoryCollapse").open = true;
       document.getElementById("meus-atendimentos").scrollIntoView({ behavior: "smooth", block: "start" });
     } catch (erro) {
       mostrarToast("erro", "Falha ao enviar ticket", bhErroMensagem(erro));

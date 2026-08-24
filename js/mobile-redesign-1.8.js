@@ -117,20 +117,6 @@
     });
   }
 
-  function simplifyHome() {
-    if (!isMobile() || !document.body.classList.contains("page-home")) return;
-    const cards = [...document.querySelectorAll(".mobile-home-action-grid .mobile-action-card")];
-    const beauty = cards.find(card => card.getAttribute("href")?.includes("beauty-hub"));
-    if (beauty) {
-      beauty.href = "/mobile/cadastro.html";
-      beauty.querySelector("i")?.classList.replace("bi-stars", "bi-shop");
-      const strong = beauty.querySelector("strong");
-      const span = beauty.querySelector("span");
-      if (strong) strong.textContent = "Sou profissional";
-      if (span) span.textContent = "Cadastre seu negócio no Barber Hub.";
-    }
-  }
-
   function improvePanelNavigation() {
     if (!isMobile() || !document.body.classList.contains("page-painel")) return;
     const sidebar = document.querySelector(".dashboard .sidebar");
@@ -149,10 +135,6 @@
     if (document.body.classList.contains("page-mapa-sistema")) {
       const p = document.querySelector(".page-hero p");
       if (p) p.textContent = "Visão resumida das áreas da plataforma.";
-    }
-    if (document.body.classList.contains("page-beauty-hub")) {
-      const p = document.querySelector(".beauty-hero p");
-      if (p) p.textContent = "Uma futura expansão do ecossistema Barber Hub para o mercado de beleza.";
     }
   }
 
@@ -196,7 +178,6 @@
     if (!isMobile()) return;
     removeInstallPrompts();
     compactCopy();
-    simplifyHome();
     simplifyAbout();
     enhanceMarketplaceFilters();
     enhancePlansComparison();

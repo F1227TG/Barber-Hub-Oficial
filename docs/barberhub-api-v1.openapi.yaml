@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Barber Hub API
   description: API própria do Barber Hub, executada em Python/FastAPI.
-  version: 1.4.0
+  version: 1.5.0
 paths:
   /api/v1/health:
     get:
@@ -1033,6 +1033,162 @@ paths:
       operationId: update_team_member_api_v1_team_members_member_id_patch
       parameters:
       - {name: member_id, in: path, required: true, schema: {type: string}}
+      responses:
+        '200': {description: Successful Response}
+  /api/v1/retention/waitlist:
+    get:
+      summary: List Waitlist
+      operationId: retention_waitlist_api_v1_retention_waitlist_get
+      responses:
+        '200': {description: Successful Response}
+    post:
+      summary: Join Waitlist
+      operationId: join_retention_waitlist_api_v1_retention_waitlist_post
+      responses:
+        '201': {description: Successful Response}
+  /api/v1/retention/waitlist/{item_id}:
+    patch:
+      summary: Update Waitlist Item
+      operationId: update_retention_waitlist_api_v1_retention_waitlist_item_id_patch
+      parameters:
+      - {name: item_id, in: path, required: true, schema: {type: string}}
+      responses:
+        '200': {description: Successful Response}
+  /api/v1/appointments/{appointment_id}/recurrence:
+    post:
+      summary: Create Appointment Recurrence
+      operationId: create_appointment_recurrence_api_v1_appointments_appointment_id_recurrence_post
+      parameters:
+      - {name: appointment_id, in: path, required: true, schema: {type: string}}
+      responses:
+        '201': {description: Successful Response}
+  /api/v1/retention/recurrences:
+    get:
+      summary: List Recurrences
+      operationId: retention_recurrences_api_v1_retention_recurrences_get
+      responses:
+        '200': {description: Successful Response}
+  /api/v1/retention/loyalty:
+    get:
+      summary: Loyalty Overview
+      operationId: loyalty_overview_api_v1_retention_loyalty_get
+      responses:
+        '200': {description: Successful Response}
+  /api/v1/client/loyalty:
+    get:
+      summary: Client Loyalty Wallets
+      operationId: client_loyalty_api_v1_client_loyalty_get
+      responses:
+        '200': {description: Successful Response}
+  /api/v1/retention/loyalty/program:
+    put:
+      summary: Upsert Loyalty Program
+      operationId: upsert_loyalty_program_api_v1_retention_loyalty_program_put
+      responses:
+        '200': {description: Successful Response}
+  /api/v1/retention/loyalty/rewards:
+    post:
+      summary: Create Loyalty Reward
+      operationId: create_loyalty_reward_api_v1_retention_loyalty_rewards_post
+      responses:
+        '201': {description: Successful Response}
+  /api/v1/retention/loyalty/rewards/{reward_id}:
+    patch:
+      summary: Update Loyalty Reward
+      operationId: update_loyalty_reward_api_v1_retention_loyalty_rewards_reward_id_patch
+      parameters:
+      - {name: reward_id, in: path, required: true, schema: {type: string}}
+      responses:
+        '200': {description: Successful Response}
+  /api/v1/retention/loyalty/rewards/{reward_id}/redeem:
+    post:
+      summary: Redeem Loyalty Reward
+      operationId: redeem_loyalty_reward_api_v1_retention_loyalty_rewards_reward_id_redeem_post
+      parameters:
+      - {name: reward_id, in: path, required: true, schema: {type: string}}
+      responses:
+        '200': {description: Successful Response}
+  /api/v1/retention/coupons:
+    get:
+      summary: List Coupons
+      operationId: retention_coupons_api_v1_retention_coupons_get
+      responses:
+        '200': {description: Successful Response}
+    post:
+      summary: Create Coupon
+      operationId: create_retention_coupon_api_v1_retention_coupons_post
+      responses:
+        '201': {description: Successful Response}
+  /api/v1/retention/coupons/{coupon_id}:
+    patch:
+      summary: Update Coupon
+      operationId: update_retention_coupon_api_v1_retention_coupons_coupon_id_patch
+      parameters:
+      - {name: coupon_id, in: path, required: true, schema: {type: string}}
+      responses:
+        '200': {description: Successful Response}
+  /api/v1/retention/campaigns:
+    get:
+      summary: List Campaigns
+      operationId: retention_campaigns_api_v1_retention_campaigns_get
+      responses:
+        '200': {description: Successful Response}
+    post:
+      summary: Create Campaign
+      operationId: create_retention_campaign_api_v1_retention_campaigns_post
+      responses:
+        '201': {description: Successful Response}
+  /api/v1/team/permissions:
+    get:
+      summary: Effective Team Permissions
+      operationId: team_permissions_api_v1_team_permissions_get
+      responses:
+        '200': {description: Successful Response}
+  /api/v1/team/members/{member_id}/permissions:
+    patch:
+      summary: Update Team Permissions
+      operationId: update_team_permissions_api_v1_team_members_member_id_permissions_patch
+      parameters:
+      - {name: member_id, in: path, required: true, schema: {type: string}}
+      responses:
+        '200': {description: Successful Response}
+  /api/v1/growth/insights:
+    get:
+      summary: Growth Insights
+      operationId: growth_insights_api_v1_growth_insights_get
+      responses:
+        '200': {description: Successful Response}
+  /api/v1/growth/opportunities:
+    get:
+      summary: Growth Opportunities
+      operationId: growth_opportunities_api_v1_growth_opportunities_get
+      responses:
+        '200': {description: Successful Response}
+  /api/v1/growth/opportunities/{opportunity_id}:
+    patch:
+      summary: Update Growth Opportunity
+      operationId: update_growth_opportunity_api_v1_growth_opportunities_opportunity_id_patch
+      parameters:
+      - {name: opportunity_id, in: path, required: true, schema: {type: string}}
+      responses:
+        '200': {description: Successful Response}
+  /api/v1/growth/goals:
+    get:
+      summary: List Growth Goals
+      operationId: growth_goals_api_v1_growth_goals_get
+      responses:
+        '200': {description: Successful Response}
+    post:
+      summary: Create Growth Goal
+      operationId: create_growth_goal_api_v1_growth_goals_post
+      responses:
+        '201': {description: Successful Response}
+  /api/v1/growth/goals/{goal_id}:
+    patch:
+      summary: Update Growth Goal
+      operationId: update_growth_goal_api_v1_growth_goals_goal_id_patch
+      parameters:
+      - {name: goal_id, in: path, required: true, schema: {type: string}}
       responses:
         '200': {description: Successful Response}
 components:

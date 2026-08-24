@@ -11,7 +11,7 @@ from backend.supabase import gateway
 
 async def create(payload: AppointmentCreate, auth: AuthContext) -> dict[str, str]:
     appointment_id = await gateway.rest(
-        "criar_agendamento_multisservico",
+        "criar_agendamento_com_cupom_193",
         method="POST",
         token=auth.token,
         rpc=True,
@@ -22,6 +22,7 @@ async def create(payload: AppointmentCreate, auth: AuthContext) -> dict[str, str
             "p_data": payload.data.isoformat(),
             "p_hora_inicio": payload.hora_inicio.strftime("%H:%M:%S"),
             "p_observacao": payload.observacao,
+            "p_cupom_codigo": payload.cupom_codigo,
         },
     )
     return {"id": str(appointment_id)}

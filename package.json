@@ -1,16 +1,17 @@
 {
   "name": "barber-hub-oficial",
-  "version": "1.9.0",
+  "version": "1.9.3",
   "private": true,
   "description": "Portal, gestão, PWA e API própria em Python do Barber Hub.",
   "scripts": {
     "dev": "vercel dev",
-    "check": "python scripts/sync_mobile_pages.py --check && node scripts/check-mobile-routing.js && node scripts/check-project.js && python scripts/validate_project.py && python scripts/audit_security_1_8_2.py && python scripts/audit_release_1_9.py && python -m compileall -q api backend && python -m unittest discover -s tests -v",
+    "check": "python scripts/sync_mobile_pages.py --check && node scripts/check-mobile-routing.js && node scripts/check-project.js && node scripts/check-release-1.9.3.js && python scripts/validate_project.py && python scripts/audit_security_1_8_2.py && python scripts/audit_release_1_9.py && python -m compileall -q api backend && python -m unittest discover -s tests -v",
     "api:dev": "fastapi dev api/index.py",
     "check:python": "python -m compileall -q api backend",
     "check:offline": "python scripts/audit_security_1_8_2.py && python -m unittest discover -s tests -p test_domain.py -v && python -m compileall -q backend/domain",
     "mobile:sync": "python scripts/sync_mobile_pages.py",
-    "check:mobile-routing": "node scripts/check-mobile-routing.js"
+    "check:mobile-routing": "node scripts/check-mobile-routing.js",
+    "check:release-1.9.3": "node scripts/check-release-1.9.3.js"
   },
   "engines": {
     "node": ">=20"

@@ -190,7 +190,7 @@ js/backend-api.js
 
 ### 1.9.3 — Retenção & Inteligência
 
-A 1.9.3 reunirá os escopos antes chamados de 1.9.1 e 1.9.2. O desenvolvimento só começa depois da 1.9.0 aplicada, observada e estabilizada.
+A 1.9.3 reúne os escopos antes chamados de 1.9.1 e 1.9.2. O desenvolvimento foi concluído no código e aguarda migrations 24/25, verificação e configuração externa antes do deploy.
 
 **Retorno e relacionamento**
 

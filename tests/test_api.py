@@ -13,12 +13,13 @@ from api.index import (
     admin_overview,
     admin_subscriptions,
     app,
+    client_loyalty,
     establishment_entitlements,
     list_support_tickets,
     navigation_audit,
     public_config,
 )
-from backend.models import AdminSubscriptionUpdate, PromotionCreate, ServiceCreate
+from backend.models import AdminSubscriptionUpdate, PromotionCreate, ServiceCreate, WaitlistCreate
 from backend.security import AuthContext
 
 
@@ -37,7 +38,7 @@ class ApiSmokeTests(TestCase):
     def test_health_reports_api_version(self) -> None:
         response = self.client.get("/api/v1/health")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["data"]["version"], "1.4.0")
+        self.assertEqual(response.json()["data"]["version"], "1.5.0")
 
     def test_support_validation_is_standardized(self) -> None:
         response = self.client.post("/api/v1/support/tickets", json={})
@@ -144,6 +145,32 @@ class ApiSmokeTests(TestCase):
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.json()["error"]["code"], "UNAUTHORIZED")
 
+    def test_retention_route_requires_session(self) -> None:
+        response = self.client.get("/api/v1/retention/waitlist")
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json()["error"]["code"], "UNAUTHORIZED")
+
+    def test_client_loyalty_requires_session(self) -> None:
+        response = self.client.get("/api/v1/client/loyalty")
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json()["error"]["code"], "UNAUTHORIZED")
+
+    def test_growth_route_requires_session(self) -> None:
+        response = self.client.get(
+            "/api/v1/growth/insights?establishment_id=00000000-0000-0000-0000-000000000001&start=2026-08-01&end=2026-08-20"
+        )
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json()["error"]["code"], "UNAUTHORIZED")
+
+    def test_waitlist_contract_rejects_inverted_dates(self) -> None:
+        with self.assertRaises(ValidationError):
+            WaitlistCreate(**{
+                "estabelecimento_id": "00000000-0000-0000-0000-000000000001",
+                "servico_id": "00000000-0000-0000-0000-000000000002",
+                "data_inicio": "2026-09-20",
+                "data_fim": "2026-09-01",
+            })
+
     def test_subscription_contract_rejects_unknown_plan(self) -> None:
         with self.assertRaises(ValidationError):
             AdminSubscriptionUpdate(plano_slug="premium")
@@ -219,6 +246,13 @@ class RateLimitRegressionTests(IsolatedAsyncioTestCase):
         limiter.assert_awaited_once()
         self.assertEqual(limiter.await_args.kwargs["identity"], self.auth.user_id)
         service.assert_awaited_once_with(establishment_id, self.auth)
+
+    async def test_client_loyalty_is_rate_limited(self) -> None:
+        await self._assert_limited(
+            client_loyalty,
+            "api.index.retention_service.client_loyalty",
+            [],
+        )
 
     async def test_public_config_never_exposes_a_secret(self) -> None:
         limiter = AsyncMock(return_value={"allowed": True, "remaining": 119, "retry_after": 0})

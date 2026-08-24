@@ -25,7 +25,7 @@
 | Tipo de produto | Aplicação web + interface HTML mobile dedicada, instalável como PWA, multi-tenant (múltiplos estabelecimentos independentes), com backend próprio (API Python/FastAPI) sobre infraestrutura Supabase |
 | Empresa/divisão | The Gamers Tech |
 | Estágio atual | Produto em produção ativa (deploy Vercel), evoluindo por versões incrementais e documentadas (1.1 → 1.6). Não há, no repositório, uma declaração formal de "MVP concluído" — ver critério proposto na Seção 22 |
-| Versão analisada | Front-end/PWA **1.9.0** (`package.json`, cache do Service Worker `barberhub-v1.9.0-operation-r2`) · API própria **1.4.0** (`pyproject.toml`, `api/index.py`) · Schema local versionado até a migration **23** (`23_advisors_pos_deploy_1_9.sql`) |
+| Versão analisada | Front-end/PWA **1.9.3** (`package.json`, cache `barberhub-v1.9.3-mobile-r3`) · API própria **1.5.0** (`pyproject.toml`, `api/index.py`) · Schema local versionado até a migration **25** |
 | Repositório analisado | `Barber-Hub-Oficial-main.zip`, domínio de referência `barberhuboficial.vercel.app` |
 | Stack confirmada em código | HTML/CSS/JS vanilla + Bootstrap 5.3.6 (local, em camada `@layer`); Supabase (PostgreSQL, Auth, Storage, RLS, Realtime); backend próprio em Python 3.13+/FastAPI 0.117+/Pydantic 2.10+, empacotado como função serverless da Vercel (`api/index.py`); PWA com Service Worker e manifest próprios |
 
@@ -1349,10 +1349,13 @@ No produto, `js/painel-operacao-1.9.js` isola a nova experiência sem substituir
 - [x] painel desktop/mobile e estilos 1.9 implementados;
 - [x] matriz comercial e documentação atualizadas;
 - [x] regressões offline adicionadas;
-- [ ] aplicar e verificar migrations 11–17 no ambiente alvo;
-- [ ] aplicar e verificar migrations 18–22;
+- [x] aplicar e verificar migrations 11–17 no ambiente alvo;
+- [x] aplicar e verificar migrations 18–23;
+- [ ] aplicar migrations 24/25 e executar o verificador 1.9.3;
 - [ ] habilitar CAPTCHA e proteção contra senhas vazadas;
 - [ ] executar Advisors e testes de papéis no Supabase;
-- [ ] publicar frontend/PWA 1.9.0 e API 1.4.0.
+- [ ] publicar frontend/PWA 1.9.3 e API 1.5.0.
 
-A futura 1.9.3 consolidará os antigos escopos 1.9.1 e 1.9.2 em **Retenção & Inteligência**.
+### 34.2 Retenção & Inteligência — Barber Hub 1.9.3
+
+A 1.9.3 consolida os antigos escopos 1.9.1 e 1.9.2 e implementa lista de espera, recorrência, fidelidade, cupons, campanhas, lembretes internos, oportunidades, insights, metas e permissões granulares. A API 1.5.0 e as migrations 24/25 aplicam regras de plano, consentimento, concorrência e RLS. Envio externo de e-mail/WhatsApp continua dependente de provedor; não é apresentado como concluído apenas porque a fila existe.

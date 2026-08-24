@@ -21,7 +21,7 @@
 <meta content="yes" name="apple-mobile-web-app-capable"/>
 <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
 <link href="../css/mobile-app.css" rel="stylesheet"/><link href="../css/release-1.4.1.css" rel="stylesheet"/>
-<link href="../css/product-redesign.css" rel="stylesheet"/><link href="../css/release-1.6.css" rel="stylesheet"/><link href="../css/release-1.7.css" rel="stylesheet"/><link href="../css/release-1.7.1.css" rel="stylesheet"/><link href="../css/release-1.8.css" rel="stylesheet"/><link href="../css/brand-assets-1.8.css" rel="stylesheet"/><link href="../css/release-1.9.css" rel="stylesheet"/>
+<link href="../css/product-redesign.css" rel="stylesheet"/><link href="../css/release-1.6.css" rel="stylesheet"/><link href="../css/release-1.7.css" rel="stylesheet"/><link href="../css/release-1.7.1.css" rel="stylesheet"/><link href="../css/release-1.8.css" rel="stylesheet"/><link href="../css/brand-assets-1.8.css" rel="stylesheet"/><link href="../css/release-1.9.css" rel="stylesheet"/><link href="../css/release-1.9.3.css" rel="stylesheet"/>
 <link href="../css/image-editor.css" rel="stylesheet"/></head>
 <body class="page-painel"><script src="../js/device-router.js"></script>
 <!-- Cabeçalho e navegação principal -->
@@ -121,6 +121,14 @@
 <button class="btn btn-dark" data-panel="secFinanceiro" data-plan-feature="permite_financeiro">
 <i class="bi bi-wallet2"></i>
       Financeiro
+     </button>
+<button class="btn btn-dark" data-panel="secRelacionamento">
+<i class="bi bi-arrow-repeat"></i>
+      Retenção
+     </button>
+<button class="btn btn-dark" data-panel="secCrescimento" data-plan-feature="permite_metas">
+<i class="bi bi-stars"></i>
+      Crescimento
      </button>
 <button class="btn btn-dark" data-panel="secPromocoes" data-plan-feature="permite_promocoes">
 <i class="bi bi-megaphone"></i>
@@ -351,8 +359,9 @@
 </div>
 <div class="operation-kpis" id="clientesKpisPainel"></div>
 <div class="crm-toolbar">
-<div class="search-field"><i class="bi bi-search"></i><input aria-label="Buscar cliente" id="buscarClientePainel" placeholder="Buscar por nome, telefone ou e-mail" type="search"/></div>
+<div class="search-field"><i class="bi bi-search"></i><input aria-describedby="crmBuscaFeedback19" aria-label="Buscar cliente" autocomplete="off" id="buscarClientePainel" placeholder="Nome, telefone ou e-mail" type="search"/><button aria-label="Limpar busca" class="search-clear" hidden="" id="limparBuscaCliente19" type="button"><i class="bi bi-x-lg"></i></button></div>
 <div class="segment-chips" id="crmSegmentos19" role="group" aria-label="Segmentos de clientes"><button class="ativo" data-crm-segment="" type="button">Todos</button><button data-crm-segment="novo" type="button">Novos</button><button data-crm-segment="recorrente" type="button">Recorrentes</button><button data-crm-segment="inativo" type="button">Inativos</button><button data-crm-segment="em_risco" type="button">Em risco</button></div>
+<small class="crm-search-feedback" id="crmBuscaFeedback19" aria-live="polite">Digite para buscar na carteira.</small>
 </div>
 <div class="crm-workspace">
 <div class="crm-roster" id="listaClientesPainel"><div class="operation-state loading"><span class="state-spinner"></span><strong>Carregando clientes</strong><small>Montando a carteira do estabelecimento.</small></div></div>
@@ -367,6 +376,32 @@
 <div class="finance-workspace">
 <article class="finance-ledger card"><div class="card-body"><div class="section-top compact"><div><h3>Movimentações</h3><p>Entradas e saídas consolidadas no período.</p></div><span class="status concluido" id="financePeriodoLabel19">Período atual</span></div><div class="ledger-list" id="financeLancamentos19"><div class="operation-state loading"><span class="state-spinner"></span><strong>Calculando resultados</strong></div></div></div></article>
 <aside class="finance-side"><article class="card"><div class="card-body"><div class="section-top compact"><div><h3>Comissões</h3><p>Regras por profissional ou serviço.</p></div><button aria-label="Adicionar regra" class="icon-btn" data-finance-action="comissao" data-plan-feature="permite_comissoes" type="button"><i class="bi bi-plus-lg"></i></button></div><div class="commission-list" id="financeComissoes19"><div class="operation-state compact"><i class="bi bi-percent"></i><strong>Carregando regras</strong></div></div></div></article><article class="finance-note"><i class="bi bi-shield-check"></i><div><strong>Valores protegidos</strong><span>O navegador recebe apenas dados permitidos para seu estabelecimento e sua função.</span></div></article></aside>
+</div>
+</section>
+<section class="panel-section" id="secRelacionamento">
+<div class="section-top operation-heading">
+<div><span class="tag"><i class="bi bi-person-heart"></i> Retenção &amp; relacionamento</span><h2 class="titulo-section">Transforme atendimento em retorno</h2><p class="texto-section">Organize a demanda, crie recorrência, recompense clientes e mantenha o relacionamento sem perder o contexto.</p></div>
+<div class="operation-heading-actions"><button class="btn btn-outline btn-small" data-retention-action="cupom" data-plan-feature="permite_cupons" type="button"><i class="bi bi-ticket-perforated"></i> Novo cupom</button><button class="btn btn-primary btn-small" data-retention-action="campanha" data-plan-feature="permite_campanhas" type="button"><i class="bi bi-send"></i> Nova campanha</button></div>
+</div>
+<div class="retention-summary" id="retentionSummary193"><article class="operation-kpi skeleton-card"></article><article class="operation-kpi skeleton-card"></article><article class="operation-kpi skeleton-card"></article><article class="operation-kpi skeleton-card"></article></div>
+<div class="operation-composer" hidden id="retentionComposer193"></div>
+<div class="retention-grid">
+<article class="retention-card" data-feature-gate="permite_lista_espera"><header><div><span class="retention-icon"><i class="bi bi-hourglass-split"></i></span><div><h3>Lista de espera</h3><p>Clientes interessados quando não havia horário.</p></div></div><span class="status pendente" id="waitlistCount193">0 aguardando</span></header><div class="retention-list" id="waitlistList193"><div class="operation-state loading"><span class="state-spinner"></span><strong>Carregando lista</strong></div></div></article>
+<article class="retention-card" data-feature-gate="permite_recorrencia"><header><div><span class="retention-icon"><i class="bi bi-calendar2-week"></i></span><div><h3>Recorrências</h3><p>Séries semanais, quinzenais ou mensais.</p></div></div></header><div class="retention-list" id="recurrenceList193"><div class="operation-state loading"><span class="state-spinner"></span><strong>Carregando séries</strong></div></div></article>
+<article class="retention-card retention-wide" data-feature-gate="permite_fidelidade"><header><div><span class="retention-icon"><i class="bi bi-award"></i></span><div><h3>Programa de fidelidade</h3><p>Pontos automáticos após atendimentos concluídos.</p></div></div><button class="btn btn-outline btn-small" data-retention-action="fidelidade" type="button"><i class="bi bi-sliders"></i> Configurar</button></header><div class="loyalty-workspace"><div class="retention-list" id="loyaltyRewards193"></div><div class="loyalty-clients" id="loyaltyClients193"></div></div></article>
+<article class="retention-card" data-feature-gate="permite_cupons"><header><div><span class="retention-icon"><i class="bi bi-ticket-perforated"></i></span><div><h3>Cupons</h3><p>Códigos, limites e validade controlados.</p></div></div></header><div class="retention-list" id="couponList193"></div></article>
+<article class="retention-card" data-feature-gate="permite_campanhas"><header><div><span class="retention-icon"><i class="bi bi-megaphone"></i></span><div><h3>Campanhas</h3><p>Segmentação com consentimento e fila de envio.</p></div></div></header><div class="retention-list" id="campaignList193"></div></article>
+<article class="retention-card retention-wide" data-feature-gate="permite_lembretes"><header><div><span class="retention-icon"><i class="bi bi-bell"></i></span><div><h3>Lembretes automáticos</h3><p>Avisos internos de 24h, 2h e solicitação de avaliação; canais externos dependem do provedor.</p></div></div><span class="status concluido">Fila protegida</span></header><div class="automation-strip" id="automationStatus193"></div></article>
+</div>
+</section>
+<section class="panel-section" id="secCrescimento" data-plan-section="permite_metas">
+<div class="section-top operation-heading"><div><span class="tag"><i class="bi bi-stars"></i> Crescimento orientado a ação</span><h2 class="titulo-section">O Barber Hub mostra o próximo passo</h2><p class="texto-section">Oportunidades claras, indicadores explicados, metas e desempenho da equipe em uma única leitura.</p></div><div class="operation-heading-actions"><button class="btn btn-outline btn-small" id="growthRefresh193" type="button"><i class="bi bi-arrow-clockwise"></i> Atualizar</button><button class="btn btn-primary btn-small" data-growth-action="meta" data-plan-feature="permite_metas" type="button"><i class="bi bi-bullseye"></i> Nova meta</button></div></div>
+<div class="growth-period"><label class="toolbar-field" for="growthStart193"><span>De</span><input id="growthStart193" type="date"></label><label class="toolbar-field" for="growthEnd193"><span>Até</span><input id="growthEnd193" type="date"></label></div>
+<div class="growth-kpis" id="growthKpis193"><article class="operation-kpi skeleton-card"></article><article class="operation-kpi skeleton-card"></article><article class="operation-kpi skeleton-card"></article><article class="operation-kpi skeleton-card"></article></div>
+<div class="operation-composer" hidden id="growthComposer193"></div>
+<div class="growth-layout">
+<article class="opportunity-center" data-feature-gate="permite_oportunidades"><header><span><i class="bi bi-lightning-charge"></i></span><div><h3>Central de Oportunidades</h3><p>Cada sinal já vem com uma ação recomendada.</p></div></header><div class="opportunity-list" id="opportunityList193"></div></article>
+<div class="growth-side"><article class="growth-card" data-feature-gate="permite_metas"><header><h3><i class="bi bi-bullseye"></i> Metas</h3></header><div class="goal-list" id="goalList193"></div></article><article class="growth-card" data-feature-gate="permite_insights"><header><h3><i class="bi bi-graph-up-arrow"></i> Serviços e equipe</h3></header><div id="growthRanking193"></div></article></div>
 </div>
 </section>
 <section class="panel-section" id="secServicos">
@@ -1109,7 +1144,7 @@
 <script src="../js/image-editor.js"></script>
 <script src="../js/painel.js">
 </script>
-<script src="../js/painel-operacao-1.9.js"></script>
+<script src="../js/painel-operacao-1.9.js"></script><script src="../js/painel-retencao-1.9.3.js"></script>
 <script src="../js/mobile-app.js"></script>
 <script src="../js/product-redesign.js"></script></body>
 </html>

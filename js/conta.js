@@ -107,7 +107,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
       if (novoEmail && novoEmail !== perfil.email) {
         await bhAtualizarEmail(novoEmail);
-        mostrarToast("aviso", "Confirme o novo e-mail", "O Supabase enviou uma confirmação para o endereço informado.");
+        mostrarToast("aviso", "Confirme o novo e-mail", "Enviamos uma confirmação para o endereço informado.");
       } else {
         mostrarToast("sucesso", "Conta atualizada", "Seus dados foram salvos.");
       }
@@ -121,8 +121,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     evento.preventDefault();
     const senha = document.getElementById("contaNovaSenha").value;
     const confirmar = document.getElementById("contaConfirmarSenha").value;
-    if (senha.length < 8) {
-      mostrarToast("erro", "Senha muito curta", "Use pelo menos 8 caracteres.");
+    const analiseSenha = bhAnalisarSenha(senha);
+    if (!analiseSenha.valida) {
+      mostrarToast("erro", "Complete os requisitos da senha", analiseSenha.mensagem);
       return;
     }
     if (senha !== confirmar) {

@@ -1,4 +1,4 @@
-"""Barber Hub API v1.4.0.
+"""Barber Hub API v1.5.0.
 
 FastAPI is the server-side validation layer of the marketplace. Supabase keeps
 Auth, PostgreSQL, Storage and Realtime responsibilities; sensitive business
@@ -26,6 +26,7 @@ from backend.models import (
     AppointmentReschedule,
     AppointmentStatusUpdate,
     AdminSubscriptionUpdate,
+    CampaignCreate,
     CRMClientUpdate,
     CRMNoteCreate,
     CommissionRuleCreate,
@@ -35,6 +36,15 @@ from backend.models import (
     EstablishmentStatusUpdate,
     EstablishmentUpdate,
     FinancialAdjustmentCreate,
+    GoalCreate,
+    GoalUpdate,
+    CouponCreate,
+    CouponUpdate,
+    LoyaltyProgramUpsert,
+    LoyaltyRedeem,
+    LoyaltyRewardCreate,
+    LoyaltyRewardUpdate,
+    OpportunityUpdate,
     PasswordRecoveryRequest,
     ProfessionalCreate,
     ProfessionalUpdate,
@@ -46,6 +56,10 @@ from backend.models import (
     SupportTicketCreate,
     TeamMemberLink,
     TeamMemberUpdate,
+    TeamPermissionsUpdate,
+    RecurrenceCreate,
+    WaitlistCreate,
+    WaitlistUpdate,
     WalkInCreate,
 )
 from backend.rate_limit import enforce as enforce_rate_limit
@@ -55,12 +69,14 @@ from backend.services import appointments as appointment_service
 from backend.services import catalog as catalog_service
 from backend.services import crm as crm_service
 from backend.services import finance as finance_service
+from backend.services import growth as growth_service
 from backend.services import management as management_service
 from backend.services import schedule as schedule_service
+from backend.services import retention as retention_service
 from backend.services import support as support_service
 from backend.services import team as team_service
 
-API_VERSION = "1.4.0"
+API_VERSION = "1.5.0"
 
 app = FastAPI(
     title="Barber Hub API",
@@ -334,6 +350,170 @@ async def mark_appointment_no_show(
     return ok(await schedule_service.mark_no_show(appointment_id, auth))
 
 
+@app.get("/api/v1/retention/waitlist")
+async def retention_waitlist(
+    request: Request,
+    establishment_id: str | None = Query(default=None, min_length=36, max_length=36),
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "retention-waitlist-list", limit=90, window_seconds=60, identity=auth.user_id)
+    return ok(await retention_service.list_waitlist(establishment_id, auth))
+
+
+@app.post("/api/v1/retention/waitlist", status_code=status.HTTP_201_CREATED)
+async def join_retention_waitlist(
+    request: Request,
+    payload: WaitlistCreate,
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "retention-waitlist-create", limit=12, window_seconds=300, identity=auth.user_id)
+    return ok(await retention_service.join_waitlist(payload, auth), status.HTTP_201_CREATED)
+
+
+@app.patch("/api/v1/retention/waitlist/{item_id}")
+async def update_retention_waitlist(
+    item_id: str,
+    request: Request,
+    payload: WaitlistUpdate,
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "retention-waitlist-update", limit=40, window_seconds=300, identity=auth.user_id)
+    return ok(await retention_service.update_waitlist(item_id, payload, auth))
+
+
+@app.post("/api/v1/appointments/{appointment_id}/recurrence", status_code=status.HTTP_201_CREATED)
+async def create_appointment_recurrence(
+    appointment_id: str,
+    request: Request,
+    payload: RecurrenceCreate,
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "retention-recurrence-create", limit=10, window_seconds=600, identity=auth.user_id)
+    return ok(await retention_service.create_recurrence(appointment_id, payload, auth), status.HTTP_201_CREATED)
+
+
+@app.get("/api/v1/retention/recurrences")
+async def retention_recurrences(
+    request: Request,
+    establishment_id: str | None = Query(default=None, min_length=36, max_length=36),
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "retention-recurrence-list", limit=60, window_seconds=60, identity=auth.user_id)
+    return ok(await retention_service.list_recurrences(establishment_id, auth))
+
+
+@app.get("/api/v1/retention/loyalty")
+async def loyalty_overview(
+    request: Request,
+    establishment_id: str = Query(min_length=36, max_length=36),
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "retention-loyalty-overview", limit=60, window_seconds=60, identity=auth.user_id)
+    return ok(await retention_service.loyalty_overview(establishment_id, auth))
+
+
+@app.get("/api/v1/client/loyalty")
+async def client_loyalty(
+    request: Request,
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "client-loyalty", limit=60, window_seconds=60, identity=auth.user_id)
+    return ok(await retention_service.client_loyalty(auth))
+
+
+@app.put("/api/v1/retention/loyalty/program")
+async def upsert_loyalty_program(
+    request: Request,
+    payload: LoyaltyProgramUpsert,
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "retention-loyalty-program", limit=20, window_seconds=300, identity=auth.user_id)
+    return ok(await retention_service.upsert_loyalty_program(payload, auth))
+
+
+@app.post("/api/v1/retention/loyalty/rewards", status_code=status.HTTP_201_CREATED)
+async def create_loyalty_reward(
+    request: Request,
+    payload: LoyaltyRewardCreate,
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "retention-loyalty-reward-create", limit=30, window_seconds=300, identity=auth.user_id)
+    return ok(await retention_service.create_reward(payload, auth), status.HTTP_201_CREATED)
+
+
+@app.patch("/api/v1/retention/loyalty/rewards/{reward_id}")
+async def update_loyalty_reward(
+    reward_id: str,
+    request: Request,
+    payload: LoyaltyRewardUpdate,
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "retention-loyalty-reward-update", limit=40, window_seconds=300, identity=auth.user_id)
+    return ok(await retention_service.update_reward(reward_id, payload, auth))
+
+
+@app.post("/api/v1/retention/loyalty/rewards/{reward_id}/redeem")
+async def redeem_loyalty_reward(
+    reward_id: str,
+    request: Request,
+    payload: LoyaltyRedeem,
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "retention-loyalty-redeem", limit=20, window_seconds=300, identity=auth.user_id)
+    return ok(await retention_service.redeem_reward(reward_id, payload, auth))
+
+
+@app.get("/api/v1/retention/coupons")
+async def retention_coupons(
+    request: Request,
+    establishment_id: str = Query(min_length=36, max_length=36),
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "retention-coupon-list", limit=60, window_seconds=60, identity=auth.user_id)
+    return ok(await retention_service.list_coupons(establishment_id, auth))
+
+
+@app.post("/api/v1/retention/coupons", status_code=status.HTTP_201_CREATED)
+async def create_retention_coupon(
+    request: Request,
+    payload: CouponCreate,
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "retention-coupon-create", limit=30, window_seconds=300, identity=auth.user_id)
+    return ok(await retention_service.create_coupon(payload, auth), status.HTTP_201_CREATED)
+
+
+@app.patch("/api/v1/retention/coupons/{coupon_id}")
+async def update_retention_coupon(
+    coupon_id: str,
+    request: Request,
+    payload: CouponUpdate,
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "retention-coupon-update", limit=40, window_seconds=300, identity=auth.user_id)
+    return ok(await retention_service.update_coupon(coupon_id, payload, auth))
+
+
+@app.get("/api/v1/retention/campaigns")
+async def retention_campaigns(
+    request: Request,
+    establishment_id: str = Query(min_length=36, max_length=36),
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "retention-campaign-list", limit=60, window_seconds=60, identity=auth.user_id)
+    return ok(await retention_service.list_campaigns(establishment_id, auth))
+
+
+@app.post("/api/v1/retention/campaigns", status_code=status.HTTP_201_CREATED)
+async def create_retention_campaign(
+    request: Request,
+    payload: CampaignCreate,
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "retention-campaign-create", limit=20, window_seconds=600, identity=auth.user_id)
+    return ok(await retention_service.create_campaign(payload, auth), status.HTTP_201_CREATED)
+
+
 @app.get("/api/v1/crm/clients")
 async def list_crm_clients(
     request: Request,
@@ -490,6 +670,91 @@ async def update_team_member(
 ) -> JSONResponse:
     await enforce_rate_limit(request, "team-update", limit=40, window_seconds=300, identity=auth.user_id)
     return ok(await team_service.update_member(member_id, payload, auth))
+
+
+@app.get("/api/v1/team/permissions")
+async def team_permissions(
+    request: Request,
+    establishment_id: str = Query(min_length=36, max_length=36),
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "team-permissions", limit=90, window_seconds=60, identity=auth.user_id)
+    return ok(await growth_service.permissions(establishment_id, auth))
+
+
+@app.patch("/api/v1/team/members/{member_id}/permissions")
+async def update_team_permissions(
+    member_id: str,
+    request: Request,
+    payload: TeamPermissionsUpdate,
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "team-permissions-update", limit=30, window_seconds=300, identity=auth.user_id)
+    return ok(await growth_service.update_member_permissions(member_id, payload, auth))
+
+
+@app.get("/api/v1/growth/insights")
+async def growth_insights(
+    request: Request,
+    establishment_id: str = Query(min_length=36, max_length=36),
+    start: date = Query(),
+    end: date = Query(),
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "growth-insights", limit=60, window_seconds=60, identity=auth.user_id)
+    return ok(await growth_service.insights(establishment_id, start, end, auth))
+
+
+@app.get("/api/v1/growth/opportunities")
+async def growth_opportunities(
+    request: Request,
+    establishment_id: str = Query(min_length=36, max_length=36),
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "growth-opportunities", limit=40, window_seconds=60, identity=auth.user_id)
+    return ok(await growth_service.opportunities(establishment_id, auth))
+
+
+@app.patch("/api/v1/growth/opportunities/{opportunity_id}")
+async def update_growth_opportunity(
+    opportunity_id: str,
+    request: Request,
+    payload: OpportunityUpdate,
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "growth-opportunity-update", limit=40, window_seconds=300, identity=auth.user_id)
+    return ok(await growth_service.update_opportunity(opportunity_id, payload, auth))
+
+
+@app.get("/api/v1/growth/goals")
+async def growth_goals(
+    request: Request,
+    establishment_id: str = Query(min_length=36, max_length=36),
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "growth-goals-list", limit=60, window_seconds=60, identity=auth.user_id)
+    return ok(await growth_service.list_goals(establishment_id, auth))
+
+
+@app.post("/api/v1/growth/goals", status_code=status.HTTP_201_CREATED)
+async def create_growth_goal(
+    request: Request,
+    payload: GoalCreate,
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "growth-goals-create", limit=30, window_seconds=300, identity=auth.user_id)
+    return ok(await growth_service.create_goal(payload, auth), status.HTTP_201_CREATED)
+
+
+@app.patch("/api/v1/growth/goals/{goal_id}")
+async def update_growth_goal(
+    goal_id: str,
+    request: Request,
+    payload: GoalUpdate,
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "growth-goals-update", limit=40, window_seconds=300, identity=auth.user_id)
+    return ok(await growth_service.update_goal(goal_id, payload, auth))
 
 
 @app.patch("/api/v1/establishments/{establishment_id}")

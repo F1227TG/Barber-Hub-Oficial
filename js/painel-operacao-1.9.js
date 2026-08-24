@@ -14,7 +14,10 @@
     crmClients: [],
     crmSelected: null,
     finance: { summary: {}, entries: [], commissions: [] },
-    ready: false
+    ready: false,
+    initializing: false,
+    eventsBound: false,
+    crmRequest: 0
   };
 
   const $ = selector => document.querySelector(selector);
@@ -139,6 +142,7 @@
     return `<div class="schedule-actions">
       ${item.status === "pendente" ? `<button class="icon-btn success" data-operation-confirm="${safe(item.id)}" title="Confirmar pelo estabelecimento" type="button"><i class="bi bi-check-lg"></i></button>` : ""}
       <button class="icon-btn" data-operation-reschedule="${safe(item.id)}" title="Reagendar" type="button"><i class="bi bi-calendar2-range"></i></button>
+      ${entitlement("permite_recorrencia") && !item.recorrencia_id ? `<button class="icon-btn" data-operation-recurrence="${safe(item.id)}" title="Criar recorrência" type="button"><i class="bi bi-arrow-repeat"></i></button>` : ""}
       ${item.status === "confirmado" ? `<button class="icon-btn danger" data-operation-noshow="${safe(item.id)}" title="Registrar falta" type="button"><i class="bi bi-person-x"></i></button>` : ""}
     </div>`;
   }
@@ -187,7 +191,7 @@
       state.schedule = await api().scheduleRange({ establishmentId:establishment().id, ...period, professionalId:state.agendaProfessional || null });
       renderAgenda();
     } catch (error) {
-      target.innerHTML = stateHtml("bi-exclamation-triangle", "Agenda 2.0 ainda não respondeu", `${errorMessage(error)} Verifique se as migrations 18–22 já foram aplicadas no ambiente.`, "error");
+      target.innerHTML = stateHtml("bi-exclamation-triangle", "Não foi possível carregar a agenda", `${errorMessage(error)} Tente atualizar esta área.`, "error");
       $("#agendaKpis19").innerHTML = "";
     }
   }
@@ -199,6 +203,7 @@
     if (kind === "encaixe") host.innerHTML = `<div class="composer-header"><div><strong>Novo encaixe</strong><small>Inclua um atendimento presencial sem refazer o fluxo do cliente.</small></div><button class="icon-btn" data-composer-close type="button"><i class="bi bi-x-lg"></i></button></div><form class="composer-grid" id="formWalkIn19"><label class="campo span-2"><span>Cliente</span><input name="cliente_nome" minlength="2" required></label><label class="campo"><span>Telefone</span><input name="cliente_telefone" inputmode="tel"></label><label class="campo"><span>E-mail (opcional)</span><input name="cliente_email" type="email"></label><label class="campo"><span>Data</span><input name="data" type="date" value="${safe(state.agendaDate)}" required></label><label class="campo"><span>Hora</span><input name="hora_inicio" type="time" required></label><label class="campo span-2"><span>Profissional</span><select name="profissional_id" required>${professionalOptions(state.agendaProfessional)}</select></label><label class="campo span-2"><span>Serviços</span><select name="servicos_ids" multiple size="4" required>${serviceOptions()}</select><small>Use Ctrl/Cmd para selecionar mais de um.</small></label><label class="campo span-2"><span>Observação</span><textarea name="observacao" maxlength="800"></textarea></label><div class="composer-actions"><button class="btn btn-dark" data-composer-close type="button">Cancelar</button><button class="btn btn-primary" type="submit"><i class="bi bi-plus-lg"></i> Criar encaixe</button></div></form>`;
     if (kind === "bloqueio") host.innerHTML = `<div class="composer-header"><div><strong>Bloquear horário</strong><small>Reserve uma pausa ou marque uma indisponibilidade sem apagar horários.</small></div><button class="icon-btn" data-composer-close type="button"><i class="bi bi-x-lg"></i></button></div><form class="composer-grid" id="formBlock19"><label class="campo span-2"><span>Profissional</span><select name="profissional_id">${professionalOptions("", true)}</select></label><label class="campo"><span>Tipo</span><select name="tipo"><option value="bloqueio">Bloqueio</option><option value="pausa">Pausa</option><option value="indisponibilidade">Indisponibilidade</option></select></label><label class="campo"><span>Motivo</span><input name="motivo" maxlength="300"></label><label class="campo span-2"><span>Início</span><input name="inicio" type="datetime-local" required></label><label class="campo span-2"><span>Fim</span><input name="fim" type="datetime-local" required></label><div class="composer-actions"><button class="btn btn-dark" data-composer-close type="button">Cancelar</button><button class="btn btn-primary" type="submit"><i class="bi bi-slash-circle"></i> Salvar bloqueio</button></div></form>`;
     if (kind === "reagendar" && appointment) host.innerHTML = `<div class="composer-header"><div><strong>Reagendar ${safe(appointment.cliente_nome)}</strong><small>O histórico da mudança será preservado.</small></div><button class="icon-btn" data-composer-close type="button"><i class="bi bi-x-lg"></i></button></div><form class="composer-grid" id="formReschedule19" data-id="${safe(appointment.id)}"><label class="campo"><span>Nova data</span><input name="data" type="date" value="${safe(appointment.data)}" required></label><label class="campo"><span>Novo horário</span><input name="hora_inicio" type="time" value="${safe(formatTime(appointment.hora_inicio))}" required></label><label class="campo span-2"><span>Profissional</span><select name="profissional_id" required>${professionalOptions(appointment.profissional_id)}</select></label><div class="composer-actions"><button class="btn btn-dark" data-composer-close type="button">Cancelar</button><button class="btn btn-primary" type="submit"><i class="bi bi-calendar2-range"></i> Confirmar reagendamento</button></div></form>`;
+    if (kind === "recorrencia" && appointment) host.innerHTML = `<div class="composer-header"><div><strong>Repetir atendimento de ${safe(appointment.cliente_nome)}</strong><small>Todos os horários são validados em uma única transação; se houver conflito, nada será criado.</small></div><button class="icon-btn" data-composer-close type="button"><i class="bi bi-x-lg"></i></button></div><form class="composer-grid" id="formRecurrence193" data-id="${safe(appointment.id)}"><label class="campo span-2"><span>Frequência</span><select name="frequencia"><option value="semanal">Toda semana</option><option value="quinzenal">A cada 15 dias</option><option value="mensal">Todo mês</option></select></label><label class="campo span-2"><span>Total de ocorrências</span><input name="total_ocorrencias" type="number" min="2" max="24" value="4" required><small>Inclui o atendimento atual.</small></label><div class="composer-actions"><button class="btn btn-dark" data-composer-close type="button">Cancelar</button><button class="btn btn-primary" type="submit"><i class="bi bi-arrow-repeat"></i> Criar série</button></div></form>`;
     host.scrollIntoView({ behavior:"smooth", block:"nearest" });
   }
 
@@ -228,6 +233,13 @@
   function renderCrmRoster() {
     const host = $("#listaClientesPainel");
     crmKpis(state.crmClients);
+    const feedback = $("#crmBuscaFeedback19");
+    if (feedback) {
+      const query = $("#buscarClientePainel")?.value.trim() || "";
+      feedback.textContent = query
+        ? `${state.crmClients.length} resultado${state.crmClients.length === 1 ? "" : "s"} para “${query}”.`
+        : `${state.crmClients.length} cliente${state.crmClients.length === 1 ? "" : "s"} neste segmento.`;
+    }
     if (!state.crmClients.length) return host.innerHTML = stateHtml("bi-person-plus", "Nenhum cliente neste segmento", "A carteira será alimentada pelos atendimentos da agenda.");
     host.innerHTML = state.crmClients.map(item => `<button class="crm-client ${String(state.crmSelected) === String(item.id) ? "ativo" : ""}" data-crm-client="${safe(item.id)}" type="button"><span class="crm-avatar">${safe(initials(item.nome))}</span><span class="crm-client-copy"><strong>${safe(item.nome)}</strong><span>${safe(item.telefone || item.email || "Sem contato informado")} · ${safe((item.segmento || "novo").replace("_", " "))}</span></span><span class="crm-client-meta"><strong>${Number(item.visitas_concluidas || 0)} visitas</strong><small>${money(item.gasto_total)}</small></span></button>`).join("");
   }
@@ -237,13 +249,26 @@
     if (!host || !establishment()) return;
     const locked = featureState("permite_crm", "CRM disponível no Essencial", "Histórico persistente, preferências e anotações são liberados a partir do plano Essencial.");
     if (locked) { host.innerHTML = locked; $("#clientesKpisPainel").innerHTML = ""; return; }
-    host.innerHTML = loadingHtml("Montando a carteira");
+    const requestId = ++state.crmRequest;
+    const query = $("#buscarClientePainel")?.value.trim() || "";
+    const feedback = $("#crmBuscaFeedback19");
+    const clearButton = $("#limparBuscaCliente19");
+    if (clearButton) clearButton.hidden = !query;
+    if (feedback) feedback.textContent = query ? `Buscando “${query}”…` : "Atualizando a carteira…";
+    host.setAttribute("aria-busy", "true");
+    host.innerHTML = loadingHtml(query ? "Buscando clientes" : "Montando a carteira");
     try {
-      state.crmClients = await api().listCrmClients({ establishmentId:establishment().id, query:$("#buscarClientePainel")?.value.trim() || "", segment:state.crmSegment, limit:60 });
+      const clients = await api().listCrmClients({ establishmentId:establishment().id, query, segment:state.crmSegment, limit:60 });
+      if (requestId !== state.crmRequest) return;
+      state.crmClients = clients;
       renderCrmRoster();
     } catch (error) {
-      host.innerHTML = stateHtml("bi-exclamation-triangle", "CRM ainda não respondeu", `${errorMessage(error)} Verifique se as migrations 18–22 já foram aplicadas.`, "error");
+      if (requestId !== state.crmRequest) return;
+      host.innerHTML = stateHtml("bi-exclamation-triangle", "Não foi possível carregar os clientes", `${errorMessage(error)} Tente atualizar esta área.`, "error");
       $("#clientesKpisPainel").innerHTML = "";
+      if (feedback) feedback.textContent = "Não foi possível concluir a busca. Tente novamente.";
+    } finally {
+      if (requestId === state.crmRequest) host.removeAttribute("aria-busy");
     }
   }
 
@@ -251,6 +276,8 @@
     const host = $("#crmDetalhe19");
     const notes = client.notes || [];
     host.innerHTML = `<div class="crm-profile-header"><span class="crm-avatar">${safe(initials(client.nome))}</span><div><strong>${safe(client.nome)}</strong><span>${safe(client.telefone || client.email || "Contato não informado")} · ${safe((client.segmento || "novo").replace("_", " "))}</span></div></div><div class="crm-profile-kpis"><div class="crm-mini-kpi"><span>Visitas</span><strong>${Number(client.visitas_concluidas || 0)}</strong></div><div class="crm-mini-kpi"><span>Gasto</span><strong>${money(client.gasto_total)}</strong></div><div class="crm-mini-kpi"><span>Faltas</span><strong>${Number(client.faltas || 0)}</strong></div></div><form id="formCrmProfile19" data-id="${safe(client.id)}"><div class="crm-profile-section"><h4>Preferências e contexto</h4><label class="campo"><span>Preferências de atendimento</span><textarea name="preferencias" maxlength="2000" placeholder="Ex.: máquina 1 nas laterais, prefere atendimento com Lucas...">${safe(client.preferencias || "")}</textarea></label><label class="campo"><span>Tags separadas por vírgula</span><input name="tags" value="${safe((client.tags || []).join(", "))}" placeholder="VIP, barba, quinzenal"></label><label class="check-line"><input name="permite_whatsapp" type="checkbox" ${client.permite_whatsapp ? "checked" : ""}><span>Cliente permite contato operacional por WhatsApp</span></label><button class="btn btn-outline btn-small full" type="submit">Salvar ficha</button></div></form><div class="crm-profile-section"><h4>Nova anotação interna</h4><form id="formCrmNote19" data-id="${safe(client.id)}"><label class="campo"><textarea name="conteudo" minlength="2" maxlength="2000" placeholder="Somente a equipe autorizada verá esta nota." required></textarea></label><button class="btn btn-dark btn-small full" type="submit"><i class="bi bi-journal-plus"></i> Adicionar nota</button></form></div><div class="crm-profile-section"><h4>Anotações recentes</h4>${notes.length ? notes.map(note => `<div class="crm-note"><p>${safe(note.conteudo)}</p><span>${safe(formatDateTime(note.created_at))}</span></div>`).join("") : `<p class="muted">Nenhuma anotação interna.</p>`}</div>`;
+    const tagsField = host.querySelector('[name="tags"]')?.closest(".campo");
+    tagsField?.insertAdjacentHTML("afterend", `<label class="campo"><span>Data de nascimento <small>(opcional)</small></span><input name="data_nascimento" type="date" value="${safe(client.data_nascimento || "")}"><small>Usada somente para campanhas de aniversário autorizadas.</small></label><label class="check-line"><input name="permite_email_marketing" type="checkbox" ${client.permite_email_marketing ? "checked" : ""}><span>Cliente autorizou campanhas por e-mail</span></label>`);
   }
 
   async function openCrmDetail(id) {
@@ -290,7 +317,7 @@
       state.finance = { summary, entries, commissions };
       renderFinance();
     } catch (error) {
-      host.innerHTML = stateHtml("bi-exclamation-triangle", "Financeiro ainda não respondeu", `${errorMessage(error)} Verifique se as migrations 18–22 já foram aplicadas.`, "error");
+      host.innerHTML = stateHtml("bi-exclamation-triangle", "Não foi possível carregar o financeiro", `${errorMessage(error)} Tente atualizar esta área.`, "error");
       $("#financeKpis19").innerHTML = "";
     }
   }
@@ -319,7 +346,7 @@
       host.innerHTML = members.length ? members.map(item => {
         const profile = Array.isArray(item.perfis) ? item.perfis[0] : item.perfis;
         const professional = Array.isArray(item.profissionais) ? item.profissionais[0] : item.profissionais;
-        return `<article class="team-access-item"><span class="crm-avatar">${safe(initials(profile?.nome || professional?.nome))}</span><span><strong>${safe(profile?.nome || professional?.nome || profile?.email || "Membro")}</strong><span>${safe(profile?.email || "Conta vinculada")} · ${safe(item.papel)} · ${safe(item.status)}</span></span><button class="icon-btn ${item.status === "ativo" ? "danger" : "success"}" data-team-toggle="${safe(item.id)}" data-status="${safe(item.status)}" title="${item.status === "ativo" ? "Suspender" : "Reativar"}" type="button"><i class="bi ${item.status === "ativo" ? "bi-pause" : "bi-play"}"></i></button></article>`;
+        return `<article class="team-access-item"><span class="crm-avatar">${safe(initials(profile?.nome || professional?.nome))}</span><span><strong>${safe(profile?.nome || professional?.nome || profile?.email || "Membro")}</strong><span>${safe(profile?.email || "Conta vinculada")} · ${safe(item.papel)} · ${safe(item.status)}</span></span><div class="team-access-actions">${entitlement("permite_permissoes_granulares") ? `<button class="icon-btn" data-team-permissions="${safe(item.id)}" title="Configurar permissões" type="button"><i class="bi bi-shield-lock"></i></button>` : ""}<button class="icon-btn ${item.status === "ativo" ? "danger" : "success"}" data-team-toggle="${safe(item.id)}" data-status="${safe(item.status)}" title="${item.status === "ativo" ? "Suspender" : "Reativar"}" type="button"><i class="bi ${item.status === "ativo" ? "bi-pause" : "bi-play"}"></i></button></div></article>`;
       }).join("") : stateHtml("bi-person-plus", "Nenhuma conta vinculada", "Convide uma conta já cadastrada no Barber Hub.", "compact");
     } catch (error) {
       host.innerHTML = stateHtml("bi-exclamation-triangle", "Acessos indisponíveis", errorMessage(error), "error");
@@ -341,6 +368,7 @@
       if (form.id === "formWalkIn19") await api().createWalkIn({ estabelecimento_id:establishment().id, profissional_id:data.get("profissional_id"), servicos_ids:data.getAll("servicos_ids"), cliente_nome:data.get("cliente_nome"), cliente_email:data.get("cliente_email") || null, cliente_telefone:data.get("cliente_telefone") || null, data:data.get("data"), hora_inicio:data.get("hora_inicio"), observacao:data.get("observacao") || null });
       if (form.id === "formBlock19") await api().createScheduleBlock({ estabelecimento_id:establishment().id, profissional_id:data.get("profissional_id") || null, inicio:new Date(data.get("inicio")).toISOString(), fim:new Date(data.get("fim")).toISOString(), tipo:data.get("tipo"), motivo:data.get("motivo") || null });
       if (form.id === "formReschedule19") await api().rescheduleAppointment(form.dataset.id, { profissional_id:data.get("profissional_id"), data:data.get("data"), hora_inicio:data.get("hora_inicio") });
+      if (form.id === "formRecurrence193") await api().createRecurrence(form.dataset.id, { frequencia:data.get("frequencia"), total_ocorrencias:Number(data.get("total_ocorrencias")) });
       if (form.id === "formFinanceAdjust19") await api().createFinancialAdjustment({ estabelecimento_id:establishment().id, competencia:data.get("competencia"), natureza:data.get("natureza"), valor:Number(data.get("valor")), descricao:data.get("descricao"), motivo:data.get("motivo") });
       if (form.id === "formFinanceClose19") await api().closeFinancialDay({ estabelecimento_id:establishment().id, data:data.get("data"), observacao:data.get("observacao") || null });
       if (form.id === "formCommission19") await api().createCommissionRule({ estabelecimento_id:establishment().id, profissional_id:data.get("profissional_id") || null, servico_id:null, tipo:data.get("tipo"), valor:Number(data.get("valor")), ativo:true });
@@ -348,11 +376,12 @@
       close();
     }, "Operação concluída");
     if (form.id.startsWith("formFinance") || form.id === "formCommission19") await loadFinance();
+    if (form.id === "formRecurrence193") global.bhRetention193?.loadRetention?.();
     if (form.id === "formTeamLink19") await loadTeam();
   }
 
   async function handleClick(event) {
-    const action = event.target.closest("[data-agenda-action],[data-finance-action],[data-team-action],[data-composer-close],[data-operation-reschedule],[data-operation-confirm],[data-operation-noshow],[data-operation-delete-block],[data-crm-client],[data-commission-toggle],[data-team-toggle]");
+    const action = event.target.closest("[data-agenda-action],[data-finance-action],[data-team-action],[data-composer-close],[data-operation-reschedule],[data-operation-recurrence],[data-operation-confirm],[data-operation-noshow],[data-operation-delete-block],[data-crm-client],[data-commission-toggle],[data-team-toggle]");
     if (!action) return;
     if (action.dataset.composerClose !== undefined) { const host = action.closest(".operation-composer"); host.hidden = true; host.innerHTML = ""; return; }
     if (action.dataset.agendaAction) return openAgendaComposer(action.dataset.agendaAction);
@@ -360,6 +389,7 @@
     if (action.dataset.teamAction) return openTeamComposer();
     if (action.dataset.crmClient) return openCrmDetail(action.dataset.crmClient);
     if (action.dataset.operationReschedule) return openAgendaComposer("reagendar", state.schedule.appointments.find(item => String(item.id) === action.dataset.operationReschedule));
+    if (action.dataset.operationRecurrence) return openAgendaComposer("recorrencia", state.schedule.appointments.find(item => String(item.id) === action.dataset.operationRecurrence));
     if (action.dataset.operationConfirm) return mutate(action, () => api().confirmAppointment(action.dataset.operationConfirm, "estabelecimento", "confirmada"), "Atendimento confirmado");
     if (action.dataset.operationNoshow && global.confirm("Registrar que o cliente faltou a este atendimento?")) return mutate(action, () => api().markNoShow(action.dataset.operationNoshow), "Falta registrada");
     if (action.dataset.operationDeleteBlock && global.confirm("Remover este bloqueio da agenda?")) return mutate(action, () => api().deleteScheduleBlock(action.dataset.operationDeleteBlock), "Bloqueio removido");
@@ -369,11 +399,21 @@
 
   async function handleSubmit(event) {
     const form = event.target;
-    if (["formWalkIn19", "formBlock19", "formReschedule19", "formFinanceAdjust19", "formFinanceClose19", "formCommission19", "formTeamLink19"].includes(form.id)) { event.preventDefault(); await submitForm(form); return; }
+    if (["formWalkIn19", "formBlock19", "formReschedule19", "formRecurrence193", "formFinanceAdjust19", "formFinanceClose19", "formCommission19", "formTeamLink19"].includes(form.id)) { event.preventDefault(); await submitForm(form); return; }
     if (form.id === "formCrmProfile19") {
       event.preventDefault();
       const data = new FormData(form);
-      try { await api().updateCrmClient(form.dataset.id, { preferencias:data.get("preferencias") || null, tags:String(data.get("tags") || "").split(",").map(item => item.trim()).filter(Boolean), permite_whatsapp:data.get("permite_whatsapp") === "on" }); toast("sucesso", "Ficha atualizada", "Preferências e permissões foram salvas."); await openCrmDetail(form.dataset.id); } catch (error) { toast("erro", "Falha ao salvar ficha", errorMessage(error)); }
+      try {
+        await api().updateCrmClient(form.dataset.id, {
+          preferencias:data.get("preferencias") || null,
+          tags:String(data.get("tags") || "").split(",").map(item => item.trim()).filter(Boolean),
+          permite_whatsapp:data.get("permite_whatsapp") === "on",
+          permite_email_marketing:data.get("permite_email_marketing") === "on",
+          data_nascimento:data.get("data_nascimento") || null
+        });
+        toast("sucesso", "Ficha atualizada", "Preferências e permissões foram salvas.");
+        await openCrmDetail(form.dataset.id);
+      } catch (error) { toast("erro", "Falha ao salvar ficha", errorMessage(error)); }
     }
     if (form.id === "formCrmNote19") {
       event.preventDefault();
@@ -384,16 +424,45 @@
 
   let searchTimer = null;
   function bindEvents() {
+    if (state.eventsBound) return;
+    state.eventsBound = true;
     document.addEventListener("click", handleClick);
     document.addEventListener("submit", handleSubmit);
     $("#agendaDataReferencia19")?.addEventListener("change", event => { state.agendaDate = event.target.value; loadAgenda(); });
     $("#agendaProfissionalFiltro19")?.addEventListener("change", event => { state.agendaProfessional = event.target.value; loadAgenda(); });
     $("#agendaAtualizar19")?.addEventListener("click", loadAgenda);
     document.querySelectorAll("[data-agenda-view]").forEach(button => button.addEventListener("click", () => { state.agendaView = button.dataset.agendaView; document.querySelectorAll("[data-agenda-view]").forEach(item => item.classList.toggle("ativo", item === button)); loadAgenda(); }));
-    $("#buscarClientePainel")?.addEventListener("input", () => { clearTimeout(searchTimer); searchTimer = setTimeout(loadCrm, 320); });
+    $("#buscarClientePainel")?.addEventListener("input", event => {
+      clearTimeout(searchTimer);
+      const clearButton = $("#limparBuscaCliente19");
+      if (clearButton) clearButton.hidden = !event.target.value;
+      searchTimer = setTimeout(loadCrm, 380);
+    });
+    $("#buscarClientePainel")?.addEventListener("keydown", event => {
+      if (event.key !== "Escape" || !event.currentTarget.value) return;
+      event.preventDefault();
+      event.currentTarget.value = "";
+      clearTimeout(searchTimer);
+      loadCrm();
+    });
+    $("#limparBuscaCliente19")?.addEventListener("click", () => {
+      const input = $("#buscarClientePainel");
+      if (!input) return;
+      input.value = "";
+      input.focus();
+      clearTimeout(searchTimer);
+      loadCrm();
+    });
     document.querySelectorAll("[data-crm-segment]").forEach(button => button.addEventListener("click", () => { state.crmSegment = button.dataset.crmSegment; document.querySelectorAll("[data-crm-segment]").forEach(item => item.classList.toggle("ativo", item === button)); loadCrm(); }));
     $("#financeAtualizar19")?.addEventListener("click", loadFinance);
-    document.querySelectorAll("[data-panel]").forEach(button => button.addEventListener("click", () => refreshSection(button.dataset.panel)));
+    document.addEventListener("bh:painel-section-change", event => {
+      if (state.ready) refreshSection(event.detail?.id);
+      else init();
+    });
+    document.addEventListener("bh:painel-context-ready", () => {
+      populateFilters();
+      if (!state.ready) init();
+    });
   }
 
   function refreshSection(id) {
@@ -405,7 +474,7 @@
   }
 
   async function waitForContext() {
-    for (let attempt = 0; attempt < 100; attempt += 1) {
+    for (let attempt = 0; attempt < 300; attempt += 1) {
       if (establishment() && api()) return true;
       await new Promise(resolve => setTimeout(resolve, 100));
     }
@@ -413,20 +482,42 @@
   }
 
   async function init() {
-    if (!await waitForContext()) return;
+    if (state.ready || state.initializing) return;
+    state.initializing = true;
+    bindEvents();
+    if (!await waitForContext()) {
+      state.initializing = false;
+      const retry = `${stateHtml("bi-wifi-off", "Não conseguimos iniciar esta área", "Verifique sua conexão e toque em tentar novamente.", "error").replace("</div>", '<button class="btn btn-outline btn-small" data-operation-retry type="button"><i class="bi bi-arrow-clockwise"></i> Tentar novamente</button></div>')}`;
+      ["#agendaTimeline19", "#listaClientesPainel", "#financeLancamentos19"].forEach(selector => { const host = $(selector); if (host) host.innerHTML = retry; });
+      return;
+    }
     state.agendaDate = localIso();
     $("#agendaDataReferencia19").value = state.agendaDate;
     const start = new Date(); start.setDate(1);
     $("#financeInicio19").value = localIso(start);
     $("#financeFim19").value = localIso();
     populateFilters();
-    bindEvents();
     state.ready = true;
+    state.initializing = false;
     const active = $(".panel-section.ativo")?.id;
     refreshSection(active);
     loadTeam();
   }
 
-  global.bhOperacao19 = { init, loadAgenda, loadCrm, loadFinance, loadTeam, refreshVisible:() => refreshSection($(".panel-section.ativo")?.id) };
+  global.bhOperacao19 = {
+    init,
+    loadAgenda,
+    loadCrm,
+    loadFinance,
+    loadTeam,
+    professionalOptions,
+    refreshVisible:() => refreshSection($(".panel-section.ativo")?.id)
+  };
+  document.addEventListener("click", event => {
+    if (!event.target.closest("[data-operation-retry]")) return;
+    state.ready = false;
+    state.initializing = false;
+    init();
+  });
   document.addEventListener("DOMContentLoaded", init);
 })(window);

@@ -40,7 +40,7 @@ async def list_range(
             "id,estabelecimento_id,profissional_id,cliente_id,cliente_nome,cliente_email,"
             "cliente_telefone,data,hora_inicio,hora_fim,inicio_previsto,fim_previsto,status,"
             "valor,observacao,tipo_atendimento,confirmacao_cliente,confirmacao_estabelecimento,"
-            "reagendamentos_quantidade,no_show_em,profissionais(id,nome,avatar_url),"
+            "reagendamentos_quantidade,no_show_em,recorrencia_id,recorrencia_sequencia,profissionais(id,nome,avatar_url),"
             "agendamento_servicos(ordem,nome_snapshot,preco_snapshot,duracao_min_snapshot)"
         ),
         "order": "inicio_previsto.asc,id.asc",

@@ -150,7 +150,7 @@ function bhErroMensagem(erro, fallback = "Não foi possível concluir a operaç�
     INVALID_SESSION: "Sua sessão expirou. Entre novamente para continuar.",
     UNAUTHORIZED: "Entre na conta para continuar.",
     FORBIDDEN: "Sua conta não possui permissão para esta ação.",
-    BACKEND_NOT_CONFIGURED: "O backend ainda precisa ser configurado na Vercel.",
+    BACKEND_NOT_CONFIGURED: "Este serviço ainda não está disponível neste ambiente.",
     API_TIMEOUT: "O servidor demorou para responder. Tente novamente.",
     UPSTREAM_RATE_LIMITED: "Muitas solicitações foram feitas em pouco tempo. Aguarde e tente novamente.",
     UPSTREAM_UNAVAILABLE: "Os serviços do Barber Hub estão temporariamente indisponíveis. Tente novamente em instantes."
@@ -164,7 +164,9 @@ function bhErroMensagem(erro, fallback = "Não foi possível concluir a operaç�
     ["Invalid login credentials", "E-mail ou senha incorretos."],
     ["Email not confirmed", "Confirme seu e-mail antes de entrar."],
     ["User already registered", "Este e-mail já possui cadastro."],
-    ["Password should be at least", "A senha precisa ter pelo menos 6 caracteres."],
+    ["Password should be at least", "A senha precisa ter no mínimo 8 caracteres, incluindo maiúscula, minúscula, número e caractere especial."],
+    ["Password should contain", "A senha precisa incluir maiúscula, minúscula, número e caractere especial."],
+    ["password is known to be weak", "Esta senha apareceu em vazamentos conhecidos. Escolha uma senha diferente."],
     ["new row violates row-level security", "Sua conta não tem permissão para esta ação."],
     ["duplicate key value", "Já existe um registro com essas informações."],
     ["agendamentos_sem_sobreposicao", "Este horário já foi ocupado."],
@@ -189,4 +191,30 @@ function bhNormalizarWhatsApp(valor) {
   const digitos = bhSomenteNumeros(valor);
   if (!digitos) return "";
   return digitos.startsWith("55") ? digitos : `55${digitos}`;
+}
+
+const BH_REGRAS_SENHA = Object.freeze([
+  Object.freeze({ chave: "tamanho", rotulo: "8 ou mais caracteres", testar: senha => senha.length >= 8 }),
+  Object.freeze({ chave: "minuscula", rotulo: "uma letra minúscula", testar: senha => /[a-zà-öø-ÿ]/.test(senha) }),
+  Object.freeze({ chave: "maiuscula", rotulo: "uma letra maiúscula", testar: senha => /[A-ZÀ-ÖØ-Þ]/.test(senha) }),
+  Object.freeze({ chave: "numero", rotulo: "um número", testar: senha => /\d/.test(senha) }),
+  Object.freeze({ chave: "especial", rotulo: "um caractere especial", testar: senha => /[^\p{L}\p{N}\s]/u.test(senha) })
+]);
+
+function bhAnalisarSenha(senha = "") {
+  const valor = String(senha);
+  const regras = BH_REGRAS_SENHA.map(regra => ({
+    chave: regra.chave,
+    rotulo: regra.rotulo,
+    atendida: regra.testar(valor)
+  }));
+  const pendentes = regras.filter(regra => !regra.atendida);
+  return {
+    valida: pendentes.length === 0,
+    regras,
+    pendentes,
+    mensagem: pendentes.length
+      ? `Inclua ${pendentes.map(regra => regra.rotulo).join(", ")}.`
+      : "A senha atende a todos os requisitos."
+  };
 }

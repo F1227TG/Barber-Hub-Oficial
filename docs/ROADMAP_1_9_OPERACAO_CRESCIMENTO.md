@@ -17,7 +17,7 @@ Esses módulos devem compartilhar eventos e snapshots de atendimento para não c
 
 ## 1.9.3 — Retenção & Inteligência
 
-A antiga divisão entre 1.9.1 e 1.9.2 foi consolidada na **1.9.3**, conforme a decisão de produto. Ela será uma atualização única, construída sobre a base operacional estabilizada da 1.9.0.
+A antiga divisão entre 1.9.1 e 1.9.2 foi consolidada na **1.9.3**, conforme a decisão de produto. O escopo foi implementado sobre a base operacional da 1.9.0; migrations 24/25 e configuração externa ainda precisam ser aplicadas no ambiente alvo.
 
 ### Retorno e relacionamento
 

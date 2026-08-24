@@ -1,16 +1,22 @@
-# Barber Hub — versão 1.9.0
+# Barber Hub — versão 1.9.3
 
 O Barber Hub é um **marketplace digital de serviços** com gestão integrada para barbearias. Clientes descobrem estabelecimentos, verificam disponibilidade, conhecem serviços/equipe e agendam; profissionais administram operação, agenda, portfólio e reputação. Uma plataforma de **The Gamers Tech**.
 
+## Entrega 1.9.3 — Retenção & Inteligência
+
+A 1.9.3 reúne os incrementos planejados para 1.9.1 e 1.9.2: lista de espera, recorrência, fidelidade, cupons, campanhas, lembretes, Central de Oportunidades, insights, metas e permissões granulares. Também mantém os refinamentos de senha, navegação profissional, busca de clientes, layout responsivo, status do estabelecimento e página Beauty Hub.
+
+Há duas migrations novas e obrigatórias antes do deploy: **24 e 25**, seguidas do verificador da 1.9.3. Comece pela [`central de documentação`](docs/README.md), pelo [`guia completo`](docs/GUIA_COMPLETO_DO_PROJETO.md) ou pelo [`passo a passo de migrations`](docs/MIGRATIONS_DEPLOY_1_9.md).
+
 ## Entrega 1.9.0 — Operação & Crescimento
 
-A 1.9.0 adiciona Agenda profissional 2.0, CRM persistente, financeiro/fechamento, comissões e acesso individual da equipe. A API própria passa à versão **1.4.0** e o painel recebe uma camada visual responsiva em `css/release-1.9.css`, preservando a direção premium escura/quente e dourada.
+A 1.9.0 adicionou Agenda profissional 2.0, CRM persistente, financeiro/fechamento, comissões e acesso individual da equipe. Na release atual, a API própria está na versão **1.5.0** e o painel combina `css/release-1.9.css` com os refinamentos responsivos de `css/release-1.9.3.css`, preservando a direção premium escura/quente e dourada.
 
 Principais arquivos da entrega:
 
 - `docs/ATUALIZACAO_1_9_0.md` — resumo funcional;
 - `docs/RELATORIO_SEGURANCA_1_9_0.md` — proteções e dependências externas;
-- `docs/MIGRATIONS_DEPLOY_1_9.md` — histórico aplicado das migrations 11–23;
+- `docs/MIGRATIONS_DEPLOY_1_9.md` — histórico 11–23 e aplicação obrigatória de 24/25;
 - `docs/CONFIGURACAO_EXTERNA_1_9.md` — CAPTCHA, Auth, URLs e variáveis restantes;
 - `docs/MATRIZ_PLANOS_1_9.md` — recursos e limites comerciais;
 - `docs/VERIFICACAO_1_9_0.md` — resultados e limites da regressão local;
@@ -18,7 +24,7 @@ Principais arquivos da entrega:
 - `sql/verificar_22_operacao_1_9.sql` — verificação posterior;
 - `js/painel-operacao-1.9.js` e `css/release-1.9.css` — experiência desktop/mobile.
 
-As migrations 11–23 já foram aplicadas no Supabase conectado. Antes do deploy do código, configure CAPTCHA, proteção contra senhas vazadas, URLs e variáveis conforme `docs/CONFIGURACAO_EXTERNA_1_9.md`.
+As migrations 11–23 já foram aplicadas no Supabase conectado; 24/25 aguardam aplicação. Antes do deploy do código, aplique-as, execute o verificador e configure Cron, CAPTCHA, proteção contra senhas vazadas, URLs e variáveis conforme `docs/CONFIGURACAO_EXTERNA_1_9.md`.
 
 ## Entrega 1.8.2 — Segurança diferencial
 
@@ -157,9 +163,11 @@ A 1.9 usa as migrations de assinaturas, auditoria e operação:
 sql/16_assinaturas_entitlements_beneficios.sql
 sql/17_correcao_auditoria_seguranca.sql
 sql/18_agenda_equipe_operacional_1_9.sql ... sql/23_advisors_pos_deploy_1_9.sql
+sql/24_retencao_relacionamento_1_9_3.sql
+sql/25_inteligencia_permissoes_1_9_3.sql
 ```
 
-Em banco novo, execute as migrations `01` → `23` em ordem. No Supabase conectado, `11` → `23` foram aplicadas em 21/08/2026 e verificadas. Não edite nem reaplique migrations antigas sobre dados reais.
+Em banco novo, execute as migrations `01` → `25` em ordem. No Supabase conectado, `11` → `23` foram aplicadas e verificadas; `24` e `25` aguardam aplicação antes do deploy da 1.9.3. Não edite nem reaplique migrations antigas sobre dados reais.
 
 ## Variáveis da API na Vercel
 
@@ -221,10 +229,16 @@ A validação inclui paridade mobile, regressão de URLs, referências locais, s
 
 ## Documentação principal
 
+- `docs/README.md` — índice organizado de toda a documentação;
+- `docs/GUIA_COMPLETO_DO_PROJETO.md` — explicação completa de produto, código, Supabase, migrations, segurança e deploy;
+- `docs/ATUALIZACAO_1_9_3.md` — escopo consolidado da versão atual;
+- `docs/RELATORIO_SEGURANCA_1_9_3.md` — estado atual V01–V06 e decisão sobre senhas;
+- `docs/VERIFICACAO_1_9_3.md` — regressões automáticas e cenários manuais;
+- `docs/DECISAO_REPOSITORIOS_1_9_3.md` — monorepo Barber Hub e preparação separada do Beauty Hub;
 - `docs/PRD_BARBER_HUB.md` — PRD atual com revisão da 1.8;
 - `ARCHITECTURE.md` — arquitetura e limites entre camadas;
 - `docs/API_BARBER_HUB_V1.md` — API e configuração;
-- `docs/barberhub-api-v1.openapi.yaml` — contrato estático da API 1.3.1;
+- `docs/barberhub-api-v1.openapi.yaml` — contrato estático da API 1.5.0;
 - `docs/MAPA_DE_NAVEGACAO.md` — mapa web/mobile atualizado;
 - `docs/ATUALIZACAO_1_8.md` — notas e ordem de publicação da release 1.8;
 - `docs/VERIFICACAO_1_8.md` — verificação técnica da release 1.8;
@@ -236,15 +250,15 @@ A validação inclui paridade mobile, regressão de URLs, referências locais, s
 
 ## Deploy
 
-1. confirme backup e o histórico remoto até `23_advisors_pos_deploy_1_9`;
+1. confirme backup, aplique migrations 24/25 e execute `verificar_25_release_1_9_3.sql`;
 2. configure Auth, URLs, variáveis e Turnstile conforme `docs/CONFIGURACAO_EXTERNA_1_9.md`;
 3. execute `npm run check`;
-4. publique frontend/PWA 1.9.0 e API 1.4.0 juntos;
+4. publique frontend/PWA 1.9.3 e API 1.5.0 juntos;
 5. valide V01–V06, planos, papéis e os fluxos desktop/mobile antes de promover a produção.
 
 ```bash
 git status
 git add .
-git commit -m "fix: corrige auditoria de segurança no Barber Hub 1.8.2"
+git commit -m "feat: prepara Barber Hub 1.9.3"
 git push origin main
 ```

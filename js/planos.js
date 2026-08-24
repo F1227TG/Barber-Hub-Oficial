@@ -84,12 +84,12 @@ async function bhCarregarPlanoAtual() {
     bhRenderizarRecursosPlano(resumo.entitlements?.recursos || resumo.plano?.recursos || []);
   } catch (erro) {
     console.warn("Falha ao carregar resumo do plano.", erro);
-    titulo.textContent = "Plano atual indisponível no momento.";
-    texto.textContent = "A estrutura de planos já foi adicionada, mas os dados da assinatura ainda podem depender da execução do SQL mais recente no Supabase.";
+    titulo.textContent = "Não foi possível carregar seu plano agora.";
+    texto.textContent = "Atualize a página em alguns instantes. Seus dados e benefícios permanecem preservados.";
     bhRenderizarStatsPlano([
-      { valor: "SQL", label: "Migração pendente" },
-      { valor: "Planos", label: "Página pronta" },
-      { valor: "Upgrade", label: "Preparado" }
+      { valor: "—", label: "Uso atual" },
+      { valor: "—", label: "Benefícios" },
+      { valor: "—", label: "Agenda online" }
     ]);
   }
 }

@@ -42,7 +42,7 @@
           <section class="booking-modal-panel" data-booking-panel="1"><h3>Escolha os serviços</h3><p>Você pode combinar mais de um serviço no mesmo horário.</p><div class="booking-service-list" id="bookingModalServices"></div></section>
           <section class="booking-modal-panel" data-booking-panel="2"><h3>Quem vai te atender?</h3><p>Escolha um profissional disponível na equipe.</p><div class="booking-professional-list" id="bookingModalProfessionals"></div></section>
           <section class="booking-modal-panel" data-booking-panel="3"><h3>Escolha a data e o horário</h3><p>A duração total dos serviços já é considerada para evitar conflitos.</p><div class="booking-date-row"><div class="campo"><label for="bookingModalDate">Data</label><input id="bookingModalDate" type="date"></div><div class="booking-modal-slots"><label>Horários disponíveis</label><div id="bookingModalSlots"><div class="empty compact">Escolha uma data.</div></div></div></div></section>
-          <section class="booking-modal-panel" data-booking-panel="4"><h3>Revise antes de confirmar</h3><p>Se estiver tudo certo, envie a solicitação para o estabelecimento.</p><div class="booking-review" id="bookingModalReview"></div><details class="booking-note" style="margin-top:14px"><summary><i class="bi bi-chat-left-text"></i> Observação <span>Opcional</span></summary><div class="campo"><label for="bookingModalNote">Mensagem para o profissional</label><textarea id="bookingModalNote" maxlength="800" placeholder="Ex.: preferência de acabamento"></textarea></div></details></section>
+          <section class="booking-modal-panel" data-booking-panel="4"><h3>Revise antes de confirmar</h3><p>Se estiver tudo certo, envie a solicitação para o estabelecimento.</p><div class="booking-review" id="bookingModalReview"></div><div class="campo booking-coupon"><label for="bookingModalCoupon">Cupom <span>opcional</span></label><input id="bookingModalCoupon" maxlength="40" placeholder="Ex.: VOLTE10" autocomplete="off"></div><details class="booking-note" style="margin-top:14px"><summary><i class="bi bi-chat-left-text"></i> Observação <span>Opcional</span></summary><div class="campo"><label for="bookingModalNote">Mensagem para o profissional</label><textarea id="bookingModalNote" maxlength="800" placeholder="Ex.: preferência de acabamento"></textarea></div></details></section>
         </div>
         <footer class="booking-modal-footer">
           <div class="booking-modal-total"><span id="bookingModalDuration">0 min</span><strong id="bookingModalPrice">R$ 0,00</strong></div>
@@ -68,6 +68,8 @@
         modal.querySelectorAll("[data-booking-slot]").forEach(item => item.classList.toggle("ativo", item === slot));
         renderFooter();
       }
+      const waitlist = event.target.closest("[data-booking-waitlist]");
+      if (waitlist) joinWaitlist(waitlist);
     });
     modal.addEventListener("change", event => {
       const radio = event.target.closest("input[name='booking-professional']");
@@ -166,14 +168,58 @@
       const occupied = await bhObterHorariosOcupados(state.professionalId, state.date);
       const slots = bhSlotsComDisponibilidade(state.establishment, state.date, totals().duration || 30, occupied);
       if (!slots.length) {
-        container.innerHTML = `<div class="empty compact"><strong>Sem horários nesta data.</strong><p>Tente outro dia ou profissional.</p></div>`;
+        container.innerHTML = waitlistEmpty();
         state.slot = null;
         renderFooter();
         return;
       }
-      container.innerHTML = `<div class="slot-grid">${slots.map(item => `<button type="button" class="slot ${item.disponivel ? "" : "ocupado"}" data-booking-slot="${item.horario}" ${item.disponivel ? "" : "disabled"}>${item.horario}</button>`).join("")}</div>`;
+      const hasAvailable = slots.some(item => item.disponivel);
+      container.innerHTML = `<div class="slot-grid">${slots.map(item => `<button type="button" class="slot ${item.disponivel ? "" : "ocupado"}" data-booking-slot="${item.horario}" ${item.disponivel ? "" : "disabled"}>${item.horario}</button>`).join("")}</div>${hasAvailable ? "" : waitlistEmpty()}`;
     } catch (error) {
       container.innerHTML = `<div class="empty compact">${escapeHTML(bhErroMensagem(error))}</div>`;
+    }
+  }
+
+  function waitlistEmpty() {
+    return `<div class="empty compact booking-waitlist-empty"><strong>Sem horários nesta data.</strong><p>Entre na lista de espera e receba um aviso quando surgir uma vaga compatível.</p><button class="btn btn-outline btn-small" type="button" data-booking-waitlist><i class="bi bi-bell-plus"></i> Entrar na lista de espera</button></div>`;
+  }
+
+  async function joinWaitlist(button) {
+    const profile = await bhGetPerfil();
+    if (!profile) {
+      mostrarToast("aviso", "Entre para continuar", "Faça login para entrar na lista de espera.");
+      return;
+    }
+    const serviceId = [...state.services][0];
+    if (!serviceId || !state.date) return;
+    bhSetButtonLoading(button, true, "Entrando...");
+    try {
+      if (global.bhBackendApi?.joinWaitlist) {
+        await global.bhBackendApi.joinWaitlist({
+          estabelecimento_id:state.establishment.id,
+          servico_id:serviceId,
+          profissional_id:state.professionalId || null,
+          data_inicio:state.date,
+          data_fim:state.date,
+          horario_inicio:null,
+          horario_fim:null,
+          observacao:selectedServices().length > 1 ? `Também interessado em: ${selectedServices().slice(1).map(item => item.nome).join(", ")}` : null
+        });
+      } else {
+        const client = bhExigirSupabase();
+        const { error } = await client.rpc("entrar_lista_espera_193", {
+          p_estabelecimento_id:state.establishment.id,p_servico_id:serviceId,p_profissional_id:state.professionalId || null,
+          p_data_inicio:state.date,p_data_fim:state.date,p_horario_inicio:null,p_horario_fim:null,p_observacao:null
+        });
+        if (error) throw error;
+      }
+      mostrarToast("sucesso", "Você entrou na lista", "Avisaremos quando surgir uma vaga compatível.");
+      button.disabled = true;
+      button.innerHTML = '<i class="bi bi-check2-circle"></i> Na lista de espera';
+    } catch (error) {
+      mostrarToast("erro", "Não foi possível entrar na lista", bhErroMensagem(error));
+    } finally {
+      bhSetButtonLoading(button, false);
     }
   }
 
@@ -234,7 +280,8 @@
         servicosIds: [...state.services],
         data: state.date,
         hora: state.slot,
-        observacao: ensureModal().querySelector("#bookingModalNote").value.trim()
+        observacao: ensureModal().querySelector("#bookingModalNote").value.trim(),
+        cupomCodigo: ensureModal().querySelector("#bookingModalCoupon").value.trim().toUpperCase() || null
       });
       mostrarToast("sucesso", "Agendamento enviado", "O estabelecimento recebeu sua solicitação.");
       close();
@@ -261,6 +308,8 @@
     state.slot = null;
     state.step = 1;
     state.loading = true;
+    modal.querySelector("#bookingModalCoupon").value = "";
+    modal.querySelector("#bookingModalNote").value = "";
     modal.classList.add("ativo");
     modal.setAttribute("aria-hidden", "false");
     document.body.style.overflow = "hidden";

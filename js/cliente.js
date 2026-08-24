@@ -9,6 +9,9 @@
 let bhClienteAgendamentos = [];
 let bhClienteFavoritos = [];
 let bhClienteAvaliacoes = [];
+let bhClienteListaEspera = [];
+let bhClienteRecorrencias = [];
+let bhClienteFidelidade = [];
 let bhClientePerfil = null;
 
 function bhAvaliacaoDoAgendamento(id) {
@@ -29,6 +32,39 @@ function bhRenderFavoritosCliente() {
       <div class="favorite-body"><div><h3>${escapeHTML(item.nome)}</h3><p><i class="bi bi-geo-alt"></i> ${escapeHTML([item.bairro,item.cidade].filter(Boolean).join(", "))}</p></div><div class="favorite-actions"><a class="btn btn-primary btn-small" href="barbearia.html?id=${item.id}&agendar=1"><i class="bi bi-calendar2-plus"></i> Agendar</a><button class="icon-btn danger" type="button" data-remover-favorito="${item.id}" title="Remover dos favoritos"><i class="bi bi-heart-fill"></i></button></div></div>
     </article>`;
   }).join("");
+}
+
+function bhRelationCliente(value) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function bhRenderRelacionamentoCliente() {
+  const waitlist = document.getElementById("clienteListaEspera193");
+  const recurrences = document.getElementById("clienteRecorrencias193");
+  const loyalty = document.getElementById("clienteFidelidade193");
+  if (waitlist) {
+    const active = bhClienteListaEspera.filter(item => ["aguardando", "avisado"].includes(item.status));
+    waitlist.innerHTML = active.length ? active.map(item => {
+      const establishment = bhRelationCliente(item.estabelecimentos);
+      const service = bhRelationCliente(item.servicos);
+      const professional = bhRelationCliente(item.profissionais);
+      return `<article class="client-retention-row"><span class="retention-icon small"><i class="bi bi-hourglass-split"></i></span><div><strong>${escapeHTML(establishment?.nome || "Estabelecimento")}</strong><small>${escapeHTML(service?.nome || "Serviço")} · ${escapeHTML(professional?.nome || "Qualquer profissional")} · ${bhFormatarData(item.data_inicio)} a ${bhFormatarData(item.data_fim)}</small><span class="status ${item.status === "avisado" ? "confirmado" : "pendente"}">${escapeHTML(item.status)}</span></div><button class="icon-btn danger" type="button" data-cancelar-espera="${escapeHTML(item.id)}" title="Sair da lista"><i class="bi bi-x-lg"></i></button></article>`;
+    }).join("") : `<div class="empty compact"><i class="bi bi-hourglass"></i><strong>Nenhuma espera ativa</strong><p>Quando um horário estiver lotado, você poderá pedir para ser avisado.</p></div>`;
+  }
+  if (recurrences) {
+    const active = bhClienteRecorrencias.filter(item => item.status === "ativa");
+    recurrences.innerHTML = active.length ? active.map(item => `<article class="client-retention-row"><span class="retention-icon small"><i class="bi bi-arrow-repeat"></i></span><div><strong>${escapeHTML(bhRelationCliente(item.estabelecimentos)?.nome || "Estabelecimento")}</strong><small>${escapeHTML(item.frequencia)} · ${Number(item.ocorrencias_criadas || 0)} de ${Number(item.total_ocorrencias || 0)} horários · ${escapeHTML(bhRelationCliente(item.profissionais)?.nome || "Equipe")}</small><span class="status concluido">ativa</span></div></article>`).join("") : `<div class="empty compact"><i class="bi bi-calendar2-week"></i><strong>Nenhuma recorrência ativa</strong><p>Uma barbearia pode transformar seu próximo horário em uma série.</p></div>`;
+  }
+  if (loyalty) {
+    loyalty.innerHTML = bhClienteFidelidade.length ? bhClienteFidelidade.map(item => {
+      const program = item.programa || {};
+      const balance = item.saldo || {};
+      const establishment = bhRelationCliente(program.estabelecimentos);
+      const points = Number(balance.pontos || 0);
+      const rewards = (item.recompensas || []).filter(reward => reward.estoque === null || Number(reward.estoque) > 0);
+      return `<article class="client-loyalty-program"><div><h4>${escapeHTML(establishment?.nome || program.nome || "Programa de fidelidade")}</h4><small>${escapeHTML(program.nome || "Clube de fidelidade")} · ${Number(balance.total_creditado || 0)} pontos acumulados</small></div><b>${points} pts</b><div class="client-loyalty-rewards">${rewards.map(reward => `<button class="btn btn-outline btn-small" type="button" data-resgatar-recompensa="${escapeHTML(reward.id)}" data-pontos="${Number(reward.pontos_necessarios)}" ${points < Number(reward.pontos_necessarios) ? "disabled" : ""}><i class="bi bi-gift"></i> ${escapeHTML(reward.nome)} · ${Number(reward.pontos_necessarios)} pts</button>`).join("") || '<small>Nenhuma recompensa disponível agora.</small>'}</div></article>`;
+    }).join("") : `<div class="empty compact"><i class="bi bi-award"></i><strong>Sem pontos por enquanto</strong><p>Programas ativos aparecerão após um atendimento concluído.</p></div>`;
+  }
 }
 
 function bhRenderCliente(perfil) {
@@ -100,6 +136,7 @@ function bhRenderCliente(perfil) {
   renderTabela(futuros, "tbodyProximos", "Você não possui agendamentos futuros.");
   renderTabela(historico, "tbodyHistorico", "Seu histórico ainda está vazio.");
   bhRenderFavoritosCliente();
+  bhRenderRelacionamentoCliente();
 
   const analise = bhAnalisarAgendamentos(bhClienteAgendamentos);
   const texto = analise.servicoMaisUsado
@@ -124,10 +161,13 @@ function bhFecharModalAvaliacao() {
 }
 
 async function bhRecarregarCliente() {
-  [bhClienteAgendamentos, bhClienteFavoritos, bhClienteAvaliacoes] = await Promise.all([
+  [bhClienteAgendamentos, bhClienteFavoritos, bhClienteAvaliacoes, bhClienteListaEspera, bhClienteRecorrencias, bhClienteFidelidade] = await Promise.all([
     bhListarAgendamentosCliente(),
     bhListarFavoritosCliente().catch(erro => { console.warn("Favoritos indisponíveis.", erro); return []; }),
-    bhListarMinhasAvaliacoes().catch(erro => { console.warn("Avaliações ainda não disponíveis.", erro); return []; })
+    bhListarMinhasAvaliacoes().catch(erro => { console.warn("Avaliações ainda não disponíveis.", erro); return []; }),
+    window.bhBackendApi?.listWaitlist().catch(erro => { console.warn("Lista de espera ainda não disponível.", erro); return []; }) || [],
+    window.bhBackendApi?.listRecurrences().catch(erro => { console.warn("Recorrências ainda não disponíveis.", erro); return []; }) || [],
+    window.bhBackendApi?.clientLoyalty().catch(erro => { console.warn("Fidelidade ainda não disponível.", erro); return []; }) || []
   ]);
   bhRenderCliente(bhClientePerfil);
 }
@@ -147,6 +187,29 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (!await bhConfirmar({ titulo: "Cancelar agendamento", mensagem: "O horário voltará a ficar disponível para outros clientes.", confirmarTexto: "Cancelar agendamento", perigo: true, trigger: cancelar })) return;
       try { await bhCancelarAgendamento(cancelar.dataset.cancelarAgendamento); mostrarToast("sucesso", "Agendamento cancelado", "O horário voltou a ficar disponível."); await bhRecarregarCliente(); }
       catch (erro) { mostrarToast("erro", "Não foi possível cancelar", bhErroMensagem(erro)); }
+      return;
+    }
+    const cancelarEspera = evento.target.closest("[data-cancelar-espera]");
+    if (cancelarEspera) {
+      if (!await bhConfirmar({ titulo: "Sair da lista de espera", mensagem: "Você deixará de receber avisos sobre essa vaga.", confirmarTexto: "Sair da lista", perigo: true, trigger: cancelarEspera })) return;
+      try { await window.bhBackendApi.updateWaitlist(cancelarEspera.dataset.cancelarEspera, "cancelado"); await bhRecarregarCliente(); mostrarToast("sucesso", "Lista atualizada", "Você saiu desta espera."); }
+      catch (erro) { mostrarToast("erro", "Não foi possível sair", bhErroMensagem(erro)); }
+      return;
+    }
+    const resgatar = evento.target.closest("[data-resgatar-recompensa]");
+    if (resgatar) {
+      const points = Number(resgatar.dataset.pontos || 0);
+      if (!await bhConfirmar({ titulo: "Resgatar recompensa", mensagem: `Este resgate usará ${points} pontos e não poderá ser desfeito pelo aplicativo.`, confirmarTexto: "Resgatar", trigger: resgatar })) return;
+      try {
+        bhSetButtonLoading(resgatar, true, "Resgatando...");
+        await window.bhBackendApi.redeemLoyaltyReward(resgatar.dataset.resgatarRecompensa, bhClientePerfil.id);
+        await bhRecarregarCliente();
+        mostrarToast("sucesso", "Recompensa resgatada", "Apresente o resgate ao estabelecimento no atendimento.");
+      } catch (erro) {
+        mostrarToast("erro", "Não foi possível resgatar", bhErroMensagem(erro));
+      } finally {
+        bhSetButtonLoading(resgatar, false);
+      }
       return;
     }
     const removerFavorito = evento.target.closest("[data-remover-favorito]");

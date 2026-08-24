@@ -21,8 +21,8 @@
 <meta content="yes" name="apple-mobile-web-app-capable"/>
 <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
 <link href="../css/mobile-app.css" rel="stylesheet"/><link href="../css/release-1.4.1.css" rel="stylesheet"/>
-<link href="../css/product-redesign.css" rel="stylesheet"/><link href="../css/release-1.6.css" rel="stylesheet"/><link href="../css/release-1.7.css" rel="stylesheet"/><link href="../css/release-1.7.1.css" rel="stylesheet"/><link href="../css/brand-assets-1.8.css" rel="stylesheet"/>
-<meta content="yes" name="mobile-web-app-capable"/><meta content="noindex,follow" name="robots"/><link href="https://barberhuboficial.vercel.app/html/contato" rel="canonical"/><link href="../css/mobile-redesign-1.8.css" rel="stylesheet"/></head>
+<link href="../css/product-redesign.css" rel="stylesheet"/><link href="../css/release-1.6.css" rel="stylesheet"/><link href="../css/release-1.7.css" rel="stylesheet"/><link href="../css/release-1.7.1.css" rel="stylesheet"/><link href="../css/release-1.8.css" rel="stylesheet"/><link href="../css/release-1.9.css" rel="stylesheet"/><link href="../css/brand-assets-1.8.css" rel="stylesheet"/>
+<meta content="yes" name="mobile-web-app-capable"/><meta content="noindex,follow" name="robots"/><link href="https://barberhuboficial.vercel.app/html/contato" rel="canonical"/><link href="../css/mobile-redesign-1.8.css" rel="stylesheet"/><link href="../css/release-1.9.3.css" rel="stylesheet"/></head>
 <body class="page-contato mobile-native">
 <!-- Cabeçalho e navegação principal -->
 <header class="header">
@@ -75,8 +75,8 @@
 <div class="support-hero-copy">
 <div class="breadcrumb">Início / Suporte</div>
 <span class="tag"><i class="bi bi-headset"></i> Central de atendimento</span>
-<h1>Ajuda clara, protocolo salvo e acompanhamento em um só lugar.</h1>
-<p>Escolha o assunto, descreva o que aconteceu e acompanhe a resposta pela sua conta. A equipe recebe o contexto organizado para resolver com mais precisão.</p>
+<h1>Como podemos ajudar?</h1>
+<p>Escolha um assunto ou abra um ticket. Se estiver conectado, você acompanha a resposta nesta página.</p>
 <div class="support-hero-actions">
 <a class="btn btn-primary" href="#abrir-ticket"><i class="bi bi-plus-circle"></i> Abrir ticket</a>
 <a class="btn btn-outline" href="#meus-atendimentos"><i class="bi bi-clock-history"></i> Meus atendimentos</a>
@@ -85,15 +85,15 @@
 <aside aria-label="Status dos serviços" class="support-status-card">
 <div class="support-status-head">
 <span class="support-status-icon"><i class="bi bi-broadcast-pin"></i></span>
-<div><strong>Status da plataforma</strong><span>Verificação automática da API</span></div>
+<div><strong>Serviços do Barber Hub</strong><span>Disponibilidade do atendimento</span></div>
 </div>
 <div class="support-api-state is-loading" data-api-status="">
 <span class="support-api-dot"></span>
-<div><strong>Verificando serviços...</strong><small>Isso leva apenas alguns segundos.</small></div>
+<div><strong>Verificando disponibilidade...</strong><small>Aguarde um instante.</small></div>
 </div>
 <div class="support-status-meta">
-<span><i class="bi bi-shield-check"></i> Dados protegidos</span>
-<span><i class="bi bi-ticket-perforated"></i> Protocolo individual</span>
+<span><i class="bi bi-shield-check"></i> Conta protegida</span>
+<span><i class="bi bi-key"></i> Nunca informe sua senha</span>
 </div>
 </aside>
 </div>
@@ -104,7 +104,7 @@
 <div>
 <span class="tag">Atalhos</span>
 <h2 class="titulo-section" id="support-topics-title">Sobre o que você precisa de ajuda?</h2>
-<p class="texto-section">Toque em uma opção para preparar o formulário com o assunto mais adequado.</p>
+<p class="texto-section">Escolha uma opção para preencher o assunto automaticamente.</p>
 </div>
 </div>
 <div class="support-topic-grid">
@@ -127,7 +127,7 @@
 <div class="container support-layout">
 <form class="form-card support-form" id="formContato" novalidate="">
 <div class="support-form-heading">
-<div><span class="tag">Novo atendimento</span><h2>Conte o que aconteceu</h2><p>Quanto mais claro o contexto, mais fácil será analisar o caso.</p></div>
+<div><span class="tag">Novo atendimento</span><h2>Conte o que aconteceu</h2><p>Informe a tela, a ação e a mensagem que apareceu.</p></div>
 <span class="support-form-step">1 ticket</span>
 </div>
 <div class="form-grid">
@@ -157,27 +157,27 @@
 <li><i class="bi bi-check2"></i><span>Não envie senha, código de acesso ou chave secreta.</span></li>
 </ul>
 </div></article>
-<article class="card support-flow-card"><div class="card-body">
-<span class="tag">Fluxo do atendimento</span>
-<ol class="support-flow"><li><span>1</span><div><strong>Recebido</strong><small>O ticket ganha um protocolo.</small></div></li><li><span>2</span><div><strong>Em análise</strong><small>A equipe verifica o contexto.</small></div></li><li><span>3</span><div><strong>Respondido</strong><small>A resposta fica no histórico.</small></div></li></ol>
-</div></article>
 </aside>
 </div>
 </section>
 <section class="section support-history-section" id="meus-atendimentos">
 <div class="container">
-<div class="section-top"><div><span class="tag">Minha conta</span><h2 class="titulo-section">Histórico de tickets</h2><p class="texto-section">Acompanhe protocolos, status e respostas sem abrir chamados duplicados.</p></div><a class="btn btn-outline btn-small" href="/mobile/notificacoes.html"><i class="bi bi-bell"></i> Ver notificações</a></div>
-<div class="ticket-list support-ticket-list" id="meusTickets"></div>
+<details class="support-panel-collapse" id="supportHistoryCollapse">
+<summary><span><i class="bi bi-ticket-perforated"></i><span><strong>Meus tickets</strong><small>Protocolos, status e respostas</small></span></span><i class="bi bi-chevron-down"></i></summary>
+<div class="support-collapse-body"><a class="btn btn-outline btn-small" href="/mobile/notificacoes.html"><i class="bi bi-bell"></i> Ver notificações</a><div class="ticket-list support-ticket-list" id="meusTickets"></div></div>
+</details>
 </div>
 </section>
 <section aria-labelledby="support-faq-title" class="section support-faq-section">
-<div class="container support-faq-layout">
-<div><span class="tag">Dúvidas rápidas</span><h2 class="titulo-section" id="support-faq-title">Talvez a resposta já esteja aqui.</h2><p class="texto-section">Informações diretas antes de abrir um novo atendimento.</p></div>
-<div class="support-faq-list">
+<div class="container">
+<details class="support-panel-collapse">
+<summary><span><i class="bi bi-question-circle"></i><span><strong id="support-faq-title">Respostas rápidas</strong><small>Três dúvidas frequentes</small></span></span><i class="bi bi-chevron-down"></i></summary>
+<div class="support-collapse-body support-faq-list">
 <details><summary>Preciso estar conectado para abrir um ticket?<i class="bi bi-plus-lg"></i></summary><p>Não. Visitantes podem enviar uma solicitação, mas usuários conectados conseguem acompanhar o histórico dentro da plataforma.</p></details>
 <details><summary>Onde vejo a resposta da equipe?<i class="bi bi-plus-lg"></i></summary><p>A resposta aparece nesta página, no histórico de tickets, e também pode gerar uma notificação na sua conta.</p></details>
 <details><summary>Posso enviar minha senha para facilitar o suporte?<i class="bi bi-plus-lg"></i></summary><p>Não. A equipe nunca precisa da sua senha, código de recuperação ou chave secreta para analisar um problema.</p></details>
 </div>
+</details>
 </div>
 </section>
 </main>

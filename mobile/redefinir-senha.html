@@ -21,7 +21,7 @@
 <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
 <link href="../css/mobile-app.css" rel="stylesheet"/><link href="../css/release-1.4.1.css" rel="stylesheet"/>
 <link href="../css/product-redesign.css" rel="stylesheet"/><link href="../css/release-1.6.css" rel="stylesheet"/><link href="../css/release-1.7.css" rel="stylesheet"/><link href="../css/release-1.7.1.css" rel="stylesheet"/><link href="../css/brand-assets-1.8.css" rel="stylesheet"/>
-<meta content="yes" name="mobile-web-app-capable"/><meta content="noindex,follow" name="robots"/><link href="https://barberhuboficial.vercel.app/html/redefinir-senha" rel="canonical"/><link href="../css/mobile-redesign-1.8.css" rel="stylesheet"/></head>
+<meta content="yes" name="mobile-web-app-capable"/><meta content="noindex,follow" name="robots"/><link href="https://barberhuboficial.vercel.app/html/redefinir-senha" rel="canonical"/><link href="../css/mobile-redesign-1.8.css" rel="stylesheet"/><link href="../css/release-1.9.3.css" rel="stylesheet"/></head>
 <body class="page-redefinir-senha mobile-native">
 <!-- Cabeçalho e navegação principal -->
 <header class="header">
@@ -71,7 +71,7 @@
      Crie uma nova senha
     </h1>
 <p class="auth-subtitle">
-     Use no mínimo 8 caracteres. Esta página só funciona depois de abrir o link enviado pelo Supabase.
+     Escolha uma senha forte. Os requisitos aparecem logo abaixo do campo e são validados enquanto você digita.
     </p>
 <div class="recovery-note hidden" id="recuperacaoInvalida">
 <strong>
@@ -85,13 +85,13 @@
 <label for="novaSenha">
        Nova senha
       </label>
-<input autocomplete="new-password" id="novaSenha" minlength="8" required="" type="password"/>
+<input autocomplete="new-password" data-password-policy="" id="novaSenha" minlength="8" required="" type="password"/>
 </div>
 <div class="campo">
 <label for="confirmarNovaSenha">
        Confirmar nova senha
       </label>
-<input autocomplete="new-password" id="confirmarNovaSenha" minlength="8" required="" type="password"/>
+<input autocomplete="new-password" data-password-confirm-for="novaSenha" id="confirmarNovaSenha" minlength="8" required="" type="password"/>
 </div>
 <button class="btn btn-primary full" type="submit">
 <i class="bi bi-key">
@@ -131,6 +131,7 @@
 </script>
 <script src="../js/ui.js">
 </script>
+<script src="../js/password-policy.js"></script>
 <script src="../js/redefinir-senha.js">
 </script>
 <script src="../js/mobile-app.js"></script>

@@ -19,7 +19,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     evento.preventDefault();
     const senha = document.getElementById("novaSenha").value;
     const confirmar = document.getElementById("confirmarNovaSenha").value;
-    if (senha.length < 8) { mostrarToast("erro", "Senha muito curta", "Use pelo menos 8 caracteres."); return; }
+    const analiseSenha = bhAnalisarSenha(senha);
+    if (!analiseSenha.valida) { mostrarToast("erro", "Complete os requisitos da senha", analiseSenha.mensagem); return; }
     if (senha !== confirmar) { mostrarToast("erro", "Senhas diferentes", "A confirmação precisa ser igual à nova senha."); return; }
     const botao = form.querySelector("button[type='submit']");
     bhSetButtonLoading(botao, true, "Salvando...");

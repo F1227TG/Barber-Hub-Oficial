@@ -117,7 +117,7 @@ Exemplo útil:
 
 ```bash
 npm run check
-python scripts/audit_release_1_6.py
+npm run check
 ```
 
 Antes de publicar 1.6, execute `sql/15_marketplace_fts_api_seguranca.sql`.

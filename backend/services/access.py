@@ -55,6 +55,33 @@ async def require_feature(
     data = await entitlements(establishment_id, auth)
     if not data.get(feature):
         raise ApiError(403, "PLAN_FEATURE_REQUIRED", message)
+    capability = {
+        "permite_agenda_avancada": "agenda",
+        "permite_crm": "crm",
+        "permite_financeiro": "financeiro",
+        "permite_comissoes": "financeiro",
+        "permite_equipe_acesso": "equipe",
+        "permite_lista_espera": "retencao",
+        "permite_recorrencia": "retencao",
+        "permite_fidelidade": "retencao",
+        "permite_cupons": "retencao",
+        "permite_campanhas": "campanhas",
+        "permite_lembretes": "retencao",
+        "permite_oportunidades": "crescimento",
+        "permite_insights": "crescimento",
+        "permite_metas": "metas",
+        "permite_permissoes_granulares": "equipe",
+    }.get(feature)
+    if capability:
+        permissions = await gateway.rest(
+            "obter_minhas_permissoes_193",
+            method="POST",
+            token=auth.token,
+            rpc=True,
+            json={"p_estabelecimento_id": establishment_id},
+        ) or {}
+        if not permissions.get(capability):
+            raise ApiError(403, "TEAM_PERMISSION_REQUIRED", "Seu acesso da equipe não permite usar este recurso.")
     return data
 
 

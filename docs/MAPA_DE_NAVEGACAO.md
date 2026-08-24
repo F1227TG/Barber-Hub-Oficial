@@ -1,4 +1,4 @@
-# Mapa de navegação do Barber Hub 1.9.0
+# Mapa de navegação do Barber Hub 1.9.3
 
 O Barber Hub possui duas apresentações da mesma plataforma: web (`/html`) e app mobile (`/mobile`). Regras de negócio, API e scripts de domínio são compartilhados. Na 1.7, as páginas funcionais mobile são sincronizadas a partir das equivalentes web para impedir deriva de recursos.
 
@@ -26,15 +26,18 @@ Estabelecimento
       Profissional
          ↓
       Data / horário
+        └── Sem vaga → Lista de espera
          ↓
-      Confirmar
+      Confirmar + cupom opcional
   ↓
 Minha agenda
   ├── Próximos
   ├── Cancelar
   ├── Histórico
   ├── Avaliar
-  └── Agendar novamente
+  ├── Agendar novamente
+  ├── Lista de espera
+  └── Recorrências
 ```
 
 ## Profissional — fluxo principal
@@ -60,10 +63,19 @@ Painel
   │   ├── Resumo e lançamentos
   │   ├── Ajustes / fechamento
   │   └── Comissões
+  ├── Retenção
+  │   ├── Lista de espera / recorrências
+  │   ├── Fidelidade / recompensas
+  │   ├── Cupons / campanhas
+  │   └── Lembretes
+  ├── Crescimento
+  │   ├── Central de Oportunidades
+  │   ├── Insights e desempenho
+  │   └── Metas
   ├── Serviços
   ├── Equipe
   │   ├── Profissionais (+ foto)
-  │   └── Acessos e papéis
+  │   └── Acessos, papéis e permissões granulares
   ├── Horários e dias bloqueados
   ├── Portfólio
   ├── Avaliações
@@ -167,7 +179,8 @@ Essas regras são verificadas automaticamente por `scripts/check-mobile-routing.
 ├── appointments
 │   ├── POST /
 │   ├── PATCH /{id}/status
-│   └── DELETE /{id}
+│   ├── DELETE /{id}
+│   └── POST /{id}/recurrence
 ├── schedule
 │   ├── GET /range
 │   ├── POST /walk-ins
@@ -181,7 +194,18 @@ Essas regras são verificadas automaticamente por `scripts/check-mobile-routing.
 │   ├── POST /adjustments /closings
 │   └── GET / POST / PATCH /commission-rules
 ├── team/members
-│   └── GET / POST / PATCH
+│   ├── GET / POST / PATCH
+│   └── PATCH /{id}/permissions
+├── retention
+│   ├── waitlist
+│   ├── recurrences
+│   ├── loyalty / rewards
+│   ├── coupons
+│   └── campaigns
+├── growth
+│   ├── insights
+│   ├── opportunities
+│   └── goals
 ├── establishments
 │   ├── PATCH /{id}
 │   └── PATCH /{id}/status
@@ -214,3 +238,10 @@ O usuário não navega para uma página de “Agendar” como destino principal.
 - `/html/painel.html#relatorios` → relatórios essenciais/avançados conforme entitlement.
 
 A navegação admin global aponta para **Assinaturas** como página real, não como âncora de `admin.html`.
+
+## Barber Hub 1.9.3 — navegação por plano/permissão
+
+- `/html/painel.html#relacionamento` e equivalente mobile reúnem a entrega 1.9.1;
+- `/html/painel.html#crescimento` e equivalente mobile reúnem a entrega 1.9.2;
+- o botão mobile `Mais` mostra somente destinos que o plano concede e que o membro pode acessar;
+- digitar uma âncora diretamente não contorna autorização: a API e o PostgreSQL repetem a validação.

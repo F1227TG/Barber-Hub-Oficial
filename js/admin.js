@@ -208,7 +208,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const recovery = evento.target.closest("[data-admin-password-recovery]");
     try {
       if (recovery) {
-        if (!window.bhBackendApi) throw new Error("A API Python ainda não está disponível neste ambiente.");
+        if (!window.bhBackendApi) throw new Error("O serviço de recuperação ainda não está disponível neste ambiente.");
         const email = recovery.dataset.userEmail || "esta conta";
         if (!await bhConfirmar({
           titulo: "Enviar redefinição de senha",
@@ -255,7 +255,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 function bhAssinarAdminTempoReal(){if(!window.supabaseClient)return;const atualizar=async()=>{await bhRecarregarAdmin()};window.supabaseClient.channel('admin-live-v13').on('postgres_changes',{event:'*',schema:'public',table:'tickets_suporte'},atualizar).on('postgres_changes',{event:'*',schema:'public',table:'portfolio_denuncias'},atualizar).on('postgres_changes',{event:'*',schema:'public',table:'avaliacoes'},atualizar).on('postgres_changes',{event:'*',schema:'public',table:'estabelecimentos'},atualizar).subscribe()}
 document.addEventListener('DOMContentLoaded',()=>setTimeout(bhAssinarAdminTempoReal,1800));
 
-/** Barber Hub 1.6 — health check real da API Python para o painel admin. */
+/** Estado dos serviços essenciais exibido somente no painel administrativo. */
 async function bhAdminCarregarSaudeApi() {
   const set = (name, text, online = true) => {
     const value = document.getElementById(`adminHealth${name}`);
@@ -264,17 +264,17 @@ async function bhAdminCarregarSaudeApi() {
     card?.classList.toggle("offline", !online);
   };
   try {
-    if (!window.bhBackendApi?.adminHealth) throw new Error("Cliente da API indisponível");
+    if (!window.bhBackendApi?.adminHealth) throw new Error("Serviço de monitoramento indisponível");
     const started = performance.now();
     const data = await window.bhBackendApi.adminHealth();
     const latency = Math.max(1, Math.round(performance.now() - started));
-    set("Api", `Online · ${latency} ms · v${data?.api?.version || "?"}`, data?.api?.status === "online");
+    set("Api", `Online · ${latency} ms`, data?.api?.status === "online");
     set("Db", data?.database?.status === "online" ? "Online" : "Indisponível", data?.database?.status === "online");
     set("Auth", data?.auth?.status === "online" ? "Online" : "Indisponível", data?.auth?.status === "online");
     const marketplaceOk = data?.marketplace?.status === "online";
-    set("Marketplace", marketplaceOk ? "Online · FTS" : "Migration 15 pendente", marketplaceOk);
+    set("Marketplace", marketplaceOk ? "Online" : "Busca indisponível", marketplaceOk);
     const updated = document.getElementById("adminUltimaAtualizacao");
-    if (updated) updated.textContent = `API verificada às ${new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" }).format(new Date())}`;
+    if (updated) updated.textContent = `Serviços verificados às ${new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" }).format(new Date())}`;
   } catch (error) {
     set("Api", "Indisponível", false);
     set("Db", "Não confirmado", false);

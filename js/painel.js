@@ -12,6 +12,7 @@ let bhPainelAgendamentos = [];
 let bhPainelPortfolio = [];
 let bhPainelAvaliacoes = [];
 let bhPainelPlanoResumo = null;
+let bhPainelPermissoes = null;
 let bhPortfolioFiltro = "todas";
 let bhPortfolioArquivos = [];
 let bhPortfolioSubmitStatus = "rascunho";
@@ -72,12 +73,32 @@ function bhNomeBeneficioPlano(chave) {
     permite_crm: "CRM 2.0",
     permite_financeiro: "Financeiro operacional",
     permite_comissoes: "Comissões automáticas",
-    permite_equipe_acesso: "Acesso individual da equipe"
+    permite_equipe_acesso: "Acesso individual da equipe",
+    permite_lista_espera: "Lista de espera",
+    permite_recorrencia: "Agendamentos recorrentes",
+    permite_fidelidade: "Programa de fidelidade",
+    permite_cupons: "Cupons",
+    permite_campanhas: "Campanhas segmentadas",
+    permite_lembretes: "Lembretes automáticos",
+    permite_oportunidades: "Central de Oportunidades",
+    permite_insights: "Insights operacionais",
+    permite_metas: "Metas",
+    permite_permissoes_granulares: "Permissões granulares"
   })[chave] || "Este recurso";
 }
 
 function bhAtivarSecaoPainel(id) {
   const secaoAlvo = document.getElementById(id);
+  const permissionMap = {
+    secAgenda:["agenda"], secClientes:["crm"], secFinanceiro:["financeiro"],
+    secRelacionamento:["retencao","campanhas"], secCrescimento:["crescimento","metas"],
+    secBarbeiros:["equipe"], secConfig:["configuracoes"]
+  };
+  const requiredPermissions = permissionMap[id];
+  if (bhPainelPermissoes && requiredPermissions && !requiredPermissions.some(key => bhPainelPermissoes[key])) {
+    mostrarToast("aviso", "Acesso restrito", "O proprietário desativou este recurso para sua função.");
+    return false;
+  }
   const recurso = secaoAlvo?.dataset.planSection;
   if (recurso && !bhPlanoPermite(recurso)) {
     mostrarToast("aviso", `${bhNomeBeneficioPlano(recurso)} não está no plano atual`, "Abra Planos para conhecer o próximo nível e os benefícios herdados.");
@@ -89,6 +110,7 @@ function bhAtivarSecaoPainel(id) {
     botao.classList.toggle("btn-dark", botao.dataset.panel !== id);
   });
   history.replaceState(null, "", `#${id.replace("sec", "").toLowerCase()}`);
+  document.dispatchEvent(new CustomEvent("bh:painel-section-change", { detail: { id } }));
   return true;
 }
 
@@ -136,6 +158,32 @@ function bhAplicarEntitlementsPainel() {
   if (exportar) exportar.hidden = !Boolean(ent.permite_exportacao);
   const nivel = document.getElementById("relatorioNivelPlano");
   if (nivel) nivel.textContent = ent.permite_relatorios_avancados ? "Relatórios avançados ativos" : "Relatórios essenciais";
+  bhAplicarPermissoesEquipePainel();
+}
+
+function bhAplicarPermissoesEquipePainel() {
+  if (!bhPainelPermissoes) return;
+  const capabilityBySection = {
+    secAgenda: ["agenda"],
+    secClientes: ["crm"],
+    secFinanceiro: ["financeiro"],
+    secRelacionamento: ["retencao", "campanhas"],
+    secCrescimento: ["crescimento", "metas"],
+    secBarbeiros: ["equipe"],
+    secConfig: ["configuracoes"]
+  };
+  document.querySelectorAll("[data-panel]").forEach(button => {
+    const capabilities = capabilityBySection[button.dataset.panel];
+    if (!capabilities) return;
+    const allowed = capabilities.some(capability => Boolean(bhPainelPermissoes[capability]));
+    button.hidden = !allowed;
+    button.setAttribute("aria-hidden", String(!allowed));
+  });
+  const active = document.querySelector(".panel-section.ativo");
+  const activeCapabilities = capabilityBySection[active?.id];
+  if (activeCapabilities && !activeCapabilities.some(capability => Boolean(bhPainelPermissoes[capability]))) bhAtivarSecaoPainel("secDashboard");
+  document.querySelectorAll('[data-retention-action="campanha"]').forEach(button => { button.hidden = !bhPainelPermissoes.campanhas; });
+  document.querySelectorAll('[data-growth-action="meta"]').forEach(button => { button.hidden = !bhPainelPermissoes.metas; });
 }
 
 function bhRenderPlanoPainel() {
@@ -613,11 +661,12 @@ async function bhRecarregarPainel() {
     location.href = bhUrl("html/cadastro-barbearia.html");
     return;
   }
-  [bhPainelAgendamentos, bhPainelPortfolio, bhPainelAvaliacoes, bhPainelPlanoResumo] = await Promise.all([
+  [bhPainelAgendamentos, bhPainelPortfolio, bhPainelAvaliacoes, bhPainelPlanoResumo, bhPainelPermissoes] = await Promise.all([
     bhListarAgendamentosEstabelecimento(bhPainelEstabelecimento.id),
     bhListarMeuPortfolio(bhPainelEstabelecimento.id),
     bhListarAvaliacoesMeuEstabelecimento(bhPainelEstabelecimento.id).catch(erro => { console.warn("Avaliações ainda não disponíveis.", erro); return []; }),
-    bhObterResumoAssinaturaBarbeiro().catch(erro => { console.warn("Plano indisponível.", erro); return null; })
+    bhObterResumoAssinaturaBarbeiro().catch(erro => { console.warn("Plano indisponível.", erro); return null; }),
+    window.bhBackendApi?.teamPermissions(bhPainelEstabelecimento.id).catch(erro => { console.warn("Permissões da equipe indisponíveis.", erro); return null; }) || null
   ]);
   document.getElementById("painelUserNome").textContent = bhPainelPerfil.nome;
   document.getElementById("painelUserTipo").textContent = bhPainelPerfil.tipo === "admin" ? "Administrador" : "Proprietário";
@@ -640,6 +689,9 @@ async function bhRecarregarPainel() {
   const ativa = document.querySelector(".panel-section.ativo");
   const recursoAtivo = ativa?.dataset.planSection;
   if (recursoAtivo && !bhPlanoPermite(recursoAtivo)) bhAtivarSecaoPainel("secDashboard");
+  document.dispatchEvent(new CustomEvent("bh:painel-context-ready", {
+    detail: { establishmentId: bhPainelEstabelecimento.id }
+  }));
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -660,7 +712,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   document.querySelectorAll("[data-panel]").forEach(botao => botao.addEventListener("click", () => bhAtivarSecaoPainel(botao.dataset.panel)));
   const hash = location.hash.replace("#", "");
-  const mapaHash = { agenda: "secAgenda", clientes: "secClientes", financeiro: "secFinanceiro", promocoes: "secPromocoes", servicos: "secServicos", equipe: "secBarbeiros", relatorios: "secRelatorios", galeria: "secGaleria", avaliacoes: "secAvaliacoes", configuracoes: "secConfig", pagina: "secPagina" };
+  const mapaHash = { agenda: "secAgenda", clientes: "secClientes", financeiro: "secFinanceiro", relacionamento: "secRelacionamento", crescimento: "secCrescimento", promocoes: "secPromocoes", servicos: "secServicos", equipe: "secBarbeiros", relatorios: "secRelatorios", galeria: "secGaleria", avaliacoes: "secAvaliacoes", configuracoes: "secConfig", pagina: "secPagina" };
   if (mapaHash[hash]) bhAtivarSecaoPainel(mapaHash[hash]);
 
   document.querySelectorAll("[data-horario-aberto]").forEach(check => check.addEventListener("change", () => {
@@ -774,7 +826,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
 
-  document.getElementById("buscarClientePainel")?.addEventListener("input", bhRenderClientesPainel);
   document.getElementById("exportarRelatorioCsv")?.addEventListener("click", bhExportarRelatorioCsv);
 
   document.getElementById("cancelarEdicaoPromocao")?.addEventListener("click", bhLimparFormPromocao);
@@ -1049,7 +1100,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 window.addEventListener("hashchange", () => {
-  const mapa = { agenda: "secAgenda", clientes: "secClientes", financeiro: "secFinanceiro", promocoes: "secPromocoes", servicos: "secServicos", equipe: "secBarbeiros", relatorios: "secRelatorios", galeria: "secGaleria", avaliacoes: "secAvaliacoes", configuracoes: "secConfig", pagina: "secPagina" };
+  const mapa = { agenda: "secAgenda", clientes: "secClientes", financeiro: "secFinanceiro", relacionamento: "secRelacionamento", crescimento: "secCrescimento", promocoes: "secPromocoes", servicos: "secServicos", equipe: "secBarbeiros", relatorios: "secRelatorios", galeria: "secGaleria", avaliacoes: "secAvaliacoes", configuracoes: "secConfig", pagina: "secPagina" };
   const alvo = mapa[location.hash.replace("#", "")];
   if (alvo) bhAtivarSecaoPainel(alvo);
 });

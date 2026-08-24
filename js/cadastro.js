@@ -36,8 +36,9 @@ document.addEventListener("DOMContentLoaded", () => {
       mostrarToast("erro", "Cadastro incompleto", "Preencha todos os campos obrigatórios.");
       return;
     }
-    if (senha.length < 8) {
-      mostrarToast("erro", "Senha muito curta", "Use pelo menos 8 caracteres.");
+    const analiseSenha = bhAnalisarSenha(senha);
+    if (!analiseSenha.valida) {
+      mostrarToast("erro", "Complete os requisitos da senha", analiseSenha.mensagem);
       return;
     }
     if (senha !== confirmar) {

@@ -374,7 +374,8 @@ async function bhCriarAgendamento(payload) {
         servicos_ids: servicosIds,
         data: payload.data,
         hora_inicio: payload.hora,
-        observacao: payload.observacao || null
+        observacao: payload.observacao || null,
+        cupom_codigo: payload.cupomCodigo || null
       });
     } catch (erro) {
       if (!bhBackendPodeUsarFallback(erro)) throw erro;
@@ -384,13 +385,14 @@ async function bhCriarAgendamento(payload) {
 
   // Desenvolvimento estático: fallback temporário para o Supabase.
   const client = bhExigirSupabase();
-  const { data, error } = await client.rpc("criar_agendamento_multisservico", {
+  const { data, error } = await client.rpc("criar_agendamento_com_cupom_193", {
     p_estabelecimento_id: payload.estabelecimentoId,
     p_profissional_id: payload.profissionalId,
     p_servicos_ids: servicosIds,
     p_data: payload.data,
     p_hora_inicio: payload.hora,
-    p_observacao: payload.observacao || null
+    p_observacao: payload.observacao || null,
+    p_cupom_codigo: payload.cupomCodigo || null
   });
   if (error) throw error;
   return data;

@@ -1,4 +1,4 @@
-# API própria do Barber Hub — Python/FastAPI 1.4.0
+# API própria do Barber Hub — Python/FastAPI 1.5.0
 
 ## Objetivo
 
@@ -28,12 +28,14 @@ backend/services/schedule.py Agenda 2.0
 backend/services/crm.py         fichas e notas de clientes
 backend/services/finance.py     lançamentos, comissões e fechamento
 backend/services/team.py        acessos e papéis operacionais
+backend/services/retention.py   espera, recorrência, fidelidade, cupons e campanhas
+backend/services/growth.py      insights, oportunidades, metas e permissões
 backend/services/management.py  estabelecimento/serviços/profissionais/promoções sob RLS
 backend/services/support.py  suporte
 backend/services/admin.py    overview/health/auditoria/recuperação/assinaturas
 ```
 
-## Endpoints 1.4.0
+## Endpoints 1.5.0
 
 | Método | Rota | Acesso | Responsabilidade |
 |---|---|---|---|
@@ -86,12 +88,29 @@ backend/services/admin.py    overview/health/auditoria/recuperação/assinaturas
 | GET/POST/PATCH | `/api/v1/finance/commission-rules` | gestão + comissões | regras percentuais/fixas |
 | GET/POST/PATCH | `/api/v1/team/members` | proprietário/gerente/admin | vínculo e estado dos acessos |
 
+### Retenção e inteligência adicionadas na 1.5.0
+
+| Método | Rota | Acesso | Responsabilidade |
+|---|---|---|---|
+| GET/POST/PATCH | `/api/v1/retention/waitlist` | cliente/equipe sob RLS | entrar, acompanhar e tratar lista de espera |
+| POST | `/api/v1/appointments/{id}/recurrence` | gestão + plano | criar série recorrente transacional |
+| GET | `/api/v1/retention/recurrences` | cliente/equipe sob RLS | listar séries visíveis |
+| GET/PUT | `/api/v1/retention/loyalty` e `/program` | gestão + fidelidade | visão e configuração do programa |
+| POST/PATCH | `/api/v1/retention/loyalty/rewards` | gestão + fidelidade | recompensas e resgate |
+| GET | `/api/v1/client/loyalty` | cliente autenticado | saldos e recompensas visíveis da própria carteira |
+| GET/POST/PATCH | `/api/v1/retention/coupons` | gestão + cupons | regras, validade e ativação de cupons |
+| GET/POST | `/api/v1/retention/campaigns` | Elite + campanhas | segmentação e fila de mensagens |
+| GET/PATCH | `/api/v1/team/.../permissions` | membro/proprietário | capacidades efetivas e overrides Elite |
+| GET | `/api/v1/growth/insights` | Elite + crescimento | indicadores consolidados do período |
+| GET/PATCH | `/api/v1/growth/opportunities` | Elite + crescimento | recalcular, listar e tratar oportunidades |
+| GET/POST/PATCH | `/api/v1/growth/goals` | Profissional+ + metas | metas e progresso mensurável |
+
 Swagger: `/api/docs`  
 OpenAPI executável: `/api/openapi.json`
 
 ## Assinaturas e entitlements — 1.8/1.9
 
-A API 1.4.0 integra as migrations 16–22. O proprietário consulta o plano efetivo por `/establishments/{id}/entitlements`; o administrador altera a assinatura pela rota administrativa. A escrita chama a RPC `admin_atribuir_plano`, que recalcula os benefícios cumulativos e aplica downgrade/upgrade de forma transacional.
+A API 1.5.0 integra as migrations 16–25. O proprietário consulta o plano efetivo por `/establishments/{id}/entitlements`; o administrador altera a assinatura pela rota administrativa. A escrita chama a RPC `admin_atribuir_plano`, que recalcula os benefícios cumulativos e aplica downgrade/upgrade de forma transacional.
 
 Os limites críticos não dependem apenas do frontend: agenda, profissionais, promoções e portfólio também são validados no PostgreSQL. Assinaturas pausadas, canceladas, atrasadas ou vencidas caem para o conjunto de benefícios do Perfil gratuito sem apagar o histórico do estabelecimento.
 
@@ -157,7 +176,7 @@ Não existe endpoint para exibir senha. O Supabase Auth mantém o hash bcrypt em
 
 ## Regras offline
 
-Os módulos `backend/domain/appointments.py`, `plans.py`, `schedule.py`, `crm.py`, `finance.py` e `permissions.py` não dependem de serviços externos. Use `npm run check:offline` para validar transições, agenda, classificação, comissões e papéis sem Supabase, Vercel ou FastAPI Cloud.
+Os módulos `backend/domain/appointments.py`, `plans.py`, `schedule.py`, `crm.py`, `finance.py`, `retention.py`, `growth.py` e `permissions.py` não dependem de serviços externos. Use `npm run check:offline` para validar transições, agenda, classificação, comissões, recorrência, cupons, métricas e papéis sem Supabase, Vercel ou FastAPI Cloud.
 
 ## Escritas de gestão e dupla validação
 

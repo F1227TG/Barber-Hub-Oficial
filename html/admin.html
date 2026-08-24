@@ -19,7 +19,7 @@
 <link href="../css/pages.css" rel="stylesheet"/>
 <link href="../manifest.webmanifest" rel="manifest"/>
 <link href="../css/mobile-app.css" rel="stylesheet"/><link href="../css/release-1.4.1.css" rel="stylesheet"/>
-<link href="../css/product-redesign.css" rel="stylesheet"/><link href="../css/release-1.6.css" rel="stylesheet"/><link href="../css/release-1.7.css" rel="stylesheet"/><link href="../css/release-1.7.1.css" rel="stylesheet"/><link href="../css/release-1.8.css" rel="stylesheet"/><link href="../css/brand-assets-1.8.css" rel="stylesheet"/>
+<link href="../css/product-redesign.css" rel="stylesheet"/><link href="../css/release-1.6.css" rel="stylesheet"/><link href="../css/release-1.7.css" rel="stylesheet"/><link href="../css/release-1.7.1.css" rel="stylesheet"/><link href="../css/release-1.8.css" rel="stylesheet"/><link href="../css/release-1.9.css" rel="stylesheet"/><link href="../css/release-1.9.3.css" rel="stylesheet"/><link href="../css/brand-assets-1.8.css" rel="stylesheet"/>
 </head>
 <body class="admin-page page-admin"><script src="../js/device-router.js"></script>
 <!-- Cabeçalho e navegação principal -->
@@ -95,13 +95,24 @@
        Atualizar
       </button>
 <a class="btn btn-outline btn-small" href="admin-assinaturas.html"><i class="bi bi-gem"></i> Assinaturas</a><a class="btn btn-outline btn-small" href="mapa-sistema.html"><i class="bi bi-diagram-3"></i> Mapa do sistema</a><div aria-live="polite" class="admin-health-live" id="adminHealthServices">
-<div class="admin-service-health" data-health="api"><span>API Python</span><strong id="adminHealthApi">Verificando</strong></div>
-<div class="admin-service-health" data-health="database"><span>Banco</span><strong id="adminHealthDb">Verificando</strong></div>
-<div class="admin-service-health" data-health="auth"><span>Autenticação</span><strong id="adminHealthAuth">Verificando</strong></div>
-<div class="admin-service-health" data-health="marketplace"><span>Marketplace FTS</span><strong id="adminHealthMarketplace">Verificando</strong></div>
+<div class="admin-service-health" data-health="api"><span>Plataforma</span><strong id="adminHealthApi">Verificando</strong></div>
+<div class="admin-service-health" data-health="database"><span>Dados</span><strong id="adminHealthDb">Verificando</strong></div>
+<div class="admin-service-health" data-health="auth"><span>Acessos</span><strong id="adminHealthAuth">Verificando</strong></div>
+<div class="admin-service-health" data-health="marketplace"><span>Busca</span><strong id="adminHealthMarketplace">Verificando</strong></div>
 </div></div>
 </div>
 </section>
+<nav aria-label="Atalhos da administração" class="admin-quick-nav">
+<div class="container">
+<a href="#estabelecimentos"><i class="bi bi-shop"></i> Negócios</a>
+<a href="#usuarios"><i class="bi bi-people"></i> Usuários</a>
+<a href="#agendamentos"><i class="bi bi-calendar2-check"></i> Agenda</a>
+<a href="#avaliacoes"><i class="bi bi-star"></i> Avaliações</a>
+<a href="#moderacao"><i class="bi bi-shield-exclamation"></i> Moderação</a>
+<a href="#tickets"><i class="bi bi-headset"></i> Suporte</a>
+<a href="admin-assinaturas.html"><i class="bi bi-gem"></i> Assinaturas</a>
+</div>
+</nav>
 <section class="section admin-overview-section">
 <div class="container">
 <div class="admin-kpi-grid">
@@ -358,7 +369,7 @@
 <i class="bi bi-shield-lock"></i>
 <div>
 <strong>Senhas não podem ser visualizadas</strong>
-<p>O Supabase armazena somente hashes. Para ajudar uma conta, use “Enviar redefinição”: o usuário recebe um link seguro e escolhe uma nova senha.</p>
+<p>As senhas são protegidas por hash e não podem ser recuperadas. Para ajudar uma conta, use “Enviar redefinição”: a pessoa recebe um link seguro e escolhe uma nova senha.</p>
 </div>
 </div><div class="table-wrap">
 <table>

@@ -1,4 +1,4 @@
-# Arquitetura do Barber Hub 1.9.0
+# Arquitetura do Barber Hub 1.9.3
 
 ## Visão geral
 
@@ -67,7 +67,7 @@ A página `agendamento.html` é apenas compatibilidade/deep-link.
 ## Backend Python
 
 - `api/index.py`: rotas FastAPI, middleware de request id e logs estruturados;
-- `backend/domain/`: regras puras de agendamento, planos, agenda, CRM, finanças e permissões, testáveis sem rede;
+- `backend/domain/`: regras puras de agendamento, planos, agenda, CRM, finanças, retenção, crescimento e permissões, testáveis sem rede;
 - `backend/security.py`: autenticação/token, admin e e-mail confirmado;
 - `backend/rate_limit.py`: limitação distribuída;
 - `backend/services/catalog.py`: marketplace;
@@ -76,6 +76,8 @@ A página `agendamento.html` é apenas compatibilidade/deep-link.
 - `backend/services/crm.py`: carteira persistente e notas internas;
 - `backend/services/finance.py`: resumo, ajustes, comissões e fechamento;
 - `backend/services/team.py`: vínculos e papéis operacionais;
+- `backend/services/retention.py`: espera, recorrência, fidelidade, cupons, campanhas e lembretes;
+- `backend/services/growth.py`: oportunidades, insights, metas e permissões granulares;
 - `backend/services/management.py`: edição de estabelecimento, serviços e profissionais com Pydantic + token do usuário + RLS;
 - `backend/services/admin.py`: overview, health, recuperação e auditoria;
 - `backend/services/support.py`: tickets;
@@ -111,7 +113,13 @@ As **migrations 18–23** adicionam e endurecem a base operacional 1.9:
   - entitlements operacionais, RLS consolidado e encaixe transacional;
   - índices de FKs, políticas sem duplicação e bloqueio de RPCs exclusivas de gatilho.
 
-As migrations 11–23 foram aplicadas no ambiente conectado em 21/08/2026 e aprovadas pelos verificadores 17, 22 e 23. A configuração externa restante está em `docs/CONFIGURACAO_EXTERNA_1_9.md`.
+As **migrations 24–25** completam a 1.9.3:
+
+- lista de espera, recorrência, fidelidade, cupons, campanhas e filas de automação;
+- oportunidades, insights, metas e permissões granulares;
+- novos entitlements por plano, RLS, RPCs transacionais, triggers e índices.
+
+As migrations 11–23 estavam aplicadas no ambiente conectado em 24/08/2026 e aprovadas pelos verificadores 17, 22 e 23. As migrations 24/25 ainda precisam ser aplicadas e validadas com `verificar_25_release_1_9_3.sql` antes do deploy da API 1.5.0. A configuração externa restante está em `docs/CONFIGURACAO_EXTERNA_1_9.md`.
 
 ## Segurança por camada
 
@@ -143,4 +151,4 @@ O frontend pode ocultar/bloquear recursos para UX, mas agenda, equipe, promoçõ
 
 ## Desenvolvimento offline da API
 
-`backend/domain` não importa FastAPI, HTTPX ou Supabase. Serviços orquestram essas regras e o gateway externo fica em `backend/supabase.py`. O comando `npm run check:offline` valida regras críticas mesmo sem credenciais ou conectividade. O monorepo continua sendo a escolha da 1.9.0; uma separação da API/mobile só deve ocorrer quando houver ciclo de deploy e equipe realmente independentes.
+`backend/domain` não importa FastAPI, HTTPX ou Supabase. Serviços orquestram essas regras e o gateway externo fica em `backend/supabase.py`. O comando `npm run check:offline` valida regras críticas mesmo sem credenciais ou conectividade. O monorepo continua sendo a escolha da 1.9.3; uma separação da API/mobile só deve ocorrer quando houver ciclo de deploy e equipe realmente independentes. O Beauty Hub possui um pacote inicial separado, mas ainda não compartilha credenciais, banco ou código de produção.

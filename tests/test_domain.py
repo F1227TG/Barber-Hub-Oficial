@@ -8,7 +8,9 @@ from backend.domain.appointments import APPOINTMENT_TRANSITIONS, allowed_transit
 from backend.domain.plans import normalized_limit, plan_limit_reached
 from backend.domain.crm import average_ticket, classify_client, normalize_tags
 from backend.domain.finance import calculate_commission, net_revenue
-from backend.domain.permissions import can_manage_appointment, role_can
+from backend.domain.growth import goal_progress, occupancy_rate, opportunity_priority, retention_rate
+from backend.domain.permissions import can_manage_appointment, effective_capabilities, role_can
+from backend.domain.retention import coupon_discount, loyalty_points, recurrence_dates, waitlist_window_is_valid
 from backend.domain.schedule import Period, appointment_period, conflicts_with_blocks, periods_overlap, schedule_range
 
 
@@ -94,4 +96,40 @@ class TeamPermissionTests(TestCase):
     def test_professional_only_manages_own_appointments(self) -> None:
         self.assertTrue(can_manage_appointment("profissional", linked_professional_id="p1", appointment_professional_id="p1"))
         self.assertFalse(can_manage_appointment("profissional", linked_professional_id="p1", appointment_professional_id="p2"))
+
+    def test_granular_overrides_only_apply_when_enabled(self) -> None:
+        self.assertIn("financeiro", effective_capabilities("gerente", {"financeiro": False}, granular_enabled=False))
+        self.assertNotIn("financeiro", effective_capabilities("gerente", {"financeiro": False}, granular_enabled=True))
+        self.assertIn("campanhas", effective_capabilities("recepcao", {"campanhas": True}, granular_enabled=True))
+
+
+class RetentionRuleTests(TestCase):
+    def test_monthly_recurrence_handles_month_end(self) -> None:
+        self.assertEqual(
+            recurrence_dates(date(2026, 1, 31), "mensal", 4),
+            [date(2026, 1, 31), date(2026, 2, 28), date(2026, 3, 31), date(2026, 4, 30)],
+        )
+
+    def test_coupon_and_points_are_bounded(self) -> None:
+        self.assertEqual(coupon_discount(80, discount_type="percentual", discount_value=25), Decimal("20.00"))
+        self.assertEqual(coupon_discount(80, discount_type="fixo", discount_value=100), Decimal("80.00"))
+        self.assertEqual(coupon_discount(200, discount_type="percentual", discount_value=50, maximum_discount=30), Decimal("30.00"))
+        self.assertEqual(loyalty_points(85, points_per_visit=2, currency_per_point=20), 6)
+
+    def test_waitlist_period_has_a_safe_limit(self) -> None:
+        self.assertTrue(waitlist_window_is_valid(date(2026, 8, 20), date(2026, 9, 20)))
+        self.assertFalse(waitlist_window_is_valid(date(2026, 8, 20), date(2026, 9, 21)))
+
+
+class GrowthRuleTests(TestCase):
+    def test_percentages_are_safe_and_bounded(self) -> None:
+        self.assertEqual(occupancy_rate(180, 480), Decimal("37.50"))
+        self.assertEqual(retention_rate(24, 40), Decimal("60.00"))
+        self.assertEqual(goal_progress(125, 100), Decimal("100.00"))
+        self.assertEqual(goal_progress(1, 0), Decimal("0.00"))
+
+    def test_opportunity_priority_combines_impact_and_urgency(self) -> None:
+        self.assertEqual(opportunity_priority(5, 4), "alta")
+        self.assertEqual(opportunity_priority(3, 2), "media")
+        self.assertEqual(opportunity_priority(1, 1), "baixa")
 

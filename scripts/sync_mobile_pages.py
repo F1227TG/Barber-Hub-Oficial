@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 HTML_DIR = ROOT / "html"
 MOBILE_DIR = ROOT / "mobile"
 SHELL = '<script src="../js/mobile-shell-v1.7.js"></script><script src="../js/mobile-native-v1.7.1.js"></script><script src="../js/mobile-redesign-1.8.js"></script>'
-MOBILE_STYLE = '<link href="../css/mobile-redesign-1.8.css" rel="stylesheet"/>'
+MOBILE_STYLE = '<link href="../css/mobile-redesign-1.8.css" rel="stylesheet"/><link href="../css/release-1.9.3.css" rel="stylesheet"/>'
 MOBILE_PAGE_NAMES = {path.name for path in HTML_DIR.glob("*.html")} | {"index.html"}
 
 
@@ -71,6 +71,9 @@ def transform(source: Path) -> str:
     mobile_meta = f'<meta content="yes" name="mobile-web-app-capable"/><meta content="noindex,follow" name="robots"/><link href="{canonical}" rel="canonical"/>'
     html = re.sub(r'<meta content="noindex,follow" name="robots"/><link href="https://barberhuboficial\.vercel\.app/html/[^"]+" rel="canonical"/>', "", html)
     html = html.replace('<meta content="yes" name="mobile-web-app-capable"/>', "")
+    # A folha 1.9.3 precisa vir depois do redesign 1.8 no app para substituir
+    # regras antigas de overflow sem duplicar o download nas páginas afetadas.
+    html = html.replace('<link href="../css/release-1.9.3.css" rel="stylesheet"/>', "")
     html = html.replace("</head>", mobile_meta + MOBILE_STYLE + "</head>", 1)
 
     html = re.sub(r'<script src="\.\./js/mobile-shell-v1\.[0-9.]+\.js"></script>', "", html)

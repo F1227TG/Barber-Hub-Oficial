@@ -45,7 +45,7 @@ async def get_client(client_id: str, auth: AuthContext) -> dict[str, Any]:
         client_id,
         auth,
         select=(
-            "id,estabelecimento_id,cliente_id,nome,email,telefone,preferencias,tags,permite_whatsapp,"
+            "id,estabelecimento_id,cliente_id,nome,email,telefone,preferencias,tags,permite_whatsapp,permite_email_marketing,data_nascimento,"
             "segmento,total_agendamentos,visitas_concluidas,cancelamentos,faltas,gasto_total,"
             "primeira_visita_em,ultima_visita_em,proxima_visita_em,profissional_preferido_id,servico_preferido_id"
         ),
