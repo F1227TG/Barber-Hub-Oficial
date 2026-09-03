@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "barber-hub-api"
 version = "1.6.0"
@@ -8,4 +12,13 @@ dependencies = [
   "httpx>=0.28,<1",
   "pydantic[email]>=2.10,<3",
 ]
+
+[tool.setuptools]
+include-package-data = false
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["api", "api.*", "backend", "backend.*"]
+# api/ is an implicit namespace package (no __init__.py).
+namespaces = true
 
