@@ -2,7 +2,7 @@
 
 ## Situação do ambiente conectado em 24/08/2026
 
-O histórico remoto chegava apenas ao equivalente da migration 10. As migrations 11–23 foram aplicadas, na ordem, ao projeto `dhkqnfqrfqrpumrjjrcy`. Os verificadores 17, 22 e 23 foram aprovados. As migrations **24 e 25 foram geradas nesta release e ainda precisam ser aplicadas pelo responsável do projeto antes do deploy da API 1.5.0**.
+O histórico remoto chegava apenas ao equivalente da migration 10. As migrations 11–28 foram aplicadas, na ordem, ao projeto `dhkqnfqrfqrpumrjjrcy`. Os verificadores 17, 22, 23 e 25 foram aprovados. O banco remoto já representa a release 1.9.3.
 
 ## Backup e ensaio
 
@@ -38,29 +38,28 @@ O histórico remoto chegava apenas ao equivalente da migration 10. As migrations
 
 O verificador operacional retornou todos os campos booleanos como `true` e `total_tabelas_rls = 9`. A migration 23 removeu warnings de FKs sem índice, `auth.uid()` não inicializado e policies de leitura duplicadas.
 
-### Retenção & Inteligência 1.9.3 — aplicar agora
-
-No Supabase Dashboard, abra **SQL Editor → New query**. Para cada item abaixo, copie o arquivo inteiro, execute e confirme sucesso antes de prosseguir:
+### Retenção & Inteligência 1.9.3 — aplicada
 
 1. `24_retencao_relacionamento_1_9_3.sql` — cria lista de espera, recorrências, fidelidade, cupons, campanhas, automações e novos entitlements;
 2. `25_inteligencia_permissoes_1_9_3.sql` — cria oportunidades, insights, metas, permissões granulares e integra as permissões às regras operacionais;
-3. `verificar_25_release_1_9_3.sql` — valida tabelas, RLS, RPCs, entitlements e `search_path`; não persiste alteração.
+3. `26_cron_automacoes_1_9_3.sql` — instala o módulo Cron e agenda os dois workers internos;
+4. `27_advisors_release_1_9_3.sql` — adiciona índices de FKs e elimina políticas de leitura permissivas duplicadas;
+5. `28_hardening_objetos_1_9_3.sql` — remove privilégios anônimos herdados das tabelas internas;
+6. `verificar_25_release_1_9_3.sql` — valida tabelas, RLS, privilégios anônimos, RPCs, entitlements e `search_path`; não persiste alteração.
 
-Resultado esperado do terceiro arquivo: uma mensagem de validação e **zero linhas** na consulta final. Se houver exceção/linha, não publique e corrija o item informado.
-
-Depois, abra **Database → Migrations** (ou mantenha uma tabela de histórico própria, se o projeto foi iniciado pelo SQL Editor) e registre os nomes 24/25 para impedir reaplicação acidental. Não cole os dois arquivos em uma única execução: assim fica claro em qual etapa ocorreu uma eventual falha.
+Resultado confirmado: mensagem de validação e **zero linhas** na consulta final. Os cinco arquivos aparecem no histórico remoto e não devem ser reaplicados.
 
 ## Configuração externa obrigatória
 
-- habilitar CAPTCHA/Turnstile no Supabase Auth e configurar as chaves somente nos ambientes autorizados;
-- habilitar proteção contra senhas vazadas no provedor de autenticação;
-- confirmar URLs de redirecionamento e e-mails de recuperação;
+- CAPTCHA/Turnstile confirmado como ativo no Supabase Auth;
+- proteção contra senhas vazadas pendente porque o projeto está no plano Free;
+- Site URL e quatro URLs de redirecionamento confirmadas;
 - configurar `SUPABASE_URL`, chave pública no frontend e credenciais privadas somente no backend/deploy;
 - manter a RPC distribuída `consumir_api_rate_limit` disponível para todas as instâncias da API;
-- habilitar Supabase Cron e agendar `preparar_lembretes_193()` e `processar_automacoes_internas_193(200)`;
+- Supabase Cron ativo com `preparar_lembretes_193()` e `processar_automacoes_internas_193(200)`; primeiras execuções concluídas com sucesso;
 - conectar um worker externo para filas `email`/`whatsapp`; o banco não envia esses canais sozinho;
 - revisar periodicamente Security Advisor e Performance Advisor;
-- validar políticas com contas separadas: cliente, profissional, recepção, gerente, proprietário, admin e usuário sem vínculo.
+- matriz de autorização validada para cliente, profissional, recepção, gerente, proprietário, admin e usuário sem vínculo; manter também testes completos de interface com contas reais.
 
 ## Rollback
 
@@ -68,7 +67,7 @@ As migrations priorizam alterações aditivas. O rollback seguro é restaurar o 
 
 ## Estado dos Advisors
 
-- Performance: nenhum warning após a migration 23; apenas informações de índices ainda sem uso, esperado logo após a criação.
-- Security: 37 itens antes da 1.9.3 — proteção contra senhas vazadas pendente; 33 grants de execução em RPCs `SECURITY DEFINER` a revisar (6 `anon`, 27 `authenticated`); `unaccent` e `btree_gist` no schema legado `public`; e `api_rate_limits` sem policy pública porque é fechado ao `service_role`.
+- Performance: **zero warnings** após a migration 27; restam apenas informações de índices ainda sem uso, esperado logo após a criação.
+- Security: 50 itens informativos/de revisão — proteção contra senhas vazadas pendente; 6 RPCs públicas intencionais e 40 RPCs autenticadas `SECURITY DEFINER` com autorização interna; `unaccent` e `btree_gist` no schema legado `public`; e `api_rate_limits` sem policy pública porque é fechado ao backend. Nenhuma RPC 1.9.3 é executável por `anon`.
 
 As ações manuais restantes estão detalhadas em `docs/CONFIGURACAO_EXTERNA_1_9.md`.

@@ -13,7 +13,9 @@
     crmSegment: "",
     crmClients: [],
     crmSelected: null,
-    finance: { summary: {}, entries: [], commissions: [] },
+    crmCursor: null,
+    crmHasMore: false,
+    finance: { summary: {}, entries: [], commissions: [], offset: 0, hasMore: false },
     ready: false,
     initializing: false,
     eventsBound: false,
@@ -241,10 +243,10 @@
         : `${state.crmClients.length} cliente${state.crmClients.length === 1 ? "" : "s"} neste segmento.`;
     }
     if (!state.crmClients.length) return host.innerHTML = stateHtml("bi-person-plus", "Nenhum cliente neste segmento", "A carteira será alimentada pelos atendimentos da agenda.");
-    host.innerHTML = state.crmClients.map(item => `<button class="crm-client ${String(state.crmSelected) === String(item.id) ? "ativo" : ""}" data-crm-client="${safe(item.id)}" type="button"><span class="crm-avatar">${safe(initials(item.nome))}</span><span class="crm-client-copy"><strong>${safe(item.nome)}</strong><span>${safe(item.telefone || item.email || "Sem contato informado")} · ${safe((item.segmento || "novo").replace("_", " "))}</span></span><span class="crm-client-meta"><strong>${Number(item.visitas_concluidas || 0)} visitas</strong><small>${money(item.gasto_total)}</small></span></button>`).join("");
+    host.innerHTML = state.crmClients.map(item => `<button class="crm-client ${String(state.crmSelected) === String(item.id) ? "ativo" : ""}" data-crm-client="${safe(item.id)}" type="button"><span class="crm-avatar">${safe(initials(item.nome))}</span><span class="crm-client-copy"><strong>${safe(item.nome)}</strong><span>${safe(item.telefone || item.email || "Sem contato informado")} · ${safe((item.segmento || "novo").replace("_", " "))}</span></span><span class="crm-client-meta"><strong>${Number(item.visitas_concluidas || 0)} visitas</strong><small>${money(item.gasto_total)}</small></span></button>`).join("") + (state.crmHasMore ? `<button class="btn btn-dark btn-small crm-more110" data-crm-more type="button"><i class="bi bi-chevron-down"></i> Carregar mais clientes</button>` : "");
   }
 
-  async function loadCrm() {
+  async function loadCrm(append = false) {
     const host = $("#listaClientesPainel");
     if (!host || !establishment()) return;
     const locked = featureState("permite_crm", "CRM disponível no Essencial", "Histórico persistente, preferências e anotações são liberados a partir do plano Essencial.");
@@ -256,11 +258,15 @@
     if (clearButton) clearButton.hidden = !query;
     if (feedback) feedback.textContent = query ? `Buscando “${query}”…` : "Atualizando a carteira…";
     host.setAttribute("aria-busy", "true");
-    host.innerHTML = loadingHtml(query ? "Buscando clientes" : "Montando a carteira");
+    if (!append) host.innerHTML = loadingHtml(query ? "Buscando clientes" : "Montando a carteira");
     try {
-      const clients = await api().listCrmClients({ establishmentId:establishment().id, query, segment:state.crmSegment, limit:60 });
+      const cursor = append ? state.crmCursor : null;
+      const clients = await api().listCrmClients({ establishmentId:establishment().id, query, segment:state.crmSegment, cursorLast:cursor?.last || null, cursorId:cursor?.id || null, limit:40 });
       if (requestId !== state.crmRequest) return;
-      state.crmClients = clients;
+      state.crmClients = append ? [...state.crmClients, ...clients] : clients;
+      const last = state.crmClients[state.crmClients.length - 1];
+      state.crmCursor = last ? { last:last.ultima_visita_em, id:last.id } : null;
+      state.crmHasMore = clients.length === 40;
       renderCrmRoster();
     } catch (error) {
       if (requestId !== state.crmRequest) return;
@@ -293,33 +299,61 @@
 
   function renderFinance() {
     const summary = state.finance.summary || {};
-    $("#financeKpis19").innerHTML = `<article class="operation-kpi"><span><i class="bi bi-check2-circle"></i> Receita realizada</span><strong>${money(summary.realizado)}</strong><small>${Number(summary.atendimentos || 0)} atendimentos concluídos</small></article><article class="operation-kpi"><span><i class="bi bi-clock-history"></i> Receita prevista</span><strong>${money(summary.previsto)}</strong><small>agendamentos ainda abertos</small></article><article class="operation-kpi"><span><i class="bi bi-receipt"></i> Ticket médio</span><strong>${money(summary.ticket_medio)}</strong><small>por atendimento realizado</small></article><article class="operation-kpi"><span><i class="bi bi-percent"></i> Comissões</span><strong>${money(summary.comissoes)}</strong><small>calculadas pelas regras ativas</small></article>`;
+    const realized = summary.entradas_realizadas ?? summary.receitas_realizadas ?? summary.realizado ?? 0;
+    const expenses = summary.despesas_realizadas ?? 0;
+    const estimated = summary.resultado_estimado ?? (Number(realized) - Number(expenses));
+    const appointments = summary.atendimentos_concluidos ?? summary.atendimentos ?? 0;
+    $("#financeKpis19").innerHTML = `<article class="operation-kpi"><span><i class="bi bi-check2-circle"></i> Receita realizada</span><strong>${money(realized)}</strong><small>${Number(appointments)} atendimentos concluídos</small></article><article class="operation-kpi"><span><i class="bi bi-receipt-cutoff"></i> Gastos realizados</span><strong>${money(expenses)}</strong><small>saídas registradas no período</small></article><article class="operation-kpi"><span><i class="bi bi-calculator"></i> Resultado estimado</span><strong>${money(estimated)}</strong><small>receitas menos gastos e ajustes</small></article><article class="operation-kpi"><span><i class="bi bi-receipt"></i> Ticket médio</span><strong>${money(summary.ticket_medio)}</strong><small>por atendimento realizado</small></article>`;
     const entries = state.finance.entries || [];
     $("#financeLancamentos19").innerHTML = entries.length ? entries.map(item => `<article class="ledger-entry ${safe(item.natureza)}"><span class="ledger-icon"><i class="bi ${item.natureza === "debito" ? "bi-arrow-down-left" : "bi-arrow-up-right"}"></i></span><span class="ledger-copy"><strong>${safe(item.descricao)}</strong><span>${safe(formatDate(item.competencia))} · ${safe(item.origem)} · ${safe(item.status)}</span></span><strong class="ledger-value">${item.natureza === "debito" ? "−" : "+"}${money(item.valor_liquido)}${Number(item.comissao_valor || 0) ? `<small>Comissão ${money(item.comissao_valor)}</small>` : ""}</strong></article>`).join("") : stateHtml("bi-receipt", "Nenhuma movimentação", "Conclua atendimentos ou adicione um ajuste neste período.");
     const commissions = state.finance.commissions || [];
     $("#financeComissoes19").innerHTML = entitlement("permite_comissoes") ? (commissions.length ? commissions.map(item => `<article class="commission-item"><span class="ledger-icon"><i class="bi bi-percent"></i></span><span class="ledger-copy"><strong>${safe(item.tipo === "percentual" ? `${item.valor}%` : money(item.valor))}</strong><span>${item.profissional_id ? "Profissional específico" : item.servico_id ? "Serviço específico" : "Regra padrão"} · ${item.ativo ? "ativa" : "inativa"}</span></span><button class="icon-btn" data-commission-toggle="${safe(item.id)}" data-active="${String(Boolean(item.ativo))}" title="Ativar ou inativar" type="button"><i class="bi ${item.ativo ? "bi-toggle-on" : "bi-toggle-off"}"></i></button></article>`).join("") : stateHtml("bi-percent", "Sem regras", "Crie uma regra padrão ou por profissional.", "compact")) : stateHtml("bi-lock", "Comissões no Profissional", "Faça upgrade para calcular comissões automaticamente.", "compact");
     $("#financePeriodoLabel19").textContent = `${formatDate(summary.inicio)} — ${formatDate(summary.fim)}`;
+    const more = $("#financeMore110");
+    if (more) more.hidden = !state.finance.hasMore;
   }
 
-  async function loadFinance() {
+  async function loadFinance(append = false) {
     const host = $("#financeLancamentos19");
     if (!host || !establishment()) return;
     const locked = featureState("permite_financeiro", "Financeiro disponível no Essencial", "Receita, ticket e fechamento são liberados no plano Essencial.");
     if (locked) { host.innerHTML = locked; $("#financeKpis19").innerHTML = ""; return; }
-    host.innerHTML = loadingHtml("Calculando o período");
+    if (!append) host.innerHTML = loadingHtml("Calculando o período");
     try {
       const params = { establishmentId:establishment().id, start:$("#financeInicio19").value, end:$("#financeFim19").value };
-      const [summary, entries, commissions] = await Promise.all([
-        api().financeSummary(params),
-        api().financeEntries({ ...params, limit:100 }),
-        entitlement("permite_comissoes") ? api().commissionRules(establishment().id) : Promise.resolve([])
-      ]);
-      state.finance = { summary, entries, commissions };
+      if (append) {
+        const page = await api().financeEntries({ ...params, offset:state.finance.offset, limit:40 });
+        state.finance.entries.push(...(page.items || []));
+        state.finance.offset += (page.items || []).length;
+        state.finance.hasMore = Boolean(page.has_more);
+      } else {
+        const [summary, page, commissions] = await Promise.all([
+          api().financeSummary(params),
+          api().financeEntries({ ...params, offset:0, limit:40 }),
+          entitlement("permite_comissoes") ? api().commissionRules(establishment().id) : Promise.resolve([])
+        ]);
+        state.finance = { summary, entries:page.items || [], commissions, offset:(page.items || []).length, hasMore:Boolean(page.has_more) };
+      }
       renderFinance();
     } catch (error) {
       host.innerHTML = stateHtml("bi-exclamation-triangle", "Não foi possível carregar o financeiro", `${errorMessage(error)} Tente atualizar esta área.`, "error");
       $("#financeKpis19").innerHTML = "";
     }
+  }
+
+  function setFinancePreset(preset) {
+    document.querySelectorAll("[data-finance-preset]").forEach(button => button.classList.toggle("ativo", button.dataset.financePreset === preset));
+    if (preset === "custom") { $("#financeInicio19")?.focus(); return; }
+    const end = new Date();
+    const start = new Date(end);
+    if (preset === "week") {
+      const day = start.getDay();
+      start.setDate(start.getDate() - (day === 0 ? 6 : day - 1));
+    }
+    if (preset === "month") start.setDate(1);
+    $("#financeInicio19").value = localIso(start);
+    $("#financeFim19").value = localIso(end);
+    loadFinance();
   }
 
   function openFinanceComposer(kind) {
@@ -381,13 +415,14 @@
   }
 
   async function handleClick(event) {
-    const action = event.target.closest("[data-agenda-action],[data-finance-action],[data-team-action],[data-composer-close],[data-operation-reschedule],[data-operation-recurrence],[data-operation-confirm],[data-operation-noshow],[data-operation-delete-block],[data-crm-client],[data-commission-toggle],[data-team-toggle]");
+    const action = event.target.closest("[data-agenda-action],[data-finance-action],[data-team-action],[data-composer-close],[data-operation-reschedule],[data-operation-recurrence],[data-operation-confirm],[data-operation-noshow],[data-operation-delete-block],[data-crm-client],[data-crm-more],[data-commission-toggle],[data-team-toggle]");
     if (!action) return;
     if (action.dataset.composerClose !== undefined) { const host = action.closest(".operation-composer"); host.hidden = true; host.innerHTML = ""; return; }
     if (action.dataset.agendaAction) return openAgendaComposer(action.dataset.agendaAction);
     if (action.dataset.financeAction) return openFinanceComposer(action.dataset.financeAction);
     if (action.dataset.teamAction) return openTeamComposer();
     if (action.dataset.crmClient) return openCrmDetail(action.dataset.crmClient);
+    if (action.dataset.crmMore !== undefined) return loadCrm(true);
     if (action.dataset.operationReschedule) return openAgendaComposer("reagendar", state.schedule.appointments.find(item => String(item.id) === action.dataset.operationReschedule));
     if (action.dataset.operationRecurrence) return openAgendaComposer("recorrencia", state.schedule.appointments.find(item => String(item.id) === action.dataset.operationRecurrence));
     if (action.dataset.operationConfirm) return mutate(action, () => api().confirmAppointment(action.dataset.operationConfirm, "estabelecimento", "confirmada"), "Atendimento confirmado");
@@ -454,7 +489,10 @@
       loadCrm();
     });
     document.querySelectorAll("[data-crm-segment]").forEach(button => button.addEventListener("click", () => { state.crmSegment = button.dataset.crmSegment; document.querySelectorAll("[data-crm-segment]").forEach(item => item.classList.toggle("ativo", item === button)); loadCrm(); }));
-    $("#financeAtualizar19")?.addEventListener("click", loadFinance);
+    $("#financeAtualizar19")?.addEventListener("click", () => loadFinance());
+    $("#financeMore110")?.addEventListener("click", () => loadFinance(true));
+    document.querySelectorAll("[data-finance-preset]").forEach(button => button.addEventListener("click", () => setFinancePreset(button.dataset.financePreset)));
+    ["#financeInicio19", "#financeFim19"].forEach(selector => $(selector)?.addEventListener("change", () => document.querySelectorAll("[data-finance-preset]").forEach(button => button.classList.toggle("ativo", button.dataset.financePreset === "custom"))));
     document.addEventListener("bh:painel-section-change", event => {
       if (state.ready) refreshSection(event.detail?.id);
       else init();

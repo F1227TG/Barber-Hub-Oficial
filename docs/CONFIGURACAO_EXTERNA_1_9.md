@@ -1,8 +1,10 @@
 # Barber Hub 1.9.3 — configuração externa restante
 
-Estado confirmado em 24/08/2026: migrations 11–23 aplicadas no projeto Supabase `dhkqnfqrfqrpumrjjrcy`; migrations 24/25 aguardam aplicação. Os verificadores 17, 22 e 23 foram aprovados. O rate limit da API já é distribuído no PostgreSQL pela RPC `consumir_api_rate_limit`.
+Estado confirmado em 24/08/2026: migrations 11–28 aplicadas no projeto Supabase `dhkqnfqrfqrpumrjjrcy`; verificadores 17, 22, 23 e 25 aprovados; Cron ativo; CAPTCHA/Turnstile e URLs de Auth confirmados. O rate limit da API já é distribuído no PostgreSQL pela RPC `consumir_api_rate_limit`.
 
 ## 1. Cloudflare Turnstile e Supabase Auth
+
+**Estado atual: ativo e salvo no painel do Supabase com Cloudflare Turnstile.** Para reproduzir em outro ambiente:
 
 1. No Cloudflare, crie um widget Turnstile para `barberhuboficial.vercel.app`. Use outro widget/chaves para desenvolvimento local.
 2. Copie a **Secret Key** para o Supabase em [Authentication > Bot and Abuse Protection](https://supabase.com/dashboard/project/dhkqnfqrfqrpumrjjrcy/auth/protection), selecione Cloudflare Turnstile, habilite CAPTCHA e salve.
@@ -19,9 +21,11 @@ Em [Authentication > Password Security](https://supabase.com/dashboard/project/d
 3. habilite **Leaked password protection**;
 4. salve e teste uma troca de senha.
 
-Essa proteção é oferecida pelo Supabase no plano Pro ou superior. Se o projeto estiver no plano gratuito, o item continuará pendente até o upgrade.
+**Estado atual: pendente.** Essa proteção é oferecida pelo Supabase no plano Pro ou superior e o projeto está no plano Free. Não foi iniciado upgrade nem cobrança sem autorização do responsável.
 
 ## 3. URLs e e-mails de autenticação
+
+**Estado atual: Site URL e os quatro redirecionamentos de produção abaixo foram confirmados no painel.** `localhost` não foi incluído na produção.
 
 Em [Authentication > URL Configuration](https://supabase.com/dashboard/project/dhkqnfqrfqrpumrjjrcy/auth/url-configuration), use:
 
@@ -47,6 +51,8 @@ Nos templates de confirmação e recuperação, use `{{ .RedirectTo }}` quando o
 
 O frontend já foi atualizado para a chave pública moderna do projeto. Nenhuma credencial privada foi gravada no repositório.
 
+O endpoint publicado `/api/v1/public-config` respondeu `200`, informou `captcha_required = true` e entregou uma Site Key pública não vazia. O valor não foi copiado para a documentação. O deploy publicado ainda identifica a API como 1.4.0; a API 1.5.0 entra somente no próximo deploy da release.
+
 ## 5. Validação por papéis
 
 Use contas separadas; não altere o papel da mesma conta durante o teste:
@@ -62,23 +68,27 @@ Use contas separadas; não altere o papel da mesma conta durante o teste:
 
 Repita pelo menos um teste tentando acessar o ID de outro estabelecimento. O resultado esperado é lista vazia, `403` ou erro de permissão, nunca dados cruzados.
 
+Em 24/08/2026, a matriz de banco passou para proprietário e admin reais; cliente/usuário sem vínculo; e gerente, recepção e profissional simulados em transações revertidas. A recepção recebeu e perdeu permissões granulares conforme o override configurado, e nenhum papel não administrativo acessou outro estabelecimento. Os testes temporários não deixaram registros.
+
 ## 6. Advisors
 
-Antes das migrations 24/25, a leitura remota retornou 37 itens no Security Advisor:
+Depois das migrations 24–28, a leitura remota retornou 50 itens no Security Advisor:
 
 - 1 informação para `api_rate_limits` com RLS e sem policy pública, intencional por ser serviço interno;
 - 2 avisos para `unaccent` e `btree_gist` no schema `public`;
-- 6 funções `SECURITY DEFINER` executáveis por `anon` e 27 por `authenticated`, que exigem revisão individual de autorização interna;
+- 6 funções públicas intencionais `SECURITY DEFINER` executáveis por `anon` e 40 RPCs autenticadas com autorização interna;
 - proteção contra senhas vazadas desativada.
 
-O Performance Advisor deve ser executado novamente depois das novas tabelas/índices e do primeiro volume de uso. Índice “não utilizado” logo após criação não prova que ele seja desnecessário.
+Nenhuma RPC 1.9.3 é executável por `anon`. O Performance Advisor ficou com **zero warnings**; restam apenas informações de índices ainda sem uso, esperado imediatamente após a criação. Índice “não utilizado” logo após criação não prova que ele seja desnecessário.
 
 Não mova `unaccent` ou `btree_gist` de schema durante o deploy sem um ensaio separado; isso pode afetar objetos existentes.
 
 ## 7. Supabase Cron para lembretes 1.9.3
 
-1. aplique as migrations 24/25 e o verificador;
-2. no Dashboard, abra **Integrations → Cron** e habilite `pg_cron`;
+**Estado atual: configurado pela migration 26 e ativo.** Os dois jobs já tiveram execução `succeeded`. Para reproduzir em outro ambiente:
+
+1. aplique as migrations 24–28 e o verificador;
+2. a migration 26 habilita `pg_cron` e registra os jobs abaixo;
 3. crie o job `barberhub-preparar-lembretes-193`, expressão `*/10 * * * *`, comando:
 
 ```sql

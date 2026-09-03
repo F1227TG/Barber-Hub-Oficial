@@ -132,7 +132,7 @@ async def client_loyalty(auth: AuthContext) -> list[dict[str, Any]]:
 
 
 async def _loyalty_children(program_id: str, auth: AuthContext) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
-    rewards = await gateway.rest("fidelidade_recompensas", token=auth.token, params={"programa_id": f"eq.{program_id}", "select": "*", "order": "pontos_necessarios.asc"}) or []
+    rewards = await gateway.rest("fidelidade_recompensas", token=auth.token, params={"programa_id": f"eq.{program_id}", "select": "*", "order": "pontos_necessarios.asc", "limit": "100"}) or []
     balances = await gateway.rest("fidelidade_saldos", token=auth.token, params={"programa_id": f"eq.{program_id}", "select": "programa_id,cliente_id,pontos,total_creditado,total_resgatado,updated_at,perfis(nome,email)", "order": "pontos.desc", "limit": "200"}) or []
     return rewards, balances
 
@@ -178,7 +178,7 @@ async def redeem_reward(reward_id: str, payload: LoyaltyRedeem, auth: AuthContex
 
 async def list_coupons(establishment_id: str, auth: AuthContext) -> list[dict[str, Any]]:
     await require_feature(establishment_id, auth, "permite_cupons", "Cupons disponíveis a partir do plano Essencial.")
-    return await gateway.rest("cupons", token=auth.token, params={"estabelecimento_id": f"eq.{establishment_id}", "select": "*", "order": "ativo.desc,termina_em.asc.nullslast,created_at.desc"}) or []
+    return await gateway.rest("cupons", token=auth.token, params={"estabelecimento_id": f"eq.{establishment_id}", "select": "*", "order": "ativo.desc,termina_em.asc.nullslast,created_at.desc", "limit": "200"}) or []
 
 
 async def create_coupon(payload: CouponCreate, auth: AuthContext) -> dict[str, Any]:

@@ -32,6 +32,26 @@ const BH_SUPPORT_TEMPLATES = {
   }
 };
 
+function bhAbrirFormularioSuporte({ rolar = true, focar = false } = {}) {
+  const secao = document.getElementById("abrir-ticket");
+  if (!secao) return;
+  document.body.classList.add("support-form-open");
+  if (rolar) secao.scrollIntoView({ behavior: "smooth", block: "start" });
+  if (focar) setTimeout(() => document.getElementById("assunto")?.focus(), 450);
+}
+
+function bhConfigurarFormularioSuporteMobile() {
+  document.querySelectorAll('a[href="#abrir-ticket"]').forEach(link => {
+    link.addEventListener("click", evento => {
+      evento.preventDefault();
+      bhAbrirFormularioSuporte({ rolar: true });
+    });
+  });
+  if (window.location.hash === "#abrir-ticket") {
+    bhAbrirFormularioSuporte({ rolar: false });
+  }
+}
+
 function bhSupportStatusLabel(status) {
   const labels = {
     aberto: "Aberto",
@@ -128,8 +148,7 @@ function bhConfigurarAtalhosSuporte() {
 
       document.querySelectorAll("[data-support-template]").forEach(item => item.classList.remove("ativo"));
       button.classList.add("ativo");
-      document.getElementById("abrir-ticket").scrollIntoView({ behavior: "smooth", block: "start" });
-      setTimeout(() => document.getElementById("assunto").focus(), 450);
+      bhAbrirFormularioSuporte({ rolar: true, focar: true });
     });
   });
 }
@@ -168,6 +187,7 @@ function bhDadosTicket() {
 
 document.addEventListener("DOMContentLoaded", async () => {
   marcarMenuAtivo("contato");
+  bhConfigurarFormularioSuporteMobile();
   bhConfigurarAtalhosSuporte();
   bhConfigurarContadorMensagem();
   await Promise.all([bhPreencherPerfilSuporte(), bhRenderMeusTickets(), bhVerificarApiSuporte()]);

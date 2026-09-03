@@ -9,6 +9,9 @@
 let bhNotificacoes = [];
 let bhFiltroNotificacoes = "todas";
 let bhPerfilNotificacoes = null;
+let bhNotificacoesHasMore = false;
+let bhNaoLidasTotal = 0;
+const BH_NOTIFICACOES_PAGE = 30;
 
 const BH_ICONE_NOTIFICACAO = {
   agendamento: "bi-calendar2-check",
@@ -31,17 +34,15 @@ function bhTempoRelativo(data) {
 }
 
 function bhNotificacoesFiltradas() {
-  if (bhFiltroNotificacoes === "nao_lidas") return bhNotificacoes.filter(item => !item.lida_em);
-  if (bhFiltroNotificacoes !== "todas") return bhNotificacoes.filter(item => item.tipo === bhFiltroNotificacoes);
   return bhNotificacoes;
 }
 
 function bhRenderNotificacoes() {
   const lista = document.getElementById("listaNotificacoes");
   const itens = bhNotificacoesFiltradas();
-  const naoLidas = bhNotificacoes.filter(item => !item.lida_em).length;
-  document.getElementById("resumoNotificacoes").innerHTML = `<strong>${naoLidas}</strong><span>não lida${naoLidas === 1 ? "" : "s"}</span><span>•</span><strong>${bhNotificacoes.length}</strong><span>no total</span>`;
-  document.getElementById("marcarTodasLidas").disabled = naoLidas === 0;
+  document.getElementById("resumoNotificacoes").innerHTML = `<strong>${bhNaoLidasTotal}</strong><span>não lida${bhNaoLidasTotal === 1 ? "" : "s"}</span><span>•</span><strong>${bhNotificacoes.length}</strong><span>exibida${bhNotificacoes.length === 1 ? "" : "s"}</span>`;
+  document.getElementById("marcarTodasLidas").disabled = bhNaoLidasTotal === 0;
+  document.getElementById("notificacoesMais110").hidden = !bhNotificacoesHasMore;
   if (!itens.length) {
     lista.innerHTML = `<div class="empty"><i class="bi bi-bell-slash big"></i><h3>Nenhuma notificação aqui</h3><p>${bhFiltroNotificacoes === "nao_lidas" ? "Você já leu todas as atualizações." : "Novos avisos aparecerão nesta central."}</p></div>`;
     return;
@@ -60,8 +61,12 @@ function bhRenderNotificacoes() {
     </article>`).join("");
 }
 
-async function bhCarregarNotificacoes() {
-  bhNotificacoes = await bhListarNotificacoes({ limite: 150 });
+async function bhCarregarNotificacoes(reset = true) {
+  const filtroTipo = ["todas", "nao_lidas"].includes(bhFiltroNotificacoes) ? null : bhFiltroNotificacoes;
+  const pagina = await bhListarNotificacoes({ somenteNaoLidas:bhFiltroNotificacoes === "nao_lidas", tipo:filtroTipo, offset:reset ? 0 : bhNotificacoes.length, limite:BH_NOTIFICACOES_PAGE });
+  bhNotificacoes = reset ? pagina : [...bhNotificacoes, ...pagina];
+  bhNotificacoesHasMore = pagina.length === BH_NOTIFICACOES_PAGE;
+  bhNaoLidasTotal = await bhContarNotificacoesNaoLidas();
   bhRenderNotificacoes();
 }
 
@@ -72,16 +77,18 @@ document.addEventListener("DOMContentLoaded", async () => {
   try { await bhCarregarNotificacoes(); }
   catch (erro) { mostrarToast("erro", "Falha ao carregar notificações", bhErroMensagem(erro)); }
 
-  document.querySelectorAll("[data-notificacao-filtro]").forEach(botao => botao.addEventListener("click", () => {
+  document.querySelectorAll("[data-notificacao-filtro]").forEach(botao => botao.addEventListener("click", async () => {
     bhFiltroNotificacoes = botao.dataset.notificacaoFiltro;
     document.querySelectorAll("[data-notificacao-filtro]").forEach(item => item.classList.toggle("ativo", item === botao));
-    bhRenderNotificacoes();
+    try { await bhCarregarNotificacoes(true); } catch (erro) { mostrarToast("erro", "Filtro indisponível", bhErroMensagem(erro)); }
   }));
+  document.getElementById("notificacoesMais110")?.addEventListener("click", () => bhCarregarNotificacoes(false).catch(erro => mostrarToast("erro", "Não foi possível carregar mais", bhErroMensagem(erro))));
 
   document.getElementById("marcarTodasLidas").addEventListener("click", async () => {
     try {
       await bhMarcarTodasNotificacoesLidas();
       bhNotificacoes.forEach(item => { item.lida_em ||= new Date().toISOString(); });
+      bhNaoLidasTotal = 0;
       bhRenderNotificacoes();
       bhAtualizarNavegacao?.(bhPerfilNotificacoes);
     } catch (erro) { mostrarToast("erro", "Não foi possível atualizar", bhErroMensagem(erro)); }
@@ -102,6 +109,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   window.supabaseClient?.channel(`central-notificacoes-${bhPerfilNotificacoes.id}`)
-    .on("postgres_changes", { event: "*", schema: "public", table: "notificacoes", filter: `user_id=eq.${bhPerfilNotificacoes.id}` }, bhCarregarNotificacoes)
+    .on("postgres_changes", { event: "*", schema: "public", table: "notificacoes", filter: `user_id=eq.${bhPerfilNotificacoes.id}` }, () => bhCarregarNotificacoes(true))
     .subscribe();
 });

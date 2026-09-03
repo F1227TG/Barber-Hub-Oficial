@@ -20,6 +20,7 @@ async def list_members(establishment_id: str, auth: AuthContext) -> list[dict[st
             "estabelecimento_id": f"eq.{establishment_id}",
             "select": "id,estabelecimento_id,user_id,profissional_id,papel,status,aceito_em,created_at,perfis(nome,email),profissionais(nome,avatar_url),membro_permissoes(recurso,permitido)",
             "order": "status.asc,papel.asc,created_at.asc",
+            "limit": "200",
         },
     ) or []
 

@@ -11,6 +11,7 @@ from backend.models import (
     CommissionRuleUpdate,
     DayClosingCreate,
     FinancialAdjustmentCreate,
+    ExpenseCreate,
 )
 from backend.security import AuthContext
 from backend.services.access import first_visible, model_payload, require_feature
@@ -22,7 +23,7 @@ async def summary(establishment_id: str, start: date, end: date, auth: AuthConte
         raise ApiError(422, "INVALID_FINANCE_RANGE", "Consulte um período entre 1 e 367 dias.")
     await require_feature(establishment_id, auth, "permite_financeiro", "O financeiro está disponível a partir do plano Essencial.")
     return await gateway.rest(
-        "resumo_financeiro_19",
+        "resumo_financeiro_110",
         method="POST",
         token=auth.token,
         rpc=True,
@@ -30,11 +31,36 @@ async def summary(establishment_id: str, start: date, end: date, auth: AuthConte
     ) or {}
 
 
-async def list_entries(establishment_id: str, start: date, end: date, limit: int, auth: AuthContext) -> list[dict[str, Any]]:
+async def create_expense(payload: ExpenseCreate, auth: AuthContext) -> dict[str, Any]:
+    establishment_id = str(payload.estabelecimento_id)
+    await require_feature(establishment_id, auth, "permite_financeiro", "O registro de gastos está disponível a partir do plano Essencial.")
+    from backend.domain.operations import normalize_payment_method
+
+    payment_method = normalize_payment_method(payload.forma_pagamento)
+    return await gateway.rest(
+        "registrar_despesa_110",
+        method="POST",
+        token=auth.token,
+        rpc=True,
+        json={
+            "p_estabelecimento_id": establishment_id,
+            "p_competencia": payload.competencia.isoformat(),
+            "p_valor": float(payload.valor),
+            "p_categoria": payload.categoria.strip(),
+            "p_descricao": payload.descricao.strip(),
+            "p_forma_pagamento": payment_method,
+            "p_observacao": payload.observacao,
+            "p_chave_idempotencia": payload.chave_idempotencia,
+            "p_idempotencia_hash": None,
+        },
+    ) or {}
+
+
+async def list_entries(establishment_id: str, start: date, end: date, offset: int, limit: int, auth: AuthContext) -> dict[str, Any]:
     if end < start or end > start + timedelta(days=366):
         raise ApiError(422, "INVALID_FINANCE_RANGE", "Consulte um período entre 1 e 367 dias.")
     await require_feature(establishment_id, auth, "permite_financeiro", "O financeiro está disponível a partir do plano Essencial.")
-    return await gateway.rest(
+    rows = await gateway.rest(
         "lancamentos_financeiros",
         token=auth.token,
         params={
@@ -43,9 +69,11 @@ async def list_entries(establishment_id: str, start: date, end: date, limit: int
             "and": f"(competencia.lte.{end.isoformat()})",
             "select": "id,agendamento_id,profissional_id,competencia,tipo,natureza,status,descricao,valor_bruto,desconto,valor_liquido,comissao_valor,motivo,origem,created_at",
             "order": "competencia.desc,created_at.desc,id.desc",
-            "limit": str(limit),
+            "offset": str(offset),
+            "limit": str(limit + 1),
         },
     ) or []
+    return {"items": rows[:limit], "offset": offset, "limit": limit, "has_more": len(rows) > limit}
 
 
 async def create_adjustment(payload: FinancialAdjustmentCreate, auth: AuthContext) -> dict[str, Any]:

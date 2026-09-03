@@ -1,341 +1,422 @@
 # Guia completo do Barber Hub
 
-Versão de referência: **1.9.3**  
-Marca: uma plataforma de **The Gamers Tech**  
-Leitores: produto, design, desenvolvimento, segurança, operação e avaliadores acadêmicos.
+Versão de referência: **1.10.0**
+
+API: **1.6.0**
+
+Situação: **código local em homologação; migrations 29–31 e configuração externa pendentes**.
 
 ## 1. O projeto em uma frase
 
-O Barber Hub reúne descoberta de barbearias, confiança pública, agendamento e gestão operacional em uma experiência única para cliente, profissional, proprietário e administrador.
+O Barber Hub reúne descoberta, agendamento e gestão de barbearias em uma plataforma web/PWA que funciona para clientes, profissionais, equipes, proprietários e administradores.
 
 ## 2. Problema real e proposta
 
-O cliente precisa descobrir um estabelecimento confiável, entender serviços/preços, encontrar disponibilidade e agendar sem depender do horário em que alguém responde mensagens. A barbearia precisa transformar pedidos dispersos em agenda, histórico de clientes, visão financeira e ações de retenção sem perder a simplicidade do dia a dia.
+O cliente normalmente precisa descobrir estabelecimentos por redes sociais ou indicação, perguntar preço e horário em uma conversa e repetir dados. A barbearia distribui a operação entre agenda de papel, mensagens, memória da equipe e planilhas, o que dificulta enxergar faltas, retorno, comissão, caixa e horários ociosos.
 
-O Barber Hub resolve essas duas jornadas no mesmo fluxo:
+O Barber Hub conecta quatro pilares:
 
 ```text
-descoberta → perfil confiável → serviço/profissional → horário → confirmação
-                                                        ↓
-                         agenda → CRM → financeiro → retenção/crescimento
+Agenda → Cliente → Dinheiro → Retenção
 ```
 
-Para o cliente, o valor principal é conveniência e segurança de escolha. Para a barbearia, é reduzir trabalho manual, organizar capacidade, conhecer recorrência e tomar decisões a partir de dados operacionais.
+- **Agenda:** horários, períodos, bloqueios, encaixes, confirmação, falta e recorrência;
+- **Cliente:** histórico, preferências, notas, gasto, busca e relacionamento;
+- **Dinheiro:** receita, despesa, comissão, ticket médio, fechamento e meta;
+- **Retenção:** espera, fidelidade, cupom, campanha, avaliação e oportunidade.
 
-## 3. Validação da oportunidade
+O marketplace dá ao cliente uma entrada simples; o painel transforma o cadastro público em operação diária.
 
-### 3.1 Evidência brasileira
+## 3. Evidências e limite da validação
 
-- A classificação oficial do IBGE coloca barbearias, cabeleireiros, manicure/pedicure, estética e outros cuidados de beleza no mesmo conjunto econômico CNAE 96.02-5. Isso sustenta uma base técnica comum para Barber Hub e a futura expansão Beauty Hub, embora os fluxos de cada especialidade precisem ser validados separadamente. Fonte: [IBGE/CONCLA](https://concla.ibge.gov.br/busca-online-cnae?classe=96025&tipo=cnae&versao=9&view=classe).
-- Estudo publicado no repositório do Ipea registra que as subclasses de cabeleireiros/manicure/pedicure e estética/cuidados de beleza passaram de 4,47 mil MEIs ativos em 2009 para 1,23 milhão em 2021. É uma evidência de grande base de pequenos operadores, não uma estimativa direta do mercado endereçável do Barber Hub. Fonte: [Ipea](https://repositorio.ipea.gov.br/bitstreams/fbdf1878-c384-41dc-8994-80b181723b0d/download).
-- O Ministério do Empreendedorismo informou 16,8 milhões de MEIs no país em 2025 e reconhece dificuldades de gestão e acesso a ferramentas digitais. Isso valida o contexto de microempreendedores que precisam de soluções operacionais acessíveis, mas inclui muitos setores além de beleza. Fonte: [MEMP — MEI em Ação](https://www.gov.br/memp/pt-br/assuntos/noticias/governo-federal-lanca-pacote-201cmei-em-acao201d-com-novo-app-rede-integrada-e-solucoes-digitais-para-fortalecer-16-milhoes-de-microempreendedores).
-- O Banco Central encontrou 355 mil observações na atividade de cabeleireiros, manicure e pedicure e participação feminina de 96,6% em estética e outros cuidados de beleza. Isso reforça que a expansão Beauty Hub precisa ser construída com pesquisa inclusiva e não como simples troca de nome/cores. Fonte: [Banco Central do Brasil](https://www.bcb.gov.br/noticiablogbc/26/noticia).
-- A ABIHPEC estima cerca de R$ 200 bilhões no setor brasileiro de produtos de Beleza e Cuidados Pessoais em 2025, com aproximadamente 7 milhões de oportunidades de trabalho na cadeia. O dado mostra força do ecossistema, mas cobre produtos e cadeia ampliada; não deve ser apresentado como faturamento de salões/barbearias. Fonte: [ABIHPEC](https://abihpec.org.br/tamanho-mercado-cosmeticos-brasil-2026/).
+O IBGE registrou ampla posse de celular e acesso domiciliar à internet em 2024; a PNAD TIC mostra o celular como principal equipamento de acesso. As estatísticas de MEI do IBGE demonstram a escala histórica da atividade de cabelo e beleza. Sebrae inclui cadastro, agendamento, serviços e pagamentos na organização de barbearias. Banco Central e ABIHPEC ajudam a compreender a relevância da economia da beleza, especialmente para profissionais mulheres.
 
-### 3.2 Evidência de comportamento digital
-
-- O Google orienta negócios locais a publicar horários, serviços, fotos, avaliações e links de agendamento para ajudar clientes a encontrar e confiar no estabelecimento. Isso valida a combinação de marketplace, reputação e ação de agendar. Fontes: [Perfil da Empresa](https://support.google.com/business/answer/7039811?hl=pt-BR) e [links de agendamento](https://support.google.com/business/answer/6218037?hl=pt-BR).
-- O Reservar com o Google inclui beleza como categoria e permite selecionar serviço, horário e, quando disponível, profissional. Isso confirma que agendar beleza digitalmente é um comportamento de plataforma já estabelecido. Fontes: [Reservar com o Google](https://www.google.com/maps/reserve?hl=pt-br) e [fluxo oficial de agendamento](https://support.google.com/reserve/answer/9172842?hl=pt-BR).
-- O guia de negócio do Sebrae para barbearias recomenda presença digital, Google Perfil da Empresa e WhatsApp Business para agendamento/atendimento. É orientação setorial, não medição de resultado, mas reforça que descoberta e relacionamento digital já fazem parte da operação esperada. Fonte: [Sebrae — Ideia de negócio: barbearia](https://bibliotecas.sebrae.com.br/chronus/ARQUIVOS_CHRONUS/IDEIAS_DE_NEGOCIO/PDFS/ideia-de-negocio_barbearia.pdf).
-- Como sinal internacional — não como prova do mercado brasileiro — o benchmark 2025 da Zenoti analisa mais de 30 mil negócios na América do Norte. O recorte publicado registra 4% de no-show e 2% de cancelamento para barbearias, e 3%/8% para salões. Esses dados sustentam testar lembretes, confirmação e lista de espera; não autorizam projetar a mesma taxa no Brasil. Fontes: [benchmark 2025](https://www.zenoti.com/resources/beauty-and-wellness-benchmark-report-2025) e [métricas publicadas](https://www.zenoti.com/thecheckin/beauty-wellness-industry-statistics-2025).
-
-### 3.3 O que está validado e o que ainda é hipótese
-
-Validado por fontes: setor amplo e numeroso, presença de muitos pequenos operadores, relevância da gestão, uso de descoberta local e links de agendamento. Validado pelo código/produto: é tecnicamente possível integrar catálogo, agenda, CRM, finanças e RLS.
-
-Ainda precisa de entrevistas/piloto brasileiro: disposição a pagar por plano, taxa real de no-show, canal preferido de lembrete, valor percebido da Central de Oportunidades, regras específicas de salão/estética e integração com pagamento.
+Essas fontes validam o contexto, não a aderência produto-mercado. A prova final deve vir de um piloto medindo uso, conversão, faltas, retorno, ocupação, tempo economizado e disposição de pagar. Evidências, fontes e roteiro estão em `PESQUISA_VALIDACAO_BARBER_BEAUTY_HUB.md`.
 
 ## 4. Públicos e valor entregue
 
 ### Cliente
 
-Pesquisa estabelecimentos, compara serviços, equipe, portfólio e avaliações, agenda, acompanha status, salva favoritos e gerencia conta/privacidade.
+Pesquisa por nome, serviço e região; vê status, horários, equipe, portfólio, reputação, mapa e preços; agenda, acompanha, reage e mantém favoritos/fidelidade.
 
-### Profissional e proprietário
+### Profissional
 
-Controla presença pública, serviços, equipe, agenda do dia/semana, bloqueios, encaixes, clientes, notas internas, receita, comissões e fechamento. O plano efetivo define capacidades sem apagar histórico em downgrade.
+Enxerga a agenda individual, próximo cliente, ficha, preferências e ações rápidas. Registra atendimento manual, bloqueio, falta e confirmação sem atravessar um painel complexo.
 
-### Equipe
+### Proprietário e gerente
 
-Recepção, profissional e gerente acessam apenas o necessário ao papel e estabelecimento vinculados. A interface pode ocultar opções, mas a autorização verdadeira continua na API e no PostgreSQL/RLS.
+Configuram negócio, horários, equipe, permissões, serviços, comissões, finanças, retenção e oportunidades. Os dados do painel são escopados ao estabelecimento.
 
-### Administrador
+### Recepção
 
-Modera estabelecimentos, acompanha integridade operacional, atribui planos e executa ações administrativas auditáveis sem conhecer senhas de usuários.
+Pode operar agenda e cliente conforme o papel e as permissões concedidas, sem receber automaticamente acesso financeiro ou administrativo.
 
-## 5. Estado funcional da versão 1.9.3
+### Administrador da plataforma
 
-Implementado: marketplace, perfis públicos, agendamento multi-serviço, autenticação/recuperação, PWA, painel por perfil, planos/entitlements, Agenda 2.0, CRM persistente, financeiro, comissões, fechamento, papéis de equipe, moderação, avaliações, portfólio e suporte.
+Modera, acompanha saúde/prontidão, gerencia planos e encontra registros com busca e paginação. Pode enviar recuperação de senha, mas nunca vê a senha atual.
 
-Implementado na 1.9.3: lista de espera, recorrência, fidelidade, carteira/recompensas do cliente, cupons, campanhas com fila, lembretes internos, oportunidades, insights, metas e permissões granulares. E-mail/WhatsApp automáticos permanecem parciais porque dependem de um provedor/worker externo. Cobrança automática, integrações de calendário/pagamento e Beauty Hub independente continuam no roadmap.
+## 5. O que a versão 1.10.0 entrega
 
-Não prometer como pronto: automação completa de marketing, IA de crescimento, aplicativo nativo de loja e integração oficial com Reservar com o Google.
+### Operação real
 
-## 6. Arquitetura
+- vários períodos de funcionamento no mesmo dia;
+- períodos que terminam no dia seguinte e cópia entre dias;
+- status público correto antes, durante e no intervalo;
+- atendimento manual por balcão, telefone, WhatsApp ou outro canal;
+- serviço avulso privado com nome e duração;
+- prevenção de duplicidade no atendimento e no financeiro;
+- continuidade do agendamento depois de autenticar.
 
-```text
-Desktop (/html) ─┐
-                 ├─ módulos JS compartilhados ─┬─ API FastAPI (/api + /backend)
-Mobile (/mobile) ┘                             │
-                                              └─ Supabase
-                                                 ├─ Auth
-                                                 ├─ PostgreSQL + RLS/RPC
-                                                 ├─ Storage
-                                                 └─ Realtime
-```
+### Clientes e dinheiro
 
-O navegador cuida de apresentação e validação imediata. A API valida payload, sessão, papel e rate limit. O PostgreSQL garante integridade, isolamento de linhas e transações. Nenhuma regra crítica deve existir apenas em CSS ou JavaScript.
+- CRM paginado e busca por nome, telefone e e-mail;
+- cursor estável mesmo sem visita anterior;
+- gastos reais e resultado realizado/estimado;
+- filtros Hoje, Semana, Mês e Personalizado;
+- ticket médio e paginação dos lançamentos.
 
-## 7. Mapa das pastas
+### Marketplace
 
-```text
-api/         entrada FastAPI publicada
-backend/     domínio, serviços, segurança e gateway Supabase
-css/         base visual e camadas de release
-docs/        produto, segurança, banco, release e operação
-html/        fonte das páginas funcionais desktop
-img/         branding oficial, fundos e placeholders usados
-js/          módulos de interface, autenticação e clientes de API
-mobile/      páginas sincronizadas com tratamento de app
-scripts/     sincronização e verificações automatizadas
-sql/         migrations numeradas e verificadores pós-aplicação
-tests/       testes Python da API e regras puras
-vendor/      dependências frontend mantidas localmente
-```
+- cidade, bairro, UF, raio e distância;
+- “Perto de mim” com consentimento;
+- mapa OpenStreetMap e abertura de rota;
+- biblioteca de capas WebP organizada;
+- avaliações e portfólio com carregamento progressivo;
+- todos os períodos na página pública.
 
-Arquivos de raiz são somente entradas públicas/configuração do projeto: `index.html`, `manifest.webmanifest`, `service-worker.js`, `vercel.json`, `package.json`, `pyproject.toml`, `README.md`, `ARCHITECTURE.md` e arquivos equivalentes.
+### Dados e continuidade
 
-## 8. Frontend desktop e mobile
+- importação CSV/XLSX com prévia, validação, deduplicação e relatório;
+- rejeição de fórmulas e limites contra arquivos abusivos;
+- histórico de importação e confirmação idempotente;
+- aviso de conexão e repetição segura de leituras;
+- formulários preservados quando uma falha não permite concluir.
 
-As páginas de `html/` são a fonte funcional. `scripts/sync_mobile_pages.py` gera os equivalentes em `mobile/`, ajustando caminhos e adicionando as camadas mobile. Não edite uma página gerada sem atualizar a fonte, exceto `mobile/index.html`, que é a home específica do aplicativo.
+### Comunicação e controle
 
-Depois de alterar HTML:
+- preferências de avisos e horário silencioso;
+- fallback para central interna de notificações;
+- assinatura e fila Web Push preparadas;
+- auditoria operacional append-only;
+- feature flags por público/plano/usuário com kill switch;
+- painel administrativo paginado e indicador de prontidão.
 
-```text
-npm run mobile:sync
-```
+### Experiência
 
-O mobile não é apenas o desktop apertado. Ele usa cabeçalho compacto, dock por perfil, bottom sheets, uma coluna para operações e ações rápidas. Na 1.9.3, o botão `Mais` do profissional abre opções filtradas por plano.
+- prioridade responsiva para 320, 360, 390, 412, 430 e 768 px;
+- dock profissional com “Mais” filtrado pelo acesso efetivo;
+- cards/controles sem carrossel obrigatório para tarefas essenciais;
+- suporte reduzido e orientado à ação;
+- mensagens comerciais sem expor nomes internos de infraestrutura;
+- Beauty Hub apresentada como produto irmão em desenvolvimento.
 
-## 9. CSS e direção visual
+## 6. Funções herdadas da série 1.9
 
-`global.css`, `framework.css`, `pages.css` e `product-redesign.css` formam a base. Camadas `release-*` preservam compatibilidade histórica; `release-1.9.3.css` contém o refino atual de senha, painel, mobile, Admin, suporte e Beauty Hub.
+A 1.10 mantém Agenda 2.0, CRM, financeiro, comissão, fechamento, equipe, lista de espera, recorrência, fidelidade, recompensas, cupons, campanhas, lembretes internos, Central de Oportunidades, insights, metas e permissões granulares. E-mail/WhatsApp automáticos só se tornam entrega externa após configurar provedor e worker.
 
-A direção visual continua premium escura/quente, dourada, com superfícies legíveis. Beauty Hub recebe identidade própria moderada, sem quebrar a família da marca nem anunciar um produto completo antes da validação.
-
-## 10. PWA e Service Worker
-
-`manifest.webmanifest` descreve o aplicativo instalável. `service-worker.js` pré-carrega rotas/arquivos essenciais, oferece fallback offline e usa um nome de cache versionado. Ao mudar interface ou asset pré-carregado, atualize o cache; isso impede que um aparelho continue mostrando a release anterior.
-
-## 11. API FastAPI
-
-`api/index.py` declara rotas e middleware. `backend/domain/` contém regras puras que podem ser testadas sem internet. `backend/services/` organiza casos de uso. `backend/security.py` valida autenticação/autorização e `backend/supabase.py` concentra acesso externo.
-
-Fluxo típico:
+## 7. Arquitetura
 
 ```text
-interface → js/backend-api.js → /api/v1/... → service → regra de domínio → Supabase/RPC
+HTML desktop ─┐
+              ├─ JS/CSS compartilhados ── API FastAPI ── Supabase
+HTML mobile ──┘                              │             ├─ Auth
+                                            │             ├─ PostgreSQL/RLS/RPC
+                                      regras offline      ├─ Storage
+                                      backend/domain      └─ Realtime
 ```
 
-A API passa à versão 1.5.0 na release 1.9.3. O contrato está em `barberhub-api-v1.openapi.yaml` e a especificação executável permanece em `/api/openapi.json`.
+O frontend melhora a experiência; a API valida o contrato e a identidade; o banco aplica a integridade final. Nenhuma autorização importante depende apenas de um botão escondido.
 
-O endpoint `/api/v1/client/loyalty` entrega somente as carteiras do cliente autenticado, com saldo e recompensas visíveis. As rotas de gestão continuam separadas em `/api/v1/retention/loyalty`.
+## 8. Pastas
+
+| Pasta/arquivo | Responsabilidade |
+|---|---|
+| `api/index.py` | entrada e rotas FastAPI |
+| `backend/domain/` | regras puras que funcionam sem rede |
+| `backend/services/` | casos de uso e integração |
+| `backend/models.py` | validação de entrada/saída |
+| `html/` | páginas canônicas desktop |
+| `mobile/` | páginas móveis sincronizadas |
+| `js/core/` | conexão, repetição e infraestrutura web |
+| `js/features/` | módulos funcionais da release |
+| `css/releases/` | refinamentos visuais versionados |
+| `sql/` | migrations e verificadores |
+| `tests/` | regressões Python/API |
+| `scripts/` | sincronização, auditoria e qualidade |
+| `img/branding/` | identidade oficial |
+| `img/library/` | imagens de conteúdo reutilizáveis |
+| `docs/` | guias, decisões e histórico |
+| `service-worker.js` | cache PWA, offline e Push |
+| `vercel.json` | rotas, cabeçalhos e cron/deploy |
+
+## 9. Desktop, mobile e PWA
+
+O desktop oferece densidade maior. O mobile reorganiza as mesmas capacidades ao redor das tarefas mais frequentes. `scripts/sync_mobile_pages.py` impede que correções funcionais fiquem apenas em uma das versões.
+
+O Service Worker mantém o shell essencial, atualiza cache por versão, oferece fallback offline e recebe eventos de Web Push. Ele não substitui o backend e não deve armazenar dados sensíveis de conta.
+
+## 10. Direção visual
+
+A identidade usa superfícies escuras/quentes, dourado como destaque, bordas discretas, tipografia legível e movimento contido. Novos recursos devem reutilizar tokens e componentes existentes. Beauty Hub recebe identidade relacionada, porém distinta, sem virar uma página extravagante ou anunciar uma operação inexistente.
+
+## 11. API FastAPI 1.6
+
+As rotas ficam sob `/api/v1`. A API usa autenticação Bearer, limites por escopo, validação Pydantic, mensagens padronizadas e `X-Request-ID`. Swagger fica em `/api/docs`; `/api/openapi.json` é o contrato executável.
+
+Categorias de rota:
+
+- catálogo/marketplace/capas;
+- agendamentos, agenda, períodos e serviço manual;
+- CRM, financeiro e equipe;
+- retenção e crescimento;
+- negócio, catálogo e promoções;
+- suporte, importação, Push, preferências e auditoria;
+- administração, planos, saúde e recuperação.
+
+`docs/API_BARBER_HUB_V1.md` detalha o contrato.
 
 ## 12. Supabase explicado
 
 ### Auth
 
-Gerencia cadastro, login, confirmação, recuperação e sessões. Senhas são guardadas como hash bcrypt em `auth.users.encrypted_password`; não são descriptografáveis nem copiadas para tabelas públicas.
+Cria a identidade, confirma e-mail, emite sessão e guarda o hash da senha. A tabela pública de perfil complementa a conta, mas não copia credenciais.
 
 ### PostgreSQL
 
-É o banco relacional. Tabelas representam estabelecimentos, serviços, profissionais, agenda, CRM, finanças e demais entidades. Constraints e triggers impedem estados impossíveis mesmo quando a escrita não passa pela tela esperada.
+Guarda estabelecimentos, serviços, horários, agendamentos, relações, finanças e controles. Constraints impedem estados estruturalmente inválidos.
 
 ### RLS
 
-Row Level Security é a camada que decide quais linhas cada sessão pode ler ou alterar. Uma conta autenticada não recebe acesso global: a policy também precisa confirmar dono, vínculo, papel ou identidade do cliente.
+Row Level Security é a regra que decide quais linhas cada usuário pode ler ou alterar. Ela protege o banco mesmo se alguém chamar a API de dados manualmente.
 
 ### RPC
 
-Funções PostgreSQL expostas de forma controlada para operações transacionais, como encaixe, reagendamento ou fechamento. Permissões de execução e validações internas são parte da segurança.
+Remote Procedure Call é uma função do PostgreSQL acionada como operação única. É usada quando várias escritas precisam acontecer juntas, como atendimento + lançamento financeiro.
 
 ### Storage
 
-Armazena imagens de portfólio e perfis. Policies do Storage devem seguir o mesmo isolamento por usuário/estabelecimento.
+Guarda fotos e arquivos autorizados. Bucket, formato, tamanho e política precisam ser limitados.
 
 ### Realtime
 
-Notifica o navegador quando dados selecionados mudam, por exemplo assinatura/entitlements. Não substitui autorização; a tabela continua protegida por RLS.
+Propaga alterações relevantes, como agenda e assinatura, sem exigir recarregamento completo. Realtime não substitui RLS.
 
-## 13. O que são migrations
+## 13. Migrations
 
-Migration é um arquivo SQL versionado que transforma o banco de um estado conhecido para o próximo. Ela funciona como histórico reproduzível da estrutura e das regras.
+Migration é um arquivo SQL versionado que altera a estrutura ou as regras do banco. O número define a ordem. O Git guarda a receita; o Supabase executa a alteração.
 
-Exemplo conceitual:
+Regras:
+
+1. aplicar em ordem;
+2. fazer backup antes de mudanças importantes;
+3. não editar migration já aplicada;
+4. criar um número novo para corrigir algo posterior;
+5. executar o verificador correspondente;
+6. só publicar o código compatível depois do banco.
+
+Migrations 01–28 são histórico. A 1.10 adiciona:
 
 ```text
-17 segurança → 18 agenda → 19 CRM → 20 financeiro → 21 planos → 22 hardening → 23 advisors → 24 retenção → 25 inteligência/permissões
+29_operacao_real_horarios_atendimentos_1_10.sql
+30_localizacao_biblioteca_marketplace_1_10.sql
+31_push_importacoes_auditoria_flags_1_10.sql
+verificar_31_release_1_10.sql
 ```
 
-Migrations não são dados de demonstração e não devem ser editadas depois de aplicadas. Uma mudança futura cria um novo número. Em banco novo, execute 01–25 em ordem. No projeto atual, 11–23 já foram aplicadas e verificadas; 24/25 aguardam aplicação antes do deploy da 1.9.3.
+No projeto atual, 29–31 ainda estão pendentes.
 
-## 14. Como aplicar migrations com segurança
+## 14. Como aplicar 29–31
 
-1. confirme projeto e ambiente alvo;
-2. gere backup recuperável;
-3. ensaie em homologação;
-4. confira o histórico para não reaplicar arquivo já executado;
-5. aplique na ordem numérica;
-6. pare na primeira falha e investigue, sem pular;
-7. execute os verificadores fornecidos;
+1. abra o projeto correto no Supabase;
+2. confirme backup e que 28 é a última migration aplicada;
+3. no SQL Editor, execute o conteúdo completo da 29 e aguarde sucesso;
+4. repita com 30;
+5. repita com 31;
+6. execute `verificar_31_release_1_10.sql`;
+7. não prossiga se qualquer etapa lançar exceção;
 8. revise Security Advisor e Performance Advisor;
-9. teste RLS com contas separadas;
-10. só então publique a interface/API.
+9. faça a homologação por papel/plano;
+10. publique API e frontend/PWA juntos.
 
-As instruções exatas da série 1.9 estão em `MIGRATIONS_DEPLOY_1_9.md`. A documentação atual do conceito está em [Database Migrations — Supabase](https://supabase.com/docs/guides/deployment/database-migrations).
+Detalhes e rollback estão em `MIGRATIONS_DEPLOY_1_10.md`.
 
 ## 15. Segurança por camadas
 
-- navegador: feedback, acessibilidade e prevenção de erro comum;
-- API: validação, sessão, papel, limites e rate limiting;
-- banco: RLS, constraints, triggers, locks e RPCs;
-- Auth: senha, confirmação, recuperação, CAPTCHA e sessões;
-- deploy: segredos, HTTPS, CSP, logs e observabilidade.
+| Camada | Controle principal |
+|---|---|
+| navegador | mensagens seguras, CAPTCHA, sem segredo privado |
+| API | autenticação, Pydantic, rate limit, request id |
+| banco | RLS, RPC, constraints, transação e locks |
+| arquivos | tipo/tamanho, bucket e políticas |
+| operação | auditoria, flags, backup, Advisors e resposta a incidente |
 
-V01–V04 estão corrigidos; V05 está coberto no código e exige revisão de capacidade em escala; V06 continua dependente da ativação do CAPTCHA no Supabase/Cloudflare. Veja `RELATORIO_SEGURANCA_1_9_3.md`.
+Na auditoria diferencial, V01–V04 estão corrigidos, V05 está corrigido no código e depende de armazenamento distribuído adequado, e V06 está preparado mas só fica completo quando CAPTCHA/Turnstile é ativado no ambiente.
 
-## 16. Senhas e suporte
+## 16. Senhas
 
-Nunca exiba, envie por e-mail, registre em log ou copie uma senha. Nem mesmo o administrador precisa conhecê-la. O suporte identifica a conta, confirma identidade pelo processo definido e inicia recuperação. Se houver suspeita de comprometimento, revogue sessões e force redefinição.
+A senha não deve ser visualizável, nem mesmo pelo administrador. O Supabase Auth guarda `encrypted_password` como hash não reversível. O nome pode sugerir criptografia, mas o objetivo é verificar uma tentativa, não recuperar o texto original.
 
-A política visual da 1.9.3 ajuda o usuário a cumprir 8+ caracteres, minúscula, maiúscula, número e símbolo. Configure o mesmo requisito no Supabase para evitar diferença entre tela e servidor. A proteção de senhas vazadas é recomendada e depende do plano/provedor.
+Fluxo correto:
 
-## 17. Planos e entitlements
+1. usuário solicita recuperação ou admin envia o link;
+2. o titular recebe o e-mail no endereço cadastrado;
+3. o link abre a página oficial permitida;
+4. o usuário cria uma nova senha;
+5. sessões/políticas seguem a configuração de Auth.
 
-- Gratuito: presença básica no ecossistema;
-- Essencial: organização, agenda, CRM, financeiro e cupons;
-- Profissional: equipe, lista de espera, recorrência, fidelidade, lembretes e metas;
-- Elite: campanhas, oportunidades, insights e permissões granulares.
+O formulário mostra abaixo do campo os requisitos: mínimo de caracteres, minúscula, maiúscula, número e símbolo. A política do Supabase deve ser compatível com a tela.
 
-O plano efetivo é resolvido centralmente. Frontend usa a resposta para explicar/ocultar recursos; API e banco confirmam antes de alterar dados. Downgrade preserva histórico e desativa capacidades excedentes.
+## 17. Planos e autorização
 
-## 18. Agenda, CRM e financeiro
+- **Gratuito:** esteja no Barber Hub;
+- **Essencial:** organize sua operação;
+- **Profissional:** gerencie equipe, relacionamento e resultados;
+- **Elite:** use dados, automação e controles avançados para crescer.
 
-Agenda: dia/semana, profissional, bloqueios, encaixes, confirmação, reagendamento, recorrência, estados e no-show. CRM: cliente por estabelecimento, busca, histórico, preferências/notas, aniversário opcional e indicadores. Financeiro: receitas, ajustes, comissão, resumo e fechamento. Retenção: espera, fidelidade, cupons, campanhas e lembretes. Crescimento: metas, oportunidades e insights acionáveis.
+Entitlements são capacidades calculadas a partir do plano/estado/validade. O frontend adapta o menu; a API e o banco bloqueiam a operação. Downgrade preserva histórico e restringe novas ações acima do limite.
 
-O painel escuta explicitamente a troca de seção e dispara a carga necessária. Se o contexto não chegar, a tela mostra erro recuperável; ela não deve girar indefinidamente.
+## 18. Fluxos operacionais
 
-### Como funcionam os módulos da 1.9.3
+### Horários e status
 
-`lista_espera` registra a intenção do cliente. Quando um horário elegível é cancelado, o trigger procura a demanda compatível, muda o item para `avisado` e cria uma notificação com expiração. Isso não reserva o horário automaticamente: evita tomar uma decisão pelo cliente.
+Cada dia pode ter mais de um período. Entre dois períodos, o estabelecimento aparece fechado e informa quando reabre. Período noturno pode terminar no dia seguinte. O modo manual aberto/fechado prevalece conforme a regra configurada.
 
-`agendamentos_recorrencias` guarda a série; os atendimentos continuam sendo linhas normais em `agendamentos`, ligadas por `recorrencia_id` e sequência. A RPC cria tudo em uma transação: se uma data conflitar, a série inteira falha sem deixar metade dos horários.
+### Atendimento manual
 
-Fidelidade separa programa, recompensas, saldo e movimentos. O saldo é uma projeção; `fidelidade_movimentos` é a trilha auditável. Um índice impede pontuar duas vezes o mesmo atendimento e o resgate bloqueia saldo/estoque durante a transação.
+Equipe autorizada escolhe cliente/profissional, serviço existente ou avulso, duração, origem, pagamento e valor. A API normaliza os termos e a RPC registra a operação uma vez.
 
-Cupons separam definição e usos. O cliente envia somente o código; o PostgreSQL procura a regra válida, bloqueia o cupom/agendamento, confere limites e grava subtotal, desconto e total. O navegador não escolhe o valor final.
+### CRM
 
-Campanhas geram destinatários e itens de fila. Segmentação usa o CRM; WhatsApp respeita `permite_whatsapp` e e-mail respeita `permite_email_marketing`. O canal interno pode ser processado no Supabase; e-mail/WhatsApp exigem worker e provedor externos.
+A busca ocorre no servidor, aceita nome/telefone/e-mail e carrega páginas. A ficha reúne histórico, gasto, preferências, profissional preferido, falta e notas internas conforme permissão.
 
-Oportunidades são sinais recalculáveis com `fingerprint`, o que evita duplicar o mesmo alerta. Insights são agregados de dados operacionais; metas guardam objetivo/período e calculam progresso sob permissão. Não há LLM tomando decisões nem dado fictício.
+### Financeiro
 
-Permissões granulares não substituem papéis: começam com os padrões de proprietário, gerente, recepção e profissional. No Elite, o proprietário pode remover/conceder capacidades aos membros; proprietário/admin permanecem com acesso necessário para recuperar a configuração. Frontend esconde opções, API valida capacidade e PostgreSQL/RLS confirma novamente.
+O resumo diferencia valores realizados e estimados. Despesas e ajustes exigem justificativa/categoria. Regras de comissão podem ser fixas ou percentuais. Fechamento consolida o dia sem transformar previsão em contabilidade oficial.
 
-## 19. Desenvolvimento local
+### Retenção
 
-Requisitos: Node 20+, Python compatível e variáveis de ambiente. Nunca use a secret do Supabase no frontend.
+Lista de espera aproveita vagas; recorrência cria uma série controlada; fidelidade soma saldo e resgata recompensa; cupom valida código/regras; campanha segmenta e cria fila; oportunidade transforma um sinal em ação acompanhável.
 
-Passos usuais:
+## 19. Importação de dados
 
-```text
-1. obter o repositório
-2. copiar .env.example para um arquivo local ignorado
-3. configurar apenas credenciais do ambiente de desenvolvimento
-4. iniciar com vercel dev
-5. abrir /mobile/ para a experiência PWA
-6. executar npm run check antes de commit
+O usuário baixa/segue o modelo, seleciona CSV/XLSX, confere a prévia e confirma. O servidor limita linhas/tamanho, normaliza campos, bloqueia fórmula, calcula hash e devolve relatório. Um erro não deve sumir nem deixar o usuário sem saber quais linhas falharam.
+
+## 20. Administração e suporte
+
+O Admin usa recursos permitidos explicitamente, busca no servidor, limite e botão para carregar mais. A prontidão da release mostra dependências sem fingir que configuração externa está concluída. Moderação continua separada da edição normal do estabelecimento.
+
+Suporte prioriza pesquisar ajuda, abrir chamado e acompanhar protocolo. Informações de arquitetura, banco e fornecedor pertencem à documentação interna, não à tela comercial do usuário.
+
+## 21. Desenvolvimento local
+
+Requisitos: Node 20+ e Python 3.13.
+
+```bash
+vercel dev
 ```
 
-Para trabalhar apenas nas regras sem serviços online:
+API isolada:
 
-```text
-npm run check:offline
+```bash
+fastapi dev api/index.py
 ```
 
-## 20. Testes e qualidade
+Depois de alterar `html/`:
 
-`npm run check` é a porta de qualidade. Ele verifica sincronização mobile, rotas, referências, sintaxe, segurança, release, migrations, compilação e testes Python. Na revisão de 24/08/2026 passaram 50 testes, 27 controles V01–V06, 28 invariantes da 1.9.3, 74 operações OpenAPI, 50 páginas e 42 arquivos JavaScript. Teste automatizado não substitui cenários reais de e-mail, CAPTCHA, Storage, RLS e múltiplos papéis.
+```bash
+npm run mobile:sync
+```
 
-A revisão visual confirmou suporte, Admin e assinaturas administrativas em 390 × 844 e 1280 × 720 sem overflow horizontal. O Admin exige conta autorizada; a revisão de CSS usou uma prévia local sem scripts/dados, enquanto a rota real redirecionou corretamente a sessão sem permissão.
+Variáveis ficam no ambiente autorizado, nunca no Git. Use exemplos sem valores reais para documentação.
 
-Antes do deploy, faça também revisão visual em 320/360/390/430 px e desktop, com atenção a cabeçalho, dock, teclado, áreas seguras, carregamento, erro, vazio e texto longo.
+## 22. Testes e porta de qualidade
 
-## 21. Deploy
+```bash
+npm run check
+```
 
-1. confirme `git status` e revisão das mudanças;
-2. execute `npm run check`;
-3. confirme variáveis do ambiente;
-4. valide URLs de Auth e e-mail;
-5. confirme migration history e Advisors;
-6. publique preview;
-7. execute smoke test por perfil;
-8. promova produção;
-9. monitore logs, falhas de Auth, API e banco;
-10. mantenha rollback de código e backup do banco.
+O comando verifica:
 
-## 22. Configuração externa que o Git não resolve
+- paridade desktop/mobile e roteamento;
+- páginas, links e referências locais;
+- sintaxe JavaScript e compilação Python;
+- regressões 1.9.3 e 1.10;
+- auditoria V01–V06;
+- regras de domínio sem rede;
+- endpoints FastAPI e autorização básica.
 
-- Turnstile/hCaptcha e sua secret no Supabase Auth;
-- proteção contra senhas vazadas;
-- SMTP/templates e URLs permitidas;
-- secrets da API no host;
-- domínio, HTTPS e observabilidade;
-- capacidade de rate limit distribuído;
-- contas de teste e revisão dos Advisors.
+Automação local não prova CAPTCHA, entrega de e-mail/Push, RLS real, dados de produção ou todos os navegadores. Esses itens ficam no checklist manual.
 
-Esses itens estão detalhados em `CONFIGURACAO_EXTERNA_1_9.md`.
+## 23. Configuração externa passo a passo
 
-## 23. Organização e descarte
+### Auth
 
-Arquivos só são removidos quando não têm referência e existe substituto ou histórico no Git. Na 1.9.3 foram eliminados dois módulos e oito assets sem uso. Variantes oficiais em `img/branding` foram mantidas porque formam um kit organizado, mesmo quando uma variante não aparece na interface atual.
+1. abra Authentication no Supabase;
+2. confirme Site URL e adicione somente Redirect URLs oficiais de produção/homologação;
+3. habilite confirmação de e-mail conforme a política do produto;
+4. ative Turnstile/CAPTCHA e cadastre a chave secreta no provedor;
+5. entregue ao frontend somente a site key pública;
+6. habilite proteção contra senhas vazadas quando disponível no plano;
+7. teste cadastro, confirmação e recuperação em domínio real.
 
-Não inclua em release: `.git`, `.env*` reais, `node_modules`, `.venv`, `__pycache__`, logs, screenshots temporários, caches e credenciais.
+### Deploy/API
 
-## 24. Beauty Hub
+Configure `SUPABASE_URL`, chave pública apropriada, chave privada/service role apenas no servidor, origens exatas, URL oficial de recuperação e chaves VAPID. Nunca use `*` para origem de produção quando cookies/tokens estão envolvidos.
 
-Beauty Hub é a expansão para salões e outros serviços de beleza. A base compartilhável é forte — catálogo, agenda, profissional, CRM, reputação e financeiro — mas serviços, durações, recursos, termos, imagens, papéis e expectativas não devem ser presumidos.
+### Push e tarefas
 
-Próximo caminho:
+Configure um worker autenticado e agendado para processar a fila, respeitar horário silencioso, registrar sucesso/falha e limitar tentativas. Sem isso, existe fila e fallback interno, mas não entrega Push garantida.
 
-1. entrevistas com profissionais e clientes;
-2. definição das especialidades do primeiro piloto;
-3. mapa de jornada e diferenças para barbearia;
-4. protótipo simples;
-5. piloto controlado;
-6. somente depois, backend/schema independente ou compartilhado por contrato.
+### Homologação
 
-A página atual comunica esse estágio. O ZIP separado é uma preparação de repositório, não uma promessa de produto pronto.
+Teste contas separadas: cliente, profissional, recepção, gerente, proprietário, admin e sem vínculo; depois repita cenários críticos em Gratuito, Essencial, Profissional e Elite.
 
-## 25. Decisão sobre repositórios
+## 24. Deploy
 
-Web, mobile e API do Barber Hub continuam juntos porque compartilham release e regras. A API já tem fronteira interna e pode ser publicada separadamente sem mover o código. Beauty Hub foi preparado em pacote próprio por ter identidade e descoberta de produto distintas. Veja `DECISAO_REPOSITORIOS_1_9_3.md`.
+1. concluir testes locais;
+2. confirmar backup;
+3. aplicar 29, 30, 31 e o verificador;
+4. configurar Auth, API, VAPID e worker;
+5. revisar Advisors;
+6. homologar papéis, planos, desktop e mobile;
+7. criar commit identificável;
+8. enviar ao remoto e aguardar o build;
+9. testar o domínio publicado;
+10. monitorar erros e manter o commit anterior disponível.
 
-## 26. Glossário rápido
+## 25. Organização e descarte
 
-- API: contrato usado pela interface para pedir operações ao servidor.
-- Auth: cadastro, login e sessão.
-- Hash: transformação não reversível usada para verificar senha.
-- Migration: alteração SQL versionada do banco.
-- PWA: site instalável com experiência de aplicativo.
-- RLS: política de acesso por linha no PostgreSQL.
-- RPC: função do banco chamada de modo controlado.
-- Service Worker: processo do navegador responsável por cache/offline.
-- Supabase: Auth, banco, Storage e Realtime usados pelo projeto.
-- Entitlement: capacidade liberada pelo plano efetivo.
-- No-show: cliente que não comparece ao atendimento.
+Arquivos só são removidos após confirmar ausência de referência e existência de substituto/histórico quando necessário. Caches, arquivos temporários, cópias de build, imagens redundantes e código morto não entram na versão. Imagens de capa oficiais usam WebP em `img/library/`.
 
-## 27. Fontes e limites da pesquisa
+## 26. Beauty Hub
 
-As fontes brasileiras oficiais/associativas sustentam o tamanho do ecossistema e o problema de gestão. Google sustenta o padrão de descoberta/agendamento local. Zenoti é fonte comercial internacional e serve somente como sinal para hipóteses. Nenhuma dessas fontes substitui pesquisa primária com o público-alvo brasileiro nem autoriza afirmar retorno financeiro garantido.
+Beauty Hub leva a proposta a cabeleireiras, manicures, pedicures, maquiadoras, profissionais autônomas, estúdios e salões. A página do Barber Hub apresenta a expansão e aponta para `beautyhuboficial.vercel.app`, sem misturar contas, banco ou prometer recursos ainda não homologados.
 
-Data da revisão das fontes: 24/08/2026.
+O Beauty Hub deve validar regras próprias, como recursos físicos, atendimentos simultâneos, durações variáveis, combos, sinais e categorias. Ele permanece em repositório separado para ter marca, descoberta e evolução próprias.
+
+## 27. Decisão sobre repositórios
+
+Separar a API e o mobile agora adicionaria coordenação e risco perto da finalização. Eles permanecem no monorepo enquanto compartilham lançamento, autenticação e equipe. Reavaliar quando existir aplicativo nativo, outro consumidor da API, equipe independente ou necessidade comprovada de deploy separado.
+
+## 28. Glossário
+
+- **API:** porta organizada para a interface solicitar ações;
+- **Auth:** cadastro, sessão e identidade;
+- **entitlement:** capacidade liberada pelo plano efetivo;
+- **feature flag:** chave de ativação controlada de um recurso;
+- **migration:** alteração numerada do banco;
+- **PWA:** site instalável com comportamento de aplicativo;
+- **RLS:** regra de acesso por linha no banco;
+- **RPC:** função transacional do PostgreSQL;
+- **Web Push:** aviso do navegador/dispositivo com consentimento.
+
+## 29. Documentos de apoio
+
+- `ATUALIZACAO_1_10_0.md` — escopo entregue;
+- `RELATORIO_SEGURANCA_1_10.md` — V01–V06 e pendências;
+- `MIGRATIONS_DEPLOY_1_10.md` — banco e publicação;
+- `HOMOLOGACAO_FINAL_1_10.md` — aprovação manual;
+- `PESQUISA_VALIDACAO_BARBER_BEAUTY_HUB.md` — pesquisa e piloto;
+- `DECISAO_REPOSITORIOS_1_10.md` — organização futura;
+- `API_BARBER_HUB_V1.md` — API;
+- `../ARCHITECTURE.md` — arquitetura técnica.

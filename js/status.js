@@ -17,25 +17,32 @@ const BH_DIA_LABEL = {
   sabado: "Sábado"
 };
 
+function bhPeriodosDoDia(estabelecimento, dia) {
+  const novos = estabelecimento?.horariosPeriodos?.[dia] || [];
+  if (novos.length) return novos;
+  const legado = estabelecimento?.horarios?.[dia];
+  return legado ? [{ ...legado, fechaDiaSeguinte: false, ordem: 1 }] : [];
+}
+
 function bhProximoHorario(estabelecimento, data = new Date()) {
-  if (!estabelecimento?.horarios) return null;
   for (let offset = 0; offset <= 7; offset += 1) {
     const teste = new Date(data);
     teste.setDate(data.getDate() + offset);
     const iso = bhDataISO(teste);
     const dia = BH_DIAS[teste.getDay()];
-    const horario = estabelecimento.horarios[dia];
+    const periodos = bhPeriodosDoDia(estabelecimento, dia);
     const bloqueado = (estabelecimento.diasFechados || []).some(item => item.data === iso);
-    if (!horario || bloqueado) continue;
+    if (!periodos.length || bloqueado) continue;
 
     if (offset === 0) {
       const agora = data.getHours() * 60 + data.getMinutes();
-      if (agora < bhMinutos(horario.abre)) return `Abre hoje às ${horario.abre}.`;
-      if (agora < bhMinutos(horario.fecha)) return `Atendimento até ${horario.fecha}.`;
+      const proximo = periodos.find(periodo => bhMinutos(periodo.abre) > agora);
+      if (proximo) return `${periodos.indexOf(proximo) ? "Reabre" : "Abre"} hoje às ${proximo.abre}.`;
       continue;
     }
-    if (offset === 1) return `Reabre amanhã às ${horario.abre}.`;
-    return `Reabre ${BH_DIA_LABEL[dia].toLowerCase()} às ${horario.abre}.`;
+    const primeiro = periodos[0];
+    if (offset === 1) return `Reabre amanhã às ${primeiro.abre}.`;
+    return `Reabre ${BH_DIA_LABEL[dia].toLowerCase()} às ${primeiro.abre}.`;
   }
   return "Sem próximo horário cadastrado.";
 }
@@ -73,9 +80,13 @@ function bhCalcularStatus(estabelecimento, data = new Date()) {
     return { aberta: false, classe: "fechada", texto: "Fechado hoje", detalhe: bloqueio.motivo || "Data indisponível." };
   }
 
-  const dia = BH_DIAS[data.getDay()];
-  const horario = estabelecimento.horarios?.[dia];
-  if (!horario) {
+  const diaIndice = data.getDay();
+  const dia = BH_DIAS[diaIndice];
+  const periodos = bhPeriodosDoDia(estabelecimento, dia);
+  const diaAnterior = BH_DIAS[(diaIndice + 6) % 7];
+  const periodoAnterior = bhPeriodosDoDia(estabelecimento, diaAnterior)
+    .find(periodo => periodo.fechaDiaSeguinte && data.getHours() * 60 + data.getMinutes() < bhMinutos(periodo.fecha));
+  if (!periodos.length && !periodoAnterior) {
     return {
       aberta: false,
       classe: "fechada",
@@ -85,14 +96,15 @@ function bhCalcularStatus(estabelecimento, data = new Date()) {
   }
 
   const agora = data.getHours() * 60 + data.getMinutes();
-  const abre = bhMinutos(horario.abre);
-  const fecha = bhMinutos(horario.fecha);
-  if (agora >= abre && agora < fecha) {
-    return { aberta: true, classe: "aberta", texto: "Aberto agora", detalhe: `Atendimento até ${horario.fecha}.` };
-  }
-  if (agora < abre) {
-    return { aberta: false, classe: "fechada", texto: "Fechado", detalhe: `Abre hoje às ${horario.abre}.` };
-  }
+  if (periodoAnterior) return { aberta: true, classe: "aberta", texto: "Aberto agora", detalhe: `Atendimento até ${periodoAnterior.fecha}.` };
+  const periodoAtual = periodos.find(periodo => {
+    const abre = bhMinutos(periodo.abre);
+    const fecha = bhMinutos(periodo.fecha) + (periodo.fechaDiaSeguinte ? 1440 : 0);
+    return agora >= abre && agora < fecha;
+  });
+  if (periodoAtual) return { aberta: true, classe: "aberta", texto: "Aberto agora", detalhe: `Atendimento até ${periodoAtual.fecha}${periodoAtual.fechaDiaSeguinte ? " do dia seguinte" : ""}.` };
+  const proximoHoje = periodos.find(periodo => bhMinutos(periodo.abre) > agora);
+  if (proximoHoje) return { aberta: false, classe: "fechada", texto: "Fechado", detalhe: `${periodos.indexOf(proximoHoje) ? "Reabre" : "Abre"} hoje às ${proximoHoje.abre}.` };
   return { aberta: false, classe: "fechada", texto: "Fechado", detalhe: bhProximoHorario(estabelecimento, data) };
 }
 
@@ -104,8 +116,8 @@ function bhRenderStatus(estabelecimento) {
 function bhHorarioPorDiaLabel(estabelecimento) {
   return BH_DIAS.map(dia => ({
     dia: BH_DIA_LABEL[dia],
-    texto: estabelecimento.horarios?.[dia]
-      ? `${estabelecimento.horarios[dia].abre} às ${estabelecimento.horarios[dia].fecha}`
+    texto: bhPeriodosDoDia(estabelecimento, dia).length
+      ? bhPeriodosDoDia(estabelecimento, dia).map(periodo => `${periodo.abre} às ${periodo.fecha}${periodo.fechaDiaSeguinte ? " (+1 dia)" : ""}`).join(" · ")
       : "Fechado"
   }));
 }

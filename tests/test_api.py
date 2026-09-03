@@ -1,6 +1,7 @@
 """Smoke and security regression tests that do not need real credentials."""
 
 import json
+from datetime import datetime, timezone
 from unittest import IsolatedAsyncioTestCase, TestCase
 from unittest.mock import AsyncMock, patch
 
@@ -19,7 +20,10 @@ from api.index import (
     navigation_audit,
     public_config,
 )
-from backend.models import AdminSubscriptionUpdate, PromotionCreate, ServiceCreate, WaitlistCreate
+from backend.models import (
+    AdminSubscriptionUpdate, EstablishmentLocationUpdate, ManualServiceCreate,
+    OpeningPeriodsReplace, PromotionCreate, ServiceCreate, WaitlistCreate,
+)
 from backend.security import AuthContext
 
 
@@ -38,7 +42,7 @@ class ApiSmokeTests(TestCase):
     def test_health_reports_api_version(self) -> None:
         response = self.client.get("/api/v1/health")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["data"]["version"], "1.5.0")
+        self.assertEqual(response.json()["data"]["version"], "1.6.0")
 
     def test_support_validation_is_standardized(self) -> None:
         response = self.client.post("/api/v1/support/tickets", json={})
@@ -144,6 +148,73 @@ class ApiSmokeTests(TestCase):
         )
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.json()["error"]["code"], "UNAUTHORIZED")
+
+    def test_admin_paginated_records_require_session(self) -> None:
+        response = self.client.get("/api/v1/admin/records/perfis?offset=0&limit=50")
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json()["error"]["code"], "UNAUTHORIZED")
+
+    def test_release_110_operational_routes_require_session(self) -> None:
+        establishment = "00000000-0000-0000-0000-000000000001"
+        cases = [
+            ("get", f"/api/v1/schedule/opening-periods?establishment_id={establishment}", None),
+            ("put", "/api/v1/schedule/opening-periods", {"estabelecimento_id": establishment, "periodos": []}),
+            ("post", "/api/v1/imports/preview", {"estabelecimento_id": establishment, "tipo": "clientes", "arquivo_nome": "dados.csv", "conteudo_base64": "YWJjZA=="}),
+            ("get", f"/api/v1/audit/operational?establishment_id={establishment}", None),
+            ("post", "/api/v1/features/evaluate", {"estabelecimento_id": establishment, "chaves": ["operacao.atendimento_manual"]}),
+        ]
+        for method, path, body in cases:
+            with self.subTest(path=path):
+                response = self.client.request(method, path, json=body)
+                self.assertEqual(response.status_code, 401)
+                self.assertEqual(response.json()["error"]["code"], "UNAUTHORIZED")
+
+    def test_location_contract_requires_coordinate_pair(self) -> None:
+        with self.assertRaises(ValidationError):
+            EstablishmentLocationUpdate(
+                logradouro="Rua Um", bairro="Centro", cidade="Jacinto", estado="MG", cep="39930000",
+                latitude=-16.1,
+            )
+
+    def test_opening_period_contract_rejects_overlap(self) -> None:
+        with self.assertRaises(ValidationError):
+            OpeningPeriodsReplace(
+                estabelecimento_id="00000000-0000-0000-0000-000000000001",
+                periodos=[
+                    {"dia_semana": 1, "abre": "08:00", "fecha": "12:00", "ordem": 1},
+                    {"dia_semana": 1, "abre": "11:00", "fecha": "14:00", "ordem": 2},
+                ],
+            )
+
+    def test_manual_service_requires_duration_for_custom_service(self) -> None:
+        with self.assertRaises(ValidationError):
+            ManualServiceCreate(
+                estabelecimento_id="00000000-0000-0000-0000-000000000001",
+                profissional_id="00000000-0000-0000-0000-000000000002",
+                servico_nome="Corte especial",
+                inicio=datetime.now(timezone.utc),
+                valor=50,
+                forma_pagamento="pix",
+                canal_origem="balcao",
+                chave_idempotencia="manual-service-test-001",
+                concluir=True,
+            )
+
+    def test_manual_service_accepts_custom_service_with_duration(self) -> None:
+        payload = ManualServiceCreate(
+            estabelecimento_id="00000000-0000-0000-0000-000000000001",
+            profissional_id="00000000-0000-0000-0000-000000000002",
+            servico_nome="Corte especial",
+            duracao_min=45,
+            inicio=datetime.now(timezone.utc),
+            valor=50,
+            forma_pagamento="credito",
+            canal_origem="whatsapp",
+            chave_idempotencia="manual-service-test-002",
+            concluir=True,
+        )
+        self.assertIsNone(payload.servico_id)
+        self.assertEqual(payload.duracao_min, 45)
 
     def test_retention_route_requires_session(self) -> None:
         response = self.client.get("/api/v1/retention/waitlist")

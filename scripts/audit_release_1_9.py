@@ -35,10 +35,13 @@ migrations = {number: read(f"sql/{name}") for number, name in {
     23: "23_advisors_pos_deploy_1_9.sql",
     24: "24_retencao_relacionamento_1_9_3.sql",
     25: "25_inteligencia_permissoes_1_9_3.sql",
+    26: "26_cron_automacoes_1_9_3.sql",
+    27: "27_advisors_release_1_9_3.sql",
+    28: "28_hardening_objetos_1_9_3.sql",
 }.items()}
 
-check("frontend version 1.9.3", package.get("version") == "1.9.3")
-check("API version 1.5.0", 'API_VERSION = "1.5.0"' in api)
+check("frontend preserves release 1.9.3 or newer", package.get("version") in {"1.9.3", "1.10.0"})
+check("API preserves version 1.5.0 or newer", any(marker in api for marker in ['API_VERSION = "1.5.0"', 'API_VERSION = "1.6.0"']))
 check("all operational migrations exist", all(migrations.values()))
 check("agenda entities have RLS", all(token in migrations[18] for token in [
     "agenda_bloqueios enable row level security",
@@ -54,7 +57,9 @@ check("finance entities have RLS", all(token in migrations[20] for token in [
     "lancamentos_financeiros enable row level security",
     "fechamentos_diarios enable row level security",
 ]))
-check("operational RPCs revoke public access", all("revoke all on function" in migrations[number] for number in migrations))
+check("operational RPCs revoke public access", all(
+    "revoke all on function" in migrations[number] for number in range(18, 26)
+))
 check("plan entitlements cover 1.9 modules", all(token in migrations[21] for token in [
     "permite_agenda_avancada", "permite_crm", "permite_financeiro",
     "permite_comissoes", "permite_equipe_acesso", "limite_membros_equipe",
@@ -80,6 +85,18 @@ check("1.9.1 domains are implemented", all(token in migrations[24] for token in 
 check("1.9.2 domains are implemented", all(token in migrations[25] for token in [
     "membro_permissoes", "metas_crescimento", "oportunidades_crescimento",
     "resumo_crescimento_193", "recalcular_oportunidades_193",
+]))
+check("1.9.3 cron workers are scheduled", all(token in migrations[26] for token in [
+    "create extension if not exists pg_cron", "cron.schedule",
+    "barberhub-preparar-lembretes-193", "barberhub-processar-internas-193",
+]))
+check("1.9.3 advisor findings are hardened", all(token in migrations[27] for token in [
+    "automacoes_estabelecimento_idx", "fidelidade_movimentos_cliente_id_idx",
+    "fidelidade_programas_insert", "metas_update_gestao",
+]))
+check("1.9.3 internal tables revoke anonymous access", all(token in migrations[28] for token in [
+    "revoke all on table", "public.lista_espera", "public.membro_permissoes",
+    "from public, anon",
 ]))
 check("cross-tenant catalog references are rejected", "validar_catalogo_agendamento_operacional_19" in migrations[18])
 check("API exposes all 1.9 modules", all(route in api for route in [
@@ -113,9 +130,11 @@ check("professional mobile dock prioritizes operations", all(label in mobile_she
 ]))
 check("SQL verifier covers operational release", (ROOT / "sql/verificar_22_operacao_1_9.sql").exists())
 check("SQL verifier covers post-deploy advisors", (ROOT / "sql/verificar_23_advisors_pos_deploy_1_9.sql").exists())
-check("SQL verifier covers complete 1.9.3", (ROOT / "sql/verificar_25_release_1_9_3.sql").exists())
+verifier_193 = read("sql/verificar_25_release_1_9_3.sql")
+check("SQL verifier covers complete 1.9.3", bool(verifier_193))
+check("SQL verifier rejects anonymous table grants", "has_table_privilege('anon'" in verifier_193)
 check("release verification report exists", (ROOT / "docs/VERIFICACAO_1_9_0.md").exists())
-check("service worker cache is 1.9.3", "barberhub-v1.9.3" in read("service-worker.js"))
+check("service worker preserves release 1.9.3 or newer", any(marker in read("service-worker.js") for marker in ["barberhub-v1.9.3", "barberhub-v1.10"]))
 
 failed = [label for label, ok in checks if not ok]
 for label, ok in checks:

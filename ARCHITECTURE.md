@@ -1,154 +1,133 @@
-# Arquitetura do Barber Hub 1.9.3
+# Arquitetura do Barber Hub 1.10.0
 
 ## Visão geral
 
 ```text
-                         ┌───────────────────────┐
-                         │ Desktop Web (/html)   │
-                         └───────────┬───────────┘
-                                     │
-                         ┌───────────▼───────────┐
-                         │ Mobile App (/mobile)  │
-                         └───────────┬───────────┘
-                                     │
-                        módulos JS/serviços comuns
-                                     │
-                    ┌────────────────┴────────────────┐
-                    │                                 │
-                    ▼                                 ▼
-            API Python/FastAPI                 Supabase sob RLS
-            regras sensíveis                  leituras simples,
-                    │                         Auth/Storage/Realtime
-                    └──────────────┬──────────────────┘
-                                   ▼
-                         PostgreSQL + RPC + RLS
+Navegador/PWA
+├─ desktop: html/*.html
+├─ mobile: mobile/*.html
+└─ módulos compartilhados: js/ + css/
+                │
+                ├─ leituras públicas simples sob RLS
+                └─ /api/v1/*
+                       │
+                 FastAPI 1.6
+                 ├─ autenticação e rate limit
+                 ├─ validação Pydantic
+                 ├─ regras em backend/domain
+                 └─ serviços em backend/services
+                       │
+                       ▼
+                 Supabase
+                 ├─ Auth
+                 ├─ PostgreSQL + RLS + RPC
+                 ├─ Storage
+                 └─ Realtime
 ```
 
-## Separação desktop/mobile
+## Fronteiras
 
-`/mobile/` possui documentos HTML próprios para reduzir poluição e permitir ordem/hierarquia específicas de aplicativo. **A lógica de negócio não é duplicada**: desktop e mobile importam os mesmos módulos `js/api.js`, `js/backend-api.js`, `js/auth.js`, `js/status.js` etc.
+### Interface
 
-O PWA inicia em `/mobile/index.html`. `js/device-router.js` encaminha telas pequenas/standalone para a versão mobile; `?desktop=1` preserva a interface web para depuração.
+`html/` contém as páginas canônicas. `mobile/` é gerado por `scripts/sync_mobile_pages.py`, recebe cabeçalho/dock próprios e prioriza tarefas rápidas. JavaScript e CSS são compartilhados para evitar duas implementações divergentes.
 
-## Marketplace
+Novos módulos ficam em:
+
+- `js/core/`: conectividade, repetição segura e infraestrutura de navegador;
+- `js/features/`: recursos isolados da release 1.10;
+- `css/releases/`: camadas visuais versionadas sem romper o tema premium escuro/quente e dourado.
+
+### API
+
+`api/index.py` declara as rotas. A regra crítica não deve viver dentro do handler:
+
+- `backend/models.py`: contratos de entrada;
+- `backend/security.py`: identidade e autorização base;
+- `backend/rate_limit.py`: cotas por rota/identidade;
+- `backend/domain/`: funções puras testáveis sem internet;
+- `backend/services/`: orquestração e acesso ao Supabase;
+- `backend/supabase.py`: gateway HTTP centralizado.
+
+As regras puras cobrem agenda, planos, CRM, finanças, retenção, crescimento, permissões, importação e normalização operacional. Assim, parte relevante da API pode ser validada mesmo sem Supabase disponível.
+
+### Banco
+
+O PostgreSQL é a última barreira de integridade. Validações de interface melhoram a experiência; Pydantic rejeita entradas inválidas; RLS/RPC/constraints impedem acesso e estados proibidos mesmo quando uma chamada é feita fora da interface.
+
+Princípios:
+
+- RLS habilitado em tabelas expostas;
+- escrita sensível por RPC transacional;
+- `SECURITY DEFINER` com `search_path` vazio e schema explícito;
+- execução de funções sensíveis revogada de `anon`;
+- idempotência para impedir lançamentos duplicados;
+- exclusão lógica quando o histórico precisa permanecer;
+- auditoria append-only com anonimização controlada de vínculos apagados;
+- paginação e limites máximos nas coleções.
+
+## Fluxos principais
+
+### Marketplace regional
 
 ```text
-Portal
-  ↓
-GET /api/v1/marketplace/search
-  ↓
-RPC buscar_marketplace
-  ├── FTS em search_vector (GIN)
-  ├── serviço + estabelecimento
-  ├── fallback ILIKE
-  ├── filtros
-  ├── ranking
-  └── offset/limit
+Portal → /marketplace/search ou /regional
+       → filtros de serviço/região/distância
+       → RPC indexada + limite/paginação
+       → cards, mapa OpenStreetMap e rota externa
 ```
 
-Nenhuma tela deve buscar o catálogo inteiro em produção.
+A localização só é solicitada após ação do usuário. A busca textual continua disponível quando a permissão é negada.
 
-## Agendamento
+### Agendamento e operação
 
 ```text
-barbearia.html
-  ↓ modal
-serviços → profissional → data/slot → revisão
-  ↓
-POST /api/v1/appointments
-  ↓
-RPC criar_agendamento_multisservico
-  ↓
-constraint de não sobreposição no PostgreSQL
+Estabelecimento → serviço → profissional → data/horário → revisão
+       │
+       ├─ usuário autenticado: cria agendamento por RPC
+       └─ login necessário: guarda contexto mínimo local e retoma depois
+
+Painel profissional → agenda/períodos/bloqueios
+                    → atendimento manual/avulso
+                    → financeiro idempotente
 ```
 
-A página `agendamento.html` é apenas compatibilidade/deep-link.
+O banco impede sobreposição e normaliza origem/meio de pagamento. Serviço avulso recebe nome/duração e é privado no catálogo.
 
-## Backend Python
+### Retenção e inteligência
 
-- `api/index.py`: rotas FastAPI, middleware de request id e logs estruturados;
-- `backend/domain/`: regras puras de agendamento, planos, agenda, CRM, finanças, retenção, crescimento e permissões, testáveis sem rede;
-- `backend/security.py`: autenticação/token, admin e e-mail confirmado;
-- `backend/rate_limit.py`: limitação distribuída;
-- `backend/services/catalog.py`: marketplace;
-- `backend/services/appointments.py`: criar/cancelar/status;
-- `backend/services/schedule.py`: Agenda 2.0 e RPCs transacionais;
-- `backend/services/crm.py`: carteira persistente e notas internas;
-- `backend/services/finance.py`: resumo, ajustes, comissões e fechamento;
-- `backend/services/team.py`: vínculos e papéis operacionais;
-- `backend/services/retention.py`: espera, recorrência, fidelidade, cupons, campanhas e lembretes;
-- `backend/services/growth.py`: oportunidades, insights, metas e permissões granulares;
-- `backend/services/management.py`: edição de estabelecimento, serviços e profissionais com Pydantic + token do usuário + RLS;
-- `backend/services/admin.py`: overview, health, recuperação e auditoria;
-- `backend/services/support.py`: tickets;
-- `backend/supabase.py`: gateway assíncrono com tratamento de indisponibilidade.
+Lista de espera, recorrência, fidelidade, cupons, campanhas, oportunidades, insights e metas respeitam o plano efetivo. Permissões granulares combinam papel base e substituições autorizadas do plano Elite.
 
-## Banco
-
-O schema acumulado até a migration 15 já contém FTS/ranking do marketplace, rate limiting e reforços de segurança. A **migration 16** adiciona a camada comercial funcional:
-
-- colunas de capacidades e limites nos planos;
-- `calcular_entitlements_estabelecimento` como resolvedor central cumulativo;
-- `agenda_online_disponivel` para refletir plano efetivo na experiência pública;
-- `admin_atribuir_plano` para upgrade/downgrade transacional;
-- triggers de enforcement para agenda, profissionais, promoções e portfólio;
-- policy pública de promoções condicionada ao plano efetivo;
-- prioridade de marketplace condicionada à assinatura efetiva;
-- assinatura em Realtime para atualização imediata do painel.
-
-A **migration 17** endurece os limites de confiança levantados na auditoria:
-
-- moderação administrativa separada da visibilidade escolhida pelo proprietário;
-- máquina de estados de agendamentos no PostgreSQL;
-- locks transacionais para limites de plano e validação de reativação;
-- contador de curtidas derivado da tabela de curtidas;
-- policies públicas que excluem estabelecimentos suspensos.
-
-As **migrations 18–23** adicionam e endurecem a base operacional 1.9:
-
-- agenda por intervalo/profissional, eventos, confirmação, reagendamento e no-show;
-- CRM persistente por estabelecimento;
-- lançamentos, comissões e fechamento diário;
-- papéis de equipe e acesso individual;
-  - entitlements operacionais, RLS consolidado e encaixe transacional;
-  - índices de FKs, políticas sem duplicação e bloqueio de RPCs exclusivas de gatilho.
-
-As **migrations 24–25** completam a 1.9.3:
-
-- lista de espera, recorrência, fidelidade, cupons, campanhas e filas de automação;
-- oportunidades, insights, metas e permissões granulares;
-- novos entitlements por plano, RLS, RPCs transacionais, triggers e índices.
-
-As migrations 11–23 estavam aplicadas no ambiente conectado em 24/08/2026 e aprovadas pelos verificadores 17, 22 e 23. As migrations 24/25 ainda precisam ser aplicadas e validadas com `verificar_25_release_1_9_3.sql` antes do deploy da API 1.5.0. A configuração externa restante está em `docs/CONFIGURACAO_EXTERNA_1_9.md`.
-
-## Segurança por camada
-
-- **Frontend:** UX/validação imediata — nunca é limite de segurança.
-- **Python:** valida novamente payload/sessão/regra e aplica rate limit. Operações de gestão usam o token do próprio usuário para manter o RLS como segunda barreira.
-- **PostgreSQL:** integridade, RLS, constraints e transações/RPC.
-- **Supabase Auth:** login, confirmação de e-mail, recuperação e CAPTCHA.
-- **Vercel:** secrets, CSP, HTTPS e execução serverless.
-
-
-## Assinaturas e entitlements (1.8)
-
-A regra comercial deixou de ser apenas metadado de UI. `sql/16_assinaturas_entitlements_beneficios.sql` resolve o plano efetivo e seus benefícios cumulativos, e o PostgreSQL aplica limites críticos. A API 1.3 expõe a leitura de entitlements ao proprietário e a atribuição de plano ao administrador.
+### Importação
 
 ```text
-Admin → API /admin/.../subscription → RPC admin_atribuir_plano
-                                      │
-                                      ▼
-                         assinaturas + calcular_entitlements
-                                      │
-                    ┌─────────────────┼──────────────────┐
-                    ▼                 ▼                  ▼
-               painel/CRM       triggers de limite   ranking marketplace
-                    │                 │                  │
-                    └──── Realtime ───┴──────────────────┘
+CSV/XLSX → prévia limitada → validação/deduplicação
+         → confirmação explícita → gravação/auditoria
+         → relatório de aceitas, rejeitadas e motivos
 ```
 
-O frontend pode ocultar/bloquear recursos para UX, mas agenda, equipe, promoções e portfólio têm enforcement no banco. O mobile continua derivado da mesma fonte funcional de `/html`, então não existe uma segunda regra de assinatura.
+Fórmulas são rejeitadas e a mesma importação não deve ser confirmada duas vezes.
 
-## Desenvolvimento offline da API
+### Avisos
 
-`backend/domain` não importa FastAPI, HTTPX ou Supabase. Serviços orquestram essas regras e o gateway externo fica em `backend/supabase.py`. O comando `npm run check:offline` valida regras críticas mesmo sem credenciais ou conectividade. O monorepo continua sendo a escolha da 1.9.3; uma separação da API/mobile só deve ocorrer quando houver ciclo de deploy e equipe realmente independentes. O Beauty Hub possui um pacote inicial separado, mas ainda não compartilha credenciais, banco ou código de produção.
+Preferências, consentimento e horário silencioso ficam separados da entrega. Notificação interna funciona como fallback. Web Push precisa de chaves VAPID e worker externo que processe a fila com repetição limitada.
+
+## Segurança e credenciais
+
+- chave pública pode existir no navegador somente com RLS correto;
+- chave privada/service role fica apenas no backend/deploy;
+- senha pertence ao Supabase Auth como hash não reversível;
+- administrador envia redefinição, nunca visualiza senha;
+- CAPTCHA, proteção contra senha vazada e URLs autorizadas dependem do provedor;
+- logs, importações e auditoria não armazenam tokens, segredos ou senhas.
+
+## Migrations
+
+Arquivos em `sql/` formam uma sequência imutável. Migrations 01–28 são histórico. A versão 1.10 depende de 29, 30 e 31, seguidas por `verificar_31_release_1_10.sql`. Elas ainda não foram aplicadas no ambiente de produção.
+
+## Deploy e reversão
+
+API, frontend e PWA devem ser publicados juntos depois do banco e da homologação. Reversão de código promove o commit anterior; banco com dados reais nunca recebe `DROP` improvisado. Uma correção de banco ganha uma nova migration.
+
+## Decisão de monorepo
+
+Barber Hub web, PWA/mobile e API permanecem no mesmo repositório até existirem ciclos de release ou equipes independentes. Beauty Hub é um produto irmão em repositório próprio. A integração futura ocorre por contrato/pacote versionado, sem copiar segredos ou compartilhar tabelas de produção por conveniência.

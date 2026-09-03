@@ -1,5 +1,8 @@
 /** Internal navigation map now verifies the protected API endpoint in real time. */
 document.addEventListener("DOMContentLoaded", async () => {
+  const profile = await window.bhRequireAuth?.(["admin"]);
+  if (!profile) return;
+  document.body.classList.remove("auth-pending");
   marcarMenuAtivo("admin");
   const badge = document.querySelector("[data-navigation-audit-status]");
   try {

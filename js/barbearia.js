@@ -11,6 +11,8 @@ let bhCurtidasPortfolio = new Set();
 let bhPerfilPortfolio = null;
 let bhEstabelecimentoPortfolio = null;
 let bhAvaliacoesPublicas = [];
+let bhPortfolioPublicoHasMore = false;
+let bhAvaliacoesPublicasHasMore = false;
 let bhFavoritoAtual = false;
 let bhAlvoAvaliacaoComunidade = { publicacaoId: null };
 let bhFiltroPortfolio = { categoria: "todas", profissional: "todos", servico: "todos", modo: "todos", ordem: "recentes" };
@@ -34,6 +36,18 @@ function bhRenderRedesSociais(item) {
   </div>`;
 }
 
+function bhRenderMapaPublico(item, compact = false) {
+  const address = [item.endereco, item.numero, item.bairro, item.cidade, item.estado, item.cep].filter(Boolean).join(", ");
+  if (!address) return "";
+  const hasCoordinates = Number.isFinite(Number(item.latitude)) && Number.isFinite(Number(item.longitude));
+  const destination = hasCoordinates ? `${Number(item.latitude)},${Number(item.longitude)}` : address;
+  const route = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`;
+  if (compact || !hasCoordinates) return `<a class="btn btn-outline btn-small route110" href="${route}" target="_blank" rel="noopener noreferrer"><i class="bi bi-sign-turn-right"></i> Como chegar</a>`;
+  const lat = Number(item.latitude); const lng = Number(item.longitude); const delta = .012;
+  const map = `https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(`${lng - delta},${lat - delta},${lng + delta},${lat + delta}`)}&layer=mapnik&marker=${encodeURIComponent(`${lat},${lng}`)}`;
+  return `<div class="public-map110"><iframe src="${map}" title="Mapa de ${escapeHTML(item.nome)}" loading="lazy" referrerpolicy="no-referrer"></iframe><a class="btn btn-outline btn-small" href="${route}" target="_blank" rel="noopener noreferrer"><i class="bi bi-sign-turn-right"></i> Traçar rota</a></div>`;
+}
+
 function bhRenderAvaliacoesPublicas() {
   const verificadas = bhAvaliacoesPublicas.filter(item => item.verificada || item.origem === "agendamento").length;
   const comunidade = bhAvaliacoesPublicas.length - verificadas;
@@ -45,13 +59,13 @@ function bhRenderAvaliacoesPublicas() {
   if (!bhAvaliacoesPublicas.length) return `<section class="card reviews-public-card" id="avaliacoes"><div class="card-body"><div class="section-top compact"><div><span class="tag"><i class="bi bi-star"></i> Reputação</span><h2>Ainda sem avaliações</h2><p class="texto-section">Clientes podem avaliar atendimentos verificados ou compartilhar uma experiência realizada fora da agenda online.</p></div><div class="reviews-public-actions">${acao}</div></div></div></section>`;
   const media = bhAvaliacoesPublicas.reduce((soma, item) => soma + Number(item.nota || 0), 0) / bhAvaliacoesPublicas.length;
   return `<section class="card reviews-public-card" id="avaliacoes"><div class="card-body">
-    <div class="section-top compact"><div><span class="tag"><i class="bi bi-star"></i> Reputação</span><h2>Experiências compartilhadas</h2><p class="texto-section">Avaliações verificadas vêm de atendimentos concluídos no Barber Hub. Avaliações da comunidade são identificadas separadamente.</p><div class="review-counts"><span class="review-source verified"><i class="bi bi-patch-check-fill"></i> ${verificadas} verificada${verificadas === 1 ? "" : "s"}</span><span class="review-source community"><i class="bi bi-people-fill"></i> ${comunidade} da comunidade</span></div></div><div class="reviews-public-actions"><div class="rating-summary"><strong>${media.toFixed(1).replace(".", ",")}</strong><div><span>${"★".repeat(Math.round(media))}${"☆".repeat(5 - Math.round(media))}</span><small>${bhAvaliacoesPublicas.length} avaliação${bhAvaliacoesPublicas.length === 1 ? "" : "ões"}</small></div></div>${acao}</div></div>
-    <div class="reviews-public-list">${bhAvaliacoesPublicas.slice(0, 20).map(item => `<article class="review-public-item">
+    <div class="section-top compact"><div><span class="tag"><i class="bi bi-star"></i> Reputação</span><h2>Experiências compartilhadas</h2><p class="texto-section">Avaliações verificadas vêm de atendimentos concluídos no Barber Hub. Avaliações da comunidade são identificadas separadamente.</p><div class="review-counts"><span class="review-source verified"><i class="bi bi-patch-check-fill"></i> ${verificadas} verificada${verificadas === 1 ? "" : "s"}</span><span class="review-source community"><i class="bi bi-people-fill"></i> ${comunidade} da comunidade</span></div></div><div class="reviews-public-actions"><div class="rating-summary"><strong>${media.toFixed(1).replace(".", ",")}</strong><div><span>${"★".repeat(Math.round(media))}${"☆".repeat(5 - Math.round(media))}</span><small>${bhAvaliacoesPublicas.length} avaliação${bhAvaliacoesPublicas.length === 1 ? "" : "ões"} exibida${bhAvaliacoesPublicas.length === 1 ? "" : "s"}</small></div></div>${acao}</div></div>
+    <div class="reviews-public-list">${bhAvaliacoesPublicas.map(item => `<article class="review-public-item">
       <div class="review-public-head"><div class="review-avatar">${escapeHTML((item.perfis?.nome || "C").slice(0,1).toUpperCase())}</div><div><strong>${escapeHTML(item.perfis?.nome || "Cliente")}</strong><span class="review-stars" aria-label="${item.nota} de 5 estrelas">${"★".repeat(Number(item.nota || 0))}${"☆".repeat(5 - Number(item.nota || 0))}</span></div><time>${new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium" }).format(new Date(item.created_at))}</time></div>
       <div class="review-meta-row"><span class="review-source ${item.verificada || item.origem === "agendamento" ? "verified" : "community"}"><i class="bi ${item.verificada || item.origem === "agendamento" ? "bi-patch-check-fill" : "bi-people-fill"}"></i> ${item.verificada || item.origem === "agendamento" ? "Atendimento verificado" : "Avaliação da comunidade"}</span>${item.portfolio_publicacoes?.titulo ? `<span class="review-context"><i class="bi bi-image"></i> Sobre: ${escapeHTML(item.portfolio_publicacoes.titulo)}</span>` : ""}</div>
       ${item.comentario ? `<p>${escapeHTML(item.comentario)}</p>` : `<p class="muted">Avaliação sem comentário.</p>`}
       ${item.resposta_estabelecimento ? `<div class="business-reply"><strong><i class="bi bi-reply"></i> Resposta do estabelecimento</strong><p>${escapeHTML(item.resposta_estabelecimento)}</p></div>` : ""}
-    </article>`).join("")}</div>
+    </article>`).join("")}</div>${bhAvaliacoesPublicasHasMore ? `<button class="btn btn-dark notification-more110" data-reviews-more type="button"><i class="bi bi-chevron-down"></i> Ver mais avaliações</button>` : ""}
   </div></section>`;
 }
 
@@ -112,7 +126,7 @@ function bhRenderCardsPortfolioPublico() {
         </div>
       </div>
     </article>`;
-  }).join("");
+  }).join("") + (bhPortfolioPublicoHasMore ? `<button class="btn btn-dark portfolio-more110" data-portfolio-more type="button"><i class="bi bi-chevron-down"></i> Ver mais trabalhos</button>` : "");
 }
 
 function bhRenderSecaoPortfolioPublico() {
@@ -120,7 +134,7 @@ function bhRenderSecaoPortfolioPublico() {
   const profissionais = [...new Map(bhPortfolioPublico.filter(item => item.profissional).map(item => [item.profissional.id, item.profissional])).values()];
   const servicos = [...new Map(bhPortfolioPublico.filter(item => item.servico).map(item => [item.servico.id, item.servico])).values()];
   return `<div class="card portfolio-public-section"><div class="card-body">
-    <div class="section-top"><div><span class="tag"><i class="bi bi-images"></i> Portfólio</span><h2>Trabalhos realizados</h2><p class="texto-section">Veja resultados publicados pelo estabelecimento.</p></div><strong class="portfolio-total">${bhPortfolioPublico.length} trabalho${bhPortfolioPublico.length === 1 ? "" : "s"}</strong></div>
+    <div class="section-top"><div><span class="tag"><i class="bi bi-images"></i> Portfólio</span><h2>Trabalhos realizados</h2><p class="texto-section">Veja resultados publicados pelo estabelecimento.</p></div><strong class="portfolio-total">${bhPortfolioPublico.length} trabalho${bhPortfolioPublico.length === 1 ? "" : "s"} exibido${bhPortfolioPublico.length === 1 ? "" : "s"}</strong></div>
     ${bhPortfolioPublico.length ? `<div class="portfolio-public-filters">
       <select data-portfolio-public-filter="categoria"><option value="todas">Todas as categorias</option>${categorias.map(item => `<option value="${escapeHTML(item)}">${escapeHTML(item)}</option>`).join("")}</select>
       <select data-portfolio-public-filter="profissional"><option value="todos">Todos os profissionais</option>${profissionais.map(item => `<option value="${item.id}">${escapeHTML(item.nome)}</option>`).join("")}</select>
@@ -266,6 +280,7 @@ function bhRenderDetalheEstabelecimento(item) {
           <summary><span><i class="bi bi-info-circle"></i> Informações, horários e redes</span><i class="bi bi-chevron-down"></i></summary>
           <div class="mobile-business-details-body">
             <p><strong>Endereço</strong><span>${escapeHTML([item.endereco,item.numero,item.bairro,item.cidade,item.estado].filter(Boolean).join(", "))}</span></p>
+            ${bhRenderMapaPublico(item, true)}
             <p><strong>Telefone</strong><span>${escapeHTML(item.telefone || "Não informado")}</span></p>
             ${bhRenderRedesSociais(item)}
             <div class="hours-list">${horarios}</div>
@@ -300,6 +315,7 @@ function bhRenderDetalheEstabelecimento(item) {
             <h2>Informações</h2>
             <div class="divisor"></div>
             <p><strong><i class="bi bi-geo-alt"></i> Endereço</strong><br>${escapeHTML([item.endereco,item.numero,item.bairro,item.cidade,item.estado].filter(Boolean).join(", "))}</p><br>
+            ${bhRenderMapaPublico(item)}
             <p><strong><i class="bi bi-telephone"></i> Telefone</strong><br>${escapeHTML(item.telefone || "Não informado")}</p><br>
             <p><strong><i class="bi bi-star-fill"></i> Avaliação</strong><br>${Number(item.avaliacao || 0) > 0 ? `<span class="rating">${Number(item.avaliacao).toFixed(1)}</span>` : `<span class="no-rating">Ainda sem avaliações</span>`}</p><br>
             <p><strong>Status</strong><br><span class="status ${status.classe}">${status.texto}</span><br><small>${escapeHTML(status.detalhe)}</small></p>
@@ -330,9 +346,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     bhEstabelecimentoPortfolio = await bhObterEstabelecimento(id);
     if (!bhEstabelecimentoPortfolio) throw new Error("Estabelecimento não encontrado ou indisponível.");
     [bhPortfolioPublico, bhAvaliacoesPublicas] = await Promise.all([
-      bhListarPortfolioPublico(bhEstabelecimentoPortfolio.id),
-      bhListarAvaliacoesEstabelecimento(bhEstabelecimentoPortfolio.id).catch(erro => { console.warn("Avaliações ainda não disponíveis.", erro); return []; })
+      bhListarPortfolioPublico(bhEstabelecimentoPortfolio.id, { limite:18 }),
+      bhListarAvaliacoesEstabelecimento(bhEstabelecimentoPortfolio.id, { limite:20 }).catch(erro => { console.warn("Avaliações ainda não disponíveis.", erro); return []; })
     ]);
+    bhPortfolioPublicoHasMore = bhPortfolioPublico.length === 18;
+    bhAvaliacoesPublicasHasMore = bhAvaliacoesPublicas.length === 20;
     try { bhPerfilPortfolio = await bhGetPerfil(); } catch (_) { bhPerfilPortfolio = null; }
     if (bhPerfilPortfolio?.tipo === "cliente") {
       try { bhFavoritoAtual = await bhEstaFavorito(bhEstabelecimentoPortfolio.id); } catch (_) { bhFavoritoAtual = false; }
@@ -354,6 +372,32 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   main.addEventListener("click", async evento => {
+    const morePortfolio = evento.target.closest("[data-portfolio-more]");
+    if (morePortfolio) {
+      try {
+        bhSetButtonLoading(morePortfolio, true, "Carregando...");
+        const page = await bhListarPortfolioPublico(bhEstabelecimentoPortfolio.id, { offset:bhPortfolioPublico.length, limite:18 });
+        bhPortfolioPublico.push(...page.filter(item => !bhPortfolioPublico.some(current => current.id === item.id)));
+        bhPortfolioPublicoHasMore = page.length === 18;
+        if (bhPerfilPortfolio && page.length) {
+          const likes = await bhObterCurtidasMinhas(page.map(item => item.id));
+          likes.forEach(id => bhCurtidasPortfolio.add(id));
+        }
+        bhRenderCardsPortfolioPublico();
+      } catch (erro) { mostrarToast("erro", "Não foi possível carregar mais trabalhos", bhErroMensagem(erro)); }
+      return;
+    }
+    const moreReviews = evento.target.closest("[data-reviews-more]");
+    if (moreReviews) {
+      try {
+        bhSetButtonLoading(moreReviews, true, "Carregando...");
+        const page = await bhListarAvaliacoesEstabelecimento(bhEstabelecimentoPortfolio.id, { offset:bhAvaliacoesPublicas.length, limite:20 });
+        bhAvaliacoesPublicas.push(...page.filter(item => !bhAvaliacoesPublicas.some(current => current.id === item.id)));
+        bhAvaliacoesPublicasHasMore = page.length === 20;
+        document.getElementById("avaliacoes").outerHTML = bhRenderAvaliacoesPublicas();
+      } catch (erro) { mostrarToast("erro", "Não foi possível carregar mais avaliações", bhErroMensagem(erro)); }
+      return;
+    }
     const favorito = evento.target.closest("[data-favoritar-estabelecimento]");
     if (favorito) {
       try {

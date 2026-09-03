@@ -99,6 +99,7 @@
       { group:"Crescimento", path:"painel.html#relatorios", icon:"bi-bar-chart", label:"Relatórios", detail:"Indicadores do negócio", show:can("permite_relatorios") },
       { group:"Negócio", path:"painel.html#configuracoes", icon:"bi-sliders", label:"Configurações", detail:"Status, horários e dados", capability:"configuracoes" },
       { group:"Negócio", path:"painel.html#pagina", icon:"bi-shop-window", label:"Página pública", detail:"Veja como o cliente enxerga" },
+      { group:"Negócio", path:"painel.html#ferramentas", icon:"bi-tools", label:"Ferramentas", detail:"Importação, avisos e histórico", capability:"configuracoes" },
       { group:"Conta", path:"conta.html", icon:"bi-person-gear", label:"Minha conta", detail:"Perfil, senha e privacidade" },
       { group:"Conta", path:"planos.html", icon:"bi-stars", label:"Plano", detail:"Benefícios e limites" },
       { group:"Conta", path:"contato.html", icon:"bi-headset", label:"Suporte", detail:"Ajuda do Barber Hub" }
@@ -226,7 +227,7 @@
     dock.setAttribute("aria-label", "Navegação principal do aplicativo");
 
     if (profile?.tipo === "barbeiro") {
-      const secondaryHashes = ["relacionamento", "crescimento", "promocoes", "servicos", "equipe", "relatorios", "galeria", "avaliacoes", "configuracoes", "pagina"];
+      const secondaryHashes = ["relacionamento", "crescimento", "promocoes", "servicos", "equipe", "relatorios", "galeria", "avaliacoes", "ferramentas", "configuracoes", "pagina"];
       const currentHash = location.hash.replace("#", "");
       const moreActive = pageName === "conta" || (pageName === "painel" && secondaryHashes.includes(currentHash));
       dock.innerHTML = [

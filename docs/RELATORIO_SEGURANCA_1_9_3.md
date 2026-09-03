@@ -1,6 +1,6 @@
 # Barber Hub 1.9.3 — relatório de segurança consolidado
 
-Auditoria diferencial executada em **24/08/2026**, usando `AUDITORIA_SEGURANCA_BARBER_HUB.docx` como referência e comparando os achados com o código atual, migrations locais e estado remoto somente leitura. Nenhuma alteração foi aplicada no Supabase.
+Auditoria diferencial executada em **24/08/2026**, usando `AUDITORIA_SEGURANCA_BARBER_HUB.docx` como referência e comparando os achados com o código atual, migrations locais e estado remoto. As migrations 24–28 foram aplicadas e verificadas no Supabase.
 
 ## Resultado diferencial V01–V06
 
@@ -11,20 +11,20 @@ Auditoria diferencial executada em **24/08/2026**, usando `AUDITORIA_SEGURANCA_B
 | V03 — limites de plano contornáveis | **Corrigido** | entitlements centrais, locks e triggers; UI apenas reflete o resultado | confirmar assinatura real e concorrência em homologação |
 | V04 — contador de curtidas editável | **Corrigido** | contador derivado da relação de curtidas e reparo de divergências | nenhuma nova configuração |
 | V05 — rotas sem rate limit | **Corrigido no código** | cobertura dos endpoints e RPC distribuída | revisar capacidade/limites antes de múltiplas instâncias da API |
-| V06 — CAPTCHA desativado | **Parcialmente corrigido** | frontend envia token e só recebe a site key pública | habilitar Turnstile/hCaptcha no Supabase Auth e manter a secret fora do frontend |
+| V06 — CAPTCHA desativado | **Corrigido** | Turnstile ativo no Supabase Auth; frontend envia token e só recebe a site key pública | manter a secret fora do frontend e confirmar a variável pública em cada deploy |
 
-Nenhum achado V01–V06 permanece classificado como “ainda vulnerável” no código preparado. V06 continua parcial porque a ativação efetiva pertence ao provedor de autenticação, fora do Git. V05 está corrigido na aplicação atual, mas a capacidade deve ser medida novamente se a API passar a usar múltiplas instâncias ou volume maior.
+Nenhum achado V01–V06 permanece classificado como “ainda vulnerável”. V05 está corrigido na aplicação atual, mas a capacidade deve ser medida novamente se a API passar a usar múltiplas instâncias ou volume maior. V06 foi confirmado no provedor; a secret continua corretamente fora do Git.
 
 ## Estado remoto observado
 
-O projeto remoto estava saudável e com histórico aplicado até a migration 23. O Security Advisor retornou 37 apontamentos antes das migrations 24/25:
+O projeto remoto está saudável e com histórico aplicado até a migration 28. Depois da 1.9.3, o Security Advisor retornou 50 apontamentos informativos/de revisão:
 
 - 1 informação: `api_rate_limits` com RLS e sem policy pública, desenho intencional porque a tabela é fechada ao `service_role`;
 - 2 avisos: extensões legadas `unaccent` e `btree_gist` no schema `public`;
-- 6 funções `SECURITY DEFINER` executáveis por `anon` e 27 por `authenticated`, que precisam de revisão individual; parte delas é intencional e faz autorização interna, mas o Advisor não prova isso;
+- 6 funções públicas intencionais `SECURITY DEFINER` executáveis por `anon` e 40 RPCs autenticadas com autorização interna;
 - 1 aviso: proteção contra senhas vazadas desativada.
 
-Esses avisos não foram apagados artificialmente. As novas RPCs 1.9.3 revogam `public`/`anon`, concedem apenas o papel necessário e usam `search_path` fixo. As funções antigas sinalizadas devem ser revisadas em homologação; mover extensões existentes exige migration separada e ensaio de dependências.
+Esses avisos não foram apagados artificialmente. Nenhuma RPC 1.9.3 é executável por `anon`; todas usam `search_path` fixo e autorização interna. A migration 28 também removeu privilégios anônimos herdados das quinze tabelas internas. O Performance Advisor ficou sem warnings após índices de FK e separação das políticas duplicadas. Mover extensões existentes exige migration separada e ensaio de dependências.
 
 ## Novas regressões da 1.9.3
 
@@ -55,16 +55,16 @@ Referências oficiais: [segurança de senhas no Supabase](https://supabase.com/d
 
 Há migrations obrigatórias na 1.9.3. Confirme:
 
-1. migrations 11–23 presentes no histórico remoto;
-2. aplicar `24_retencao_relacionamento_1_9_3.sql` e depois `25_inteligencia_permissoes_1_9_3.sql`;
-3. executar `verificar_25_release_1_9_3.sql` sem exceção e com zero funções inseguras no resultado final;
+1. migrations 11–28 presentes no histórico remoto — confirmado;
+2. migrations 24 e 25 aplicadas na ordem — confirmado;
+3. `verificar_25_release_1_9_3.sql` sem exceção e com zero linhas no resultado final — confirmado;
 4. manter também os verificadores 17, 22 e 23 aprovados no ambiente alvo;
-5. CAPTCHA ativado em Authentication > Bot and Abuse Protection;
+5. CAPTCHA ativado em Authentication > Bot and Abuse Protection — confirmado;
 6. política de senha com 8 ou mais caracteres, maiúscula, minúscula, número e símbolo;
-7. proteção contra senhas vazadas quando o plano do Supabase permitir;
-8. URLs de site e de recuperação conferidas;
-9. Supabase Cron configurado para as duas rotinas internas, sem expor `service_role`;
-10. Security Advisor e Performance Advisor revisados;
+7. proteção contra senhas vazadas quando o plano do Supabase permitir — pendente no Free;
+8. URLs de site e de recuperação conferidas — confirmado;
+9. Supabase Cron configurado para as duas rotinas internas, sem expor `service_role` — confirmado;
+10. Security Advisor e Performance Advisor revisados — confirmado;
 11. consentimentos de e-mail e WhatsApp testados separadamente;
 12. RLS testado com cliente, profissional, recepção, gerente, proprietário, admin, usuário sem vínculo e usuário de outro estabelecimento.
 
@@ -74,4 +74,4 @@ Frontend pode receber somente URL do projeto, chave publicável e site key do CA
 
 ## Conclusão
 
-V01–V04 permanecem corrigidos, V05 está corrigido no código com revisão operacional recomendada para escala, e V06 depende da ativação no painel externo. A 1.9.3 preserva esses controles e exige as migrations 24/25 antes do deploy. O estado remoto atual ainda não representa a 1.9.3 até essa aplicação e o novo ciclo de Advisors/testes por papel.
+V01–V06 estão corrigidos no ambiente conectado. As migrations 24–28, o verificador, o Cron, o CAPTCHA, as URLs, os Advisors e a matriz de autorização foram concluídos. Permanecem externos: proteção contra senhas vazadas após upgrade para Pro, confirmação das variáveis do deploy e testes completos de interface com contas reais.

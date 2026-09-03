@@ -1,5 +1,5 @@
 /**
- * Auditoria local do Barber Hub 1.9.3.
+ * Auditoria local do Barber Hub 1.10.0.
  *
  * Não depende de bibliotecas externas. O script verifica estrutura, referências
  * locais, IDs duplicados, presença da API Python e vazamento acidental de
@@ -27,6 +27,8 @@ const required = [
   "css/release-1.7.1.css",
   "css/release-1.8.css",
   "css/release-1.9.css",
+  "css/release-1.9.3.css",
+  "css/releases/release-1.10.css",
   "css/brand-assets-1.8.css",
   "img/branding/barber-hub-compacta.png",
   "img/branding/barber-hub-horizontal.png",
@@ -44,6 +46,8 @@ const required = [
   "js/backend-api.js",
   "js/painel-operacao-1.9.js",
   "js/painel-retencao-1.9.3.js",
+  "js/core/continuation.js",
+  "js/features/operation-real-1.10.js",
   "api/index.py",
   "backend/config.py",
   "backend/security.py",
@@ -71,6 +75,10 @@ const required = [
   "sql/24_retencao_relacionamento_1_9_3.sql",
   "sql/25_inteligencia_permissoes_1_9_3.sql",
   "sql/verificar_25_release_1_9_3.sql",
+  "sql/29_operacao_real_horarios_atendimentos_1_10.sql",
+  "sql/30_localizacao_biblioteca_marketplace_1_10.sql",
+  "sql/31_push_importacoes_auditoria_flags_1_10.sql",
+  "sql/verificar_31_release_1_10.sql",
   "sql/verificar_22_operacao_1_9.sql",
   "mobile/index.html",
   "mobile/portal.html",
@@ -185,7 +193,7 @@ for (const page of ["html/painel.html", "html/planos.html", "html/admin.html", "
 // Regressões do Service Worker: a 1.7.2 falhou no Chromium porque
 // ./mobile/index.html aparecia duas vezes em cache.addAll().
 const serviceWorker = fs.readFileSync(path.join(root, "service-worker.js"), "utf8");
-if (!serviceWorker.includes("barberhub-v1.9.3-mobile-r3")) errors.push("Service Worker não usa o cache barberhub-v1.9.3-mobile-r3.");
+if (!serviceWorker.includes("barberhub-v1.10-mobile-r2")) errors.push("Service Worker não usa o cache atual da versão 1.10.");
 if (serviceWorker.includes("cache.addAll(CORE)")) errors.push("Service Worker voltou a usar cache.addAll(CORE), que falha com requisições duplicadas.");
 if (!serviceWorker.includes("const CORE = [...new Set(CORE_SOURCE)]")) errors.push("Service Worker não deduplica a lista CORE preventivamente.");
 const coreMatch = serviceWorker.match(/const CORE_SOURCE = \[([\s\S]*?)\n\];/);
@@ -202,7 +210,7 @@ if (errors.length) {
   process.exit(1);
 }
 
-console.log(`Barber Hub 1.9.3: ${required.length} arquivos centrais encontrados.`);
+console.log(`Barber Hub 1.10.0: ${required.length} arquivos centrais encontrados.`);
 console.log(`${htmlFiles.length} páginas HTML verificadas, sem IDs duplicados ou links locais quebrados.`);
 console.log(`${jsFiles.length} arquivos JavaScript passaram por node --check.`);
 console.log("Nenhuma chave secreta foi encontrada nos arquivos públicos auditados.");

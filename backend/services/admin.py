@@ -1,11 +1,121 @@
 """Administrative and account operations kept outside the browser."""
 
 import asyncio
+import re
 
+from backend.config import settings
 from backend.errors import ApiError
 from backend.models import AdminSubscriptionUpdate, DeleteAccountRequest, PasswordRecoveryRequest
 from backend.security import AuthContext
 from backend.supabase import gateway
+
+
+_ADMIN_RESOURCES = {
+    "perfis": {
+        "table": "perfis",
+        "select": "*",
+        "search": ("nome", "email"),
+        "statuses": {"cliente", "barbeiro", "admin", "inativo"},
+    },
+    "estabelecimentos": {
+        "table": "estabelecimentos",
+        "select": "*",
+        "search": ("nome", "cidade", "bairro"),
+        "statuses": {"visiveis", "ocultos", "suspensos", "verificados", "destaques"},
+    },
+    "agendamentos": {
+        "table": "agendamentos",
+        "select": "*,servicos(id,nome,preco,duracao_min),profissionais(nome),estabelecimentos(nome),agendamento_servicos(servico_id,ordem,nome_snapshot,preco_snapshot,duracao_min_snapshot,servicos(id,nome,preco,duracao_min))",
+        "search": (),
+        "statuses": {"pendente", "confirmado", "concluido", "cancelado", "recusado", "faltou"},
+    },
+    "tickets": {
+        "table": "tickets_suporte",
+        "select": "*",
+        "search": ("nome", "email", "assunto"),
+        "statuses": {"aberto", "em_atendimento", "respondido", "fechado"},
+    },
+    "denuncias": {
+        "table": "portfolio_denuncias",
+        "select": "*,perfis(nome,email),portfolio_publicacoes(id,titulo,status,estabelecimento_id,estabelecimentos(nome))",
+        "search": (),
+        "statuses": {"aberta", "analisando", "resolvida", "rejeitada"},
+    },
+    "avaliacoes": {
+        "table": "avaliacoes",
+        "select": "*,perfis(nome,email),estabelecimentos(nome),agendamentos(data,hora_inicio,servicos(nome),profissionais(nome),agendamento_servicos(ordem,nome_snapshot)),portfolio_publicacoes(id,titulo)",
+        "search": (),
+        "statuses": {"publicada", "em_analise", "ocultada"},
+    },
+}
+
+
+async def list_records(
+    resource: str,
+    _auth: AuthContext,
+    *,
+    offset: int = 0,
+    limit: int = 50,
+    query: str | None = None,
+    status: str | None = None,
+) -> dict[str, object]:
+    """Paginate admin records server-side through a strict allow-list."""
+
+    config = _ADMIN_RESOURCES.get(resource)
+    if not config:
+        raise ApiError(404, "ADMIN_RESOURCE_NOT_FOUND", "Lista administrativa não encontrada.")
+    page_limit = max(1, min(limit, 100))
+    page_offset = max(0, min(offset, 100_000))
+    params: dict[str, str] = {
+        "select": str(config["select"]),
+        "order": "created_at.desc,id.desc",
+        "offset": str(page_offset),
+        "limit": str(page_limit),
+    }
+    clean_query = re.sub(r"[^0-9A-Za-zÀ-ÿ@ _+\-]", " ", query or "").strip()[:80]
+    search_fields = tuple(config["search"])
+    if clean_query and search_fields:
+        params["or"] = "(" + ",".join(f"{field}.ilike.*{clean_query}*" for field in search_fields) + ")"
+    clean_status = (status or "").strip().lower()
+    if clean_status and clean_status != "todos":
+        if clean_status not in config["statuses"]:
+            raise ApiError(422, "INVALID_ADMIN_FILTER", "Filtro administrativo inválido.")
+        if resource == "perfis":
+            params["ativo"] = "eq.false" if clean_status == "inativo" else "eq.true"
+            if clean_status != "inativo":
+                params["tipo"] = f"eq.{clean_status}"
+        elif resource == "estabelecimentos":
+            if clean_status == "visiveis":
+                params.update({"visivel": "eq.true", "suspenso_pela_moderacao": "eq.false"})
+            elif clean_status == "ocultos":
+                params.update({"visivel": "eq.false", "suspenso_pela_moderacao": "eq.false"})
+            elif clean_status == "suspensos":
+                params["suspenso_pela_moderacao"] = "eq.true"
+            elif clean_status == "verificados":
+                params["verificado"] = "eq.true"
+            elif clean_status == "destaques":
+                params["destaque"] = "eq.true"
+        else:
+            params["status"] = f"eq.{clean_status}"
+    response = await gateway.request(
+        f"/rest/v1/{config['table']}",
+        admin=True,
+        params=params,
+        headers={"Prefer": "count=exact"},
+    )
+    items = response.json() or []
+    content_range = response.headers.get("content-range", "")
+    try:
+        total = int(content_range.rsplit("/", 1)[1])
+    except (ValueError, IndexError):
+        total = page_offset + len(items)
+    return {
+        "items": items,
+        "offset": page_offset,
+        "limit": page_limit,
+        "total": total,
+        "has_more": page_offset + len(items) < total,
+    }
 
 
 async def _count(table: str, filters: dict[str, str] | None = None) -> int:
@@ -115,13 +225,40 @@ async def health_details(auth: AuthContext) -> dict[str, object]:
         )
     except Exception:
         marketplace = {"status": "migration_required", "engine": "postgres-fts"}
+    release_probes = await asyncio.gather(
+        _release_probe("estabelecimento_horario_periodos"),
+        _release_probe("biblioteca_capas"),
+        _release_probe("feature_flags"),
+        return_exceptions=True,
+    )
+    migrations = {
+        "29": release_probes[0] is True,
+        "30": release_probes[1] is True,
+        "31": release_probes[2] is True,
+    }
     return {
-        "api": {"status": "online", "version": "1.3.0"},
+        "api": {"status": "online", "version": "1.6.0"},
         "database": {"status": "online", "provider": "supabase-postgres"},
         "auth": {"status": "online", "provider": "supabase-auth"},
         "marketplace": marketplace,
         "overview": overview_data,
+        "release": {
+            "version": "1.10.0",
+            "migrations": migrations,
+            "configuration": {
+                "allowed_origins": bool(settings.allowed_origins),
+                "password_redirect": bool(settings.password_redirect_url),
+                "captcha": bool(settings.turnstile_site_key),
+                "device_notifications": bool(settings.vapid_public_key),
+            },
+        },
     }
+
+
+async def _release_probe(table: str) -> bool:
+    """Check a release object without returning its rows or leaking metadata."""
+    await gateway.rest(table, method="GET", admin=True, params={"select": "id", "limit": "1"})
+    return True
 
 
 async def audit_action(

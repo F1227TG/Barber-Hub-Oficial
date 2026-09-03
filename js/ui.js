@@ -424,6 +424,26 @@ function bhConfigurarConexao(){
     }
   };
   addEventListener('online',atualizar);addEventListener('offline',atualizar);if(!navigator.onLine) atualizar();
+  addEventListener('bh:network-state',event=>{
+    const detail=event.detail||{};
+    const writing=['POST','PUT','PATCH','DELETE'].includes(String(detail.method||'').toUpperCase());
+    if(detail.state==='offline') atualizar();
+    if(!writing)return;
+    clearTimeout(onlineTimer);
+    if(detail.state==='loading'){
+      aviso.className='connection-banner ativo';
+      aviso.innerHTML='<span class="state-spinner"></span> Salvando sua alteração...';
+    }
+    if(detail.state==='success'){
+      aviso.className='connection-banner online ativo';
+      aviso.innerHTML='<i class="bi bi-check2-circle"></i> Alteração salva';
+      onlineTimer=setTimeout(()=>aviso.classList.remove('ativo'),1800);
+    }
+    if(detail.state==='error'){
+      aviso.className='connection-banner ativo';
+      aviso.innerHTML='<i class="bi bi-exclamation-triangle"></i> Não foi possível salvar. Seus dados continuam no formulário.';
+    }
+  });
 }
 
 function bhMelhorarFormularios(){

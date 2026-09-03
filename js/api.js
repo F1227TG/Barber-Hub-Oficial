@@ -9,6 +9,7 @@
 
 const BH_ESTABELECIMENTO_SELECT = `
   *,
+  estabelecimento_horario_periodos(*),
   horarios_funcionamento(*),
   dias_bloqueados(*),
   profissionais(*,profissional_servicos(servico_id)),
@@ -67,11 +68,26 @@ function bhBackendPodeUsarFallback(erro) {
 function bhNormalizarEstabelecimento(row) {
   if (!row) return null;
   const horarios = {};
+  const horariosPeriodos = {};
   (row.horarios_funcionamento || []).forEach(item => {
     horarios[BH_DIAS_CHAVE[item.dia_semana]] = item.aberto
       ? { abre: bhHoraCurta(item.abre), fecha: bhHoraCurta(item.fecha), id: item.id }
       : null;
   });
+  (row.estabelecimento_horario_periodos || [])
+    .filter(item => item.ativo !== false)
+    .sort((a, b) => Number(a.dia_semana) - Number(b.dia_semana) || Number(a.ordem) - Number(b.ordem))
+    .forEach(item => {
+      const dia = BH_DIAS_CHAVE[item.dia_semana];
+      horariosPeriodos[dia] ||= [];
+      horariosPeriodos[dia].push({
+        id: item.id,
+        abre: bhHoraCurta(item.abre),
+        fecha: bhHoraCurta(item.fecha),
+        fechaDiaSeguinte: Boolean(item.fecha_dia_seguinte),
+        ordem: Number(item.ordem || 1)
+      });
+    });
 
   return {
     ...row,
@@ -87,6 +103,7 @@ function bhNormalizarEstabelecimento(row) {
     antecedenciaHoras: row.antecedencia_min_horas,
     limiteDias: row.limite_dias_agendamento,
     horarios,
+    horariosPeriodos,
     horariosRows: (row.horarios_funcionamento || []).sort((a, b) => a.dia_semana - b.dia_semana),
     diasFechados: (row.dias_bloqueados || []).map(item => ({
       id: item.id,
@@ -166,6 +183,19 @@ async function bhBuscarMarketplace({ busca = "", tipo = "todos", agenda = null, 
   if (status === "aberta") items = items.filter(item => bhCalcularStatus(item).aberta);
   if (status === "fechada") items = items.filter(item => !bhCalcularStatus(item).aberta);
   return { items, total: Number(count || items.length), offset, limit, has_more: offset + (data || []).length < Number(count || 0), search_engine: "supabase_ilike_fallback" };
+}
+
+async function bhBuscarMarketplaceRegional({ busca = "", cidade = "", bairro = "", estado = "", abertoAgora = false, agenda = false, latitude = null, longitude = null, raioKm = null, offset = 0, limit = 24 } = {}) {
+  if (!window.bhBackendApi?.regionalMarketplace) {
+    return bhBuscarMarketplace({ busca, agenda:agenda || null, status:abertoAgora ? "aberta" : "todos", offset, limit });
+  }
+  try {
+    const result = await window.bhBackendApi.regionalMarketplace({ query:busca, city:cidade, neighborhood:bairro, state:estado, openNow:abertoAgora, agenda, latitude, longitude, radiusKm:raioKm, offset, limit });
+    return { ...result, items:(result?.items || []).map(bhNormalizarEstabelecimento) };
+  } catch (erro) {
+    if (!bhBackendPodeUsarFallback(erro)) throw erro;
+    return bhBuscarMarketplace({ busca, agenda:agenda || null, status:abertoAgora ? "aberta" : "todos", offset, limit });
+  }
 }
 
 async function bhBuscarDestaquesMarketplace(limit = 6) {
@@ -605,18 +635,35 @@ async function bhMetricasPublicas() {
 }
 
 async function bhAdminResumo() {
+  if (window.bhBackendApi?.adminRecords) {
+    const nomes = ["perfis","estabelecimentos","agendamentos","tickets","denuncias","avaliacoes"];
+    try {
+      const paginas = await Promise.all(nomes.map(nome => window.bhBackendApi.adminRecords(nome, { limit: 50 })));
+      const dados = { counts: {}, pagination: {} };
+      nomes.forEach((nome, indice) => {
+        const pagina = paginas[indice] || {};
+        dados[nome] = pagina.items || [];
+        dados.counts[nome] = Number(pagina.total || 0);
+        dados.pagination[nome] = pagina;
+      });
+      return dados;
+    } catch (erro) {
+      if (!bhBackendPodeUsarFallback(erro)) throw erro;
+      console.warn("[Barber Hub] Paginação administrativa da API indisponível; usando primeira página protegida.", erro);
+    }
+  }
   const client = bhExigirSupabase();
   const resultados = await Promise.all([
-    client.from("perfis").select("*", { count: "exact" }).order("created_at", { ascending: false }).limit(250),
-    client.from("estabelecimentos").select("*", { count: "exact" }).order("created_at", { ascending: false }).limit(250),
-    client.from("agendamentos").select(`*, servicos(id,nome,preco,duracao_min), profissionais(nome), estabelecimentos(nome), agendamento_servicos(servico_id,ordem,nome_snapshot,preco_snapshot,duracao_min_snapshot,servicos(id,nome,preco,duracao_min))`, { count: "exact" }).order("created_at", { ascending: false }).limit(250),
-    client.from("tickets_suporte").select("*", { count: "exact" }).order("created_at", { ascending: false }).limit(250),
+    client.from("perfis").select("*", { count: "exact" }).order("created_at", { ascending: false }).limit(50),
+    client.from("estabelecimentos").select("*", { count: "exact" }).order("created_at", { ascending: false }).limit(50),
+    client.from("agendamentos").select(`*, servicos(id,nome,preco,duracao_min), profissionais(nome), estabelecimentos(nome), agendamento_servicos(servico_id,ordem,nome_snapshot,preco_snapshot,duracao_min_snapshot,servicos(id,nome,preco,duracao_min))`, { count: "exact" }).order("created_at", { ascending: false }).limit(50),
+    client.from("tickets_suporte").select("*", { count: "exact" }).order("created_at", { ascending: false }).limit(50),
     client.from("portfolio_denuncias").select(`
       *,
       perfis(nome,email),
       portfolio_publicacoes(id,titulo,status,estabelecimento_id,estabelecimentos(nome))
-    `, { count: "exact" }).order("created_at", { ascending: false }).limit(250),
-    client.from("avaliacoes").select(`*, perfis(nome,email), estabelecimentos(nome), agendamentos(data,hora_inicio,servicos(nome),profissionais(nome),agendamento_servicos(ordem,nome_snapshot)), portfolio_publicacoes(id,titulo)`, { count: "exact" }).order("created_at", { ascending: false }).limit(250)
+    `, { count: "exact" }).order("created_at", { ascending: false }).limit(50),
+    client.from("avaliacoes").select(`*, perfis(nome,email), estabelecimentos(nome), agendamentos(data,hora_inicio,servicos(nome),profissionais(nome),agendamento_servicos(ordem,nome_snapshot)), portfolio_publicacoes(id,titulo)`, { count: "exact" }).order("created_at", { ascending: false }).limit(50)
   ]);
   const [perfis, estabelecimentos, agendamentos, tickets, denuncias, avaliacoesResultado] = resultados;
   [perfis, estabelecimentos, agendamentos, tickets, denuncias].forEach(resultado => {
@@ -630,6 +677,14 @@ async function bhAdminResumo() {
     tickets: tickets.data || [],
     denuncias: denuncias.data || [],
     avaliacoes: avaliacoes.data || [],
+    pagination: {
+      perfis: { total: perfis.count || 0, has_more: (perfis.data || []).length < (perfis.count || 0) },
+      estabelecimentos: { total: estabelecimentos.count || 0, has_more: (estabelecimentos.data || []).length < (estabelecimentos.count || 0) },
+      agendamentos: { total: agendamentos.count || 0, has_more: (agendamentos.data || []).length < (agendamentos.count || 0) },
+      tickets: { total: tickets.count || 0, has_more: (tickets.data || []).length < (tickets.count || 0) },
+      denuncias: { total: denuncias.count || 0, has_more: (denuncias.data || []).length < (denuncias.count || 0) },
+      avaliacoes: { total: avaliacoes.count || 0, has_more: (avaliacoes.data || []).length < (avaliacoes.count || 0) }
+    },
     counts: {
       perfis: perfis.count || 0,
       estabelecimentos: estabelecimentos.count || 0,
@@ -695,7 +750,7 @@ async function bhAdminAlternarVisibilidade(id, visivel) {
 // ============================================================
 // NOTIFICAÇÕES E CONTADORES DE NAVEGAÇÃO
 // ============================================================
-async function bhListarNotificacoes({ somenteNaoLidas = false, tipo = null, limite = 100 } = {}) {
+async function bhListarNotificacoes({ somenteNaoLidas = false, tipo = null, offset = 0, limite = 30 } = {}) {
   const perfil = await bhGetPerfil();
   if (!perfil) return [];
   const client = bhExigirSupabase();
@@ -704,7 +759,7 @@ async function bhListarNotificacoes({ somenteNaoLidas = false, tipo = null, limi
     .select("*")
     .eq("user_id", perfil.id)
     .order("created_at", { ascending: false })
-    .limit(limite);
+    .range(offset, offset + limite - 1);
   if (somenteNaoLidas) query = query.is("lida_em", null);
   if (tipo && tipo !== "todas") query = query.eq("tipo", tipo);
   const { data, error } = await query;
@@ -816,7 +871,7 @@ const BH_PORTFOLIO_CATEGORIAS = [
 const BH_PORTFOLIO_MAX_FOTOS = 5;
 const BH_PORTFOLIO_MAX_ORIGINAL = 8 * 1024 * 1024;
 
-async function bhListarPortfolioPublico(estabelecimentoId) {
+async function bhListarPortfolioPublico(estabelecimentoId, { offset = 0, limite = 18 } = {}) {
   const client = bhExigirSupabase();
   const { data, error } = await client
     .from("portfolio_publicacoes")
@@ -829,7 +884,8 @@ async function bhListarPortfolioPublico(estabelecimentoId) {
     .eq("estabelecimento_id", estabelecimentoId)
     .eq("status", "publicada")
     .order("destaque", { ascending: false })
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .range(offset, offset + limite - 1);
   if (error) throw error;
   return (data || []).map(bhNormalizarPublicacaoPortfolio);
 }
@@ -1338,14 +1394,15 @@ async function bhListarFavoritosCliente() {
   return (data || []).map(item => bhNormalizarEstabelecimento(item.estabelecimentos)).filter(Boolean);
 }
 
-async function bhListarAvaliacoesEstabelecimento(estabelecimentoId) {
+async function bhListarAvaliacoesEstabelecimento(estabelecimentoId, { offset = 0, limite = 20 } = {}) {
   const client = bhExigirSupabase();
   const { data, error } = await client
     .from("avaliacoes")
     .select(`*, perfis(nome,avatar_url), agendamentos(servicos(nome),profissionais(nome),agendamento_servicos(ordem,nome_snapshot)), portfolio_publicacoes(id,titulo)`)
     .eq("estabelecimento_id", estabelecimentoId)
     .eq("status", "publicada")
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .range(offset, offset + limite - 1);
   if (error) throw error;
   return data || [];
 }

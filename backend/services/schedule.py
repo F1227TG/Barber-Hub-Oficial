@@ -9,11 +9,14 @@ from backend.errors import ApiError
 from backend.models import (
     AppointmentConfirmation,
     AppointmentReschedule,
+    ManualServiceCreate,
+    OpeningPeriodsReplace,
     ScheduleBlockCreate,
     WalkInCreate,
 )
 from backend.security import AuthContext
-from backend.services.access import first_visible, require_feature
+from backend.domain.operations import normalize_origin_channel, normalize_payment_method
+from backend.services.access import first_visible, model_payload, require_feature
 from backend.supabase import gateway
 
 
@@ -195,3 +198,73 @@ async def delete_block(block_id: str, auth: AuthContext) -> dict[str, bool]:
     if not rows:
         raise ApiError(404, "SCHEDULE_BLOCK_NOT_FOUND", "Bloqueio não encontrado ou sem permissão.")
     return {"deleted": True}
+
+
+async def get_opening_periods(establishment_id: str, auth: AuthContext) -> dict[str, Any]:
+    """List every active opening period through the caller-scoped RPC."""
+
+    rows = await gateway.rest(
+        "obter_periodos_funcionamento_110",
+        method="POST",
+        token=auth.token,
+        rpc=True,
+        json={"p_estabelecimento_id": establishment_id},
+    ) or []
+    if isinstance(rows, dict):
+        rows = rows.get("items", [])
+    return {"items": rows, "total": len(rows)}
+
+
+async def replace_opening_periods(payload: OpeningPeriodsReplace, auth: AuthContext) -> dict[str, Any]:
+    establishment_id = str(payload.estabelecimento_id)
+    periods = [model_payload(item, exclude_unset=False) for item in payload.periodos]
+    result = await gateway.rest(
+        "substituir_periodos_funcionamento_110",
+        method="POST",
+        token=auth.token,
+        rpc=True,
+        json={"p_estabelecimento_id": establishment_id, "p_periodos": periods},
+    )
+    if isinstance(result, dict):
+        return result
+    rows = result or []
+    return {"items": rows, "total": len(rows)}
+
+
+async def create_manual_service(payload: ManualServiceCreate, auth: AuthContext) -> dict[str, Any]:
+    """Atomically conclude an in-person/assisted service and its financial entry."""
+
+    establishment_id = str(payload.estabelecimento_id)
+    await require_feature(
+        establishment_id,
+        auth,
+        "permite_agenda_avancada",
+        "O registro rápido de atendimento está disponível a partir do plano Essencial.",
+    )
+    payment_method = normalize_payment_method(payload.forma_pagamento)
+    origin_channel = normalize_origin_channel(payload.canal_origem)
+    result = await gateway.rest(
+        "registrar_atendimento_manual_110",
+        method="POST",
+        token=auth.token,
+        rpc=True,
+        json={
+            "p_estabelecimento_id": establishment_id,
+            "p_profissional_id": str(payload.profissional_id),
+            "p_servico_id": str(payload.servico_id) if payload.servico_id else None,
+            "p_servico_nome": payload.servico_nome.strip() if payload.servico_nome else None,
+            "p_duracao_min": payload.duracao_min,
+            "p_cliente_id": str(payload.cliente_id) if payload.cliente_id else None,
+            "p_cliente_nome": payload.cliente_nome.strip() if payload.cliente_nome else None,
+            "p_cliente_email": str(payload.cliente_email).lower() if payload.cliente_email else None,
+            "p_cliente_telefone": payload.cliente_telefone,
+            "p_inicio": payload.inicio.isoformat(),
+            "p_valor": float(payload.valor),
+            "p_forma_pagamento": payment_method,
+            "p_canal_origem": origin_channel,
+            "p_observacao": payload.observacao,
+            "p_chave_idempotencia": payload.chave_idempotencia,
+            "p_idempotencia_hash": None,
+        },
+    )
+    return result or {}

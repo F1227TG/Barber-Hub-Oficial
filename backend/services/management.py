@@ -17,6 +17,7 @@ from backend.errors import ApiError
 from backend.models import (
     EstablishmentStatusUpdate,
     EstablishmentUpdate,
+    EstablishmentLocationUpdate,
     ProfessionalCreate,
     ProfessionalUpdate,
     PromotionCreate,
@@ -125,6 +126,23 @@ async def update_establishment_status(establishment_id: str, payload: Establishm
         json={"status_manual": payload.status, "motivo_status": payload.motivo},
         not_found_message="Estabelecimento não encontrado ou sem permissão para alterar o status.",
     )
+
+
+async def update_location(establishment_id: str, payload: EstablishmentLocationUpdate, auth: AuthContext) -> dict[str, Any]:
+    return await gateway.rest(
+        "atualizar_localizacao_estabelecimento_110", method="POST", token=auth.token, rpc=True,
+        json={
+            "p_estabelecimento_id": establishment_id, "p_endereco": payload.logradouro,
+            "p_numero": payload.numero, "p_complemento": payload.complemento,
+            "p_bairro": payload.bairro, "p_cidade": payload.cidade,
+            "p_estado": payload.estado.upper(), "p_cep": payload.cep,
+            "p_latitude": float(payload.latitude) if payload.latitude is not None else None,
+            "p_longitude": float(payload.longitude) if payload.longitude is not None else None,
+            "p_precisao": payload.precisao_localizacao,
+            "p_codigo_ibge": payload.codigo_municipio_ibge,
+            "p_raio_km": float(payload.raio_atendimento_km) if payload.raio_atendimento_km is not None else None,
+        },
+    ) or {}
 
 
 async def create_service(payload: ServiceCreate, auth: AuthContext) -> dict[str, Any]:

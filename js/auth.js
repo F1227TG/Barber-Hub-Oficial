@@ -61,13 +61,17 @@ async function bhLogin(email, senha, captchaToken = undefined) {
   return { session: data.session, user: data.user, perfil };
 }
 
-async function bhRegistrar({ nome, email, telefone, senha, tipo, captchaToken = undefined }) {
+async function bhRegistrar({ nome, email, telefone, senha, tipo, next = null, captchaToken = undefined }) {
   const client = bhExigirSupabase();
+  const destinoContinuacao = window.bhContinuation?.safeNext?.(next);
+  const confirmacao = new URL(bhAbsoluteUrl("html/login.html"));
+  confirmacao.searchParams.set("confirmado", "1");
+  if (destinoContinuacao) confirmacao.searchParams.set("next", destinoContinuacao);
   const { data, error } = await client.auth.signUp({
     email: email.trim(),
     password: senha,
     options: {
-      emailRedirectTo: bhAbsoluteUrl("html/login.html?confirmado=1"),
+      emailRedirectTo: confirmacao.href,
       ...(captchaToken ? { captchaToken } : {}),
       data: {
         nome: nome.trim(),
@@ -112,9 +116,8 @@ async function bhLogout() {
 }
 
 function bhDestinoPerfil(perfil, next = null) {
-  if (next && (next.startsWith("./") || next.startsWith("../") || next.startsWith("html/") || next.startsWith("/"))) {
-    return next;
-  }
+  const destinoSeguro = window.bhContinuation?.safeNext?.(next);
+  if (destinoSeguro) return destinoSeguro;
   if (!perfil) return bhUrl("html/login.html");
   if (perfil.tipo === "admin") return bhUrl("html/admin.html");
   if (perfil.tipo === "barbeiro") {

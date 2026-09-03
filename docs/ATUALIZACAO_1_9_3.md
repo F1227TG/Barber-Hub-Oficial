@@ -2,7 +2,7 @@
 
 ## Resultado
 
-A versão 1.9.3 entrega, em uma única release, os escopos planejados como 1.9.1 e 1.9.2. Ela parte da Agenda/CRM/Financeiro da 1.9.0 e adiciona recursos operacionais reais, API 1.5.0, migrations 24/25, regressões e interfaces responsivas sem mudar a direção premium escura, quente e dourada.
+A versão 1.9.3 entrega, em uma única release, os escopos planejados como 1.9.1 e 1.9.2. Ela parte da Agenda/CRM/Financeiro da 1.9.0 e adiciona recursos operacionais reais, API 1.5.0, migrations 24–28, regressões e interfaces responsivas sem mudar a direção premium escura, quente e dourada.
 
 ## Escopo 1.9.1 implementado
 
@@ -38,20 +38,23 @@ A versão 1.9.3 entrega, em uma única release, os escopos planejados como 1.9.1
 
 ## Banco e Supabase
 
-Esta release altera o banco. Aplique, nesta ordem:
+Esta release altera o banco. A ordem reproduzível é:
 
 1. `sql/24_retencao_relacionamento_1_9_3.sql`;
 2. `sql/25_inteligencia_permissoes_1_9_3.sql`;
-3. `sql/verificar_25_release_1_9_3.sql`.
+3. `sql/26_cron_automacoes_1_9_3.sql`;
+4. `sql/27_advisors_release_1_9_3.sql`;
+5. `sql/28_hardening_objetos_1_9_3.sql`;
+6. `sql/verificar_25_release_1_9_3.sql`.
 
-Não publique a API 1.5.0 antes das duas migrations: os contratos novos dependem das tabelas e RPCs 1.9.3. O verificador é somente leitura e deve terminar sem exceção e sem listar funções `SECURITY DEFINER` sem `search_path` protegido.
+As cinco migrations já foram aplicadas no projeto conectado. O verificador é somente leitura e foi aprovado sem exceção e sem listar funções `SECURITY DEFINER` sem `search_path` protegido.
 
 ## Configuração externa
 
-- ativar os dois jobs do Supabase Cron para preparar e processar lembretes internos;
+- os dois jobs do Supabase Cron estão ativos e tiveram execução bem-sucedida;
 - conectar um worker/provedor para e-mail e WhatsApp antes de usar esses canais;
-- manter CAPTCHA, proteção contra senhas vazadas, URLs de Auth e segredos de deploy conforme `CONFIGURACAO_EXTERNA_1_9.md`;
-- revisar Security/Performance Advisor e testar sete perfis separados após as migrations.
+- CAPTCHA e URLs de Auth foram confirmados; a proteção contra senhas vazadas exige plano Pro;
+- Security/Performance Advisor e a matriz de papéis foram revisados após as migrations.
 
 ## Matriz resumida
 
@@ -66,5 +69,5 @@ Não publique a API 1.5.0 antes das duas migrations: os contratos novos dependem
 
 - produto/PWA: **1.9.3**;
 - API: **1.5.0**;
-- migrations: **01–25**;
+- migrations: **01–28**;
 - cache PWA: `barberhub-v1.9.3-mobile-r3`.

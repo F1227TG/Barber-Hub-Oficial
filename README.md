@@ -1,264 +1,108 @@
-# Barber Hub — versão 1.9.3
+# Barber Hub 1.10.0
 
-O Barber Hub é um **marketplace digital de serviços** com gestão integrada para barbearias. Clientes descobrem estabelecimentos, verificam disponibilidade, conhecem serviços/equipe e agendam; profissionais administram operação, agenda, portfólio e reputação. Uma plataforma de **The Gamers Tech**.
+Marketplace de serviços e sistema de gestão para barbearias, desenvolvido por **The Gamers Tech**. O cliente encontra estabelecimentos, compara serviços e agenda. Profissionais e proprietários administram agenda, clientes, equipe, dinheiro e retenção em uma experiência web/PWA responsiva.
 
-## Entrega 1.9.3 — Retenção & Inteligência
+## Estado desta entrega
 
-A 1.9.3 reúne os incrementos planejados para 1.9.1 e 1.9.2: lista de espera, recorrência, fidelidade, cupons, campanhas, lembretes, Central de Oportunidades, insights, metas e permissões granulares. Também mantém os refinamentos de senha, navegação profissional, busca de clientes, layout responsivo, status do estabelecimento e página Beauty Hub.
+A versão 1.10.0 está em preparação local. O código e os testes acompanham as novas funções, mas ela **ainda não deve ser publicada**: as migrations 29–31 não foram aplicadas no ambiente de produção e a homologação externa permanece pendente.
 
-Há duas migrations novas e obrigatórias antes do deploy: **24 e 25**, seguidas do verificador da 1.9.3. Comece pela [`central de documentação`](docs/README.md), pelo [`guia completo`](docs/GUIA_COMPLETO_DO_PROJETO.md) ou pelo [`passo a passo de migrations`](docs/MIGRATIONS_DEPLOY_1_9.md).
+Principais avanços:
 
-## Entrega 1.9.0 — Operação & Crescimento
+- agenda com múltiplos períodos, encaixe/atendimento manual e continuidade depois do login;
+- CRM e financeiro com busca, filtros e paginação;
+- marketplace regional, localização consentida, mapa, rota e biblioteca de capas;
+- importação orientada de dados, avisos no dispositivo, horário silencioso e fila Web Push;
+- auditoria operacional append-only e feature flags com kill switch;
+- administração com busca no servidor, carregamento progressivo e prontidão da release;
+- suporte mais curto, mobile reforçado e Beauty Hub novamente apresentada como expansão ativa;
+- segurança V01–V05 corrigida no código; V06 depende da ativação externa do CAPTCHA.
 
-A 1.9.0 adicionou Agenda profissional 2.0, CRM persistente, financeiro/fechamento, comissões e acesso individual da equipe. Na release atual, a API própria está na versão **1.5.0** e o painel combina `css/release-1.9.css` com os refinamentos responsivos de `css/release-1.9.3.css`, preservando a direção premium escura/quente e dourada.
+## Comece pela documentação
 
-Principais arquivos da entrega:
+- [Guia completo do projeto](docs/GUIA_COMPLETO_DO_PROJETO.md)
+- [Resumo da versão 1.10.0](docs/ATUALIZACAO_1_10_0.md)
+- [Migrations e deploy seguro](docs/MIGRATIONS_DEPLOY_1_10.md)
+- [Relatório de segurança](docs/RELATORIO_SEGURANCA_1_10.md)
+- [Homologação final](docs/HOMOLOGACAO_FINAL_1_10.md)
+- [Pesquisa e validação](docs/PESQUISA_VALIDACAO_BARBER_BEAUTY_HUB.md)
+- [Central de documentação](docs/README.md)
 
-- `docs/ATUALIZACAO_1_9_0.md` — resumo funcional;
-- `docs/RELATORIO_SEGURANCA_1_9_0.md` — proteções e dependências externas;
-- `docs/MIGRATIONS_DEPLOY_1_9.md` — histórico 11–23 e aplicação obrigatória de 24/25;
-- `docs/CONFIGURACAO_EXTERNA_1_9.md` — CAPTCHA, Auth, URLs e variáveis restantes;
-- `docs/MATRIZ_PLANOS_1_9.md` — recursos e limites comerciais;
-- `docs/VERIFICACAO_1_9_0.md` — resultados e limites da regressão local;
-- `sql/18_*.sql` até `sql/23_*.sql` — banco operacional e hardening pós-Advisors;
-- `sql/verificar_22_operacao_1_9.sql` — verificação posterior;
-- `js/painel-operacao-1.9.js` e `css/release-1.9.css` — experiência desktop/mobile.
-
-As migrations 11–23 já foram aplicadas no Supabase conectado; 24/25 aguardam aplicação. Antes do deploy do código, aplique-as, execute o verificador e configure Cron, CAPTCHA, proteção contra senhas vazadas, URLs e variáveis conforme `docs/CONFIGURACAO_EXTERNA_1_9.md`.
-
-## Entrega 1.8.2 — Segurança diferencial
-
-A 1.8.2 corrige os achados V01–V05 da auditoria no código e deixa V06 preparado para ativação externa. A direção visual e a experiência mobile premium da 1.8.1 foram preservadas.
-
-- migration `17_correcao_auditoria_seguranca.sql` para moderação, estados de agendamento, limites concorrentes e curtidas derivadas;
-- API própria **1.3.1**, com rate limiting completo e configuração pública segura do Turnstile;
-- regras puras em `backend/domain` e comando `npm run check:offline`;
-- relatório diferencial, verificação pós-migration, decisão de monorepo e roadmap 1.9;
-- senhas permanecem somente como hash bcrypt no Supabase Auth, sem cópia pública ou reversão.
-
-Consulte `docs/RELATORIO_SEGURANCA_1_8_2.md` antes de qualquer deploy.
-
-
-## Refino mobile 1.8 — experiência exclusiva
-
-A interface `/mobile` recebeu uma camada própria de UX: menos texto institucional, navegação mais direta, filtro do marketplace em bottom sheet, conta em formato de hub, editor de imagens com crop/zoom e remoção do CTA de instalação dentro da versão mobile. Detalhes em `docs/REDESIGN_MOBILE_1_8.md`.
-
-## Entrega 1.8.0 — Assinaturas funcionais e valor para o estabelecimento
-
-A 1.8 transforma os planos de apresentação em regras de produto reais. O administrador atribui um plano ao estabelecimento em uma página própria e os **entitlements cumulativos** entram em vigor imediatamente no painel web/mobile, na API e no PostgreSQL.
-
-- nova migration `16_assinaturas_entitlements_beneficios.sql`;
-- API própria **1.3.0**;
-- página administrativa `admin-assinaturas.html` para atribuir plano, status, validade e observação;
-- herança automática: Profissional inclui Essencial; Elite inclui Profissional + Essencial + Gratuito;
-- enforcement no banco para agenda online, quantidade de profissionais, portfólio, destaques e promoções;
-- assinatura expirada/pausada perde os benefícios pagos sem anunciar agenda ou promoções públicas indevidamente;
-- downgrade preserva histórico/dados e desativa somente capacidades que excedem o plano;
-- carteira de clientes/CRM no painel a partir de atendimentos reais;
-- promoções públicas gerenciáveis pelo estabelecimento;
-- relatórios essenciais, relatórios avançados por profissional/serviço e exportação CSV conforme plano;
-- prioridade de relevância no marketplace para Profissional/Elite;
-- atualização Realtime de assinatura no painel, sem exigir logout/login;
-- desktop e `/mobile` compartilham a mesma regra funcional via sincronização automática.
-
-### Matriz efetiva
-
-| Benefício | Gratuito | Essencial | Profissional | Elite |
-|---|---:|---:|---:|---:|
-| Agenda online | — | ✓ | ✓ | ✓ |
-| Carteira de clientes | — | ✓ | ✓ | ✓ |
-| Promoções | — | ✓ | ✓ | ✓ |
-| Relatórios essenciais | — | ✓ | ✓ | ✓ |
-| Profissionais ativos | 1 | 1 | 3 | 10 |
-| Portfólio | 10 | 50 | 150 | 500 |
-| Destaques de portfólio | 1 | 2 | 3 | 5 |
-| Relatórios avançados | — | — | ✓ | ✓ |
-| Exportação CSV | — | — | ✓ | ✓ |
-| Prioridade marketplace | — | — | adicional | máxima |
-
-> A cobrança automática ainda não foi integrada. A ativação comercial é administrativa, mas os benefícios e limites já são funcionais de ponta a ponta.
-
-## Hotfix 1.7.3 — instalação resiliente do Service Worker
-
-- remove a duplicação de `./mobile/index.html` na lista de pré-cache;
-- deduplica preventivamente a lista com `Set`, evitando `Cache.addAll(): duplicate requests`;
-- substitui o `cache.addAll()` por pré-cache individual tolerante a falhas, para um único asset não impedir a instalação inteira do Service Worker;
-- cache PWA atualizado para `barberhub-v1.7.3`;
-- mantém a correção 1.7.2 para `Response body is already used`.
-
-## Hotfix 1.7.2 — Service Worker e congelamento visual
-
-- corrige `Response body is already used` no cache runtime do Service Worker;
-- cria o clone da resposta antes de devolvê-la ao navegador;
-- remove View Transitions cross-document por instabilidade observada em Chromium/PWA;
-- preserva animações leves de entrada/saída via CSS/JS;
-- adiciona fail-safe para nunca deixar `mobile-nav-leaving` preso;
-- força a verificação do Service Worker com `updateViaCache: none`;
-- cache PWA atualizado para `barberhub-v1.7.2`.
-
-
-## Entrega 1.7.1 — Mobile App Polish & Route Hardening
-
-- rotas mobile absolutas e runtime normalizado, com teste específico do CTA Explorar;
-- redirecionamentos JS compartilhados passam por `bhUrl()`;
-- View Transitions + fallback leve para navegação com sensação de aplicativo;
-- KPIs/cards mobile reorganizados em grade, sem cortes/carrossel estreito;
-- drawer com cards/contornos e links de Privacidade/Termos/Sobre;
-- controles de instalar app somem em PWA standalone;
-- home mobile redesenhada com mais identidade;
-- Essencial, Profissional e Elite marcados como Em desenvolvimento;
-- Service Worker `barberhub-v1.7.1`;
-- API 1.2 e migration 15 permanecem inalteradas.
-
-## Entrega 1.7.0 — Mobile Reliability & Visual Refresh
-
-A 1.7 é uma release de confiabilidade e experiência. Ela mantém a arquitetura e as regras de negócio da 1.6/API 1.2 e corrige a camada de navegação/apresentação que estava divergindo entre desktop e mobile.
-
-- correção do resolvedor de URLs para `/mobile/`, eliminando caminhos como `/mobile/html/...` e `/mobile/service-worker.js`;
-- páginas mobile derivadas automaticamente da fonte funcional em `/html`, com teste de paridade para impedir que futuras melhorias fiquem só no desktop;
-- header mobile completo com tema, notificações e **menu hambúrguer novamente acessível**;
-- drawer compartilhado volta a oferecer conta, acessibilidade, instalação do PWA e **logout**;
-- dock mobile por perfil reorganizado; no admin, os atalhos principais agora levam apenas a **páginas reais**, não a seções da mesma tela;
-- painéis de cliente, estabelecimento e admin receberam novos indicadores rápidos e espaçamentos mais consistentes;
-- cards com mídia passaram a usar proporções controladas para reduzir variação de altura/formato por imagem;
-- selo de **Verificado** ampliado e reforçado em desktop e mobile;
-- nova camada visual `release-1.7.css`, com detalhes discretos inspirados em barbearia sem abandonar a identidade preto/dourado;
-- Beauty Hub ganhou identidade visual própria e roadmap de preparação, sem anunciar funcionalidades ainda inexistentes;
-- Service Worker atualizado para `barberhub-v1.7.0`, incluindo todas as páginas web/mobile relevantes no precache;
-- auditoria de roteamento mobile adicionada ao `npm run check`.
-
-A release 1.6 continua sendo a base funcional de marketplace FTS, agendamento modal multi-serviço, API Python/FastAPI 1.2, rate limiting e segurança. **Não há nova migration de banco na 1.7.**
-
-## Arquitetura
+## Arquitetura resumida
 
 ```text
-Desktop HTML ─┐
-              ├── JavaScript/serviços compartilhados ──┐
-Mobile HTML ──┘                                        │
-                                                       ▼
-                                              API Python / FastAPI
-                                                       │
-                   ┌───────────────────────────────────┼─────────────────────┐
-                   ▼                                   ▼                     ▼
-             Supabase Auth                      PostgreSQL/RPC         Supabase Storage
-                                                   + RLS               + Realtime
+Desktop (/html) ─┐
+                 ├─ JavaScript e CSS compartilhados ─┐
+Mobile (/mobile) ┘                                    │
+                                                      ▼
+                                               API FastAPI 1.6
+                                                      │
+                       ┌──────────────────────────────┼──────────────┐
+                       ▼                              ▼              ▼
+                Supabase Auth                 PostgreSQL/RPC     Storage
+                                                 + RLS          + Realtime
 ```
 
-As páginas funcionais em `/html/*.html` são a fonte usada por `scripts/sync_mobile_pages.py` para gerar os equivalentes em `/mobile/*.html`. O shell mobile é específico, mas regras de negócio e módulos JS continuam compartilhados.
+`html/` é a fonte das páginas sincronizadas em `mobile/`. O mobile tem shell e prioridades próprios, mas não duplica regras de negócio. A API está dividida entre regras puras em `backend/domain/` e integrações/casos de uso em `backend/services/`.
+
+Consulte [ARCHITECTURE.md](ARCHITECTURE.md) para as fronteiras completas.
 
 ## Tecnologias
 
 - HTML, CSS e JavaScript vanilla;
-- Bootstrap local como camada complementar;
-- Python 3.13 + FastAPI + Pydantic + HTTPX assíncrono;
-- Supabase Auth, PostgreSQL, Storage, RLS e Realtime;
-- Vercel para frontend e função Python;
-- PWA com Service Worker e interface `/mobile/`.
+- PWA com Service Worker;
+- Python 3.13, FastAPI, Pydantic e HTTPX;
+- Supabase Auth, PostgreSQL, RLS, RPC, Storage e Realtime;
+- Vercel para frontend e função Python.
 
-## Banco de dados
+## Desenvolvimento
 
-A 1.9 usa as migrations de assinaturas, auditoria e operação:
-
-```text
-sql/16_assinaturas_entitlements_beneficios.sql
-sql/17_correcao_auditoria_seguranca.sql
-sql/18_agenda_equipe_operacional_1_9.sql ... sql/23_advisors_pos_deploy_1_9.sql
-sql/24_retencao_relacionamento_1_9_3.sql
-sql/25_inteligencia_permissoes_1_9_3.sql
-```
-
-Em banco novo, execute as migrations `01` → `25` em ordem. No Supabase conectado, `11` → `23` foram aplicadas e verificadas; `24` e `25` aguardam aplicação antes do deploy da 1.9.3. Não edite nem reaplique migrations antigas sobre dados reais.
-
-## Variáveis da API na Vercel
-
-```text
-SUPABASE_URL
-SUPABASE_PUBLISHABLE_KEY
-SUPABASE_SECRET_KEY
-BARBER_HUB_ALLOWED_ORIGINS
-BARBER_HUB_PASSWORD_REDIRECT_URL
-BARBER_HUB_TURNSTILE_SITE_KEY
-```
-
-A `SUPABASE_SECRET_KEY` nunca deve aparecer no frontend ou no GitHub.
-
-## E-mail e CAPTCHA
-
-O código trata signup sem sessão (fluxo de confirmação de e-mail) e possui integração opcional com Turnstile em `js/security.js`.
-
-Para produção:
-
-1. ative **Confirm Email** no Supabase Auth;
-2. habilite CAPTCHA no Supabase Auth;
-3. informe a **site key pública** em `BARBER_HUB_TURNSTILE_SITE_KEY`; a secret permanece no Supabase Auth/Cloudflare;
-4. ative a proteção contra senhas vazadas no Supabase Auth.
-
-## Desenvolvimento local
+Requisitos: Node.js 20+ e Python 3.13.
 
 ```bash
-npm install -g vercel
-vercel login
-vercel link
-vercel env pull .env.local
 vercel dev
 ```
 
-Documentação automática da API:
+API local:
 
-```text
-http://localhost:3000/api/docs
+```bash
+fastapi dev api/index.py
 ```
 
-## Sincronização mobile
-
-Depois de alterar uma página em `/html`:
+Depois de alterar um arquivo em `html/`, sincronize as páginas móveis:
 
 ```bash
 npm run mobile:sync
 ```
 
-Antes de commit/deploy, `npm run check` falha se as páginas mobile estiverem fora de sincronia ou se o roteamento conhecido regredir.
-
-## Verificação antes do commit
+Antes de qualquer commit ou deploy:
 
 ```bash
 npm run check
 ```
 
-A validação inclui paridade mobile, regressão de URLs, referências locais, sintaxe JS, validação Python e testes FastAPI.
+A validação reúne paridade mobile, roteamento, referências, sintaxe, regressões 1.9.3/1.10, segurança V01–V06, compilação e testes Python.
 
-## Documentação principal
+## Banco e publicação
 
-- `docs/README.md` — índice organizado de toda a documentação;
-- `docs/GUIA_COMPLETO_DO_PROJETO.md` — explicação completa de produto, código, Supabase, migrations, segurança e deploy;
-- `docs/ATUALIZACAO_1_9_3.md` — escopo consolidado da versão atual;
-- `docs/RELATORIO_SEGURANCA_1_9_3.md` — estado atual V01–V06 e decisão sobre senhas;
-- `docs/VERIFICACAO_1_9_3.md` — regressões automáticas e cenários manuais;
-- `docs/DECISAO_REPOSITORIOS_1_9_3.md` — monorepo Barber Hub e preparação separada do Beauty Hub;
-- `docs/PRD_BARBER_HUB.md` — PRD atual com revisão da 1.8;
-- `ARCHITECTURE.md` — arquitetura e limites entre camadas;
-- `docs/API_BARBER_HUB_V1.md` — API e configuração;
-- `docs/barberhub-api-v1.openapi.yaml` — contrato estático da API 1.5.0;
-- `docs/MAPA_DE_NAVEGACAO.md` — mapa web/mobile atualizado;
-- `docs/ATUALIZACAO_1_8.md` — notas e ordem de publicação da release 1.8;
-- `docs/VERIFICACAO_1_8.md` — verificação técnica da release 1.8;
-- `docs/SEGURANCA_1_6.md` — base de e-mail, CAPTCHA, rate limiting e logs;
-- `docs/RELATORIO_SEGURANCA_1_8_2.md` — auditoria diferencial V01–V06 e checklist Supabase;
-- `docs/DECISAO_REPOSITORIOS_1_8_2.md` — decisão sobre mobile/API e critérios de separação;
-- `docs/ROADMAP_1_9_OPERACAO_CRESCIMENTO.md` — próxima fase de produto;
-- `docs/ANTIGRAVITY.md` — uso do projeto com Google Antigravity.
+As migrations 01–28 formam o histórico existente. A 1.10 adiciona:
 
-## Deploy
-
-1. confirme backup, aplique migrations 24/25 e execute `verificar_25_release_1_9_3.sql`;
-2. configure Auth, URLs, variáveis e Turnstile conforme `docs/CONFIGURACAO_EXTERNA_1_9.md`;
-3. execute `npm run check`;
-4. publique frontend/PWA 1.9.3 e API 1.5.0 juntos;
-5. valide V01–V06, planos, papéis e os fluxos desktop/mobile antes de promover a produção.
-
-```bash
-git status
-git add .
-git commit -m "feat: prepara Barber Hub 1.9.3"
-git push origin main
+```text
+29_operacao_real_horarios_atendimentos_1_10.sql
+30_localizacao_biblioteca_marketplace_1_10.sql
+31_push_importacoes_auditoria_flags_1_10.sql
+verificar_31_release_1_10.sql
 ```
+
+No ambiente atual, aplique somente **29 → 30 → 31 → verificador 31**, nessa ordem e depois de backup. Não execute isso automaticamente a partir do frontend nem altere migrations já aplicadas.
+
+Também são externos ao Git: URLs autorizadas, CAPTCHA/Turnstile, proteção contra senhas vazadas quando disponível, origens da API, chaves VAPID/worker, Advisors e testes com contas reais por papel/plano.
+
+## Senhas
+
+O Barber Hub nunca exibe nem duplica a senha do usuário. O Supabase Auth guarda um hash não reversível; administradores só podem enviar um link de redefinição ao titular. Uma senha descriptografável em tabela aumentaria o risco de vazamento e não é necessária para autenticação.
+
+## Repositórios
+
+Web, PWA/mobile e API continuam juntos durante a finalização porque compartilham modelo, autenticação, release e testes. A separação será reavaliada quando existir aplicativo nativo, equipe ou deploy independentes. O **Beauty Hub permanece em repositório próprio**, sem compartilhar credenciais ou banco de produção.
+
+Veja [a decisão completa](docs/DECISAO_REPOSITORIOS_1_10.md).

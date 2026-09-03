@@ -22,6 +22,7 @@
 <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
 <link href="../css/mobile-app.css" rel="stylesheet"/><link href="../css/release-1.4.1.css" rel="stylesheet"/>
 <link href="../css/product-redesign.css" rel="stylesheet"/><link href="../css/release-1.6.css" rel="stylesheet"/><link href="../css/release-1.7.css" rel="stylesheet"/><link href="../css/release-1.7.1.css" rel="stylesheet"/><link href="../css/release-1.8.css" rel="stylesheet"/><link href="../css/release-1.9.css" rel="stylesheet"/><link href="../css/brand-assets-1.8.css" rel="stylesheet"/>
+<link href="../css/releases/release-1.10.css" rel="stylesheet"/>
 <meta content="yes" name="mobile-web-app-capable"/><meta content="noindex,follow" name="robots"/><link href="https://barberhuboficial.vercel.app/html/contato" rel="canonical"/><link href="../css/mobile-redesign-1.8.css" rel="stylesheet"/><link href="../css/release-1.9.3.css" rel="stylesheet"/></head>
 <body class="page-contato mobile-native">
 <!-- Cabeçalho e navegação principal -->
@@ -76,26 +77,12 @@
 <div class="breadcrumb">Início / Suporte</div>
 <span class="tag"><i class="bi bi-headset"></i> Central de atendimento</span>
 <h1>Como podemos ajudar?</h1>
-<p>Escolha um assunto ou abra um ticket. Se estiver conectado, você acompanha a resposta nesta página.</p>
+<p>Descreva o que aconteceu e acompanhe a resposta nesta página.</p>
 <div class="support-hero-actions">
 <a class="btn btn-primary" href="#abrir-ticket"><i class="bi bi-plus-circle"></i> Abrir ticket</a>
 <a class="btn btn-outline" href="#meus-atendimentos"><i class="bi bi-clock-history"></i> Meus atendimentos</a>
 </div>
 </div>
-<aside aria-label="Status dos serviços" class="support-status-card">
-<div class="support-status-head">
-<span class="support-status-icon"><i class="bi bi-broadcast-pin"></i></span>
-<div><strong>Serviços do Barber Hub</strong><span>Disponibilidade do atendimento</span></div>
-</div>
-<div class="support-api-state is-loading" data-api-status="">
-<span class="support-api-dot"></span>
-<div><strong>Verificando disponibilidade...</strong><small>Aguarde um instante.</small></div>
-</div>
-<div class="support-status-meta">
-<span><i class="bi bi-shield-check"></i> Conta protegida</span>
-<span><i class="bi bi-key"></i> Nunca informe sua senha</span>
-</div>
-</aside>
 </div>
 </section>
 <section aria-labelledby="support-topics-title" class="section support-topics-section">
@@ -134,7 +121,7 @@
 <div class="campo"><label for="nome">Nome</label><input autocomplete="name" id="nome" maxlength="120" required=""/></div>
 <div class="campo"><label for="email">E-mail</label><input autocomplete="email" id="email" maxlength="180" required="" type="email"/></div>
 <div class="campo"><label for="categoria">Categoria</label><select id="categoria">
-<option value="duvida">Dúvida</option><option value="suporte">Suporte técnico</option><option value="cadastro">Cadastro de estabelecimento</option><option value="financeiro">Financeiro futuro</option><option value="sugestao">Sugestão</option><option value="outro">Outro</option>
+<option value="duvida">Dúvida</option><option value="suporte">Problema no uso</option><option value="cadastro">Cadastro de estabelecimento</option><option value="financeiro">Cobranças e planos</option><option value="sugestao">Sugestão</option><option value="outro">Outro</option>
 </select></div>
 <div class="campo"><label for="prioridade">Prioridade</label><select id="prioridade">
 <option value="baixa">Baixa</option><option selected="" value="normal">Normal</option><option value="alta">Alta</option><option value="urgente">Urgente</option>
@@ -148,16 +135,6 @@
 <button class="btn btn-primary" type="submit"><i class="bi bi-send"></i> Enviar ticket</button>
 </div>
 </form>
-<aside class="support-sidebar">
-<article class="card support-guide-card"><div class="card-body">
-<span class="support-card-icon"><i class="bi bi-list-check"></i></span><h3>Antes de enviar</h3>
-<ul class="support-checklist">
-<li><i class="bi bi-check2"></i><span>Confirme o e-mail da conta usada no problema.</span></li>
-<li><i class="bi bi-check2"></i><span>Informe a página e a ação que estava tentando fazer.</span></li>
-<li><i class="bi bi-check2"></i><span>Não envie senha, código de acesso ou chave secreta.</span></li>
-</ul>
-</div></article>
-</aside>
 </div>
 </section>
 <section class="section support-history-section" id="meus-atendimentos">

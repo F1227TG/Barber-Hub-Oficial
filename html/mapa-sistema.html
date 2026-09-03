@@ -17,9 +17,9 @@
 <link href="../css/pages.css" rel="stylesheet"/>
 <link href="../manifest.webmanifest" rel="manifest"/>
 <link href="../css/mobile-app.css" rel="stylesheet"/><link href="../css/release-1.4.1.css" rel="stylesheet"/>
-<link href="../css/product-redesign.css" rel="stylesheet"/><link href="../css/release-1.6.css" rel="stylesheet"/><link href="../css/release-1.7.css" rel="stylesheet"/><link href="../css/release-1.7.1.css" rel="stylesheet"/><link href="../css/brand-assets-1.8.css" rel="stylesheet"/>
+<link href="../css/product-redesign.css" rel="stylesheet"/><link href="../css/release-1.6.css" rel="stylesheet"/><link href="../css/release-1.7.css" rel="stylesheet"/><link href="../css/release-1.7.1.css" rel="stylesheet"/><link href="../css/releases/release-1.10.css" rel="stylesheet"/><link href="../css/brand-assets-1.8.css" rel="stylesheet"/>
 </head>
-<body class="page-mapa-sistema"><script src="../js/device-router.js"></script>
+<body class="page-mapa-sistema auth-pending"><script src="../js/device-router.js"></script>
 <!-- Cabeçalho e navegação principal -->
 <header class="header">
 <div class="container nav">
@@ -121,15 +121,15 @@
 <header><i class="bi bi-code-slash"></i><h2>Backend</h2><p class="texto-section">Camadas que sustentam o produto.</p></header>
 <div class="system-map-list">
 <div class="system-map-item"><div><strong>FastAPI</strong><span class="map-status ok">Própria</span></div><p>Rotas em <code>/api/v1</code>, validação e documentação automática.</p></div>
-<div class="system-map-item"><div><strong>Supabase Auth</strong><span class="map-status ok">Ativo</span></div><p>Sessões e hashes de senha; senhas nunca são exibidas.</p></div>
-<div class="system-map-item"><div><strong>PostgreSQL/RLS</strong><span class="map-status ok">Ativo</span></div><p>Dados, regras transacionais e permissões.</p></div>
+<div class="system-map-item"><div><strong>Autenticação gerenciada</strong><span class="map-status ok">Ativa</span></div><p>Sessões e representações não reversíveis de senha; senhas nunca são exibidas.</p></div>
+<div class="system-map-item"><div><strong>Dados e permissões</strong><span class="map-status ok">Ativos</span></div><p>Regras transacionais e acesso por perfil.</p></div>
 <div class="system-map-item"><div><strong>Storage e Realtime</strong><span class="map-status ok">Ativo</span></div><p>Imagens, atualizações e contadores.</p></div>
 </div>
 </article>
 <article class="system-map-role">
 <header><i class="bi bi-tools"></i><h2>Próximas validações</h2><p class="texto-section">O que impede chamar a versão de lançamento.</p></header>
 <div class="system-map-list">
-<div class="system-map-item"><div><strong>Migration 15</strong><span class="map-status partial">Aplicar</span></div><p>Aplicar no Supabase para ativar FTS, ranking, paginação e rate limiting distribuído.</p></div>
+<div class="system-map-item"><div><strong>Versão 1.10</strong><span class="map-status partial">Verificar</span></div><p>Aplicar as atualizações 29, 30 e 31 e executar a verificação de lançamento.</p></div>
 <div class="system-map-item"><div><strong>Variáveis Vercel</strong><span class="map-status partial">Conferir</span></div><p>URL e chaves pública/secret da API.</p></div>
 <div class="system-map-item"><div><strong>Teste físico</strong><span class="map-status partial">Pendente</span></div><p>Android, PWA, teclado, modais e redes móveis.</p></div>
 <div class="system-map-item"><div><strong>Piloto local</strong><span class="map-status partial">Pendente</span></div><p>Professor, barbearias e clientes reais.</p></div>

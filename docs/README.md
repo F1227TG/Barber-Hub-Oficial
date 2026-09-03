@@ -1,54 +1,49 @@
 # Central de documentação do Barber Hub
 
-Este índice é a porta de entrada da documentação. A partir da versão 1.9.3, os documentos são organizados por finalidade para que não seja necessário conhecer o histórico do projeto antes de localizar uma resposta.
+Este é o índice canônico da versão **1.10.0**. Documentos de versões anteriores permanecem como histórico; quando houver divergência sobre o estado atual, use primeiro os arquivos desta seção.
 
 ## Comece por aqui
 
-- [`GUIA_COMPLETO_DO_PROJETO.md`](GUIA_COMPLETO_DO_PROJETO.md): visão do produto, arquitetura, pastas, Supabase, migrations, API, segurança, desenvolvimento, testes e deploy.
-- [`GUIA_COMPLETO_BARBER_HUB_1_9_3.docx`](GUIA_COMPLETO_BARBER_HUB_1_9_3.docx): edição em Word do guia completo, com relatório diferencial V01–V06 no apêndice.
+- [`GUIA_COMPLETO_DO_PROJETO.md`](GUIA_COMPLETO_DO_PROJETO.md): produto, arquitetura, pastas, funcionamento, segurança, testes e publicação.
+- [`GUIA_COMPLETO_BARBER_HUB_1_10_0.docx`](GUIA_COMPLETO_BARBER_HUB_1_10_0.docx): edição Word do guia completo da versão atual.
+- [`../README.md`](../README.md): visão curta para desenvolver e publicar.
+- [`../ARCHITECTURE.md`](../ARCHITECTURE.md): fronteiras entre interface, API e banco.
 - [`MAPA_DE_NAVEGACAO.md`](MAPA_DE_NAVEGACAO.md): rotas e áreas da plataforma.
-- [`PRD_BARBER_HUB.md`](PRD_BARBER_HUB.md): requisitos e direção funcional.
-- [`../ARCHITECTURE.md`](../ARCHITECTURE.md): fronteiras técnicas resumidas.
-- [`GUIA_DE_CODIGO.md`](GUIA_DE_CODIGO.md): convenções para manutenção.
+- [`GUIA_DE_CODIGO.md`](GUIA_DE_CODIGO.md): convenções de manutenção.
 
-## Versão atual
+## Versão 1.10.0
 
-- [`ATUALIZACAO_1_9_3.md`](ATUALIZACAO_1_9_3.md): mudanças da release 1.9.3.
-- [`VERIFICACAO_1_9_3.md`](VERIFICACAO_1_9_3.md): regressões executadas e limitações.
-- [`RELATORIO_SEGURANCA_1_9_3.md`](RELATORIO_SEGURANCA_1_9_3.md): estado V01–V06, senhas e dependências externas.
-- [`DECISAO_REPOSITORIOS_1_9_3.md`](DECISAO_REPOSITORIOS_1_9_3.md): por que web, mobile e API continuam juntos e como o Beauty Hub foi preparado separadamente.
+- [`ATUALIZACAO_1_10_0.md`](ATUALIZACAO_1_10_0.md): tudo que mudou.
+- [`MIGRATIONS_DEPLOY_1_10.md`](MIGRATIONS_DEPLOY_1_10.md): ordem 29–31, verificador e configuração externa.
+- [`RELATORIO_SEGURANCA_1_10.md`](RELATORIO_SEGURANCA_1_10.md): V01–V06, novas proteções e decisão sobre senhas.
+- [`HOMOLOGACAO_FINAL_1_10.md`](HOMOLOGACAO_FINAL_1_10.md): cenários manuais antes de liberar usuários finais.
+- [`DECISAO_REPOSITORIOS_1_10.md`](DECISAO_REPOSITORIOS_1_10.md): monorepo Barber Hub e Beauty Hub separado.
+- [`PESQUISA_VALIDACAO_BARBER_BEAUTY_HUB.md`](PESQUISA_VALIDACAO_BARBER_BEAUTY_HUB.md): evidências, limitações e plano de piloto.
 
-## Banco, Supabase e deploy
+## API e banco
 
-- [`CONFIGURACAO_SUPABASE.md`](CONFIGURACAO_SUPABASE.md): configuração inicial e conceitos do projeto.
-- [`CONFIGURACAO_EXTERNA_1_9.md`](CONFIGURACAO_EXTERNA_1_9.md): controles que não podem ser ativados apenas por código.
-- [`MIGRATIONS_DEPLOY_1_9.md`](MIGRATIONS_DEPLOY_1_9.md): migrations já aplicadas e procedimento seguro.
-- [`CORRECAO_MIGRATION_13.md`](CORRECAO_MIGRATION_13.md): registro da correção histórica da migration 13.
-- [`API_BARBER_HUB_V1.md`](API_BARBER_HUB_V1.md) e [`barberhub-api-v1.openapi.yaml`](barberhub-api-v1.openapi.yaml): API e contrato.
+- [`API_BARBER_HUB_V1.md`](API_BARBER_HUB_V1.md): endpoints e regras da API FastAPI 1.6.
+- [`barberhub-api-v1.openapi.yaml`](barberhub-api-v1.openapi.yaml): fotografia estática do contrato; `/api/openapi.json` é a fonte executável.
+- [`CONFIGURACAO_SUPABASE.md`](CONFIGURACAO_SUPABASE.md): conceitos e configuração inicial.
+- [`CONFIGURACAO_EXTERNA_1_9.md`](CONFIGURACAO_EXTERNA_1_9.md): histórico de CAPTCHA, Auth, URL e Cron ainda útil para a 1.10.
+- [`MIGRATIONS_DEPLOY_1_9.md`](MIGRATIONS_DEPLOY_1_9.md): histórico aplicado até a migration 28.
 
-## Produto e planejamento
+## Produto e pesquisa
 
-- [`MATRIZ_PLANOS_1_9.md`](MATRIZ_PLANOS_1_9.md): benefícios e limites por plano.
-- [`ROADMAP_1_9_OPERACAO_CRESCIMENTO.md`](ROADMAP_1_9_OPERACAO_CRESCIMENTO.md): agenda, CRM, financeiro e crescimento.
-- [`PLANO_RELEASE_1_9.md`](PLANO_RELEASE_1_9.md): planejamento da série 1.9.
+- [`PRD_BARBER_HUB.md`](PRD_BARBER_HUB.md): requisitos funcionais e direção de produto.
+- [`MATRIZ_PLANOS_1_9.md`](MATRIZ_PLANOS_1_9.md): base de recursos por plano.
+- [`ROADMAP_1_9_OPERACAO_CRESCIMENTO.md`](ROADMAP_1_9_OPERACAO_CRESCIMENTO.md): origem da agenda, CRM, financeiro e retenção.
 - [`REDESIGN_MOBILE_1_8.md`](REDESIGN_MOBILE_1_8.md): princípios da experiência mobile.
-- [`ASSETS_BARBER_HUB_1_8_0.md`](ASSETS_BARBER_HUB_1_8_0.md): kit visual mantido em `img/branding`.
 
-## Segurança
+## Segurança e histórico
 
-- [`RELATORIO_SEGURANCA_1_9_3.md`](RELATORIO_SEGURANCA_1_9_3.md): relatório atual.
-- [`RELATORIO_SEGURANCA_1_9_0.md`](RELATORIO_SEGURANCA_1_9_0.md): hardening operacional 1.9.
-- [`RELATORIO_SEGURANCA_1_8_2.md`](RELATORIO_SEGURANCA_1_8_2.md): auditoria diferencial original V01–V06.
-- [`SEGURANCA_1_6.md`](SEGURANCA_1_6.md): base histórica de CAPTCHA, e-mail e rate limit.
+O relatório atual é `RELATORIO_SEGURANCA_1_10.md`. Relatórios e notas `1.9.x`, `1.8.x` e anteriores registram o que era verdade naquelas versões e não devem ser usados isoladamente para aprovar um deploy atual.
 
-## Histórico
+## Regra de organização
 
-Os arquivos `ATUALIZACAO_*`, `VERIFICACAO_*`, `CORRECOES_*` e `DECISOES_*` preservam decisões de versões anteriores. Os dois relatórios que estavam soltos na raiz foram movidos para [`releases/`](releases/). O histórico continua disponível no Git e não deve voltar a ser copiado para a raiz.
-
-## Regra de manutenção
-
-1. documentação nova entra em `docs/`;
-2. relatórios de uma release recebem o número da versão no nome;
-3. scripts executáveis ficam em `scripts/`, SQL em `sql/` e testes em `tests/`;
-4. arquivos temporários, caches, credenciais e artefatos de build não entram no Git nem no ZIP;
-5. ao criar um documento importante, atualize este índice.
+1. código de entrada da API em `api/`, regras em `backend/domain/` e integrações em `backend/services/`;
+2. páginas canônicas em `html/` e espelhos gerados em `mobile/`;
+3. estilos novos em `css/releases/`, infraestrutura web em `js/core/` e recursos em `js/features/`;
+4. migration/verificador em `sql/`, testes em `tests/` e manutenção em `scripts/`;
+5. documentos em `docs/`, imagens oficiais em `img/branding/` e biblioteca em `img/library/`;
+6. caches, temporários, credenciais, builds e arquivos sem referência não entram no Git.

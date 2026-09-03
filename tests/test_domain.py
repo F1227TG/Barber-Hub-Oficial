@@ -12,6 +12,15 @@ from backend.domain.growth import goal_progress, occupancy_rate, opportunity_pri
 from backend.domain.permissions import can_manage_appointment, effective_capabilities, role_can
 from backend.domain.retention import coupon_discount, loyalty_points, recurrence_dates, waitlist_window_is_valid
 from backend.domain.schedule import Period, appointment_period, conflicts_with_blocks, periods_overlap, schedule_range
+from backend.domain.operations import (
+    canonical_request_hash,
+    financial_result,
+    normalize_origin_channel,
+    normalize_page,
+    normalize_payment_method,
+    validate_opening_periods,
+)
+from backend.domain.imports import normalize_import_rows, parse_import_file, spreadsheet_formula_risk
 
 
 class AppointmentTransitionTests(TestCase):
@@ -132,4 +141,55 @@ class GrowthRuleTests(TestCase):
         self.assertEqual(opportunity_priority(5, 4), "alta")
         self.assertEqual(opportunity_priority(3, 2), "media")
         self.assertEqual(opportunity_priority(1, 1), "baixa")
+
+
+class OperationReadyTests(TestCase):
+    def test_multiple_opening_periods_accept_breaks_and_reject_overlap(self) -> None:
+        validate_opening_periods([
+            {"dia_semana": 1, "abre": time(8), "fecha": time(12), "fecha_dia_seguinte": False},
+            {"dia_semana": 1, "abre": time(14), "fecha": time(0), "fecha_dia_seguinte": True},
+        ])
+        with self.assertRaises(ValueError):
+            validate_opening_periods([
+                {"dia_semana": 1, "abre": time(8), "fecha": time(12), "fecha_dia_seguinte": False},
+                {"dia_semana": 1, "abre": time(11, 30), "fecha": time(14), "fecha_dia_seguinte": False},
+            ])
+
+    def test_opening_period_detects_week_rollover(self) -> None:
+        with self.assertRaises(ValueError):
+            validate_opening_periods([
+                {"dia_semana": 6, "abre": time(23), "fecha": time(1), "fecha_dia_seguinte": True},
+                {"dia_semana": 0, "abre": time(0, 30), "fecha": time(2), "fecha_dia_seguinte": False},
+            ])
+
+    def test_idempotency_hash_and_estimated_result_are_deterministic(self) -> None:
+        self.assertEqual(canonical_request_hash({"b": 2, "a": 1}), canonical_request_hash({"a": 1, "b": 2}))
+        self.assertEqual(financial_result("2450", "720"), Decimal("1730.00"))
+        self.assertEqual(normalize_page(999, -4), (100, 0))
+
+    def test_form_values_are_normalized_for_storage(self) -> None:
+        self.assertEqual(normalize_payment_method("credito"), "cartao_credito")
+        self.assertEqual(normalize_payment_method("debito"), "cartao_debito")
+        self.assertEqual(normalize_payment_method("pix"), "pix")
+        self.assertEqual(normalize_origin_channel("balcao"), "presencial")
+        self.assertEqual(normalize_origin_channel("barber_hub"), "interno")
+
+
+class ImportSafetyTests(TestCase):
+    def test_csv_preview_normalizes_headers_and_rows(self) -> None:
+        parsed = parse_import_file("clientes.csv", "Nome;E-mail;Telefone\nAna;ana@example.com;38999999999\n".encode())
+        valid, rejected = normalize_import_rows("clientes", parsed.rows)
+        self.assertEqual(len(valid), 1)
+        self.assertEqual(rejected, [])
+        self.assertEqual(valid[0]["dados"]["email"], "ana@example.com")
+
+    def test_import_rejects_formulas_and_duplicates(self) -> None:
+        self.assertTrue(spreadsheet_formula_risk("=HYPERLINK(1)"))
+        valid, rejected = normalize_import_rows("clientes", [
+            {"nome": "Ana", "email": "ana@example.com", "telefone": ""},
+            {"nome": "Ana 2", "email": "ana@example.com", "telefone": ""},
+            {"nome": "Risco", "email": "=cmd", "telefone": ""},
+        ])
+        self.assertEqual(len(valid), 1)
+        self.assertEqual(len(rejected), 2)
 

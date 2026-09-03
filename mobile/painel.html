@@ -21,7 +21,7 @@
 <meta content="yes" name="apple-mobile-web-app-capable"/>
 <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
 <link href="../css/mobile-app.css" rel="stylesheet"/><link href="../css/release-1.4.1.css" rel="stylesheet"/>
-<link href="../css/product-redesign.css" rel="stylesheet"/><link href="../css/release-1.6.css" rel="stylesheet"/><link href="../css/release-1.7.css" rel="stylesheet"/><link href="../css/release-1.7.1.css" rel="stylesheet"/><link href="../css/release-1.8.css" rel="stylesheet"/><link href="../css/brand-assets-1.8.css" rel="stylesheet"/><link href="../css/release-1.9.css" rel="stylesheet"/>
+<link href="../css/product-redesign.css" rel="stylesheet"/><link href="../css/release-1.6.css" rel="stylesheet"/><link href="../css/release-1.7.css" rel="stylesheet"/><link href="../css/release-1.7.1.css" rel="stylesheet"/><link href="../css/release-1.8.css" rel="stylesheet"/><link href="../css/brand-assets-1.8.css" rel="stylesheet"/><link href="../css/release-1.9.css" rel="stylesheet"/><link href="../css/releases/release-1.10.css" rel="stylesheet"/>
 <link href="../css/image-editor.css" rel="stylesheet"/><meta content="yes" name="mobile-web-app-capable"/><meta content="noindex,follow" name="robots"/><link href="https://barberhuboficial.vercel.app/html/painel" rel="canonical"/><link href="../css/mobile-redesign-1.8.css" rel="stylesheet"/><link href="../css/release-1.9.3.css" rel="stylesheet"/></head>
 <body class="page-painel mobile-native">
 <!-- Cabeçalho e navegação principal -->
@@ -164,6 +164,10 @@
 </i>
       Página pública
      </button>
+<button class="btn btn-dark" data-panel="secFerramentas">
+<i class="bi bi-tools"></i>
+      Ferramentas
+     </button>
 <a class="btn btn-dark" href="/mobile/notificacoes.html">
 <i class="bi bi-bell">
 </i>
@@ -195,7 +199,7 @@
 </div>
 <div class="professional-command-center" id="painelCommandCenter">
 <div class="command-primary"><span class="command-eyebrow">Operação de hoje</span><h2 id="painelProximoTitulo">Sua agenda em um só olhar</h2><p id="painelProximoDetalhe">Carregando o próximo atendimento...</p><div style="margin-top:14px"><button class="btn btn-primary btn-small" data-panel="secAgenda" type="button"><i class="bi bi-calendar-week"></i> Abrir agenda</button></div></div>
-<div class="command-actions"><button class="btn btn-outline" data-panel="secServicos" type="button"><i class="bi bi-plus-lg"></i> Serviço</button><button class="btn btn-outline" data-panel="secBarbeiros" type="button"><i class="bi bi-person-plus"></i> Profissional</button><button class="btn btn-outline" data-panel="secGaleria" type="button"><i class="bi bi-camera"></i> Publicar</button><button class="btn btn-outline" data-panel="secConfig" type="button"><i class="bi bi-calendar-x"></i> Bloquear dia</button></div>
+<div class="command-actions"><button class="btn btn-outline" data-operation110="manual-service" type="button"><i class="bi bi-person-walking"></i> Atendimento avulso</button><button class="btn btn-outline" data-agenda-action="encaixe" data-panel="secAgenda" type="button"><i class="bi bi-calendar-plus"></i> Novo agendamento</button><button class="btn btn-outline" data-operation110="expense" type="button"><i class="bi bi-receipt"></i> Registrar gasto</button><button class="btn btn-outline" data-panel="secClientes" type="button"><i class="bi bi-person-plus"></i> Buscar cliente</button></div>
 </div><article class="panel-plan-overview" id="painelPlanoOverview">
 <div class="panel-plan-copy">
 <span class="tag"><i class="bi bi-gem"></i> Plano atual</span>
@@ -210,6 +214,7 @@
 <a class="btn btn-outline btn-small" href="/mobile/planos.html"><i class="bi bi-arrow-up-right-circle"></i> Ver benefícios</a>
 </div>
 </article>
+<div class="operation-composer operation110-composer" hidden id="operation110Composer"></div>
 <div class="quick-status-card" id="quickStatusCard">
 <div class="quick-status-copy">
 <span>
@@ -369,12 +374,13 @@
 </div>
 </section>
 <section class="panel-section" id="secFinanceiro" data-plan-section="permite_financeiro">
-<div class="section-top operation-heading"><div><span class="tag"><i class="bi bi-graph-up-arrow"></i> Financeiro operacional</span><h2 class="titulo-section">Do atendimento ao fechamento</h2><p class="texto-section">Receita, ticket médio, comissões e ajustes calculados a partir dos atendimentos concluídos.</p></div><div class="operation-heading-actions"><button class="btn btn-outline btn-small" data-finance-action="ajuste" type="button"><i class="bi bi-plus-slash-minus"></i> Novo ajuste</button><button class="btn btn-primary btn-small" data-finance-action="fechamento" type="button"><i class="bi bi-lock"></i> Fechar o dia</button></div></div>
+<div class="section-top operation-heading"><div><span class="tag"><i class="bi bi-graph-up-arrow"></i> Financeiro operacional</span><h2 class="titulo-section">Do atendimento ao fechamento</h2><p class="texto-section">Receita, gastos, resultado estimado, ticket médio e comissões em uma leitura simples.</p></div><div class="operation-heading-actions"><button class="btn btn-outline btn-small" data-operation110="expense" type="button"><i class="bi bi-receipt"></i> Registrar gasto</button><button class="btn btn-outline btn-small" data-finance-action="ajuste" type="button"><i class="bi bi-plus-slash-minus"></i> Novo ajuste</button><button class="btn btn-primary btn-small" data-finance-action="fechamento" type="button"><i class="bi bi-lock"></i> Fechar o dia</button></div></div>
+<div class="finance-presets110" role="group" aria-label="Período do financeiro"><button data-finance-preset="today" type="button">Hoje</button><button data-finance-preset="week" type="button">Semana</button><button class="ativo" data-finance-preset="month" type="button">Mês</button><button data-finance-preset="custom" type="button">Personalizado</button></div>
 <div class="operation-toolbar finance-period"><label class="toolbar-field" for="financeInicio19"><span>De</span><input id="financeInicio19" type="date"/></label><label class="toolbar-field" for="financeFim19"><span>Até</span><input id="financeFim19" type="date"/></label><button class="btn btn-dark btn-small" id="financeAtualizar19" type="button"><i class="bi bi-arrow-clockwise"></i> Atualizar</button></div>
 <div class="operation-kpis" id="financeKpis19"><article class="operation-kpi skeleton-card"></article><article class="operation-kpi skeleton-card"></article><article class="operation-kpi skeleton-card"></article><article class="operation-kpi skeleton-card"></article></div>
 <div class="operation-composer" hidden="" id="financeComposer19"></div>
 <div class="finance-workspace">
-<article class="finance-ledger card"><div class="card-body"><div class="section-top compact"><div><h3>Movimentações</h3><p>Entradas e saídas consolidadas no período.</p></div><span class="status concluido" id="financePeriodoLabel19">Período atual</span></div><div class="ledger-list" id="financeLancamentos19"><div class="operation-state loading"><span class="state-spinner"></span><strong>Calculando resultados</strong></div></div></div></article>
+<article class="finance-ledger card"><div class="card-body"><div class="section-top compact"><div><h3>Movimentações</h3><p>Entradas e saídas consolidadas no período.</p></div><span class="status concluido" id="financePeriodoLabel19">Período atual</span></div><div class="ledger-list" id="financeLancamentos19"><div class="operation-state loading"><span class="state-spinner"></span><strong>Calculando resultados</strong></div></div><button class="btn btn-dark btn-small finance-more110" id="financeMore110" type="button" hidden>Carregar mais</button></div></article>
 <aside class="finance-side"><article class="card"><div class="card-body"><div class="section-top compact"><div><h3>Comissões</h3><p>Regras por profissional ou serviço.</p></div><button aria-label="Adicionar regra" class="icon-btn" data-finance-action="comissao" data-plan-feature="permite_comissoes" type="button"><i class="bi bi-plus-lg"></i></button></div><div class="commission-list" id="financeComissoes19"><div class="operation-state compact"><i class="bi bi-percent"></i><strong>Carregando regras</strong></div></div></div></article><article class="finance-note"><i class="bi bi-shield-check"></i><div><strong>Valores protegidos</strong><span>O navegador recebe apenas dados permitidos para seu estabelecimento e sua função.</span></div></article></aside>
 </div>
 </section>
@@ -830,6 +836,17 @@
       Editar página e imagens
      </button>
 </section>
+<section class="panel-section" id="secFerramentas">
+<div class="section-top operation-heading">
+<div><span class="tag"><i class="bi bi-tools"></i> Operação assistida</span><h2 class="titulo-section">Ferramentas do negócio</h2><p class="texto-section">Importe sua base, configure avisos no dispositivo e consulte mudanças importantes sem misturar essas tarefas com a agenda.</p></div>
+</div>
+<div class="tools110-grid">
+<article class="tool110-card"><header><span><i class="bi bi-file-earmark-arrow-up"></i></span><div><h3>Importar dados</h3><p>Clientes ou serviços em CSV/XLSX, com prévia antes de gravar.</p></div></header><form id="formImport110" class="stack-form"><label class="campo"><span>Tipo de dados</span><select name="tipo"><option value="clientes">Clientes</option><option value="servicos">Serviços</option></select></label><label class="campo"><span>Arquivo</span><input name="arquivo" type="file" accept=".csv,.xlsx" required></label><button class="btn btn-primary" type="submit"><i class="bi bi-eye"></i> Conferir arquivo</button></form><div id="importPreview110" class="tool110-result" aria-live="polite"></div><div class="tool110-subsection"><div class="tool110-toolbar"><strong>Importações recentes</strong><button class="icon-btn" id="importRefresh110" aria-label="Atualizar importações" type="button"><i class="bi bi-arrow-clockwise"></i></button></div><div id="importHistory110" class="import-history110"><div class="operation-state loading compact"><span class="state-spinner"></span><strong>Carregando histórico</strong></div></div><button class="btn btn-dark btn-small" id="importMore110" type="button" hidden>Ver mais</button></div></article>
+<article class="tool110-card"><header><span><i class="bi bi-bell"></i></span><div><h3>Avisos neste dispositivo</h3><p>Você escolhe quais alertas deseja receber. Os avisos internos continuam ativos.</p></div></header><div id="pushPreferences110" class="tool110-result"><div class="operation-state loading"><span class="state-spinner"></span><strong>Carregando preferências</strong></div></div></article>
+<article class="tool110-card tool110-wide"><header><span><i class="bi bi-clock-history"></i></span><div><h3>Histórico operacional</h3><p>Alterações importantes de agenda, horários e financeiro, em ordem cronológica.</p></div></header><div class="tool110-toolbar"><select id="auditResource110" aria-label="Filtrar histórico"><option value="">Todas as áreas</option><option value="agenda">Agenda</option><option value="financeiro">Financeiro</option><option value="horarios">Horários</option><option value="fechamento">Fechamento</option><option value="importacao">Importação</option><option value="configuracao">Configuração</option></select><button class="btn btn-outline btn-small" id="auditRefresh110" type="button"><i class="bi bi-arrow-clockwise"></i> Atualizar</button></div><div id="auditList110" class="audit110-list"><div class="operation-state loading"><span class="state-spinner"></span><strong>Carregando histórico</strong></div></div><button class="btn btn-dark btn-small" id="auditMore110" type="button" hidden>Ver mais</button></article>
+<article class="tool110-card tool110-wide"><header><span><i class="bi bi-toggles"></i></span><div><h3>Disponibilidade dos recursos</h3><p>Recursos em liberação controlada aparecem aqui sem expor configurações técnicas.</p></div></header><div id="featureStatus110" class="feature110-grid"></div></article>
+</div>
+</section>
 <section class="panel-section" id="secConfig">
 <h2 class="titulo-section">
       Configurações do estabelecimento
@@ -976,6 +993,8 @@
           Imagem de capa
          </label>
 <input accept="image/png,image/jpeg,image/webp" id="configCapa" type="file"/>
+<button class="btn btn-outline btn-small" id="openCoverLibrary110" type="button"><i class="bi bi-images"></i> Escolher da biblioteca</button>
+<div class="cover-library110" id="coverLibrary110" hidden></div>
 </div>
 </div>
 <button class="btn btn-primary full" type="submit">
@@ -1009,106 +1028,19 @@
 </div>
 </div>
 </div>
+<form class="form-card location110-card" id="formLocation110">
+<div class="section-top compact"><div><h3>Localização para clientes</h3><p>Endereço organizado melhora a busca por região e libera a rota até o estabelecimento.</p></div><button class="btn btn-outline btn-small" id="useCurrentLocation110" type="button"><i class="bi bi-crosshair"></i> Usar local atual</button></div>
+<div class="form-grid"><label class="campo span-2"><span>Rua ou avenida</span><input name="logradouro" required></label><label class="campo"><span>Número</span><input name="numero"></label><label class="campo"><span>Complemento</span><input name="complemento"></label><label class="campo"><span>Bairro</span><input name="bairro" required></label><label class="campo"><span>Cidade</span><input name="cidade" required></label><label class="campo"><span>Estado</span><input name="estado" maxlength="2" required></label><label class="campo"><span>CEP</span><input name="cep" inputmode="numeric" required></label><input name="latitude" type="hidden"><input name="longitude" type="hidden"></div>
+<div class="location110-feedback" id="locationFeedback110">Você pode salvar o endereço sem compartilhar a posição exata.</div><button class="btn btn-primary" type="submit"><i class="bi bi-geo-alt"></i> Salvar localização</button>
+</form>
 <form class="form-card hours-form" id="formHorarios">
 <h3>
        Horários de funcionamento
       </h3>
 <p class="texto-section">
-       O status automático e a agenda usam estes dados.
+       Cadastre manhã, intervalo e tarde separadamente. O status automático e a agenda respeitam cada período.
       </p>
-<div class="hours-editor">
-<div class="horario-config horario-config-painel" data-dia="0">
-<label class="day-toggle">
-<input data-horario-aberto="" type="checkbox"/>
-<span>
-          Domingo
-         </span>
-</label>
-<input data-horario-abre="" type="time" value="08:00"/>
-<span>
-         até
-        </span>
-<input data-horario-fecha="" type="time" value="18:00"/>
-</div>
-<div class="horario-config horario-config-painel" data-dia="1">
-<label class="day-toggle">
-<input data-horario-aberto="" type="checkbox"/>
-<span>
-          Segunda
-         </span>
-</label>
-<input data-horario-abre="" type="time" value="08:00"/>
-<span>
-         até
-        </span>
-<input data-horario-fecha="" type="time" value="18:00"/>
-</div>
-<div class="horario-config horario-config-painel" data-dia="2">
-<label class="day-toggle">
-<input data-horario-aberto="" type="checkbox"/>
-<span>
-          Terça
-         </span>
-</label>
-<input data-horario-abre="" type="time" value="08:00"/>
-<span>
-         até
-        </span>
-<input data-horario-fecha="" type="time" value="18:00"/>
-</div>
-<div class="horario-config horario-config-painel" data-dia="3">
-<label class="day-toggle">
-<input data-horario-aberto="" type="checkbox"/>
-<span>
-          Quarta
-         </span>
-</label>
-<input data-horario-abre="" type="time" value="08:00"/>
-<span>
-         até
-        </span>
-<input data-horario-fecha="" type="time" value="18:00"/>
-</div>
-<div class="horario-config horario-config-painel" data-dia="4">
-<label class="day-toggle">
-<input data-horario-aberto="" type="checkbox"/>
-<span>
-          Quinta
-         </span>
-</label>
-<input data-horario-abre="" type="time" value="08:00"/>
-<span>
-         até
-        </span>
-<input data-horario-fecha="" type="time" value="18:00"/>
-</div>
-<div class="horario-config horario-config-painel" data-dia="5">
-<label class="day-toggle">
-<input data-horario-aberto="" type="checkbox"/>
-<span>
-          Sexta
-         </span>
-</label>
-<input data-horario-abre="" type="time" value="08:00"/>
-<span>
-         até
-        </span>
-<input data-horario-fecha="" type="time" value="18:00"/>
-</div>
-<div class="horario-config horario-config-painel" data-dia="6">
-<label class="day-toggle">
-<input data-horario-aberto="" type="checkbox"/>
-<span>
-          Sábado
-         </span>
-</label>
-<input data-horario-abre="" type="time" value="08:00"/>
-<span>
-         até
-        </span>
-<input data-horario-fecha="" type="time" value="18:00"/>
-</div>
-</div>
+<div class="opening-periods110" id="openingPeriods110"><div class="operation-state loading"><span class="state-spinner"></span><strong>Carregando horários</strong></div></div>
 <button class="btn btn-primary" type="submit">
        Salvar horários
       </button>
@@ -1127,6 +1059,7 @@
 </script><script src="../js/security.js"></script><script src="../js/backend-api.js"></script>
 <script src="../js/utils.js">
 </script>
+<script src="../js/core/continuation.js"></script>
 <script src="../js/toast.js">
 </script>
 <script src="../js/auth.js">
@@ -1144,7 +1077,7 @@
 <script src="../js/image-editor.js"></script>
 <script src="../js/painel.js">
 </script>
-<script src="../js/painel-operacao-1.9.js"></script><script src="../js/painel-retencao-1.9.3.js"></script>
+<script src="../js/painel-operacao-1.9.js"></script><script src="../js/painel-retencao-1.9.3.js"></script><script src="../js/features/operation-real-1.10.js"></script>
 <script src="../js/mobile-app.js"></script>
 <script src="../js/product-redesign.js"></script><script src="../js/mobile-shell-v1.7.js"></script><script src="../js/mobile-native-v1.7.1.js"></script><script src="../js/mobile-redesign-1.8.js"></script></body>
 </html>

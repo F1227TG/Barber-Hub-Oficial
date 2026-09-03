@@ -1,4 +1,4 @@
-# API própria do Barber Hub — Python/FastAPI 1.5.0
+# API própria do Barber Hub — Python/FastAPI 1.6.0
 
 ## Objetivo
 
@@ -33,9 +33,13 @@ backend/services/growth.py      insights, oportunidades, metas e permissões
 backend/services/management.py  estabelecimento/serviços/profissionais/promoções sob RLS
 backend/services/support.py  suporte
 backend/services/admin.py    overview/health/auditoria/recuperação/assinaturas
+backend/services/imports.py  prévia, confirmação e histórico de importação
+backend/services/push.py     assinatura, preferências e fila Web Push
+backend/services/audit.py    trilha operacional paginada
+backend/services/flags.py    avaliação autorizada de feature flags
 ```
 
-## Endpoints 1.5.0
+## Endpoints 1.6.0
 
 | Método | Rota | Acesso | Responsabilidade |
 |---|---|---|---|
@@ -44,6 +48,8 @@ backend/services/admin.py    overview/health/auditoria/recuperação/assinaturas
 | GET | `/api/v1/catalog/summary` | público | indicadores agregados |
 | GET | `/api/v1/marketplace/search` | público | FTS, filtros, ranking e paginação |
 | GET | `/api/v1/marketplace/featured` | público | destaques Barber Hub |
+| GET | `/api/v1/marketplace/regional` | público | busca regional, raio e distância paginada |
+| GET | `/api/v1/catalog/cover-library` | público | biblioteca oficial de capas |
 | POST | `/api/v1/appointments` | autenticado | criar agendamento multi-serviço |
 | PATCH | `/api/v1/appointments/{id}/status` | dono/admin sob RLS | confirmar/concluir/recusar/cancelar |
 | DELETE | `/api/v1/appointments/{id}` | autenticado | cancelar agendamento permitido |
@@ -63,6 +69,7 @@ backend/services/admin.py    overview/health/auditoria/recuperação/assinaturas
 | POST | `/api/v1/support/tickets` | público/autenticado | abrir ticket |
 | DELETE | `/api/v1/account` | autenticado | exclusão da própria conta |
 | GET | `/api/v1/admin/overview` | admin | totais globais |
+| GET | `/api/v1/admin/records/{resource}` | admin | busca e paginação de recursos permitidos |
 | GET | `/api/v1/admin/health` | admin | saúde API/DB/Auth + versão |
 | POST | `/api/v1/admin/users/{id}/password-recovery` | admin | recuperação de senha + auditoria |
 | GET | `/api/v1/admin/subscriptions` | admin | workspace de planos, estabelecimentos e assinaturas |
@@ -105,12 +112,29 @@ backend/services/admin.py    overview/health/auditoria/recuperação/assinaturas
 | GET/PATCH | `/api/v1/growth/opportunities` | Elite + crescimento | recalcular, listar e tratar oportunidades |
 | GET/POST/PATCH | `/api/v1/growth/goals` | Profissional+ + metas | metas e progresso mensurável |
 
+### Operação real e lançamento adicionados na 1.6.0
+
+| Método | Rota | Acesso | Responsabilidade |
+|---|---|---|---|
+| GET/PUT | `/api/v1/schedule/opening-periods` | gestão da agenda | listar/substituir múltiplos períodos |
+| POST | `/api/v1/schedule/manual-services` | gestão da agenda | atendimento manual com serviço existente ou avulso |
+| POST | `/api/v1/finance/expenses` | gestão financeira | registrar gasto idempotente |
+| PUT | `/api/v1/establishments/{id}/location` | proprietário/gerente | localização estruturada do negócio |
+| POST | `/api/v1/imports/preview` | gestão autorizada | validar CSV/XLSX antes de gravar |
+| POST | `/api/v1/imports/{id}/commit` | gestão autorizada | confirmar importação uma única vez |
+| GET | `/api/v1/imports` | gestão autorizada | histórico paginado de importações |
+| GET | `/api/v1/push/config` | autenticado | configuração pública e disponibilidade de Push |
+| POST/DELETE | `/api/v1/push/subscriptions` | autenticado | registrar/remover dispositivo |
+| GET/PUT | `/api/v1/push/preferences` | autenticado | categorias e horário silencioso |
+| GET | `/api/v1/audit/operational` | gestão autorizada | auditoria operacional paginada |
+| POST | `/api/v1/features/evaluate` | autenticado | capacidades e flags efetivas sem expor regras internas |
+
 Swagger: `/api/docs`  
 OpenAPI executável: `/api/openapi.json`
 
 ## Assinaturas e entitlements — 1.8/1.9
 
-A API 1.5.0 integra as migrations 16–25. O proprietário consulta o plano efetivo por `/establishments/{id}/entitlements`; o administrador altera a assinatura pela rota administrativa. A escrita chama a RPC `admin_atribuir_plano`, que recalcula os benefícios cumulativos e aplica downgrade/upgrade de forma transacional.
+A API 1.6.0 mantém as assinaturas das migrations 16–28 e depende das migrations 29–31 para os recursos novos. O proprietário consulta o plano efetivo por `/establishments/{id}/entitlements`; o administrador altera a assinatura pela rota administrativa. A escrita chama a RPC `admin_atribuir_plano`, que recalcula os benefícios cumulativos e aplica downgrade/upgrade de forma transacional.
 
 Os limites críticos não dependem apenas do frontend: agenda, profissionais, promoções e portfólio também são validados no PostgreSQL. Assinaturas pausadas, canceladas, atrasadas ou vencidas caem para o conjunto de benefícios do Perfil gratuito sem apagar o histórico do estabelecimento.
 
@@ -162,6 +186,7 @@ SUPABASE_SECRET_KEY
 BARBER_HUB_ALLOWED_ORIGINS
 BARBER_HUB_PASSWORD_REDIRECT_URL
 BARBER_HUB_TURNSTILE_SITE_KEY
+BARBER_HUB_VAPID_PUBLIC_KEY
 ```
 
 `SUPABASE_SECRET_KEY` é exclusiva do servidor.
@@ -176,7 +201,7 @@ Não existe endpoint para exibir senha. O Supabase Auth mantém o hash bcrypt em
 
 ## Regras offline
 
-Os módulos `backend/domain/appointments.py`, `plans.py`, `schedule.py`, `crm.py`, `finance.py`, `retention.py`, `growth.py` e `permissions.py` não dependem de serviços externos. Use `npm run check:offline` para validar transições, agenda, classificação, comissões, recorrência, cupons, métricas e papéis sem Supabase, Vercel ou FastAPI Cloud.
+Os módulos `backend/domain/appointments.py`, `plans.py`, `schedule.py`, `crm.py`, `finance.py`, `retention.py`, `growth.py`, `permissions.py`, `operations.py` e `imports.py` não dependem de serviços externos. Use `npm run check:offline` para validar transições, agenda, classificação, comissões, recorrência, cupons, importação, métricas e papéis sem Supabase, Vercel ou FastAPI Cloud.
 
 ## Escritas de gestão e dupla validação
 

@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Barber Hub API
   description: API própria do Barber Hub, executada em Python/FastAPI.
-  version: 1.5.0
+  version: 1.6.0
 paths:
   /api/v1/health:
     get:
@@ -130,6 +130,132 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/marketplace/regional:
+    get:
+      summary: Marketplace Regional
+      operationId: marketplace_regional_api_v1_marketplace_regional_get
+      parameters:
+      - name: q
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            maxLength: 120
+          - type: 'null'
+          title: Q
+      - name: city
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            maxLength: 120
+          - type: 'null'
+          title: City
+      - name: neighborhood
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            maxLength: 120
+          - type: 'null'
+          title: Neighborhood
+      - name: state
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            minLength: 2
+            maxLength: 2
+          - type: 'null'
+          title: State
+      - name: open_now
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: false
+          title: Open Now
+      - name: agenda
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: false
+          title: Agenda
+      - name: latitude
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: number
+            maximum: 90
+            minimum: -90
+          - type: 'null'
+          title: Latitude
+      - name: longitude
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: number
+            maximum: 180
+            minimum: -180
+          - type: 'null'
+          title: Longitude
+      - name: radius_km
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: number
+            maximum: 500
+            exclusiveMinimum: 0
+          - type: 'null'
+          title: Radius Km
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 10000
+          minimum: 0
+          default: 0
+          title: Offset
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 60
+          minimum: 1
+          default: 24
+          title: Limit
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/catalog/cover-library:
+    get:
+      summary: Catalog Cover Library
+      operationId: catalog_cover_library_api_v1_catalog_cover_library_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
   /api/v1/appointments:
     post:
       summary: Create Appointment
@@ -235,6 +361,1761 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/schedule/range:
+    get:
+      summary: Schedule Range
+      operationId: schedule_range_api_v1_schedule_range_get
+      parameters:
+      - name: establishment_id
+        in: query
+        required: true
+        schema:
+          type: string
+          minLength: 36
+          maxLength: 36
+          title: Establishment Id
+      - name: start
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+          title: Start
+      - name: end
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+          title: End
+      - name: professional_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            minLength: 36
+            maxLength: 36
+          - type: 'null'
+          title: Professional Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/schedule/walk-ins:
+    post:
+      summary: Create Walk In
+      operationId: create_walk_in_api_v1_schedule_walk_ins_post
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WalkInCreate'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/schedule/blocks:
+    post:
+      summary: Create Schedule Block
+      operationId: create_schedule_block_api_v1_schedule_blocks_post
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScheduleBlockCreate'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/schedule/blocks/{block_id}:
+    delete:
+      summary: Delete Schedule Block
+      operationId: delete_schedule_block_api_v1_schedule_blocks__block_id__delete
+      parameters:
+      - name: block_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Block Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/schedule/opening-periods:
+    get:
+      summary: Schedule Opening Periods
+      operationId: schedule_opening_periods_api_v1_schedule_opening_periods_get
+      parameters:
+      - name: establishment_id
+        in: query
+        required: true
+        schema:
+          type: string
+          minLength: 36
+          maxLength: 36
+          title: Establishment Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    put:
+      summary: Schedule Replace Opening Periods
+      operationId: schedule_replace_opening_periods_api_v1_schedule_opening_periods_put
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OpeningPeriodsReplace'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/schedule/manual-services:
+    post:
+      summary: Schedule Manual Service
+      operationId: schedule_manual_service_api_v1_schedule_manual_services_post
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ManualServiceCreate'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/appointments/{appointment_id}/reschedule:
+    patch:
+      summary: Reschedule Appointment
+      operationId: reschedule_appointment_api_v1_appointments__appointment_id__reschedule_patch
+      parameters:
+      - name: appointment_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Appointment Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppointmentReschedule'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/appointments/{appointment_id}/confirmation:
+    patch:
+      summary: Confirm Appointment
+      operationId: confirm_appointment_api_v1_appointments__appointment_id__confirmation_patch
+      parameters:
+      - name: appointment_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Appointment Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppointmentConfirmation'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/appointments/{appointment_id}/no-show:
+    patch:
+      summary: Mark Appointment No Show
+      operationId: mark_appointment_no_show_api_v1_appointments__appointment_id__no_show_patch
+      parameters:
+      - name: appointment_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Appointment Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/retention/waitlist:
+    get:
+      summary: Retention Waitlist
+      operationId: retention_waitlist_api_v1_retention_waitlist_get
+      parameters:
+      - name: establishment_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            minLength: 36
+            maxLength: 36
+          - type: 'null'
+          title: Establishment Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    post:
+      summary: Join Retention Waitlist
+      operationId: join_retention_waitlist_api_v1_retention_waitlist_post
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WaitlistCreate'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/retention/waitlist/{item_id}:
+    patch:
+      summary: Update Retention Waitlist
+      operationId: update_retention_waitlist_api_v1_retention_waitlist__item_id__patch
+      parameters:
+      - name: item_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Item Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WaitlistUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/appointments/{appointment_id}/recurrence:
+    post:
+      summary: Create Appointment Recurrence
+      operationId: create_appointment_recurrence_api_v1_appointments__appointment_id__recurrence_post
+      parameters:
+      - name: appointment_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Appointment Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecurrenceCreate'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/retention/recurrences:
+    get:
+      summary: Retention Recurrences
+      operationId: retention_recurrences_api_v1_retention_recurrences_get
+      parameters:
+      - name: establishment_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            minLength: 36
+            maxLength: 36
+          - type: 'null'
+          title: Establishment Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/retention/loyalty:
+    get:
+      summary: Loyalty Overview
+      operationId: loyalty_overview_api_v1_retention_loyalty_get
+      parameters:
+      - name: establishment_id
+        in: query
+        required: true
+        schema:
+          type: string
+          minLength: 36
+          maxLength: 36
+          title: Establishment Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/client/loyalty:
+    get:
+      summary: Client Loyalty
+      operationId: client_loyalty_api_v1_client_loyalty_get
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/retention/loyalty/program:
+    put:
+      summary: Upsert Loyalty Program
+      operationId: upsert_loyalty_program_api_v1_retention_loyalty_program_put
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoyaltyProgramUpsert'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/retention/loyalty/rewards:
+    post:
+      summary: Create Loyalty Reward
+      operationId: create_loyalty_reward_api_v1_retention_loyalty_rewards_post
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoyaltyRewardCreate'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/retention/loyalty/rewards/{reward_id}:
+    patch:
+      summary: Update Loyalty Reward
+      operationId: update_loyalty_reward_api_v1_retention_loyalty_rewards__reward_id__patch
+      parameters:
+      - name: reward_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Reward Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoyaltyRewardUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/retention/loyalty/rewards/{reward_id}/redeem:
+    post:
+      summary: Redeem Loyalty Reward
+      operationId: redeem_loyalty_reward_api_v1_retention_loyalty_rewards__reward_id__redeem_post
+      parameters:
+      - name: reward_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Reward Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoyaltyRedeem'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/retention/coupons:
+    get:
+      summary: Retention Coupons
+      operationId: retention_coupons_api_v1_retention_coupons_get
+      parameters:
+      - name: establishment_id
+        in: query
+        required: true
+        schema:
+          type: string
+          minLength: 36
+          maxLength: 36
+          title: Establishment Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    post:
+      summary: Create Retention Coupon
+      operationId: create_retention_coupon_api_v1_retention_coupons_post
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CouponCreate'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/retention/coupons/{coupon_id}:
+    patch:
+      summary: Update Retention Coupon
+      operationId: update_retention_coupon_api_v1_retention_coupons__coupon_id__patch
+      parameters:
+      - name: coupon_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Coupon Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CouponUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/retention/campaigns:
+    get:
+      summary: Retention Campaigns
+      operationId: retention_campaigns_api_v1_retention_campaigns_get
+      parameters:
+      - name: establishment_id
+        in: query
+        required: true
+        schema:
+          type: string
+          minLength: 36
+          maxLength: 36
+          title: Establishment Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    post:
+      summary: Create Retention Campaign
+      operationId: create_retention_campaign_api_v1_retention_campaigns_post
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CampaignCreate'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/crm/clients:
+    get:
+      summary: List Crm Clients
+      operationId: list_crm_clients_api_v1_crm_clients_get
+      parameters:
+      - name: establishment_id
+        in: query
+        required: true
+        schema:
+          type: string
+          minLength: 36
+          maxLength: 36
+          title: Establishment Id
+      - name: q
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            maxLength: 120
+          - type: 'null'
+          title: Q
+      - name: segment
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            pattern: ^(lead|novo|recorrente|em_risco|inativo)?$
+          - type: 'null'
+          title: Segment
+      - name: cursor_last
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Cursor Last
+      - name: cursor_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            minLength: 36
+            maxLength: 36
+          - type: 'null'
+          title: Cursor Id
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 60
+          minimum: 1
+          default: 30
+          title: Limit
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/crm/clients/{client_id}:
+    get:
+      summary: Get Crm Client
+      operationId: get_crm_client_api_v1_crm_clients__client_id__get
+      parameters:
+      - name: client_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Client Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    patch:
+      summary: Update Crm Client
+      operationId: update_crm_client_api_v1_crm_clients__client_id__patch
+      parameters:
+      - name: client_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Client Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CRMClientUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/crm/clients/{client_id}/notes:
+    post:
+      summary: Add Crm Note
+      operationId: add_crm_note_api_v1_crm_clients__client_id__notes_post
+      parameters:
+      - name: client_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Client Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CRMNoteCreate'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/finance/summary:
+    get:
+      summary: Finance Summary
+      operationId: finance_summary_api_v1_finance_summary_get
+      parameters:
+      - name: establishment_id
+        in: query
+        required: true
+        schema:
+          type: string
+          minLength: 36
+          maxLength: 36
+          title: Establishment Id
+      - name: start
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+          title: Start
+      - name: end
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+          title: End
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/finance/entries:
+    get:
+      summary: Finance Entries
+      operationId: finance_entries_api_v1_finance_entries_get
+      parameters:
+      - name: establishment_id
+        in: query
+        required: true
+        schema:
+          type: string
+          minLength: 36
+          maxLength: 36
+          title: Establishment Id
+      - name: start
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+          title: Start
+      - name: end
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+          title: End
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 10000
+          minimum: 0
+          default: 0
+          title: Offset
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 40
+          title: Limit
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/finance/adjustments:
+    post:
+      summary: Create Financial Adjustment
+      operationId: create_financial_adjustment_api_v1_finance_adjustments_post
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FinancialAdjustmentCreate'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/finance/expenses:
+    post:
+      summary: Create Financial Expense
+      operationId: create_financial_expense_api_v1_finance_expenses_post
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExpenseCreate'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/finance/closings:
+    post:
+      summary: Close Financial Day
+      operationId: close_financial_day_api_v1_finance_closings_post
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DayClosingCreate'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/finance/commission-rules:
+    get:
+      summary: Commission Rules
+      operationId: commission_rules_api_v1_finance_commission_rules_get
+      parameters:
+      - name: establishment_id
+        in: query
+        required: true
+        schema:
+          type: string
+          minLength: 36
+          maxLength: 36
+          title: Establishment Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    post:
+      summary: Create Commission Rule
+      operationId: create_commission_rule_api_v1_finance_commission_rules_post
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommissionRuleCreate'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/finance/commission-rules/{rule_id}:
+    patch:
+      summary: Update Commission Rule
+      operationId: update_commission_rule_api_v1_finance_commission_rules__rule_id__patch
+      parameters:
+      - name: rule_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Rule Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommissionRuleUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/team/members:
+    get:
+      summary: Team Members
+      operationId: team_members_api_v1_team_members_get
+      parameters:
+      - name: establishment_id
+        in: query
+        required: true
+        schema:
+          type: string
+          minLength: 36
+          maxLength: 36
+          title: Establishment Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    post:
+      summary: Link Team Member
+      operationId: link_team_member_api_v1_team_members_post
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TeamMemberLink'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/team/members/{member_id}:
+    patch:
+      summary: Update Team Member
+      operationId: update_team_member_api_v1_team_members__member_id__patch
+      parameters:
+      - name: member_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Member Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TeamMemberUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/team/permissions:
+    get:
+      summary: Team Permissions
+      operationId: team_permissions_api_v1_team_permissions_get
+      parameters:
+      - name: establishment_id
+        in: query
+        required: true
+        schema:
+          type: string
+          minLength: 36
+          maxLength: 36
+          title: Establishment Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/team/members/{member_id}/permissions:
+    patch:
+      summary: Update Team Permissions
+      operationId: update_team_permissions_api_v1_team_members__member_id__permissions_patch
+      parameters:
+      - name: member_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Member Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TeamPermissionsUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/growth/insights:
+    get:
+      summary: Growth Insights
+      operationId: growth_insights_api_v1_growth_insights_get
+      parameters:
+      - name: establishment_id
+        in: query
+        required: true
+        schema:
+          type: string
+          minLength: 36
+          maxLength: 36
+          title: Establishment Id
+      - name: start
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+          title: Start
+      - name: end
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+          title: End
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/growth/opportunities:
+    get:
+      summary: Growth Opportunities
+      operationId: growth_opportunities_api_v1_growth_opportunities_get
+      parameters:
+      - name: establishment_id
+        in: query
+        required: true
+        schema:
+          type: string
+          minLength: 36
+          maxLength: 36
+          title: Establishment Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/growth/opportunities/{opportunity_id}:
+    patch:
+      summary: Update Growth Opportunity
+      operationId: update_growth_opportunity_api_v1_growth_opportunities__opportunity_id__patch
+      parameters:
+      - name: opportunity_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Opportunity Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OpportunityUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/growth/goals:
+    get:
+      summary: Growth Goals
+      operationId: growth_goals_api_v1_growth_goals_get
+      parameters:
+      - name: establishment_id
+        in: query
+        required: true
+        schema:
+          type: string
+          minLength: 36
+          maxLength: 36
+          title: Establishment Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    post:
+      summary: Create Growth Goal
+      operationId: create_growth_goal_api_v1_growth_goals_post
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GoalCreate'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/growth/goals/{goal_id}:
+    patch:
+      summary: Update Growth Goal
+      operationId: update_growth_goal_api_v1_growth_goals__goal_id__patch
+      parameters:
+      - name: goal_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Goal Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GoalUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /api/v1/establishments/{establishment_id}:
     patch:
       summary: Update Establishment
@@ -260,6 +2141,43 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/EstablishmentUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/establishments/{establishment_id}/location:
+    put:
+      summary: Update Establishment Location
+      operationId: update_establishment_location_api_v1_establishments__establishment_id__location_put
+      parameters:
+      - name: establishment_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Establishment Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EstablishmentLocationUpdate'
       responses:
         '200':
           description: Successful Response
@@ -689,6 +2607,351 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/imports/preview:
+    post:
+      summary: Preview Import
+      operationId: preview_import_api_v1_imports_preview_post
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImportPreviewRequest'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/imports/{import_id}/commit:
+    post:
+      summary: Commit Import
+      operationId: commit_import_api_v1_imports__import_id__commit_post
+      parameters:
+      - name: import_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Import Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImportCommitRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/imports:
+    get:
+      summary: List Imports
+      operationId: list_imports_api_v1_imports_get
+      parameters:
+      - name: establishment_id
+        in: query
+        required: true
+        schema:
+          type: string
+          minLength: 36
+          maxLength: 36
+          title: Establishment Id
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+          title: Offset
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 50
+          minimum: 1
+          default: 20
+          title: Limit
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/push/config:
+    get:
+      summary: Push Config
+      operationId: push_config_api_v1_push_config_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /api/v1/push/subscriptions:
+    post:
+      summary: Push Subscribe
+      operationId: push_subscribe_api_v1_push_subscriptions_post
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PushSubscriptionCreate'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      summary: Push Unsubscribe
+      operationId: push_unsubscribe_api_v1_push_subscriptions_delete
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PushUnsubscribeRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/push/preferences:
+    get:
+      summary: Push Preferences
+      operationId: push_preferences_api_v1_push_preferences_get
+      parameters:
+      - name: establishment_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            minLength: 36
+            maxLength: 36
+          - type: 'null'
+          title: Establishment Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    put:
+      summary: Update Push Preferences
+      operationId: update_push_preferences_api_v1_push_preferences_put
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PushPreferencesUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/audit/operational:
+    get:
+      summary: Operational Audit
+      operationId: operational_audit_api_v1_audit_operational_get
+      parameters:
+      - name: establishment_id
+        in: query
+        required: true
+        schema:
+          type: string
+          minLength: 36
+          maxLength: 36
+          title: Establishment Id
+      - name: resource
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            pattern: ^(agenda|financeiro|horarios|fechamento|importacao|configuracao)$
+          - type: 'null'
+          title: Resource
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 10000
+          minimum: 0
+          default: 0
+          title: Offset
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 30
+          title: Limit
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/features/evaluate:
+    post:
+      summary: Evaluate Features
+      operationId: evaluate_features_api_v1_features_evaluate_post
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeatureFlagEvaluationRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /api/v1/account:
     delete:
       summary: Delete Account
@@ -725,6 +2988,73 @@ paths:
       summary: Admin Overview
       operationId: admin_overview_api_v1_admin_overview_get
       parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/admin/records/{resource}:
+    get:
+      summary: Admin Records
+      operationId: admin_records_api_v1_admin_records__resource__get
+      parameters:
+      - name: resource
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Resource
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100000
+          minimum: 0
+          default: 0
+          title: Offset
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 50
+          title: Limit
+      - name: q
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            maxLength: 80
+          - type: 'null'
+          title: Q
+      - name: status
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            maxLength: 30
+          - type: 'null'
+          title: Status
       - name: authorization
         in: header
         required: false
@@ -894,303 +3224,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
-  /api/v1/schedule/range:
-    get:
-      summary: List Operational Schedule Range
-      operationId: schedule_range_api_v1_schedule_range_get
-      responses:
-        '200': {description: Successful Response}
-  /api/v1/schedule/walk-ins:
-    post:
-      summary: Create Walk In
-      operationId: create_walk_in_api_v1_schedule_walk_ins_post
-      responses:
-        '201': {description: Successful Response}
-  /api/v1/schedule/blocks:
-    post:
-      summary: Create Schedule Block
-      operationId: create_schedule_block_api_v1_schedule_blocks_post
-      responses:
-        '201': {description: Successful Response}
-  /api/v1/schedule/blocks/{block_id}:
-    delete:
-      summary: Delete Schedule Block
-      operationId: delete_schedule_block_api_v1_schedule_blocks_block_id_delete
-      parameters:
-      - {name: block_id, in: path, required: true, schema: {type: string}}
-      responses:
-        '200': {description: Successful Response}
-  /api/v1/appointments/{appointment_id}/reschedule:
-    patch:
-      summary: Reschedule Appointment
-      operationId: reschedule_appointment_api_v1_appointments_appointment_id_reschedule_patch
-      parameters:
-      - {name: appointment_id, in: path, required: true, schema: {type: string}}
-      responses:
-        '200': {description: Successful Response}
-  /api/v1/appointments/{appointment_id}/confirmation:
-    patch:
-      summary: Register Appointment Confirmation
-      operationId: confirm_appointment_api_v1_appointments_appointment_id_confirmation_patch
-      parameters:
-      - {name: appointment_id, in: path, required: true, schema: {type: string}}
-      responses:
-        '200': {description: Successful Response}
-  /api/v1/appointments/{appointment_id}/no-show:
-    patch:
-      summary: Register Appointment No Show
-      operationId: no_show_appointment_api_v1_appointments_appointment_id_no_show_patch
-      parameters:
-      - {name: appointment_id, in: path, required: true, schema: {type: string}}
-      responses:
-        '200': {description: Successful Response}
-  /api/v1/crm/clients:
-    get:
-      summary: List CRM Clients
-      operationId: list_crm_clients_api_v1_crm_clients_get
-      responses:
-        '200': {description: Successful Response}
-  /api/v1/crm/clients/{client_id}:
-    get:
-      summary: Get CRM Client
-      operationId: get_crm_client_api_v1_crm_clients_client_id_get
-      parameters:
-      - {name: client_id, in: path, required: true, schema: {type: string}}
-      responses:
-        '200': {description: Successful Response}
-    patch:
-      summary: Update CRM Client
-      operationId: update_crm_client_api_v1_crm_clients_client_id_patch
-      parameters:
-      - {name: client_id, in: path, required: true, schema: {type: string}}
-      responses:
-        '200': {description: Successful Response}
-  /api/v1/crm/clients/{client_id}/notes:
-    post:
-      summary: Add CRM Note
-      operationId: add_crm_note_api_v1_crm_clients_client_id_notes_post
-      parameters:
-      - {name: client_id, in: path, required: true, schema: {type: string}}
-      responses:
-        '201': {description: Successful Response}
-  /api/v1/finance/summary:
-    get:
-      summary: Financial Summary
-      operationId: finance_summary_api_v1_finance_summary_get
-      responses:
-        '200': {description: Successful Response}
-  /api/v1/finance/entries:
-    get:
-      summary: List Financial Entries
-      operationId: finance_entries_api_v1_finance_entries_get
-      responses:
-        '200': {description: Successful Response}
-  /api/v1/finance/adjustments:
-    post:
-      summary: Create Financial Adjustment
-      operationId: create_financial_adjustment_api_v1_finance_adjustments_post
-      responses:
-        '201': {description: Successful Response}
-  /api/v1/finance/closings:
-    post:
-      summary: Close Financial Day
-      operationId: close_financial_day_api_v1_finance_closings_post
-      responses:
-        '201': {description: Successful Response}
-  /api/v1/finance/commission-rules:
-    get:
-      summary: List Commission Rules
-      operationId: commission_rules_api_v1_finance_commission_rules_get
-      responses:
-        '200': {description: Successful Response}
-    post:
-      summary: Create Commission Rule
-      operationId: create_commission_rule_api_v1_finance_commission_rules_post
-      responses:
-        '201': {description: Successful Response}
-  /api/v1/finance/commission-rules/{rule_id}:
-    patch:
-      summary: Update Commission Rule
-      operationId: update_commission_rule_api_v1_finance_commission_rules_rule_id_patch
-      parameters:
-      - {name: rule_id, in: path, required: true, schema: {type: string}}
-      responses:
-        '200': {description: Successful Response}
-  /api/v1/team/members:
-    get:
-      summary: List Team Members
-      operationId: team_members_api_v1_team_members_get
-      responses:
-        '200': {description: Successful Response}
-    post:
-      summary: Link Team Member
-      operationId: link_team_member_api_v1_team_members_post
-      responses:
-        '201': {description: Successful Response}
-  /api/v1/team/members/{member_id}:
-    patch:
-      summary: Update Team Member
-      operationId: update_team_member_api_v1_team_members_member_id_patch
-      parameters:
-      - {name: member_id, in: path, required: true, schema: {type: string}}
-      responses:
-        '200': {description: Successful Response}
-  /api/v1/retention/waitlist:
-    get:
-      summary: List Waitlist
-      operationId: retention_waitlist_api_v1_retention_waitlist_get
-      responses:
-        '200': {description: Successful Response}
-    post:
-      summary: Join Waitlist
-      operationId: join_retention_waitlist_api_v1_retention_waitlist_post
-      responses:
-        '201': {description: Successful Response}
-  /api/v1/retention/waitlist/{item_id}:
-    patch:
-      summary: Update Waitlist Item
-      operationId: update_retention_waitlist_api_v1_retention_waitlist_item_id_patch
-      parameters:
-      - {name: item_id, in: path, required: true, schema: {type: string}}
-      responses:
-        '200': {description: Successful Response}
-  /api/v1/appointments/{appointment_id}/recurrence:
-    post:
-      summary: Create Appointment Recurrence
-      operationId: create_appointment_recurrence_api_v1_appointments_appointment_id_recurrence_post
-      parameters:
-      - {name: appointment_id, in: path, required: true, schema: {type: string}}
-      responses:
-        '201': {description: Successful Response}
-  /api/v1/retention/recurrences:
-    get:
-      summary: List Recurrences
-      operationId: retention_recurrences_api_v1_retention_recurrences_get
-      responses:
-        '200': {description: Successful Response}
-  /api/v1/retention/loyalty:
-    get:
-      summary: Loyalty Overview
-      operationId: loyalty_overview_api_v1_retention_loyalty_get
-      responses:
-        '200': {description: Successful Response}
-  /api/v1/client/loyalty:
-    get:
-      summary: Client Loyalty Wallets
-      operationId: client_loyalty_api_v1_client_loyalty_get
-      responses:
-        '200': {description: Successful Response}
-  /api/v1/retention/loyalty/program:
-    put:
-      summary: Upsert Loyalty Program
-      operationId: upsert_loyalty_program_api_v1_retention_loyalty_program_put
-      responses:
-        '200': {description: Successful Response}
-  /api/v1/retention/loyalty/rewards:
-    post:
-      summary: Create Loyalty Reward
-      operationId: create_loyalty_reward_api_v1_retention_loyalty_rewards_post
-      responses:
-        '201': {description: Successful Response}
-  /api/v1/retention/loyalty/rewards/{reward_id}:
-    patch:
-      summary: Update Loyalty Reward
-      operationId: update_loyalty_reward_api_v1_retention_loyalty_rewards_reward_id_patch
-      parameters:
-      - {name: reward_id, in: path, required: true, schema: {type: string}}
-      responses:
-        '200': {description: Successful Response}
-  /api/v1/retention/loyalty/rewards/{reward_id}/redeem:
-    post:
-      summary: Redeem Loyalty Reward
-      operationId: redeem_loyalty_reward_api_v1_retention_loyalty_rewards_reward_id_redeem_post
-      parameters:
-      - {name: reward_id, in: path, required: true, schema: {type: string}}
-      responses:
-        '200': {description: Successful Response}
-  /api/v1/retention/coupons:
-    get:
-      summary: List Coupons
-      operationId: retention_coupons_api_v1_retention_coupons_get
-      responses:
-        '200': {description: Successful Response}
-    post:
-      summary: Create Coupon
-      operationId: create_retention_coupon_api_v1_retention_coupons_post
-      responses:
-        '201': {description: Successful Response}
-  /api/v1/retention/coupons/{coupon_id}:
-    patch:
-      summary: Update Coupon
-      operationId: update_retention_coupon_api_v1_retention_coupons_coupon_id_patch
-      parameters:
-      - {name: coupon_id, in: path, required: true, schema: {type: string}}
-      responses:
-        '200': {description: Successful Response}
-  /api/v1/retention/campaigns:
-    get:
-      summary: List Campaigns
-      operationId: retention_campaigns_api_v1_retention_campaigns_get
-      responses:
-        '200': {description: Successful Response}
-    post:
-      summary: Create Campaign
-      operationId: create_retention_campaign_api_v1_retention_campaigns_post
-      responses:
-        '201': {description: Successful Response}
-  /api/v1/team/permissions:
-    get:
-      summary: Effective Team Permissions
-      operationId: team_permissions_api_v1_team_permissions_get
-      responses:
-        '200': {description: Successful Response}
-  /api/v1/team/members/{member_id}/permissions:
-    patch:
-      summary: Update Team Permissions
-      operationId: update_team_permissions_api_v1_team_members_member_id_permissions_patch
-      parameters:
-      - {name: member_id, in: path, required: true, schema: {type: string}}
-      responses:
-        '200': {description: Successful Response}
-  /api/v1/growth/insights:
-    get:
-      summary: Growth Insights
-      operationId: growth_insights_api_v1_growth_insights_get
-      responses:
-        '200': {description: Successful Response}
-  /api/v1/growth/opportunities:
-    get:
-      summary: Growth Opportunities
-      operationId: growth_opportunities_api_v1_growth_opportunities_get
-      responses:
-        '200': {description: Successful Response}
-  /api/v1/growth/opportunities/{opportunity_id}:
-    patch:
-      summary: Update Growth Opportunity
-      operationId: update_growth_opportunity_api_v1_growth_opportunities_opportunity_id_patch
-      parameters:
-      - {name: opportunity_id, in: path, required: true, schema: {type: string}}
-      responses:
-        '200': {description: Successful Response}
-  /api/v1/growth/goals:
-    get:
-      summary: List Growth Goals
-      operationId: growth_goals_api_v1_growth_goals_get
-      responses:
-        '200': {description: Successful Response}
-    post:
-      summary: Create Growth Goal
-      operationId: create_growth_goal_api_v1_growth_goals_post
-      responses:
-        '201': {description: Successful Response}
-  /api/v1/growth/goals/{goal_id}:
-    patch:
-      summary: Update Growth Goal
-      operationId: update_growth_goal_api_v1_growth_goals_goal_id_patch
-      parameters:
-      - {name: goal_id, in: path, required: true, schema: {type: string}}
-      responses:
-        '200': {description: Successful Response}
 components:
   schemas:
     AdminSubscriptionUpdate:
@@ -1240,6 +3273,25 @@ components:
           default: Cancelado pelo cliente
       type: object
       title: AppointmentCancelRequest
+    AppointmentConfirmation:
+      properties:
+        origem:
+          type: string
+          enum:
+          - cliente
+          - estabelecimento
+          title: Origem
+        confirmacao:
+          type: string
+          enum:
+          - confirmada
+          - recusada
+          title: Confirmacao
+      type: object
+      required:
+      - origem
+      - confirmacao
+      title: AppointmentConfirmation
     AppointmentCreate:
       properties:
         estabelecimento_id:
@@ -1272,6 +3324,13 @@ components:
             maxLength: 800
           - type: 'null'
           title: Observacao
+        cupom_codigo:
+          anyOf:
+          - type: string
+            maxLength: 40
+            minLength: 3
+          - type: 'null'
+          title: Cupom Codigo
       type: object
       required:
       - estabelecimento_id
@@ -1280,6 +3339,26 @@ components:
       - data
       - hora_inicio
       title: AppointmentCreate
+    AppointmentReschedule:
+      properties:
+        profissional_id:
+          type: string
+          format: uuid
+          title: Profissional Id
+        data:
+          type: string
+          format: date
+          title: Data
+        hora_inicio:
+          type: string
+          format: time
+          title: Hora Inicio
+      type: object
+      required:
+      - profissional_id
+      - data
+      - hora_inicio
+      title: AppointmentReschedule
     AppointmentStatusUpdate:
       properties:
         status:
@@ -1300,6 +3379,340 @@ components:
       required:
       - status
       title: AppointmentStatusUpdate
+    CRMClientUpdate:
+      properties:
+        preferencias:
+          anyOf:
+          - type: string
+            maxLength: 2000
+          - type: 'null'
+          title: Preferencias
+        tags:
+          anyOf:
+          - items:
+              type: string
+            type: array
+            maxItems: 12
+          - type: 'null'
+          title: Tags
+        permite_whatsapp:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Permite Whatsapp
+        permite_email_marketing:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Permite Email Marketing
+        data_nascimento:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          title: Data Nascimento
+      type: object
+      title: CRMClientUpdate
+    CRMNoteCreate:
+      properties:
+        conteudo:
+          type: string
+          maxLength: 2000
+          minLength: 2
+          title: Conteudo
+      type: object
+      required:
+      - conteudo
+      title: CRMNoteCreate
+    CampaignCreate:
+      properties:
+        estabelecimento_id:
+          type: string
+          format: uuid
+          title: Estabelecimento Id
+        nome:
+          type: string
+          maxLength: 120
+          minLength: 3
+          title: Nome
+        segmento:
+          type: string
+          enum:
+          - todos
+          - novo
+          - recorrente
+          - em_risco
+          - inativo
+          - aniversariante
+          title: Segmento
+        canal:
+          type: string
+          enum:
+          - interno
+          - email
+          - whatsapp
+          title: Canal
+        assunto:
+          anyOf:
+          - type: string
+            maxLength: 160
+          - type: 'null'
+          title: Assunto
+        mensagem:
+          type: string
+          maxLength: 1000
+          minLength: 5
+          title: Mensagem
+        agendada_para:
+          type: string
+          format: date-time
+          title: Agendada Para
+      type: object
+      required:
+      - estabelecimento_id
+      - nome
+      - segmento
+      - canal
+      - mensagem
+      - agendada_para
+      title: CampaignCreate
+    CommissionRuleCreate:
+      properties:
+        estabelecimento_id:
+          type: string
+          format: uuid
+          title: Estabelecimento Id
+        profissional_id:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Profissional Id
+        servico_id:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Servico Id
+        tipo:
+          type: string
+          enum:
+          - percentual
+          - fixo
+          title: Tipo
+        valor:
+          anyOf:
+          - type: number
+            maximum: 1000000.0
+            minimum: 0.0
+          - type: string
+            pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+          title: Valor
+        ativo:
+          type: boolean
+          title: Ativo
+          default: true
+      type: object
+      required:
+      - estabelecimento_id
+      - tipo
+      - valor
+      title: CommissionRuleCreate
+    CommissionRuleUpdate:
+      properties:
+        tipo:
+          anyOf:
+          - type: string
+            enum:
+            - percentual
+            - fixo
+          - type: 'null'
+          title: Tipo
+        valor:
+          anyOf:
+          - type: number
+            maximum: 1000000.0
+            minimum: 0.0
+          - type: string
+            pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+          - type: 'null'
+          title: Valor
+        ativo:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Ativo
+      type: object
+      title: CommissionRuleUpdate
+    CouponCreate:
+      properties:
+        estabelecimento_id:
+          type: string
+          format: uuid
+          title: Estabelecimento Id
+        codigo:
+          type: string
+          maxLength: 40
+          minLength: 3
+          pattern: ^[A-Za-z0-9_-]+$
+          title: Codigo
+        nome:
+          type: string
+          maxLength: 120
+          minLength: 3
+          title: Nome
+        tipo_desconto:
+          type: string
+          enum:
+          - percentual
+          - fixo
+          title: Tipo Desconto
+        valor_desconto:
+          anyOf:
+          - type: number
+            maximum: 1000000.0
+            exclusiveMinimum: 0.0
+          - type: string
+            pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+          title: Valor Desconto
+        desconto_maximo:
+          anyOf:
+          - type: number
+            maximum: 1000000.0
+            exclusiveMinimum: 0.0
+          - type: string
+            pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+          - type: 'null'
+          title: Desconto Maximo
+        valor_minimo:
+          anyOf:
+          - type: number
+            maximum: 1000000.0
+            minimum: 0.0
+          - type: string
+            pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+          title: Valor Minimo
+          default: 0
+        limite_total:
+          anyOf:
+          - type: integer
+            maximum: 1000000.0
+            exclusiveMinimum: 0.0
+          - type: 'null'
+          title: Limite Total
+        limite_por_cliente:
+          type: integer
+          maximum: 100.0
+          minimum: 1.0
+          title: Limite Por Cliente
+          default: 1
+        inicia_em:
+          type: string
+          format: date-time
+          title: Inicia Em
+        termina_em:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Termina Em
+        ativo:
+          type: boolean
+          title: Ativo
+          default: true
+      type: object
+      required:
+      - estabelecimento_id
+      - codigo
+      - nome
+      - tipo_desconto
+      - valor_desconto
+      - inicia_em
+      title: CouponCreate
+    CouponUpdate:
+      properties:
+        nome:
+          anyOf:
+          - type: string
+            maxLength: 120
+            minLength: 3
+          - type: 'null'
+          title: Nome
+        valor_desconto:
+          anyOf:
+          - type: number
+            maximum: 1000000.0
+            exclusiveMinimum: 0.0
+          - type: string
+            pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+          - type: 'null'
+          title: Valor Desconto
+        desconto_maximo:
+          anyOf:
+          - type: number
+            maximum: 1000000.0
+            exclusiveMinimum: 0.0
+          - type: string
+            pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+          - type: 'null'
+          title: Desconto Maximo
+        valor_minimo:
+          anyOf:
+          - type: number
+            maximum: 1000000.0
+            minimum: 0.0
+          - type: string
+            pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+          - type: 'null'
+          title: Valor Minimo
+        limite_total:
+          anyOf:
+          - type: integer
+            maximum: 1000000.0
+            exclusiveMinimum: 0.0
+          - type: 'null'
+          title: Limite Total
+        limite_por_cliente:
+          anyOf:
+          - type: integer
+            maximum: 100.0
+            minimum: 1.0
+          - type: 'null'
+          title: Limite Por Cliente
+        termina_em:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Termina Em
+        ativo:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Ativo
+      type: object
+      title: CouponUpdate
+    DayClosingCreate:
+      properties:
+        estabelecimento_id:
+          type: string
+          format: uuid
+          title: Estabelecimento Id
+        data:
+          type: string
+          format: date
+          title: Data
+        observacao:
+          anyOf:
+          - type: string
+            maxLength: 800
+          - type: 'null'
+          title: Observacao
+      type: object
+      required:
+      - estabelecimento_id
+      - data
+      title: DayClosingCreate
     DeleteAccountRequest:
       properties:
         confirmacao:
@@ -1310,6 +3723,105 @@ components:
       required:
       - confirmacao
       title: DeleteAccountRequest
+    EstablishmentLocationUpdate:
+      properties:
+        logradouro:
+          type: string
+          maxLength: 180
+          minLength: 2
+          title: Logradouro
+        numero:
+          anyOf:
+          - type: string
+            maxLength: 30
+          - type: 'null'
+          title: Numero
+        complemento:
+          anyOf:
+          - type: string
+            maxLength: 120
+          - type: 'null'
+          title: Complemento
+        bairro:
+          type: string
+          maxLength: 120
+          minLength: 2
+          title: Bairro
+        cidade:
+          type: string
+          maxLength: 120
+          minLength: 2
+          title: Cidade
+        estado:
+          type: string
+          maxLength: 2
+          minLength: 2
+          pattern: ^[A-Za-z]{2}$
+          title: Estado
+        cep:
+          type: string
+          maxLength: 10
+          minLength: 8
+          title: Cep
+        pais:
+          type: string
+          maxLength: 2
+          minLength: 2
+          pattern: ^[A-Za-z]{2}$
+          title: Pais
+          default: BR
+        latitude:
+          anyOf:
+          - type: number
+            maximum: 90.0
+            minimum: -90.0
+          - type: string
+            pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+          - type: 'null'
+          title: Latitude
+        longitude:
+          anyOf:
+          - type: number
+            maximum: 180.0
+            minimum: -180.0
+          - type: string
+            pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+          - type: 'null'
+          title: Longitude
+        precisao_localizacao:
+          anyOf:
+          - type: string
+            enum:
+            - endereco
+            - logradouro
+            - bairro
+            - cidade
+            - manual
+          - type: 'null'
+          title: Precisao Localizacao
+        codigo_municipio_ibge:
+          anyOf:
+          - type: string
+            pattern: ^\d{7}$
+          - type: 'null'
+          title: Codigo Municipio Ibge
+        raio_atendimento_km:
+          anyOf:
+          - type: number
+            maximum: 500.0
+            minimum: 0.0
+          - type: string
+            pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+          - type: 'null'
+          title: Raio Atendimento Km
+      type: object
+      required:
+      - logradouro
+      - bairro
+      - cidade
+      - estado
+      - cep
+      title: EstablishmentLocationUpdate
     EstablishmentStatusUpdate:
       properties:
         status:
@@ -1478,6 +3990,211 @@ components:
           title: Limite Dias Agendamento
       type: object
       title: EstablishmentUpdate
+    ExpenseCreate:
+      properties:
+        estabelecimento_id:
+          type: string
+          format: uuid
+          title: Estabelecimento Id
+        competencia:
+          type: string
+          format: date
+          title: Competencia
+        valor:
+          anyOf:
+          - type: number
+            maximum: 1000000.0
+            exclusiveMinimum: 0.0
+          - type: string
+            pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+          title: Valor
+        categoria:
+          type: string
+          maxLength: 80
+          minLength: 2
+          title: Categoria
+        descricao:
+          type: string
+          maxLength: 180
+          minLength: 2
+          title: Descricao
+        forma_pagamento:
+          anyOf:
+          - type: string
+            enum:
+            - dinheiro
+            - pix
+            - credito
+            - debito
+            - boleto
+            - transferencia
+            - outro
+          - type: 'null'
+          title: Forma Pagamento
+        observacao:
+          anyOf:
+          - type: string
+            maxLength: 500
+          - type: 'null'
+          title: Observacao
+        chave_idempotencia:
+          type: string
+          maxLength: 100
+          minLength: 16
+          pattern: ^[A-Za-z0-9._:-]+$
+          title: Chave Idempotencia
+      type: object
+      required:
+      - estabelecimento_id
+      - competencia
+      - valor
+      - categoria
+      - descricao
+      - chave_idempotencia
+      title: ExpenseCreate
+    FeatureFlagEvaluationRequest:
+      properties:
+        estabelecimento_id:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Estabelecimento Id
+        chaves:
+          items:
+            type: string
+          type: array
+          maxItems: 50
+          minItems: 1
+          title: Chaves
+      type: object
+      required:
+      - chaves
+      title: FeatureFlagEvaluationRequest
+    FinancialAdjustmentCreate:
+      properties:
+        estabelecimento_id:
+          type: string
+          format: uuid
+          title: Estabelecimento Id
+        competencia:
+          type: string
+          format: date
+          title: Competencia
+        natureza:
+          type: string
+          enum:
+          - credito
+          - debito
+          title: Natureza
+        valor:
+          anyOf:
+          - type: number
+            maximum: 1000000.0
+            exclusiveMinimum: 0.0
+          - type: string
+            pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+          title: Valor
+        descricao:
+          type: string
+          maxLength: 180
+          minLength: 2
+          title: Descricao
+        motivo:
+          type: string
+          maxLength: 500
+          minLength: 3
+          title: Motivo
+      type: object
+      required:
+      - estabelecimento_id
+      - competencia
+      - natureza
+      - valor
+      - descricao
+      - motivo
+      title: FinancialAdjustmentCreate
+    GoalCreate:
+      properties:
+        estabelecimento_id:
+          type: string
+          format: uuid
+          title: Estabelecimento Id
+        profissional_id:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Profissional Id
+        tipo:
+          type: string
+          enum:
+          - receita
+          - atendimentos
+          - ticket_medio
+          - novos_clientes
+          - ocupacao
+          title: Tipo
+        nome:
+          type: string
+          maxLength: 120
+          minLength: 3
+          title: Nome
+        valor_alvo:
+          anyOf:
+          - type: number
+            maximum: 1000000000.0
+            exclusiveMinimum: 0.0
+          - type: string
+            pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+          title: Valor Alvo
+        periodo_inicio:
+          type: string
+          format: date
+          title: Periodo Inicio
+        periodo_fim:
+          type: string
+          format: date
+          title: Periodo Fim
+      type: object
+      required:
+      - estabelecimento_id
+      - tipo
+      - nome
+      - valor_alvo
+      - periodo_inicio
+      - periodo_fim
+      title: GoalCreate
+    GoalUpdate:
+      properties:
+        nome:
+          anyOf:
+          - type: string
+            maxLength: 120
+            minLength: 3
+          - type: 'null'
+          title: Nome
+        valor_alvo:
+          anyOf:
+          - type: number
+            maximum: 1000000000.0
+            exclusiveMinimum: 0.0
+          - type: string
+            pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+          - type: 'null'
+          title: Valor Alvo
+        status:
+          anyOf:
+          - type: string
+            enum:
+            - ativa
+            - atingida
+            - encerrada
+            - cancelada
+          - type: 'null'
+          title: Status
+      type: object
+      title: GoalUpdate
     HTTPValidationError:
       properties:
         detail:
@@ -1487,6 +4204,350 @@ components:
           title: Detail
       type: object
       title: HTTPValidationError
+    ImportCommitRequest:
+      properties:
+        confirmar:
+          type: boolean
+          const: true
+          title: Confirmar
+      type: object
+      required:
+      - confirmar
+      title: ImportCommitRequest
+    ImportPreviewRequest:
+      properties:
+        estabelecimento_id:
+          type: string
+          format: uuid
+          title: Estabelecimento Id
+        tipo:
+          type: string
+          enum:
+          - clientes
+          - servicos
+          title: Tipo
+        arquivo_nome:
+          type: string
+          maxLength: 180
+          minLength: 5
+          pattern: (?i)^.+\.(csv|xlsx)$
+          title: Arquivo Nome
+        conteudo_base64:
+          type: string
+          maxLength: 5700000
+          minLength: 4
+          title: Conteudo Base64
+      type: object
+      required:
+      - estabelecimento_id
+      - tipo
+      - arquivo_nome
+      - conteudo_base64
+      title: ImportPreviewRequest
+    LoyaltyProgramUpsert:
+      properties:
+        estabelecimento_id:
+          type: string
+          format: uuid
+          title: Estabelecimento Id
+        nome:
+          type: string
+          maxLength: 100
+          minLength: 3
+          title: Nome
+          default: Clube de fidelidade
+        pontos_por_visita:
+          type: integer
+          maximum: 10000.0
+          minimum: 0.0
+          title: Pontos Por Visita
+          default: 1
+        reais_por_ponto:
+          anyOf:
+          - type: number
+            maximum: 1000000.0
+            minimum: 0.0
+          - type: string
+            pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+          title: Reais Por Ponto
+          default: 0
+        validade_dias:
+          anyOf:
+          - type: integer
+            maximum: 3650.0
+            minimum: 1.0
+          - type: 'null'
+          title: Validade Dias
+        ativo:
+          type: boolean
+          title: Ativo
+          default: true
+      type: object
+      required:
+      - estabelecimento_id
+      title: LoyaltyProgramUpsert
+    LoyaltyRedeem:
+      properties:
+        cliente_id:
+          type: string
+          format: uuid
+          title: Cliente Id
+      type: object
+      required:
+      - cliente_id
+      title: LoyaltyRedeem
+    LoyaltyRewardCreate:
+      properties:
+        programa_id:
+          type: string
+          format: uuid
+          title: Programa Id
+        nome:
+          type: string
+          maxLength: 120
+          minLength: 3
+          title: Nome
+        descricao:
+          anyOf:
+          - type: string
+            maxLength: 600
+          - type: 'null'
+          title: Descricao
+        pontos_necessarios:
+          type: integer
+          maximum: 10000000.0
+          exclusiveMinimum: 0.0
+          title: Pontos Necessarios
+        estoque:
+          anyOf:
+          - type: integer
+            maximum: 1000000.0
+            minimum: 0.0
+          - type: 'null'
+          title: Estoque
+        ativo:
+          type: boolean
+          title: Ativo
+          default: true
+      type: object
+      required:
+      - programa_id
+      - nome
+      - pontos_necessarios
+      title: LoyaltyRewardCreate
+    LoyaltyRewardUpdate:
+      properties:
+        nome:
+          anyOf:
+          - type: string
+            maxLength: 120
+            minLength: 3
+          - type: 'null'
+          title: Nome
+        descricao:
+          anyOf:
+          - type: string
+            maxLength: 600
+          - type: 'null'
+          title: Descricao
+        pontos_necessarios:
+          anyOf:
+          - type: integer
+            maximum: 10000000.0
+            exclusiveMinimum: 0.0
+          - type: 'null'
+          title: Pontos Necessarios
+        estoque:
+          anyOf:
+          - type: integer
+            maximum: 1000000.0
+            minimum: 0.0
+          - type: 'null'
+          title: Estoque
+        ativo:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Ativo
+      type: object
+      title: LoyaltyRewardUpdate
+    ManualServiceCreate:
+      properties:
+        estabelecimento_id:
+          type: string
+          format: uuid
+          title: Estabelecimento Id
+        profissional_id:
+          type: string
+          format: uuid
+          title: Profissional Id
+        servico_id:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Servico Id
+        servico_nome:
+          anyOf:
+          - type: string
+            maxLength: 140
+            minLength: 2
+          - type: 'null'
+          title: Servico Nome
+        duracao_min:
+          anyOf:
+          - type: integer
+            maximum: 480.0
+            minimum: 5.0
+          - type: 'null'
+          title: Duracao Min
+        cliente_id:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Cliente Id
+        cliente_nome:
+          anyOf:
+          - type: string
+            maxLength: 140
+            minLength: 2
+          - type: 'null'
+          title: Cliente Nome
+        cliente_email:
+          anyOf:
+          - type: string
+            format: email
+          - type: 'null'
+          title: Cliente Email
+        cliente_telefone:
+          anyOf:
+          - type: string
+            maxLength: 40
+          - type: 'null'
+          title: Cliente Telefone
+        inicio:
+          type: string
+          format: date-time
+          title: Inicio
+        valor:
+          anyOf:
+          - type: number
+            maximum: 1000000.0
+            minimum: 0.0
+          - type: string
+            pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+          title: Valor
+        forma_pagamento:
+          type: string
+          enum:
+          - dinheiro
+          - pix
+          - credito
+          - debito
+          - outro
+          title: Forma Pagamento
+        canal_origem:
+          type: string
+          enum:
+          - balcao
+          - whatsapp
+          - telefone
+          - barber_hub
+          - outro
+          title: Canal Origem
+        observacao:
+          anyOf:
+          - type: string
+            maxLength: 800
+          - type: 'null'
+          title: Observacao
+        chave_idempotencia:
+          type: string
+          maxLength: 100
+          minLength: 16
+          pattern: ^[A-Za-z0-9._:-]+$
+          title: Chave Idempotencia
+        concluir:
+          type: boolean
+          const: true
+          title: Concluir
+          default: true
+      type: object
+      required:
+      - estabelecimento_id
+      - profissional_id
+      - inicio
+      - valor
+      - forma_pagamento
+      - canal_origem
+      - chave_idempotencia
+      title: ManualServiceCreate
+    OpeningPeriodInput:
+      properties:
+        dia_semana:
+          type: integer
+          maximum: 6.0
+          minimum: 0.0
+          title: Dia Semana
+        abre:
+          type: string
+          format: time
+          title: Abre
+        fecha:
+          type: string
+          format: time
+          title: Fecha
+        fecha_dia_seguinte:
+          type: boolean
+          title: Fecha Dia Seguinte
+          default: false
+        ordem:
+          type: integer
+          maximum: 8.0
+          minimum: 1.0
+          title: Ordem
+          default: 1
+        ativo:
+          type: boolean
+          title: Ativo
+          default: true
+      type: object
+      required:
+      - dia_semana
+      - abre
+      - fecha
+      title: OpeningPeriodInput
+    OpeningPeriodsReplace:
+      properties:
+        estabelecimento_id:
+          type: string
+          format: uuid
+          title: Estabelecimento Id
+        periodos:
+          items:
+            $ref: '#/components/schemas/OpeningPeriodInput'
+          type: array
+          maxItems: 56
+          title: Periodos
+      type: object
+      required:
+      - estabelecimento_id
+      title: OpeningPeriodsReplace
+    OpportunityUpdate:
+      properties:
+        status:
+          type: string
+          enum:
+          - aberta
+          - concluida
+          - ignorada
+          - expirada
+          title: Status
+      type: object
+      required:
+      - status
+      title: OpportunityUpdate
     PasswordRecoveryRequest:
       properties:
         motivo:
@@ -1705,6 +4766,171 @@ components:
           title: Ativo
       type: object
       title: PromotionUpdate
+    PushPreferencesUpdate:
+      properties:
+        estabelecimento_id:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Estabelecimento Id
+        agendamentos:
+          type: boolean
+          title: Agendamentos
+          default: true
+        confirmacoes:
+          type: boolean
+          title: Confirmacoes
+          default: true
+        cancelamentos:
+          type: boolean
+          title: Cancelamentos
+          default: true
+        lembretes:
+          type: boolean
+          title: Lembretes
+          default: true
+        lista_espera:
+          type: boolean
+          title: Lista Espera
+          default: true
+        oportunidades:
+          type: boolean
+          title: Oportunidades
+          default: false
+        campanhas:
+          type: boolean
+          title: Campanhas
+          default: false
+        horario_silencioso_inicio:
+          anyOf:
+          - type: string
+            format: time
+          - type: 'null'
+          title: Horario Silencioso Inicio
+        horario_silencioso_fim:
+          anyOf:
+          - type: string
+            format: time
+          - type: 'null'
+          title: Horario Silencioso Fim
+      type: object
+      title: PushPreferencesUpdate
+    PushSubscriptionCreate:
+      properties:
+        estabelecimento_id:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Estabelecimento Id
+        endpoint:
+          type: string
+          maxLength: 2048
+          minLength: 20
+          pattern: ^https://
+          title: Endpoint
+        p256dh:
+          type: string
+          maxLength: 512
+          minLength: 16
+          pattern: ^[A-Za-z0-9_-]+={0,2}$
+          title: P256Dh
+        auth:
+          type: string
+          maxLength: 256
+          minLength: 8
+          pattern: ^[A-Za-z0-9_-]+={0,2}$
+          title: Auth
+        expiracao:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Expiracao
+        user_agent:
+          anyOf:
+          - type: string
+            maxLength: 500
+          - type: 'null'
+          title: User Agent
+      type: object
+      required:
+      - endpoint
+      - p256dh
+      - auth
+      title: PushSubscriptionCreate
+    PushUnsubscribeRequest:
+      properties:
+        endpoint:
+          type: string
+          maxLength: 2048
+          minLength: 20
+          pattern: ^https://
+          title: Endpoint
+      type: object
+      required:
+      - endpoint
+      title: PushUnsubscribeRequest
+    RecurrenceCreate:
+      properties:
+        frequencia:
+          type: string
+          enum:
+          - semanal
+          - quinzenal
+          - mensal
+          title: Frequencia
+        total_ocorrencias:
+          type: integer
+          maximum: 24.0
+          minimum: 2.0
+          title: Total Ocorrencias
+      type: object
+      required:
+      - frequencia
+      - total_ocorrencias
+      title: RecurrenceCreate
+    ScheduleBlockCreate:
+      properties:
+        estabelecimento_id:
+          type: string
+          format: uuid
+          title: Estabelecimento Id
+        profissional_id:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Profissional Id
+        inicio:
+          type: string
+          format: date-time
+          title: Inicio
+        fim:
+          type: string
+          format: date-time
+          title: Fim
+        tipo:
+          type: string
+          enum:
+          - bloqueio
+          - pausa
+          - indisponibilidade
+          title: Tipo
+          default: bloqueio
+        motivo:
+          anyOf:
+          - type: string
+            maxLength: 300
+          - type: 'null'
+          title: Motivo
+      type: object
+      required:
+      - estabelecimento_id
+      - inicio
+      - fim
+      title: ScheduleBlockCreate
     ServiceCreate:
       properties:
         estabelecimento_id:
@@ -1867,6 +5093,87 @@ components:
       - assunto
       - mensagem
       title: SupportTicketCreate
+    TeamMemberLink:
+      properties:
+        estabelecimento_id:
+          type: string
+          format: uuid
+          title: Estabelecimento Id
+        email:
+          type: string
+          format: email
+          title: Email
+        papel:
+          type: string
+          enum:
+          - gerente
+          - recepcao
+          - profissional
+          title: Papel
+        profissional_id:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Profissional Id
+      type: object
+      required:
+      - estabelecimento_id
+      - email
+      - papel
+      title: TeamMemberLink
+    TeamMemberUpdate:
+      properties:
+        papel:
+          anyOf:
+          - type: string
+            enum:
+            - gerente
+            - recepcao
+            - profissional
+          - type: 'null'
+          title: Papel
+        profissional_id:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Profissional Id
+        status:
+          anyOf:
+          - type: string
+            enum:
+            - ativo
+            - suspenso
+            - removido
+          - type: 'null'
+          title: Status
+      type: object
+      title: TeamMemberUpdate
+    TeamPermissionsUpdate:
+      properties:
+        permissoes:
+          additionalProperties:
+            type: boolean
+          propertyNames:
+            enum:
+            - agenda
+            - crm
+            - financeiro
+            - equipe
+            - configuracoes
+            - retencao
+            - campanhas
+            - crescimento
+            - metas
+          type: object
+          maxProperties: 9
+          minProperties: 1
+          title: Permissoes
+      type: object
+      required:
+      - permissoes
+      title: TeamPermissionsUpdate
     ValidationError:
       properties:
         loc:
@@ -1893,3 +5200,125 @@ components:
       - msg
       - type
       title: ValidationError
+    WaitlistCreate:
+      properties:
+        estabelecimento_id:
+          type: string
+          format: uuid
+          title: Estabelecimento Id
+        servico_id:
+          type: string
+          format: uuid
+          title: Servico Id
+        profissional_id:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Profissional Id
+        data_inicio:
+          type: string
+          format: date
+          title: Data Inicio
+        data_fim:
+          type: string
+          format: date
+          title: Data Fim
+        horario_inicio:
+          anyOf:
+          - type: string
+            format: time
+          - type: 'null'
+          title: Horario Inicio
+        horario_fim:
+          anyOf:
+          - type: string
+            format: time
+          - type: 'null'
+          title: Horario Fim
+        observacao:
+          anyOf:
+          - type: string
+            maxLength: 500
+          - type: 'null'
+          title: Observacao
+      type: object
+      required:
+      - estabelecimento_id
+      - servico_id
+      - data_inicio
+      - data_fim
+      title: WaitlistCreate
+    WaitlistUpdate:
+      properties:
+        status:
+          type: string
+          enum:
+          - aguardando
+          - avisado
+          - agendado
+          - cancelado
+          - expirado
+          title: Status
+      type: object
+      required:
+      - status
+      title: WaitlistUpdate
+    WalkInCreate:
+      properties:
+        estabelecimento_id:
+          type: string
+          format: uuid
+          title: Estabelecimento Id
+        profissional_id:
+          type: string
+          format: uuid
+          title: Profissional Id
+        servicos_ids:
+          items:
+            type: string
+            format: uuid
+          type: array
+          maxItems: 8
+          minItems: 1
+          title: Servicos Ids
+        cliente_nome:
+          type: string
+          maxLength: 140
+          minLength: 2
+          title: Cliente Nome
+        cliente_email:
+          anyOf:
+          - type: string
+            format: email
+          - type: 'null'
+          title: Cliente Email
+        cliente_telefone:
+          anyOf:
+          - type: string
+            maxLength: 40
+          - type: 'null'
+          title: Cliente Telefone
+        data:
+          type: string
+          format: date
+          title: Data
+        hora_inicio:
+          type: string
+          format: time
+          title: Hora Inicio
+        observacao:
+          anyOf:
+          - type: string
+            maxLength: 800
+          - type: 'null'
+          title: Observacao
+      type: object
+      required:
+      - estabelecimento_id
+      - profissional_id
+      - servicos_ids
+      - cliente_nome
+      - data
+      - hora_inicio
+      title: WalkInCreate

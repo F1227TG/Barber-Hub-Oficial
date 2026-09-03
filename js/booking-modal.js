@@ -165,6 +165,7 @@
     }
     container.innerHTML = `<div class="loading-inline"><i class="bi bi-arrow-repeat spin"></i> Consultando agenda...</div>`;
     try {
+      const preferredSlot = state.slot;
       const occupied = await bhObterHorariosOcupados(state.professionalId, state.date);
       const slots = bhSlotsComDisponibilidade(state.establishment, state.date, totals().duration || 30, occupied);
       if (!slots.length) {
@@ -175,6 +176,10 @@
       }
       const hasAvailable = slots.some(item => item.disponivel);
       container.innerHTML = `<div class="slot-grid">${slots.map(item => `<button type="button" class="slot ${item.disponivel ? "" : "ocupado"}" data-booking-slot="${item.horario}" ${item.disponivel ? "" : "disabled"}>${item.horario}</button>`).join("")}</div>${hasAvailable ? "" : waitlistEmpty()}`;
+      const preferredButton = preferredSlot && container.querySelector(`[data-booking-slot="${CSS.escape(preferredSlot)}"]:not([disabled])`);
+      state.slot = preferredButton ? preferredSlot : null;
+      preferredButton?.classList.add("ativo");
+      renderFooter();
     } catch (error) {
       container.innerHTML = `<div class="empty compact">${escapeHTML(bhErroMensagem(error))}</div>`;
     }
@@ -187,7 +192,9 @@
   async function joinWaitlist(button) {
     const profile = await bhGetPerfil();
     if (!profile) {
-      mostrarToast("aviso", "Entre para continuar", "Faça login para entrar na lista de espera.");
+      preserveBooking("waitlist");
+      mostrarToast("aviso", "Entre para continuar", "Sua escolha ficará salva enquanto você entra.");
+      setTimeout(() => { location.href = loginUrl(); }, 500);
       return;
     }
     const serviceId = [...state.services][0];
@@ -260,13 +267,8 @@
     const profile = await bhGetPerfil();
     if (!profile) {
       mostrarToast("aviso", "Entre para confirmar", "Os serviços e o profissional escolhidos serão mantidos após o login.");
-      const params = new URLSearchParams(location.search);
-      params.set("id", state.establishment.id);
-      params.set("agendar", "1");
-      if (state.services.size) params.set("servicos", [...state.services].join(","));
-      if (state.professionalId) params.set("profissional", state.professionalId);
-      const nextUrl = encodeURIComponent(`${location.pathname}?${params.toString()}`);
-      setTimeout(() => { location.href = `${bhUrl("html/login.html")}?next=${nextUrl}`; }, 550);
+      preserveBooking("booking");
+      setTimeout(() => { location.href = loginUrl(); }, 550);
       return;
     }
     state.loading = true;
@@ -284,6 +286,7 @@
         cupomCodigo: ensureModal().querySelector("#bookingModalCoupon").value.trim().toUpperCase() || null
       });
       mostrarToast("sucesso", "Agendamento enviado", "O estabelecimento recebeu sua solicitação.");
+      global.bhContinuation?.clear?.();
       close();
       setTimeout(() => { location.href = bhUrl("html/cliente.html"); }, 750);
       return result;
@@ -302,14 +305,16 @@
     if (!establishmentId) return;
     const modal = ensureModal();
     state.trigger = options.trigger || document.activeElement;
-    state.services = new Set((options.services || []).filter(Boolean));
-    state.professionalId = options.professional || null;
-    state.date = "";
-    state.slot = null;
+    const stored = global.bhContinuation?.peek?.("booking") || global.bhContinuation?.peek?.("waitlist");
+    const restored = stored?.payload?.establishmentId === establishmentId ? stored.payload : {};
+    state.services = new Set((options.services || restored.services || []).filter(Boolean));
+    state.professionalId = options.professional || restored.professional || null;
+    state.date = options.date || restored.date || "";
+    state.slot = options.slot || restored.slot || null;
     state.step = 1;
     state.loading = true;
-    modal.querySelector("#bookingModalCoupon").value = "";
-    modal.querySelector("#bookingModalNote").value = "";
+    modal.querySelector("#bookingModalCoupon").value = options.coupon || restored.coupon || "";
+    modal.querySelector("#bookingModalNote").value = options.note || restored.note || "";
     modal.classList.add("ativo");
     modal.setAttribute("aria-hidden", "false");
     document.body.style.overflow = "hidden";
@@ -323,8 +328,8 @@
       const validServices = new Set((state.establishment.servicos || []).map(item => item.id));
       state.services = new Set([...state.services].filter(id => validServices.has(id)));
       renderServices();
-      setStep(1);
-      modal.querySelector("[data-booking-panel='1'] button")?.focus();
+      setStep(state.services.size && state.professionalId && state.date ? 3 : 1);
+      modal.querySelector(`[data-booking-panel='${state.step}'] button, [data-booking-panel='${state.step}'] input`)?.focus();
     } catch (error) {
       mostrarToast("erro", "Agenda indisponível", bhErroMensagem(error));
       close();
@@ -341,6 +346,32 @@
     modal.setAttribute("aria-hidden", "true");
     document.body.style.overflow = "";
     state.trigger?.focus?.();
+  }
+
+  function continuationDestination() {
+    const params = new URLSearchParams(location.search);
+    params.set("id", state.establishment.id);
+    params.set("agendar", "1");
+    params.delete("servicos");
+    params.delete("servico");
+    params.delete("profissional");
+    return `${location.pathname}?${params.toString()}`;
+  }
+
+  function preserveBooking(action = "booking") {
+    global.bhContinuation?.capture?.(action, {
+      establishmentId: state.establishment.id,
+      services: [...state.services],
+      professional: state.professionalId,
+      date: state.date,
+      slot: state.slot,
+      coupon: ensureModal().querySelector("#bookingModalCoupon").value.trim().toUpperCase(),
+      note: ensureModal().querySelector("#bookingModalNote").value.trim()
+    }, continuationDestination());
+  }
+
+  function loginUrl() {
+    return `${bhUrl("html/login.html")}?next=${encodeURIComponent(continuationDestination())}`;
   }
 
   document.addEventListener("click", event => {

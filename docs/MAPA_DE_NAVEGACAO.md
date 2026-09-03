@@ -1,4 +1,4 @@
-# Mapa de navegação do Barber Hub 1.9.3
+# Mapa de navegação do Barber Hub 1.10.0
 
 O Barber Hub possui duas apresentações da mesma plataforma: web (`/html`) e app mobile (`/mobile`). Regras de negócio, API e scripts de domínio são compartilhados. Na 1.7, as páginas funcionais mobile são sincronizadas a partir das equivalentes web para impedir deriva de recursos.
 
@@ -175,7 +175,9 @@ Essas regras são verificadas automaticamente por `scripts/check-mobile-routing.
 ├── catalog/summary
 ├── marketplace
 │   ├── search
-│   └── featured
+│   ├── featured
+│   └── regional
+├── catalog/cover-library
 ├── appointments
 │   ├── POST /
 │   ├── PATCH /{id}/status
@@ -184,14 +186,16 @@ Essas regras são verificadas automaticamente por `scripts/check-mobile-routing.
 ├── schedule
 │   ├── GET /range
 │   ├── POST /walk-ins
-│   └── POST / DELETE /blocks
+│   ├── POST / DELETE /blocks
+│   ├── GET / PUT /opening-periods
+│   └── POST /manual-services
 ├── crm/clients
 │   ├── GET /
 │   ├── GET / PATCH /{id}
 │   └── POST /{id}/notes
 ├── finance
 │   ├── GET /summary /entries
-│   ├── POST /adjustments /closings
+│   ├── POST /adjustments /expenses /closings
 │   └── GET / POST / PATCH /commission-rules
 ├── team/members
 │   ├── GET / POST / PATCH
@@ -208,6 +212,7 @@ Essas regras são verificadas automaticamente por `scripts/check-mobile-routing.
 │   └── goals
 ├── establishments
 │   ├── PATCH /{id}
+│   ├── PUT /{id}/location
 │   └── PATCH /{id}/status
 ├── services
 │   ├── POST /
@@ -216,9 +221,19 @@ Essas regras são verificadas automaticamente por `scripts/check-mobile-routing.
 │   ├── POST /
 │   └── PATCH / DELETE /{id}
 ├── support/tickets
+├── imports
+│   ├── POST /preview
+│   ├── POST /{id}/commit
+│   └── GET /
+├── push
+│   ├── config / subscriptions
+│   └── preferences
+├── audit/operational
+├── features/evaluate
 ├── account
 └── admin
     ├── overview
+    ├── records/{resource}
     ├── health
     ├── navigation-audit
     └── users/{id}/password-recovery
@@ -245,3 +260,13 @@ A navegação admin global aponta para **Assinaturas** como página real, não c
 - `/html/painel.html#crescimento` e equivalente mobile reúnem a entrega 1.9.2;
 - o botão mobile `Mais` mostra somente destinos que o plano concede e que o membro pode acessar;
 - digitar uma âncora diretamente não contorna autorização: a API e o PostgreSQL repetem a validação.
+
+## Barber Hub 1.10 — operação e lançamento
+
+- Agenda inclui períodos, bloqueios, atendimento manual e serviço avulso no mesmo contexto profissional;
+- Clientes e Financeiro usam busca/filtros no servidor e carregamento progressivo;
+- o portal oferece região, “Perto de mim”, mapa e rota sem exigir localização;
+- Importar, Avisos, Auditoria e controles avançados aparecem em `Mais` somente quando o acesso efetivo permite;
+- o Admin carrega listas por recurso e página, evitando buscar o banco inteiro;
+- a página Beauty Hub permanece pública e encaminha para o produto irmão em desenvolvimento;
+- telas internas usam linguagem de produto e não expõem nomes de banco, migration ou chave ao usuário final.

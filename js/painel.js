@@ -92,7 +92,7 @@ function bhAtivarSecaoPainel(id) {
   const permissionMap = {
     secAgenda:["agenda"], secClientes:["crm"], secFinanceiro:["financeiro"],
     secRelacionamento:["retencao","campanhas"], secCrescimento:["crescimento","metas"],
-    secBarbeiros:["equipe"], secConfig:["configuracoes"]
+    secBarbeiros:["equipe"], secFerramentas:["configuracoes", "financeiro"], secConfig:["configuracoes"]
   };
   const requiredPermissions = permissionMap[id];
   if (bhPainelPermissoes && requiredPermissions && !requiredPermissions.some(key => bhPainelPermissoes[key])) {
@@ -170,6 +170,7 @@ function bhAplicarPermissoesEquipePainel() {
     secRelacionamento: ["retencao", "campanhas"],
     secCrescimento: ["crescimento", "metas"],
     secBarbeiros: ["equipe"],
+    secFerramentas: ["configuracoes", "financeiro"],
     secConfig: ["configuracoes"]
   };
   document.querySelectorAll("[data-panel]").forEach(button => {
@@ -712,7 +713,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   document.querySelectorAll("[data-panel]").forEach(botao => botao.addEventListener("click", () => bhAtivarSecaoPainel(botao.dataset.panel)));
   const hash = location.hash.replace("#", "");
-  const mapaHash = { agenda: "secAgenda", clientes: "secClientes", financeiro: "secFinanceiro", relacionamento: "secRelacionamento", crescimento: "secCrescimento", promocoes: "secPromocoes", servicos: "secServicos", equipe: "secBarbeiros", relatorios: "secRelatorios", galeria: "secGaleria", avaliacoes: "secAvaliacoes", configuracoes: "secConfig", pagina: "secPagina" };
+  const mapaHash = { agenda: "secAgenda", clientes: "secClientes", financeiro: "secFinanceiro", relacionamento: "secRelacionamento", crescimento: "secCrescimento", promocoes: "secPromocoes", servicos: "secServicos", equipe: "secBarbeiros", relatorios: "secRelatorios", galeria: "secGaleria", avaliacoes: "secAvaliacoes", ferramentas: "secFerramentas", configuracoes: "secConfig", pagina: "secPagina" };
   if (mapaHash[hash]) bhAtivarSecaoPainel(mapaHash[hash]);
 
   document.querySelectorAll("[data-horario-aberto]").forEach(check => check.addEventListener("change", () => {
@@ -1058,6 +1059,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   document.getElementById("formHorarios").addEventListener("submit", async evento => {
     evento.preventDefault();
+    if (window.bhOperacao110?.saveOpeningPeriods) {
+      await window.bhOperacao110.saveOpeningPeriods(evento.currentTarget);
+      return;
+    }
     const horarios = [...document.querySelectorAll(".horario-config-painel")].map(row => ({
       dia_semana: Number(row.dataset.dia),
       aberto: row.querySelector("[data-horario-aberto]").checked,
@@ -1100,7 +1105,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 window.addEventListener("hashchange", () => {
-  const mapa = { agenda: "secAgenda", clientes: "secClientes", financeiro: "secFinanceiro", relacionamento: "secRelacionamento", crescimento: "secCrescimento", promocoes: "secPromocoes", servicos: "secServicos", equipe: "secBarbeiros", relatorios: "secRelatorios", galeria: "secGaleria", avaliacoes: "secAvaliacoes", configuracoes: "secConfig", pagina: "secPagina" };
+  const mapa = { agenda: "secAgenda", clientes: "secClientes", financeiro: "secFinanceiro", relacionamento: "secRelacionamento", crescimento: "secCrescimento", promocoes: "secPromocoes", servicos: "secServicos", equipe: "secBarbeiros", relatorios: "secRelatorios", galeria: "secGaleria", avaliacoes: "secAvaliacoes", ferramentas: "secFerramentas", configuracoes: "secConfig", pagina: "secPagina" };
   const alvo = mapa[location.hash.replace("#", "")];
   if (alvo) bhAtivarSecaoPainel(alvo);
 });

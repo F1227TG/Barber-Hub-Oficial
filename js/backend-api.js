@@ -30,6 +30,14 @@
       timeout = 15_000
     } = options;
 
+    if (global.navigator && global.navigator.onLine === false) {
+      const error = new Error("Você está sem conexão. Seus dados continuam preenchidos; tente novamente quando a internet voltar.");
+      error.code = "OFFLINE";
+      error.status = 503;
+      global.dispatchEvent(new CustomEvent("bh:network-state", { detail:{ state:"offline", path, method:String(method).toUpperCase() } }));
+      throw error;
+    }
+
     const token = auth === false ? null : await sessionToken();
     if (auth === true && !token) {
       const error = new Error("Entre na conta para continuar.");
@@ -49,6 +57,7 @@
 
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeout);
+    global.dispatchEvent(new CustomEvent("bh:network-state", { detail:{ state:"loading", path, method } }));
 
     try {
       const response = await fetch(`/api/v1/${String(path).replace(/^\/+/, "")}`, {
@@ -77,13 +86,21 @@
         throw error;
       }
 
+      global.dispatchEvent(new CustomEvent("bh:network-state", { detail:{ state:"success", path, method } }));
       return payload?.data;
     } catch (error) {
       if (error.name === "AbortError") {
         const timeoutError = new Error("A API demorou para responder. Tente novamente.");
         timeoutError.code = "API_TIMEOUT";
+        global.dispatchEvent(new CustomEvent("bh:network-state", { detail:{ state:"error", path, method, code:timeoutError.code } }));
         throw timeoutError;
       }
+      const retryable = method === "GET" && !options._retried && (error instanceof TypeError || [502, 503, 504].includes(Number(error.status)));
+      if (retryable) {
+        await new Promise(resolve => setTimeout(resolve, 350));
+        return request(path, { ...options, _retried:true });
+      }
+      global.dispatchEvent(new CustomEvent("bh:network-state", { detail:{ state:"error", path, method, code:error.code || "NETWORK_ERROR" } }));
       throw error;
     } finally {
       clearTimeout(timer);
@@ -105,6 +122,22 @@
       return request(`marketplace/search?${params.toString()}`, { auth: false });
     },
     featuredMarketplace: (limit = 6) => request(`marketplace/featured?limit=${encodeURIComponent(limit)}`, { auth: false }),
+    regionalMarketplace: ({ query = "", city = "", neighborhood = "", state = "", openNow = false, agenda = false, latitude = null, longitude = null, radiusKm = null, offset = 0, limit = 24 } = {}) => {
+      const params = new URLSearchParams({ offset: String(offset), limit: String(limit) });
+      if (query) params.set("q", query);
+      if (city) params.set("city", city);
+      if (neighborhood) params.set("neighborhood", neighborhood);
+      if (state) params.set("state", state);
+      if (openNow) params.set("open_now", "true");
+      if (agenda) params.set("agenda", "true");
+      if (latitude !== null && longitude !== null) {
+        params.set("latitude", String(latitude));
+        params.set("longitude", String(longitude));
+      }
+      if (radiusKm) params.set("radius_km", String(radiusKm));
+      return request(`marketplace/regional?${params.toString()}`, { auth: false });
+    },
+    coverLibrary: () => request("catalog/cover-library", { auth: false }),
     createAppointment: data => request("appointments", {
       method: "POST",
       auth: true,
@@ -125,6 +158,11 @@
       if (professionalId) params.set("professional_id", professionalId);
       return request(`schedule/range?${params.toString()}`, { auth: true });
     },
+    openingPeriods: establishmentId => request(`schedule/opening-periods?establishment_id=${encodeURIComponent(establishmentId)}`, { auth: true }),
+    replaceOpeningPeriods: (establishmentId, periods) => request("schedule/opening-periods", {
+      method: "PUT", auth: true, body: { estabelecimento_id: establishmentId, periodos: periods }
+    }),
+    createManualService: data => request("schedule/manual-services", { method: "POST", auth: true, body: data }),
     createWalkIn: data => request("schedule/walk-ins", { method: "POST", auth: true, body: data }),
     createScheduleBlock: data => request("schedule/blocks", { method: "POST", auth: true, body: data }),
     deleteScheduleBlock: blockId => request(`schedule/blocks/${encodeURIComponent(blockId)}`, { method: "DELETE", auth: true }),
@@ -170,11 +208,12 @@
       const params = new URLSearchParams({ establishment_id: establishmentId, start, end });
       return request(`finance/summary?${params.toString()}`, { auth: true });
     },
-    financeEntries: ({ establishmentId, start, end, limit = 100 }) => {
-      const params = new URLSearchParams({ establishment_id: establishmentId, start, end, limit: String(limit) });
+    financeEntries: ({ establishmentId, start, end, offset = 0, limit = 40 }) => {
+      const params = new URLSearchParams({ establishment_id: establishmentId, start, end, offset: String(offset), limit: String(limit) });
       return request(`finance/entries?${params.toString()}`, { auth: true });
     },
     createFinancialAdjustment: data => request("finance/adjustments", { method: "POST", auth: true, body: data }),
+    createExpense: data => request("finance/expenses", { method: "POST", auth: true, body: data }),
     closeFinancialDay: data => request("finance/closings", { method: "POST", auth: true, body: data }),
     commissionRules: establishmentId => request(`finance/commission-rules?establishment_id=${encodeURIComponent(establishmentId)}`, { auth: true }),
     createCommissionRule: data => request("finance/commission-rules", { method: "POST", auth: true, body: data }),
@@ -186,6 +225,9 @@
       method: "PATCH",
       auth: true,
       body: data
+    }),
+    updateEstablishmentLocation: (establishmentId, data) => request(`establishments/${encodeURIComponent(establishmentId)}/location`, {
+      method: "PUT", auth: true, body: data
     }),
     updateEstablishmentStatus: (establishmentId, status, motivo = null) => request(`establishments/${encodeURIComponent(establishmentId)}/status`, {
       method: "PATCH",
@@ -203,6 +245,26 @@
     updatePromotion: (promotionId, data) => request(`promotions/${encodeURIComponent(promotionId)}`, { method: "PATCH", auth: true, body: data }),
     deletePromotion: promotionId => request(`promotions/${encodeURIComponent(promotionId)}`, { method: "DELETE", auth: true }),
     createSupportTicket: data => request("support/tickets", { method: "POST", body: data }),
+    previewImport: data => request("imports/preview", { method: "POST", auth: true, body: data, timeout: 30_000 }),
+    commitImport: importId => request(`imports/${encodeURIComponent(importId)}/commit`, {
+      method: "POST", auth: true, body: { confirmar: true }, timeout: 30_000
+    }),
+    listImports: ({ establishmentId, offset = 0, limit = 20 }) => request(`imports?${new URLSearchParams({
+      establishment_id: establishmentId, offset: String(offset), limit: String(limit)
+    }).toString()}`, { auth: true }),
+    pushConfig: () => request("push/config", { auth: false }),
+    subscribePush: data => request("push/subscriptions", { method: "POST", auth: true, body: data }),
+    unsubscribePush: endpoint => request("push/subscriptions", { method: "DELETE", auth: true, body: { endpoint } }),
+    pushPreferences: establishmentId => request(`push/preferences${establishmentId ? `?establishment_id=${encodeURIComponent(establishmentId)}` : ""}`, { auth: true }),
+    updatePushPreferences: data => request("push/preferences", { method: "PUT", auth: true, body: data }),
+    operationalAudit: ({ establishmentId, resource = "", offset = 0, limit = 30 }) => {
+      const params = new URLSearchParams({ establishment_id: establishmentId, offset: String(offset), limit: String(limit) });
+      if (resource) params.set("resource", resource);
+      return request(`audit/operational?${params.toString()}`, { auth: true });
+    },
+    evaluateFeatures: (keys, establishmentId = null) => request("features/evaluate", {
+      method: "POST", auth: true, body: { estabelecimento_id: establishmentId, chaves: keys }
+    }),
     listSupportTickets: () => request("support/tickets", { auth: true }),
     deleteAccount: confirmation => request("account", {
       method: "DELETE",
@@ -210,6 +272,14 @@
       body: { confirmacao: confirmation }
     }),
     adminOverview: () => request("admin/overview", { auth: true }),
+    adminRecords: (resource, options = {}) => {
+      const params = new URLSearchParams();
+      params.set("offset", String(options.offset || 0));
+      params.set("limit", String(options.limit || 50));
+      if (options.q) params.set("q", options.q);
+      if (options.status && options.status !== "todos") params.set("status", options.status);
+      return request(`admin/records/${encodeURIComponent(resource)}?${params}`, { auth: true });
+    },
     adminSubscriptions: () => request("admin/subscriptions", { auth: true }),
     adminAssignSubscription: (establishmentId, data) => request(`admin/establishments/${encodeURIComponent(establishmentId)}/subscription`, { method: "PATCH", auth: true, body: data }),
     sendPasswordRecovery: (userId, motivo = "") => request(

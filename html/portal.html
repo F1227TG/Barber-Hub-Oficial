@@ -22,6 +22,7 @@
 <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
 <link href="../css/mobile-app.css" rel="stylesheet"/><link href="../css/release-1.4.1.css" rel="stylesheet"/>
 <link href="../css/product-redesign.css" rel="stylesheet"/><link href="../css/release-1.6.css" rel="stylesheet"/><link href="../css/release-1.7.css" rel="stylesheet"/><link href="../css/release-1.7.1.css" rel="stylesheet"/><link href="../css/brand-assets-1.8.css" rel="stylesheet"/>
+<link href="../css/releases/release-1.10.css" rel="stylesheet"/>
 </head>
 <body class="page-portal"><script src="../js/device-router.js"></script>
 <!-- Cabeçalho e navegação principal -->
@@ -102,6 +103,7 @@
 <button class="marketplace-chip" data-quick-filter="aberta" type="button"><i class="bi bi-door-open"></i> Abertos agora</button>
 <button class="marketplace-chip" data-quick-filter="agenda" type="button"><i class="bi bi-calendar2-check"></i> Com agenda</button>
 <button class="marketplace-chip" data-quick-filter="barbearia" type="button"><i class="bi bi-scissors"></i> Barbearias</button>
+<button class="marketplace-chip" data-near-me type="button"><i class="bi bi-crosshair"></i> Perto de mim</button>
 </div>
 </div>
 </section>
@@ -131,6 +133,10 @@
 <div class="campo"><label for="filtroTipo">Tipo</label><select id="filtroTipo"><option value="todos">Todos</option><option value="barbearia">Barbearias</option><option value="salao">Salões</option></select></div>
 <div class="campo"><label for="filtroStatus">Funcionamento</label><select id="filtroStatus"><option value="todos">Qualquer status</option><option value="aberta">Abertos agora</option><option value="fechada">Fechados agora</option></select></div>
 <div class="campo"><label for="filtroAgendamento">Atendimento</label><select id="filtroAgendamento"><option value="todos">Todos</option><option value="sim">Agenda online</option><option value="nao">Contato direto</option></select></div>
+<div class="campo"><label for="filtroCidade">Cidade</label><input id="filtroCidade" maxlength="120" placeholder="Ex.: Jacinto"/></div>
+<div class="campo"><label for="filtroBairro">Bairro</label><input id="filtroBairro" maxlength="120"/></div>
+<div class="campo"><label for="filtroEstado">Estado</label><input id="filtroEstado" maxlength="2" placeholder="MG"/></div>
+<div class="campo"><label for="filtroRaio">Distância</label><select id="filtroRaio"><option value="">Qualquer distância</option><option value="5">Até 5 km</option><option value="10">Até 10 km</option><option value="25">Até 25 km</option><option value="50">Até 50 km</option></select></div>
 </div>
 <div class="marketplace-filter-actions"><button class="btn btn-outline" id="limparFiltrosMarketplace" type="button">Limpar</button><button class="btn btn-primary" id="aplicarFiltrosMarketplace" type="button">Ver resultados</button></div>
 </section>

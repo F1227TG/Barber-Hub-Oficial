@@ -14,7 +14,9 @@ CATALOG_SELECT = (
     "id,tipo_estabelecimento,nome,slug,descricao,email_publico,telefone,whatsapp,"
     "instagram,tiktok,website,cep,cidade,estado,bairro,endereco,numero,complemento,"
     "foto_url,capa_url,status_manual,motivo_status,aceita_agendamento,avaliacao,"
-    "intervalo_slots_min,antecedencia_min_horas,limite_dias_agendamento,verificado,destaque,"
+    "intervalo_slots_min,antecedencia_min_horas,limite_dias_agendamento,verificado,destaque,timezone,"
+    "latitude,longitude,precisao_localizacao,codigo_municipio_ibge,raio_atendimento_km,"
+    "estabelecimento_horario_periodos(id,dia_semana,abre,fecha,fecha_dia_seguinte,ordem,ativo),"
     "horarios_funcionamento(id,dia_semana,aberto,abre,fecha,intervalo_inicio,intervalo_fim),"
     "dias_bloqueados(id,data),"
     "profissionais(id,estabelecimento_id,nome,especialidade,bio,avatar_url,ativo,aceita_agendamento,"
@@ -108,3 +110,43 @@ async def search(
 
 async def featured(limit: int = 6) -> dict[str, Any]:
     return await search(limit=min(max(limit, 1), 12), featured_only=True)
+
+
+async def regional_search(
+    *, query: str | None = None, city: str | None = None, neighborhood: str | None = None,
+    state: str | None = None, open_now: bool = False, agenda: bool = False,
+    latitude: float | None = None, longitude: float | None = None,
+    radius_km: float | None = None, offset: int = 0, limit: int = 24,
+) -> dict[str, Any]:
+    safe_limit = min(max(int(limit or 24), 1), 60)
+    safe_offset = min(max(int(offset or 0), 0), 10_000)
+    ranked = await gateway.rest(
+        "buscar_marketplace_regional_110", method="POST", admin=False, rpc=True,
+        json={
+            "p_busca": (query or "").strip() or None,
+            "p_cidade": (city or "").strip() or None,
+            "p_bairro": (neighborhood or "").strip() or None,
+            "p_estado": (state or "").strip().upper() or None,
+            "p_aberto_agora": bool(open_now), "p_com_agenda": bool(agenda),
+            "p_latitude": latitude, "p_longitude": longitude, "p_raio_km": radius_km,
+            "p_offset": safe_offset, "p_limite": safe_limit,
+        },
+    ) or []
+    ids = [str(item["id"]) for item in ranked]
+    rows = await _fetch_rows(ids)
+    metadata = {str(item["id"]): item for item in ranked}
+    for row in rows:
+        meta = metadata.get(str(row.get("id")), {})
+        row["distancia_km"] = meta.get("distancia_km")
+        row["aberto_agora"] = bool(meta.get("aberto", False))
+        row["aceita_agendamento"] = bool(meta.get("aceita_agendamento", False))
+    total = int(ranked[0].get("total_resultados") or 0) if ranked else 0
+    return {"items": rows, "total": total, "offset": safe_offset, "limit": safe_limit,
+            "has_more": safe_offset + len(rows) < total, "search_engine": "regional_distance"}
+
+
+async def cover_library() -> list[dict[str, Any]]:
+    return await gateway.rest(
+        "biblioteca_capas", admin=False,
+        params={"select": "id,chave,nome,estilo,url,texto_alternativo,cor_dominante,ordem", "ativo": "eq.true", "order": "ordem.asc,id.asc"},
+    ) or []

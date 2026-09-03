@@ -9,6 +9,9 @@
 document.addEventListener("DOMContentLoaded", async () => {
   marcarMenuAtivo("login");
   const form = document.getElementById("formLogin");
+  const next = window.bhContinuation?.nextFromLocation?.();
+  const cadastroLink = document.querySelector("[data-auth-signup]");
+  if (cadastroLink && next) cadastroLink.href = `cadastro.html?next=${encodeURIComponent(next)}`;
   if (bhQueryParam("confirmado") === "1") {
     mostrarToast("sucesso", "E-mail confirmado", "Sua conta está pronta para entrar.");
   }
@@ -37,8 +40,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const resultado = await bhLogin(email, password, captchaToken);
       if (!resultado.perfil) throw new Error("Seu perfil ainda não foi criado. Tente novamente em alguns segundos.");
       mostrarToast("sucesso", "Login realizado", `Bem-vindo, ${resultado.perfil.nome}.`);
-      const next = bhQueryParam("next");
-      const destino = next || bhDestinoPerfil(resultado.perfil);
+      const destino = bhDestinoPerfil(resultado.perfil, next);
       setTimeout(() => { location.href = destino; }, 550);
     } catch (erro) {
       window.bhSecurity?.reset?.(form);

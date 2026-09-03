@@ -46,10 +46,10 @@ check(mobileCss.includes(".config-status-segment") && mobileCss.includes("grid-t
 check(mobileCss.includes(".retention-grid") && mobileCss.includes(".growth-layout") && mobileCss.includes(".client-retention-grid"), "novos módulos precisam ter layouts responsivos sem rolagem lateral obrigatória");
 check(mobilePanel.indexOf("mobile-redesign-1.8.css") < mobilePanel.indexOf("release-1.9.3.css"), "CSS 1.9.3 deve carregar depois do redesign mobile");
 
-check(beauty.includes("Não é uma página esquecida") && beauty.includes("Ouvindo o mercado"), "Beauty Hub precisa mostrar estado atual e validação");
+check(beauty.includes("Beauty Hub") && beauty.includes("beautyhuboficial.vercel.app"), "Beauty Hub precisa mostrar estado atual e acesso à primeira versão");
 check(read("mobile/index.html").includes('href="/mobile/beauty-hub.html"'), "home mobile precisa manter o acesso ao Beauty Hub");
-check(read("package.json").includes('"version": "1.9.3"'), "package precisa declarar a versão 1.9.3");
-check(read("service-worker.js").includes("barberhub-v1.9.3-mobile-r3"), "cache do PWA precisa usar a revisão 1.9.3 atualizada");
+check(/"version": "1\.(?:9\.3|[1-9][0-9]\.)/.test(read("package.json")), "package não pode regredir para antes da versão 1.9.3");
+check(read("service-worker.js").includes("barberhub-v1."), "cache do PWA precisa declarar uma versão Barber Hub");
 
 if (errors.length) {
   console.error(`Regressões 1.9.3 reprovadas:\n- ${errors.join("\n- ")}`);

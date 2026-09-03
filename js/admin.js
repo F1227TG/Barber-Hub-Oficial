@@ -8,6 +8,75 @@
 
 let bhAdminDados = null;
 let bhAdminPerfil = null;
+const bhAdminBuscaTimers = new Map();
+
+function bhAdminFiltrosRecurso(recurso) {
+  if (recurso === "perfis") return {
+    q: document.getElementById("buscarAdminUsuarios")?.value.trim() || "",
+    status: document.getElementById("filtroAdminUsuarios")?.value || "todos"
+  };
+  if (recurso === "estabelecimentos") return {
+    q: document.getElementById("buscarAdminEstabelecimentos")?.value.trim() || "",
+    status: document.getElementById("filtroAdminEstabelecimentos")?.value || "todos"
+  };
+  if (recurso === "agendamentos") return { status: document.getElementById("filtroAdminAgendamentos")?.value || "todos" };
+  if (recurso === "tickets") return { status: document.getElementById("filtroAdminTickets")?.value || "todos" };
+  return {};
+}
+
+function bhAdminAtualizarMais(recurso, anchorId) {
+  const anchor = document.getElementById(anchorId);
+  if (!anchor) return;
+  let botao = document.querySelector(`[data-admin-more="${recurso}"]`);
+  if (!botao) {
+    botao = document.createElement("button");
+    botao.type = "button";
+    botao.className = "btn btn-outline admin-more110";
+    botao.dataset.adminMore = recurso;
+    (anchor.closest(".table-wrap") || anchor).insertAdjacentElement("afterend", botao);
+  }
+  const pagina = bhAdminDados?.pagination?.[recurso] || {};
+  const carregados = bhAdminDados?.[recurso]?.length || 0;
+  botao.hidden = !pagina.has_more;
+  botao.innerHTML = `<i class="bi bi-plus-circle"></i> Carregar mais <span>${carregados} de ${Number(pagina.total || carregados)}</span>`;
+}
+
+function bhAdminRenderizarRecurso(recurso) {
+  const renderers = {
+    perfis: bhRenderAdminUsuarios,
+    estabelecimentos: bhRenderAdminEstabelecimentos,
+    agendamentos: bhRenderAdminAgendamentos,
+    tickets: bhRenderAdminTickets,
+    denuncias: bhRenderAdminDenuncias,
+    avaliacoes: bhRenderAdminAvaliacoes
+  };
+  renderers[recurso]?.();
+}
+
+async function bhAdminBuscarRecurso(recurso, append = false) {
+  if (!window.bhBackendApi?.adminRecords || !bhAdminDados) return;
+  const atual = bhAdminDados[recurso] || [];
+  const pagina = await window.bhBackendApi.adminRecords(recurso, {
+    ...bhAdminFiltrosRecurso(recurso),
+    offset: append ? atual.length : 0,
+    limit: 50
+  });
+  const novos = pagina.items || [];
+  bhAdminDados[recurso] = append
+    ? [...new Map([...atual, ...novos].map(item => [item.id, item])).values()]
+    : novos;
+  bhAdminDados.pagination ||= {};
+  bhAdminDados.pagination[recurso] = pagina;
+  bhAdminRenderizarRecurso(recurso);
+}
+
+function bhAdminAgendarBusca(recurso, imediato = false) {
+  clearTimeout(bhAdminBuscaTimers.get(recurso));
+  const timer = setTimeout(() => bhAdminBuscarRecurso(recurso).catch(erro => {
+    mostrarToast("erro", "Busca não concluída", bhErroMensagem(erro));
+  }), imediato ? 0 : 350);
+  bhAdminBuscaTimers.set(recurso, timer);
+}
 
 function bhAdminFiltrarTexto(item, termo, campos) {
   if (!termo) return true;
@@ -74,6 +143,7 @@ function bhRenderAdminEstabelecimentos() {
     <td><div class="admin-state-stack"><span>${item.suspenso_pela_moderacao?"Suspenso":item.visivel?"Visível":"Oculto pelo proprietário"}</span>${item.suspenso_pela_moderacao?`<small>${escapeHTML(item.suspenso_motivo||"Moderação administrativa")}</small>`:item.destaque?"<small>Destaque no portal</small>":""}</div></td>
     <td><div class="admin-control-group"><a class="icon-btn" href="barbearia.html?id=${item.id}" target="_blank" title="Abrir página"><i class="bi bi-box-arrow-up-right"></i></a><button class="icon-btn ${item.verificado?"success":""}" data-admin-verificar="${item.id}" data-valor="${item.verificado}" title="${item.verificado?"Remover verificação":"Verificar"}"><i class="bi bi-patch-check"></i></button><button class="icon-btn ${item.destaque?"success":""}" data-admin-destaque="${item.id}" data-valor="${item.destaque}" title="${item.destaque?"Remover destaque":"Destacar"}"><i class="bi bi-pin-angle"></i></button><button class="icon-btn ${item.suspenso_pela_moderacao?"success":"danger"}" data-admin-suspensao="${item.id}" data-valor="${item.suspenso_pela_moderacao}" title="${item.suspenso_pela_moderacao?"Restaurar publicação":"Suspender pela moderação"}"><i class="bi ${item.suspenso_pela_moderacao?"bi-shield-check":"bi-shield-x"}"></i></button></div></td>
   </tr>`).join("") : `<tr><td colspan="6"><div class="empty compact">Nenhum estabelecimento encontrado.</div></td></tr>`;
+  bhAdminAtualizarMais("estabelecimentos", "tbodyAdminEstabelecimentos");
 }
 
 function bhRenderAdminUsuarios() {
@@ -86,6 +156,7 @@ function bhRenderAdminUsuarios() {
   const tbody = document.getElementById("tbodyAdminUsuarios");
   if (!itens.length) {
     tbody.innerHTML = `<tr><td colspan="5"><div class="empty compact">Nenhum usuário encontrado.</div></td></tr>`;
+    bhAdminAtualizarMais("perfis", "tbodyAdminUsuarios");
     return;
   }
 
@@ -121,12 +192,14 @@ function bhRenderAdminUsuarios() {
       </td>
     </tr>`;
   }).join("");
+  bhAdminAtualizarMais("perfis", "tbodyAdminUsuarios");
 }
 
 function bhRenderAdminAgendamentos() {
   const filtro = document.getElementById("filtroAdminAgendamentos")?.value || "todos";
-  const itens = bhAdminDados.agendamentos.filter(item => filtro === "todos" || item.status === filtro).slice(0,100);
+  const itens = bhAdminDados.agendamentos.filter(item => filtro === "todos" || item.status === filtro);
   document.getElementById("tbodyAdminAgendamentos").innerHTML = itens.length ? itens.map(item => `<tr><td><strong>${escapeHTML(item.cliente_nome||"Conta excluída")}</strong><br><small>${escapeHTML(item.cliente_email||"")}</small></td><td>${bhFormatarData(item.data)} às ${bhHoraCurta(item.hora_inicio)}</td><td><span class="status ${item.status}">${escapeHTML(item.status)}</span></td><td>${escapeHTML(item.origem||"web")}</td><td>${bhMoeda(item.valor||0)}</td></tr>`).join("") : `<tr><td colspan="5"><div class="empty compact">Nenhum agendamento neste filtro.</div></td></tr>`;
+  bhAdminAtualizarMais("agendamentos", "tbodyAdminAgendamentos");
 }
 
 function bhRenderAdminAvaliacoes() {
@@ -144,6 +217,7 @@ function bhRenderAdminAvaliacoes() {
         : "";
     return `<article class="admin-review-card"><div class="review-manage-head"><div><strong>${escapeHTML(item.estabelecimentos?.nome||"Estabelecimento")}</strong><span>${"★".repeat(Number(item.nota||0))}${"☆".repeat(5-Number(item.nota||0))}</span></div><div class="review-meta-stack"><span class="review-source-badge ${verificada ? "verified" : "community"}"><i class="bi ${verificada ? "bi-patch-check-fill" : "bi-people-fill"}"></i> ${verificada ? "Verificada" : "Comunidade"}</span><span class="status ${item.status==="publicada"?"concluido":item.status==="ocultada"?"cancelado":"pendente"}">${escapeHTML(item.status.replace("_"," "))}</span></div></div>${contexto}<p>${escapeHTML(item.comentario||"Avaliação sem comentário.")}</p><small>${escapeHTML(item.perfis?.nome||"Conta excluída")} • ${new Date(item.created_at).toLocaleDateString("pt-BR")}</small>${item.resposta_estabelecimento?`<div class="business-reply"><strong>Resposta do estabelecimento</strong><p>${escapeHTML(item.resposta_estabelecimento)}</p></div>`:""}<div class="moderation-actions"><button class="btn btn-outline btn-small" data-admin-avaliacao-status="${item.id}" data-status="publicada"><i class="bi bi-eye"></i> Publicar</button><button class="btn btn-outline btn-small" data-admin-avaliacao-status="${item.id}" data-status="em_analise"><i class="bi bi-search"></i> Analisar</button><button class="btn btn-danger btn-small" data-admin-avaliacao-status="${item.id}" data-status="ocultada"><i class="bi bi-eye-slash"></i> Ocultar</button></div></article>`;
   }).join("") : `<div class="empty full-grid"><i class="bi bi-star big"></i><p>Nenhuma avaliação registrada.</p></div>`;
+  bhAdminAtualizarMais("avaliacoes", "listaAdminAvaliacoes");
 }
 
 function bhRenderAdminDenuncias() {
@@ -151,12 +225,14 @@ function bhRenderAdminDenuncias() {
   const abertas = denuncias.filter(item => ["aberta","analisando"].includes(item.status));
   document.getElementById("adminDenunciasBadge").textContent = `${abertas.length} pendente${abertas.length===1?"":"s"}`;
   document.getElementById("listaAdminDenuncias").innerHTML = denuncias.length ? denuncias.map(item => { const p=item.portfolio_publicacoes; return `<article class="ticket-admin card moderation-card"><div class="card-body"><div class="section-top compact"><div><span class="badge">${escapeHTML(item.motivo.replaceAll("_"," "))}</span><h3>${escapeHTML(p?.titulo||"Publicação removida")}</h3><p>${escapeHTML(p?.estabelecimentos?.nome||"Estabelecimento")} • denúncia de ${escapeHTML(item.perfis?.nome||"usuário")}</p></div><span class="status ${["resolvida","rejeitada"].includes(item.status)?"concluido":"pendente"}">${escapeHTML(item.status)}</span></div><p class="ticket-message">${escapeHTML(item.detalhes||"Nenhum detalhe adicional informado.")}</p><div class="moderation-actions">${p?`<button class="btn btn-danger btn-small" data-denuncia-ocultar="${item.id}" data-publicacao-id="${p.id}"><i class="bi bi-eye-slash"></i> Ocultar publicação</button>`:""}<button class="btn btn-outline btn-small" data-denuncia-analisar="${item.id}">Em análise</button><button class="btn btn-outline btn-small" data-denuncia-rejeitar="${item.id}">Rejeitar</button></div></div></article>`; }).join("") : `<div class="empty full-grid"><i class="bi bi-shield-check big"></i><h3>Nenhuma denúncia</h3></div>`;
+  bhAdminAtualizarMais("denuncias", "listaAdminDenuncias");
 }
 
 function bhRenderAdminTickets() {
   const filtro = document.getElementById("filtroAdminTickets")?.value || "todos";
   const itens = bhAdminDados.tickets.filter(item => filtro === "todos" || item.status === filtro);
   document.getElementById("listaAdminTickets").innerHTML = itens.length ? itens.map(ticket => `<article class="ticket-admin card"><div class="card-body"><div class="section-top compact"><div><span class="badge">${escapeHTML(ticket.prioridade)}</span><h3>${escapeHTML(ticket.assunto)}</h3><p>${escapeHTML(ticket.nome)} • ${escapeHTML(ticket.email)}</p></div><span class="status ${["respondido","fechado"].includes(ticket.status)?"concluido":"pendente"}">${escapeHTML(ticket.status)}</span></div><p class="ticket-message">${escapeHTML(ticket.mensagem)}</p><div class="form-grid" style="margin-top:16px"><div class="campo"><label>Status</label><select data-ticket-status="${ticket.id}"><option value="aberto" ${ticket.status==="aberto"?"selected":""}>Aberto</option><option value="em_atendimento" ${ticket.status==="em_atendimento"?"selected":""}>Em atendimento</option><option value="respondido" ${ticket.status==="respondido"?"selected":""}>Respondido</option><option value="fechado" ${ticket.status==="fechado"?"selected":""}>Fechado</option></select></div><div class="campo"><label>Resposta</label><textarea data-ticket-resposta="${ticket.id}">${escapeHTML(ticket.resposta||"")}</textarea></div></div><button class="btn btn-primary btn-small" data-ticket-salvar="${ticket.id}">Salvar atendimento</button></div></article>`).join("") : `<div class="empty full-grid">Nenhum ticket neste filtro.</div>`;
+  bhAdminAtualizarMais("tickets", "listaAdminTickets");
 }
 
 function bhRenderAdmin() { bhRenderAdminKpis(); bhRenderAdminEstabelecimentos(); bhRenderAdminUsuarios(); bhRenderAdminAgendamentos(); bhRenderAdminAvaliacoes(); bhRenderAdminDenuncias(); bhRenderAdminTickets(); }
@@ -188,10 +264,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("adminNome").textContent = bhAdminPerfil.nome;
   try { await bhRecarregarAdmin(); } catch (erro) { mostrarToast("erro","Falha ao carregar administração",bhErroMensagem(erro)); return; }
   document.getElementById("adminAtualizar")?.addEventListener("click", async e => { try { await bhAdminExecutar(e.currentTarget, bhRecarregarAdmin); mostrarToast("sucesso","Painel atualizado","Os dados mais recentes foram carregados."); } catch(erro){ mostrarToast("erro","Falha ao atualizar",bhErroMensagem(erro)); } });
-  ["buscarAdminEstabelecimentos","filtroAdminEstabelecimentos"].forEach(id=>document.getElementById(id)?.addEventListener(id.startsWith("buscar")?"input":"change",bhRenderAdminEstabelecimentos));
-  ["buscarAdminUsuarios","filtroAdminUsuarios"].forEach(id=>document.getElementById(id)?.addEventListener(id.startsWith("buscar")?"input":"change",bhRenderAdminUsuarios));
-  document.getElementById("filtroAdminAgendamentos")?.addEventListener("change",bhRenderAdminAgendamentos);
-  document.getElementById("filtroAdminTickets")?.addEventListener("change",bhRenderAdminTickets);
+  ["buscarAdminEstabelecimentos","filtroAdminEstabelecimentos"].forEach(id=>document.getElementById(id)?.addEventListener(id.startsWith("buscar")?"input":"change",()=>bhAdminAgendarBusca("estabelecimentos",!id.startsWith("buscar"))));
+  ["buscarAdminUsuarios","filtroAdminUsuarios"].forEach(id=>document.getElementById(id)?.addEventListener(id.startsWith("buscar")?"input":"change",()=>bhAdminAgendarBusca("perfis",!id.startsWith("buscar"))));
+  document.getElementById("filtroAdminAgendamentos")?.addEventListener("change",()=>bhAdminAgendarBusca("agendamentos",true));
+  document.getElementById("filtroAdminTickets")?.addEventListener("change",()=>bhAdminAgendarBusca("tickets",true));
 
   document.body.addEventListener("change", async evento => {
     const role = evento.target.closest("[data-admin-role]"); if (!role) return;
@@ -200,6 +276,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   document.body.addEventListener("click", async evento => {
+    const mais = evento.target.closest("[data-admin-more]");
+    if (mais) {
+      bhSetButtonLoading(mais, true, "Carregando...");
+      try { await bhAdminBuscarRecurso(mais.dataset.adminMore, true); }
+      catch (erro) { mostrarToast("erro", "Não foi possível carregar mais", bhErroMensagem(erro)); }
+      finally { bhSetButtonLoading(mais, false); }
+      return;
+    }
     const suspensao = evento.target.closest("[data-admin-suspensao]");
     const ver = evento.target.closest("[data-admin-verificar]");
     const dest = evento.target.closest("[data-admin-destaque]");
@@ -275,16 +359,40 @@ async function bhAdminCarregarSaudeApi() {
     set("Marketplace", marketplaceOk ? "Online" : "Busca indisponível", marketplaceOk);
     const updated = document.getElementById("adminUltimaAtualizacao");
     if (updated) updated.textContent = `Serviços verificados às ${new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" }).format(new Date())}`;
+    bhAdminRenderRelease110(data);
   } catch (error) {
     set("Api", "Indisponível", false);
     set("Db", "Não confirmado", false);
     set("Auth", "Não confirmado", false);
     set("Marketplace", "Não confirmado", false);
+    bhAdminRenderRelease110(null, error);
     console.warn("[Barber Hub Admin] health check failed", error);
   }
+}
+
+function bhAdminRenderRelease110(data, error = null) {
+  const host = document.getElementById("adminReleaseGrid110");
+  if (!host) return;
+  if (error || !data?.release) {
+    host.innerHTML = `<article class="admin-release-item110 error"><i class="bi bi-exclamation-triangle"></i><div><strong>Verificação indisponível</strong><small>${escapeHTML(bhErroMensagem(error || new Error("Não foi possível consultar a versão.")))}</small></div></article>`;
+    return;
+  }
+  const release = data.release;
+  const checks = [
+    [true, `Versão ${release.version || "1.10.0"}`, `Serviço principal ${data.api?.version || "ativo"}.`],
+    [release.migrations?.["29"], "Operação e horários", "Atualização 29: períodos, atendimentos e financeiro."],
+    [release.migrations?.["30"], "Localização e imagens", "Atualização 30: biblioteca, rota e busca regional."],
+    [release.migrations?.["31"], "Importação e controle", "Atualização 31: avisos, auditoria e liberações."],
+    [release.configuration?.allowed_origins, "Endereços autorizados", "Restringe quais sites podem conversar com o serviço."],
+    [release.configuration?.password_redirect, "Recuperação de acesso", "Destino seguro de redefinição configurado."],
+    [release.configuration?.captcha, "Proteção contra robôs", "Precisa estar configurada antes do lançamento público."],
+    [release.configuration?.device_notifications, "Avisos no dispositivo", "Chave de envio necessária para ativar os avisos externos."],
+  ];
+  host.innerHTML = checks.map(([ready, title, detail]) => `<article class="admin-release-item110 ${ready ? "ready" : "pending"}"><i class="bi ${ready ? "bi-check2-circle" : "bi-hourglass-split"}"></i><div><strong>${escapeHTML(title)}</strong><small>${escapeHTML(ready ? detail : `${detail} Pendente neste ambiente.`)}</small></div></article>`).join("");
 }
 
 document.addEventListener("DOMContentLoaded", () => setTimeout(bhAdminCarregarSaudeApi, 900));
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("adminAtualizar")?.addEventListener("click", () => setTimeout(bhAdminCarregarSaudeApi, 250));
+  document.getElementById("adminReleaseRefresh110")?.addEventListener("click", bhAdminCarregarSaudeApi);
 });

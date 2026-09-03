@@ -12,6 +12,12 @@ const bhMarketplaceState = {
   tipo: "todos",
   status: "todos",
   agenda: "todos",
+  cidade: "",
+  bairro: "",
+  estado: "",
+  latitude: null,
+  longitude: null,
+  raioKm: null,
   offset: 0,
   total: 0,
   hasMore: false,
@@ -23,7 +29,9 @@ function bhMarketplaceFiltrosAtivos() {
   return [
     bhMarketplaceState.tipo !== "todos",
     bhMarketplaceState.status !== "todos",
-    bhMarketplaceState.agenda !== "todos"
+    bhMarketplaceState.agenda !== "todos",
+    Boolean(bhMarketplaceState.cidade || bhMarketplaceState.bairro || bhMarketplaceState.estado),
+    bhMarketplaceState.latitude !== null
   ].filter(Boolean).length;
 }
 
@@ -32,7 +40,9 @@ function bhMarketplaceAgendaBoolean() {
 }
 
 function bhMarketplaceCard(item, { destaque = false } = {}) {
-  const status = bhCalcularStatus(item);
+  const status = item.aberto_agora === undefined
+    ? bhCalcularStatus(item)
+    : { aberta:Boolean(item.aberto_agora), classe:item.aberto_agora ? "aberto" : "fechado", texto:item.aberto_agora ? "Aberto agora" : "Fechado agora" };
   const imagem = item.capaUrl || item.fotoUrl || "../img/placeholders/barbearia-01.webp";
   const tipo = item.tipoEstabelecimento === "salao" ? "Salão" : "Barbearia";
   const avaliacao = Number(item.avaliacao || 0);
@@ -56,7 +66,7 @@ function bhMarketplaceCard(item, { destaque = false } = {}) {
         <h3><a href="${detalheUrl}">${escapeHTML(item.nome)}</a></h3>
         <span class="marketplace-rating"><i class="bi bi-star-fill"></i> ${avaliacao > 0 ? avaliacao.toFixed(1) : "Novo"}</span>
       </div>
-      <p class="marketplace-location"><i class="bi bi-geo-alt"></i> ${escapeHTML([item.bairro, item.cidade].filter(Boolean).join(", "))}</p>
+      <p class="marketplace-location"><i class="bi bi-geo-alt"></i> ${escapeHTML([item.bairro, item.cidade].filter(Boolean).join(", "))}${item.distancia_km !== null && item.distancia_km !== undefined ? `<strong class="distance110">${Number(item.distancia_km).toFixed(1).replace(".", ",")} km</strong>` : ""}</p>
       <div class="marketplace-services">${servicos}</div>
       <div class="marketplace-card-bottom">
         <span class="marketplace-status ${status.classe}"><i class="bi ${status.aberta ? "bi-circle-fill" : "bi-moon"}"></i> ${escapeHTML(status.texto)}</span>
@@ -75,6 +85,7 @@ function bhMarketplaceAtualizarControles() {
   document.querySelector('[data-quick-filter="aberta"]')?.classList.toggle("ativo", bhMarketplaceState.status === "aberta");
   document.querySelector('[data-quick-filter="agenda"]')?.classList.toggle("ativo", bhMarketplaceState.agenda === "sim");
   document.querySelector('[data-quick-filter="barbearia"]')?.classList.toggle("ativo", bhMarketplaceState.tipo === "barbearia");
+  document.querySelector("[data-near-me]")?.classList.toggle("ativo", bhMarketplaceState.latitude !== null);
   const resumo = document.getElementById("resumoPortal");
   if (resumo) resumo.innerHTML = `<strong>${bhMarketplaceState.total}</strong> resultado${bhMarketplaceState.total === 1 ? "" : "s"}`;
   const titulo = document.getElementById("tituloResultadosMarketplace");
@@ -108,13 +119,26 @@ async function bhMarketplaceCarregar({ reset = false } = {}) {
   const more = document.getElementById("carregarMaisMarketplace");
   bhSetButtonLoading(more, true, "Carregando...");
   try {
-    const result = await bhBuscarMarketplace({
-      busca: bhMarketplaceState.busca,
-      tipo: bhMarketplaceState.tipo,
-      agenda: bhMarketplaceAgendaBoolean(),
-      status: bhMarketplaceState.status,
-      offset: bhMarketplaceState.offset,
-      limit: BH_MARKETPLACE_PAGE_SIZE
+    const useRegional = bhMarketplaceState.status !== "fechada" && bhMarketplaceState.tipo !== "salao";
+    const result = useRegional ? await bhBuscarMarketplaceRegional({
+      busca:bhMarketplaceState.busca,
+      cidade:bhMarketplaceState.cidade,
+      bairro:bhMarketplaceState.bairro,
+      estado:bhMarketplaceState.estado,
+      abertoAgora:bhMarketplaceState.status === "aberta",
+      agenda:bhMarketplaceState.agenda === "sim",
+      latitude:bhMarketplaceState.latitude,
+      longitude:bhMarketplaceState.longitude,
+      raioKm:bhMarketplaceState.raioKm,
+      offset:bhMarketplaceState.offset,
+      limit:BH_MARKETPLACE_PAGE_SIZE
+    }) : await bhBuscarMarketplace({
+      busca:bhMarketplaceState.busca,
+      tipo:bhMarketplaceState.tipo,
+      agenda:bhMarketplaceAgendaBoolean(),
+      status:bhMarketplaceState.status,
+      offset:bhMarketplaceState.offset,
+      limit:BH_MARKETPLACE_PAGE_SIZE
     });
     const novos = result.items || [];
     const append = !reset && bhMarketplaceState.offset > 0;
@@ -150,6 +174,10 @@ function bhMarketplaceAbrirFiltros() {
   document.getElementById("filtroTipo").value = bhMarketplaceState.tipo;
   document.getElementById("filtroStatus").value = bhMarketplaceState.status;
   document.getElementById("filtroAgendamento").value = bhMarketplaceState.agenda;
+  document.getElementById("filtroCidade").value = bhMarketplaceState.cidade;
+  document.getElementById("filtroBairro").value = bhMarketplaceState.bairro;
+  document.getElementById("filtroEstado").value = bhMarketplaceState.estado;
+  document.getElementById("filtroRaio").value = bhMarketplaceState.raioKm || "";
   modal.classList.add("ativo");
   modal.setAttribute("aria-hidden", "false");
   document.body.classList.add("marketplace-filters-open");
@@ -172,6 +200,10 @@ function bhMarketplaceAplicarFiltros() {
   bhMarketplaceState.tipo = document.getElementById("filtroTipo")?.value || "todos";
   bhMarketplaceState.status = document.getElementById("filtroStatus")?.value || "todos";
   bhMarketplaceState.agenda = document.getElementById("filtroAgendamento")?.value || "todos";
+  bhMarketplaceState.cidade = document.getElementById("filtroCidade")?.value.trim() || "";
+  bhMarketplaceState.bairro = document.getElementById("filtroBairro")?.value.trim() || "";
+  bhMarketplaceState.estado = document.getElementById("filtroEstado")?.value.trim().toUpperCase() || "";
+  bhMarketplaceState.raioKm = bhMarketplaceState.latitude !== null ? (Number(document.getElementById("filtroRaio")?.value) || null) : null;
   bhMarketplaceFecharFiltros();
   bhMarketplaceCarregar({ reset: true });
 }
@@ -182,6 +214,33 @@ function bhMarketplaceAlternarRapido(tipo) {
   if (tipo === "barbearia") bhMarketplaceState.tipo = bhMarketplaceState.tipo === "barbearia" ? "todos" : "barbearia";
   bhMarketplaceAtualizarControles();
   bhMarketplaceCarregar({ reset: true });
+}
+
+function bhMarketplacePertoDeMim(button) {
+  if (bhMarketplaceState.latitude !== null) {
+    bhMarketplaceState.latitude = null;
+    bhMarketplaceState.longitude = null;
+    bhMarketplaceState.raioKm = null;
+    bhMarketplaceAtualizarControles();
+    bhMarketplaceCarregar({ reset:true });
+    return;
+  }
+  if (!navigator.geolocation) {
+    mostrarToast("aviso", "Localização indisponível", "Busque por cidade ou bairro nos filtros.");
+    return;
+  }
+  bhSetButtonLoading(button, true, "Localizando...");
+  navigator.geolocation.getCurrentPosition(position => {
+    bhMarketplaceState.latitude = Number(position.coords.latitude.toFixed(6));
+    bhMarketplaceState.longitude = Number(position.coords.longitude.toFixed(6));
+    bhMarketplaceState.raioKm = 25;
+    bhSetButtonLoading(button, false);
+    bhMarketplaceAtualizarControles();
+    bhMarketplaceCarregar({ reset:true });
+  }, error => {
+    bhSetButtonLoading(button, false);
+    mostrarToast("erro", "Não encontramos sua posição", error.message);
+  }, { enableHighAccuracy:false, timeout:10_000, maximumAge:300_000 });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -202,12 +261,19 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll("[data-fechar-filtros]").forEach(item => item.addEventListener("click", bhMarketplaceFecharFiltros));
   document.getElementById("aplicarFiltrosMarketplace")?.addEventListener("click", bhMarketplaceAplicarFiltros);
   document.getElementById("limparFiltrosMarketplace")?.addEventListener("click", () => {
-    bhMarketplaceState.tipo = "todos";
-    bhMarketplaceState.status = "todos";
-    bhMarketplaceState.agenda = "todos";
+    document.getElementById("filtroTipo").value = "todos";
+    document.getElementById("filtroStatus").value = "todos";
+    document.getElementById("filtroAgendamento").value = "todos";
+    document.getElementById("filtroCidade").value = "";
+    document.getElementById("filtroBairro").value = "";
+    document.getElementById("filtroEstado").value = "";
+    document.getElementById("filtroRaio").value = "";
+    bhMarketplaceState.latitude = null;
+    bhMarketplaceState.longitude = null;
     bhMarketplaceAplicarFiltros();
   });
   document.querySelectorAll("[data-quick-filter]").forEach(button => button.addEventListener("click", () => bhMarketplaceAlternarRapido(button.dataset.quickFilter)));
+  document.querySelector("[data-near-me]")?.addEventListener("click", event => bhMarketplacePertoDeMim(event.currentTarget));
   document.getElementById("carregarMaisMarketplace")?.addEventListener("click", () => bhMarketplaceCarregar());
   document.addEventListener("keydown", event => { if (event.key === "Escape") bhMarketplaceFecharFiltros(); });
 

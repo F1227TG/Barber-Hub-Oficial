@@ -2,10 +2,11 @@
 
 from datetime import date, datetime, time
 from decimal import Decimal
+import re
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
 
 
 class AppointmentCreate(BaseModel):
@@ -440,3 +441,152 @@ class DeleteAccountRequest(BaseModel):
 
 class PasswordRecoveryRequest(BaseModel):
     motivo: str | None = Field(default=None, max_length=300)
+
+
+# Release 1.10.0 — operation-ready API contracts.
+
+
+class OpeningPeriodInput(BaseModel):
+    dia_semana: int = Field(ge=0, le=6)
+    abre: time
+    fecha: time
+    fecha_dia_seguinte: bool = False
+    ordem: int = Field(default=1, ge=1, le=8)
+    ativo: bool = True
+
+
+class OpeningPeriodsReplace(BaseModel):
+    estabelecimento_id: UUID
+    periodos: list[OpeningPeriodInput] = Field(default_factory=list, max_length=56)
+
+    @model_validator(mode="after")
+    def validate_periods(self):
+        from backend.domain.operations import validate_opening_periods
+
+        validate_opening_periods([item.model_dump() for item in self.periodos if item.ativo])
+        return self
+
+
+class ManualServiceCreate(BaseModel):
+    estabelecimento_id: UUID
+    profissional_id: UUID
+    servico_id: UUID | None = None
+    servico_nome: str | None = Field(default=None, min_length=2, max_length=140)
+    duracao_min: int | None = Field(default=None, ge=5, le=480)
+    cliente_id: UUID | None = None
+    cliente_nome: str | None = Field(default=None, min_length=2, max_length=140)
+    cliente_email: EmailStr | None = None
+    cliente_telefone: str | None = Field(default=None, max_length=40)
+    inicio: datetime
+    valor: Decimal = Field(ge=0, le=1_000_000)
+    forma_pagamento: Literal["dinheiro", "pix", "credito", "debito", "outro"]
+    canal_origem: Literal["balcao", "whatsapp", "telefone", "barber_hub", "outro"]
+    observacao: str | None = Field(default=None, max_length=800)
+    chave_idempotencia: str = Field(min_length=16, max_length=100, pattern=r"^[A-Za-z0-9._:-]+$")
+    concluir: Literal[True] = True
+
+    @field_validator("inicio")
+    @classmethod
+    def validate_manual_service_timezone(cls, value: datetime):
+        if value.tzinfo is None or value.utcoffset() is None:
+            raise ValueError("Informe o fuso horário do atendimento.")
+        return value
+
+    @model_validator(mode="after")
+    def validate_service_reference(self):
+        if not self.servico_id and not (self.servico_nome or "").strip():
+            raise ValueError("Informe um serviço cadastrado ou o nome do serviço realizado.")
+        if not self.servico_id and self.duracao_min is None:
+            raise ValueError("Informe a duração do serviço avulso.")
+        return self
+
+
+class ExpenseCreate(BaseModel):
+    estabelecimento_id: UUID
+    competencia: date
+    valor: Decimal = Field(gt=0, le=1_000_000)
+    categoria: str = Field(min_length=2, max_length=80)
+    descricao: str = Field(min_length=2, max_length=180)
+    forma_pagamento: Literal["dinheiro", "pix", "credito", "debito", "boleto", "transferencia", "outro"] | None = None
+    observacao: str | None = Field(default=None, max_length=500)
+    chave_idempotencia: str = Field(min_length=16, max_length=100, pattern=r"^[A-Za-z0-9._:-]+$")
+
+
+class EstablishmentLocationUpdate(BaseModel):
+    logradouro: str = Field(min_length=2, max_length=180)
+    numero: str | None = Field(default=None, max_length=30)
+    complemento: str | None = Field(default=None, max_length=120)
+    bairro: str = Field(min_length=2, max_length=120)
+    cidade: str = Field(min_length=2, max_length=120)
+    estado: str = Field(min_length=2, max_length=2, pattern=r"^[A-Za-z]{2}$")
+    cep: str = Field(min_length=8, max_length=10)
+    pais: str = Field(default="BR", min_length=2, max_length=2, pattern=r"^[A-Za-z]{2}$")
+    latitude: Decimal | None = Field(default=None, ge=-90, le=90)
+    longitude: Decimal | None = Field(default=None, ge=-180, le=180)
+    precisao_localizacao: Literal["endereco", "logradouro", "bairro", "cidade", "manual"] | None = None
+    codigo_municipio_ibge: str | None = Field(default=None, pattern=r"^\d{7}$")
+    raio_atendimento_km: Decimal | None = Field(default=None, ge=0, le=500)
+
+    @model_validator(mode="after")
+    def validate_coordinate_pair(self):
+        if (self.latitude is None) != (self.longitude is None):
+            raise ValueError("Informe latitude e longitude juntas.")
+        return self
+
+
+class ImportPreviewRequest(BaseModel):
+    estabelecimento_id: UUID
+    tipo: Literal["clientes", "servicos"]
+    arquivo_nome: str = Field(min_length=5, max_length=180, pattern=r"(?i)^.+\.(csv|xlsx)$")
+    conteudo_base64: str = Field(min_length=4, max_length=5_700_000)
+
+
+class ImportCommitRequest(BaseModel):
+    confirmar: Literal[True]
+
+
+class PushSubscriptionCreate(BaseModel):
+    estabelecimento_id: UUID | None = None
+    endpoint: str = Field(min_length=20, max_length=2048, pattern=r"^https://")
+    p256dh: str = Field(min_length=16, max_length=512, pattern=r"^[A-Za-z0-9_-]+={0,2}$")
+    auth: str = Field(min_length=8, max_length=256, pattern=r"^[A-Za-z0-9_-]+={0,2}$")
+    expiracao: datetime | None = None
+    user_agent: str | None = Field(default=None, max_length=500)
+
+
+class PushUnsubscribeRequest(BaseModel):
+    endpoint: str = Field(min_length=20, max_length=2048, pattern=r"^https://")
+
+
+class PushPreferencesUpdate(BaseModel):
+    estabelecimento_id: UUID | None = None
+    agendamentos: bool = True
+    confirmacoes: bool = True
+    cancelamentos: bool = True
+    lembretes: bool = True
+    lista_espera: bool = True
+    oportunidades: bool = False
+    campanhas: bool = False
+    horario_silencioso_inicio: time | None = None
+    horario_silencioso_fim: time | None = None
+
+    @model_validator(mode="after")
+    def validate_quiet_hours(self):
+        if (self.horario_silencioso_inicio is None) != (self.horario_silencioso_fim is None):
+            raise ValueError("Informe início e fim do horário silencioso.")
+        return self
+
+
+class FeatureFlagEvaluationRequest(BaseModel):
+    estabelecimento_id: UUID | None = None
+    chaves: list[str] = Field(min_length=1, max_length=50)
+
+    @field_validator("chaves")
+    @classmethod
+    def validate_feature_keys(cls, value: list[str]) -> list[str]:
+        cleaned = [item.strip().lower() for item in value]
+        if any(not re.fullmatch(r"[a-z0-9][a-z0-9_.-]{1,79}", item) for item in cleaned):
+            raise ValueError("Use apenas chaves de funcionalidade válidas.")
+        if len(cleaned) != len(set(cleaned)):
+            raise ValueError("Não repita chaves de funcionalidade.")
+        return cleaned

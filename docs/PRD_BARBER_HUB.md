@@ -1,6 +1,8 @@
 # PRD — Barber Hub
 ### Product Requirements Document
 
+> **Revisão vigente:** a Seção 35 registra o estado da versão 1.10.0 e prevalece sobre backlog, números de versão e pendências históricas das seções anteriores. O histórico foi mantido para rastreabilidade, não como checklist de deploy atual.
+
 > Documento gerado a partir da leitura direta do código-fonte do repositório `Barber-Hub-Oficial-main` (não a partir de suposições ou apenas da documentação existente). Toda afirmação de status foi confirmada em código; onde isso não foi possível, o item está marcado como **não confirmado**.
 
 **Legenda de status usada neste documento:**
@@ -24,8 +26,8 @@
 | Vertical | Barbearias, com expansão de posicionamento em andamento para "negócios de beleza" em geral (ver `html/beauty-hub.html`, descrição do `manifest.webmanifest`: *"Encontre barbearias, agende serviços e gerencie seu negócio em um só lugar"*) |
 | Tipo de produto | Aplicação web + interface HTML mobile dedicada, instalável como PWA, multi-tenant (múltiplos estabelecimentos independentes), com backend próprio (API Python/FastAPI) sobre infraestrutura Supabase |
 | Empresa/divisão | The Gamers Tech |
-| Estágio atual | Produto em produção ativa (deploy Vercel), evoluindo por versões incrementais e documentadas (1.1 → 1.6). Não há, no repositório, uma declaração formal de "MVP concluído" — ver critério proposto na Seção 22 |
-| Versão analisada | Front-end/PWA **1.9.3** (`package.json`, cache `barberhub-v1.9.3-mobile-r3`) · API própria **1.5.0** (`pyproject.toml`, `api/index.py`) · Schema local versionado até a migration **25** |
+| Estágio atual | Produto em produção ativa, com a versão 1.10.0 em homologação local e preparação para a fase final de usuários-piloto |
+| Versão analisada | Front-end/PWA **1.10.0** · API própria **1.6.0** · schema local versionado até a migration **31**; migrations 29–31 ainda pendentes no ambiente publicado |
 | Repositório analisado | `Barber-Hub-Oficial-main.zip`, domínio de referência `barberhuboficial.vercel.app` |
 | Stack confirmada em código | HTML/CSS/JS vanilla + Bootstrap 5.3.6 (local, em camada `@layer`); Supabase (PostgreSQL, Auth, Storage, RLS, Realtime); backend próprio em Python 3.13+/FastAPI 0.117+/Pydantic 2.10+, empacotado como função serverless da Vercel (`api/index.py`); PWA com Service Worker e manifest próprios |
 
@@ -1359,3 +1361,41 @@ No produto, `js/painel-operacao-1.9.js` isola a nova experiência sem substituir
 ### 34.2 Retenção & Inteligência — Barber Hub 1.9.3
 
 A 1.9.3 consolida os antigos escopos 1.9.1 e 1.9.2 e implementa lista de espera, recorrência, fidelidade, cupons, campanhas, lembretes internos, oportunidades, insights, metas e permissões granulares. A API 1.5.0 e as migrations 24/25 aplicam regras de plano, consentimento, concorrência e RLS. Envio externo de e-mail/WhatsApp continua dependente de provedor; não é apresentado como concluído apenas porque a fila existe.
+
+---
+
+## 35. Revisão vigente — Barber Hub 1.10.0
+
+A 1.10.0 é a atualização ampla anterior às duas rodadas finais de correção/estabilização. Ela preserva toda a série 1.9 e acrescenta capacidade operacional real, descoberta regional, importação, comunicação preparada, controle de lançamento e refinamento de desktop/mobile.
+
+### 35.1 Requisitos concluídos no código
+
+| Área | Entrega |
+|---|---|
+| Agenda | múltiplos períodos, cópia entre dias, intervalo público correto, atendimento manual e serviço avulso |
+| Continuidade | retomada de agendamento após login/cadastro e repetição segura de leituras |
+| CRM/Financeiro | busca e paginação no servidor, gastos, períodos, ticket e resultado realizado/estimado |
+| Marketplace | cidade/bairro/UF, raio/distância, consentimento de localização, mapa/rota e capas WebP |
+| Dados | importação CSV/XLSX com prévia, relatório, deduplicação, bloqueio de fórmula e histórico |
+| Comunicação | preferências, horário silencioso, assinatura/fila Push e fallback interno |
+| Governança | auditoria append-only, anonimização controlada, feature flags e kill switch |
+| Administração | recursos permitidos, busca no servidor, paginação e prontidão da release |
+| Experiência | ajustes responsivos, suporte curto, comunicação comercial e Beauty Hub ativa |
+| Segurança | V01–V05 corrigidos no código; V06 preparado para ativação externa |
+
+### 35.2 Critérios obrigatórios antes da publicação
+
+- [x] código, API 1.6 e migrations 29–31 preparados;
+- [x] OpenAPI e documentação canônica atualizados;
+- [x] regressões automatizadas adicionadas;
+- [ ] aplicar 29 → 30 → 31 no ambiente correto;
+- [ ] aprovar `verificar_31_release_1_10.sql`;
+- [ ] ativar CAPTCHA, revisar URLs e proteção contra senhas vazadas quando disponível;
+- [ ] configurar chaves VAPID e worker de entrega;
+- [ ] revisar Security/Performance Advisors;
+- [ ] homologar todos os papéis e planos em desktop/mobile;
+- [ ] confirmar backup, rollback, monitoramento e domínio publicado.
+
+### 35.3 Fora do escopo concluído
+
+Gateway de cobrança recorrente, entrega externa de WhatsApp/e-mail sem provedor configurado, observabilidade APM comercial e Beauty Hub operacional independente não são apresentados como prontos. A próxima decisão de produto deve ser baseada no piloto, não em adicionar telas sem uso medido.

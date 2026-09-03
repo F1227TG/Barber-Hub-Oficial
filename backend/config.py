@@ -21,6 +21,7 @@ class Settings:
     allowed_origins: list[str]
     password_redirect_url: str
     turnstile_site_key: str
+    vapid_public_key: str
 
     @property
     def is_configured(self) -> bool:
@@ -37,4 +38,5 @@ settings = Settings(
         "https://barberhuboficial.vercel.app/html/redefinir-senha.html",
     ),
     turnstile_site_key=os.getenv("BARBER_HUB_TURNSTILE_SITE_KEY", "").strip(),
+    vapid_public_key=os.getenv("BARBER_HUB_VAPID_PUBLIC_KEY", "").strip(),
 )

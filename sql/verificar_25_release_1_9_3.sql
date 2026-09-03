@@ -26,6 +26,9 @@ begin
     ) then
       raise exception 'Tabela pública sem política RLS: public.%', v_tabela;
     end if;
+    if has_table_privilege('anon', format('%I.%I', 'public', v_tabela), 'SELECT') then
+      raise exception 'Tabela interna da 1.9.3 ainda permite SELECT para anon: public.%', v_tabela;
+    end if;
   end loop;
 
   select array_agg(c.relname order by c.relname)
