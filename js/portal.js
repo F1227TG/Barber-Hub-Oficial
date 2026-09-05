@@ -18,6 +18,10 @@ const bhMarketplaceState = {
   latitude: null,
   longitude: null,
   raioKm: null,
+  servico: "",
+  precoMin: null,
+  precoMax: null,
+  avaliacaoMin: null,
   offset: 0,
   total: 0,
   hasMore: false,
@@ -31,6 +35,7 @@ function bhMarketplaceFiltrosAtivos() {
     bhMarketplaceState.status !== "todos",
     bhMarketplaceState.agenda !== "todos",
     Boolean(bhMarketplaceState.cidade || bhMarketplaceState.bairro || bhMarketplaceState.estado),
+    Boolean(bhMarketplaceState.servico || bhMarketplaceState.precoMin !== null || bhMarketplaceState.precoMax !== null || bhMarketplaceState.avaliacaoMin !== null),
     bhMarketplaceState.latitude !== null
   ].filter(Boolean).length;
 }
@@ -130,6 +135,10 @@ async function bhMarketplaceCarregar({ reset = false } = {}) {
       latitude:bhMarketplaceState.latitude,
       longitude:bhMarketplaceState.longitude,
       raioKm:bhMarketplaceState.raioKm,
+      servico:bhMarketplaceState.servico,
+      precoMin:bhMarketplaceState.precoMin,
+      precoMax:bhMarketplaceState.precoMax,
+      avaliacaoMin:bhMarketplaceState.avaliacaoMin,
       offset:bhMarketplaceState.offset,
       limit:BH_MARKETPLACE_PAGE_SIZE
     }) : await bhBuscarMarketplace({
@@ -178,6 +187,10 @@ function bhMarketplaceAbrirFiltros() {
   document.getElementById("filtroBairro").value = bhMarketplaceState.bairro;
   document.getElementById("filtroEstado").value = bhMarketplaceState.estado;
   document.getElementById("filtroRaio").value = bhMarketplaceState.raioKm || "";
+  document.getElementById("filtroServico").value = bhMarketplaceState.servico;
+  document.getElementById("filtroPrecoMin").value = bhMarketplaceState.precoMin ?? "";
+  document.getElementById("filtroPrecoMax").value = bhMarketplaceState.precoMax ?? "";
+  document.getElementById("filtroAvaliacao").value = bhMarketplaceState.avaliacaoMin ?? "";
   modal.classList.add("ativo");
   modal.setAttribute("aria-hidden", "false");
   document.body.classList.add("marketplace-filters-open");
@@ -204,6 +217,16 @@ function bhMarketplaceAplicarFiltros() {
   bhMarketplaceState.bairro = document.getElementById("filtroBairro")?.value.trim() || "";
   bhMarketplaceState.estado = document.getElementById("filtroEstado")?.value.trim().toUpperCase() || "";
   bhMarketplaceState.raioKm = bhMarketplaceState.latitude !== null ? (Number(document.getElementById("filtroRaio")?.value) || null) : null;
+  bhMarketplaceState.servico = document.getElementById("filtroServico")?.value.trim() || "";
+  const minPrice = document.getElementById("filtroPrecoMin")?.value;
+  const maxPrice = document.getElementById("filtroPrecoMax")?.value;
+  bhMarketplaceState.precoMin = minPrice === "" ? null : Number(minPrice);
+  bhMarketplaceState.precoMax = maxPrice === "" ? null : Number(maxPrice);
+  bhMarketplaceState.avaliacaoMin = document.getElementById("filtroAvaliacao")?.value === "" ? null : Number(document.getElementById("filtroAvaliacao").value);
+  if (bhMarketplaceState.precoMin !== null && bhMarketplaceState.precoMax !== null && bhMarketplaceState.precoMin > bhMarketplaceState.precoMax) {
+    mostrarToast("aviso", "Revise os preços", "O preço mínimo não pode ser maior que o máximo.");
+    return;
+  }
   bhMarketplaceFecharFiltros();
   bhMarketplaceCarregar({ reset: true });
 }
@@ -268,6 +291,10 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("filtroBairro").value = "";
     document.getElementById("filtroEstado").value = "";
     document.getElementById("filtroRaio").value = "";
+    document.getElementById("filtroServico").value = "";
+    document.getElementById("filtroPrecoMin").value = "";
+    document.getElementById("filtroPrecoMax").value = "";
+    document.getElementById("filtroAvaliacao").value = "";
     bhMarketplaceState.latitude = null;
     bhMarketplaceState.longitude = null;
     bhMarketplaceAplicarFiltros();

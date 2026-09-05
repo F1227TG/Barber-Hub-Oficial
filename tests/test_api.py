@@ -42,7 +42,7 @@ class ApiSmokeTests(TestCase):
     def test_health_reports_api_version(self) -> None:
         response = self.client.get("/api/v1/health")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["data"]["version"], "1.6.0")
+        self.assertEqual(response.json()["data"]["version"], "1.6.1")
 
     def test_support_validation_is_standardized(self) -> None:
         response = self.client.post("/api/v1/support/tickets", json={})
@@ -168,6 +168,11 @@ class ApiSmokeTests(TestCase):
                 response = self.client.request(method, path, json=body)
                 self.assertEqual(response.status_code, 401)
                 self.assertEqual(response.json()["error"]["code"], "UNAUTHORIZED")
+
+    def test_push_delivery_job_rejects_unsigned_requests(self) -> None:
+        response = self.client.get("/api/v1/jobs/push/deliver")
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json()["error"]["code"], "JOB_UNAUTHORIZED")
 
     def test_location_contract_requires_coordinate_pair(self) -> None:
         with self.assertRaises(ValidationError):

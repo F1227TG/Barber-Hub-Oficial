@@ -22,8 +22,8 @@ package = json.loads(read("package.json"))
 api = read("api/index.py")
 client = read("js/backend-api.js")
 panel_html = read("html/painel.html")
-panel_js = read("js/painel-operacao-1.9.js")
-retention_js = read("js/painel-retencao-1.9.3.js")
+panel_js = read("js/features/professional-operation.js")
+retention_js = read("js/features/retention-growth.js")
 panel_css = read("css/release-1.9.css") + read("css/release-1.9.3.css")
 mobile_shell = read("js/mobile-shell-v1.7.js")
 migrations = {number: read(f"sql/{name}") for number, name in {
@@ -40,8 +40,8 @@ migrations = {number: read(f"sql/{name}") for number, name in {
     28: "28_hardening_objetos_1_9_3.sql",
 }.items()}
 
-check("frontend preserves release 1.9.3 or newer", package.get("version") in {"1.9.3", "1.10.0"})
-check("API preserves version 1.5.0 or newer", any(marker in api for marker in ['API_VERSION = "1.5.0"', 'API_VERSION = "1.6.0"']))
+check("frontend preserves release 1.9.3 or newer", package.get("version") in {"1.9.3", "1.10.0", "1.10.1"})
+check("API preserves version 1.5.0 or newer", any(marker in api for marker in ['API_VERSION = "1.5.0"', 'API_VERSION = "1.6.0"', 'API_VERSION = "1.6.1"']))
 check("all operational migrations exist", all(migrations.values()))
 check("agenda entities have RLS", all(token in migrations[18] for token in [
     "agenda_bloqueios enable row level security",

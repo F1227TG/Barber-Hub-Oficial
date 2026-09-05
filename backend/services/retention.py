@@ -23,18 +23,20 @@ from backend.services.access import first_visible, model_payload, require_featur
 from backend.supabase import gateway
 
 
-async def list_waitlist(establishment_id: str | None, auth: AuthContext) -> list[dict[str, Any]]:
+async def list_waitlist(establishment_id: str | None, auth: AuthContext, offset: int = 0, limit: int = 30) -> dict[str, Any]:
+    safe_offset, safe_limit = min(max(offset, 0), 10_000), min(max(limit, 1), 60)
     params: dict[str, Any] = {
         "select": "id,estabelecimento_id,cliente_id,profissional_id,servico_id,data_inicio,data_fim,horario_inicio,horario_fim,observacao,status,avisado_em,aviso_expira_em,created_at,perfis(nome,email,telefone),estabelecimentos(nome,slug),profissionais(nome),servicos(nome,duracao_min)",
         "order": "status.asc,data_inicio.asc,created_at.asc",
-        "limit": "300",
+        "offset": str(safe_offset), "limit": str(safe_limit + 1),
     }
     if establishment_id:
         await require_feature(establishment_id, auth, "permite_lista_espera", "Lista de espera disponível a partir do plano Profissional.")
         params["estabelecimento_id"] = f"eq.{establishment_id}"
     else:
         params["cliente_id"] = f"eq.{auth.user_id}"
-    return await gateway.rest("lista_espera", token=auth.token, params=params) or []
+    rows = await gateway.rest("lista_espera", token=auth.token, params=params) or []
+    return {"items": rows[:safe_limit], "offset": safe_offset, "limit": safe_limit, "has_more": len(rows) > safe_limit}
 
 
 async def join_waitlist(payload: WaitlistCreate, auth: AuthContext) -> dict[str, Any]:
@@ -67,17 +69,19 @@ async def create_recurrence(appointment_id: str, payload: RecurrenceCreate, auth
     )
 
 
-async def list_recurrences(establishment_id: str | None, auth: AuthContext) -> list[dict[str, Any]]:
+async def list_recurrences(establishment_id: str | None, auth: AuthContext, offset: int = 0, limit: int = 30) -> dict[str, Any]:
+    safe_offset, safe_limit = min(max(offset, 0), 10_000), min(max(limit, 1), 60)
     params: dict[str, Any] = {
         "select": "id,estabelecimento_id,agendamento_origem_id,cliente_id,profissional_id,frequencia,total_ocorrencias,ocorrencias_criadas,status,created_at,perfis(nome),estabelecimentos(nome,slug),profissionais(nome)",
-        "order": "created_at.desc,id.desc", "limit": "200",
+        "order": "created_at.desc,id.desc", "offset": str(safe_offset), "limit": str(safe_limit + 1),
     }
     if establishment_id:
-        await require_feature(establishment_id, auth, "permite_recorrencia", "Recorrência disponível a partir do plano Profissional.")
+        await require_feature(establishment_id, auth, "permite_recorrencia", "Recorrência disponível a partir do plano Essencial.")
         params["estabelecimento_id"] = f"eq.{establishment_id}"
     else:
         params["cliente_id"] = f"eq.{auth.user_id}"
-    return await gateway.rest("agendamentos_recorrencias", token=auth.token, params=params) or []
+    rows = await gateway.rest("agendamentos_recorrencias", token=auth.token, params=params) or []
+    return {"items": rows[:safe_limit], "offset": safe_offset, "limit": safe_limit, "has_more": len(rows) > safe_limit}
 
 
 async def loyalty_overview(establishment_id: str, auth: AuthContext) -> dict[str, Any]:
@@ -176,9 +180,11 @@ async def redeem_reward(reward_id: str, payload: LoyaltyRedeem, auth: AuthContex
     return await gateway.rest("resgatar_recompensa_193", method="POST", token=auth.token, rpc=True, json={"p_recompensa_id": reward_id, "p_cliente_id": str(payload.cliente_id)})
 
 
-async def list_coupons(establishment_id: str, auth: AuthContext) -> list[dict[str, Any]]:
+async def list_coupons(establishment_id: str, auth: AuthContext, offset: int = 0, limit: int = 30) -> dict[str, Any]:
     await require_feature(establishment_id, auth, "permite_cupons", "Cupons disponíveis a partir do plano Essencial.")
-    return await gateway.rest("cupons", token=auth.token, params={"estabelecimento_id": f"eq.{establishment_id}", "select": "*", "order": "ativo.desc,termina_em.asc.nullslast,created_at.desc", "limit": "200"}) or []
+    safe_offset, safe_limit = min(max(offset, 0), 10_000), min(max(limit, 1), 60)
+    rows = await gateway.rest("cupons", token=auth.token, params={"estabelecimento_id": f"eq.{establishment_id}", "select": "*", "order": "ativo.desc,termina_em.asc.nullslast,created_at.desc,id.desc", "offset": str(safe_offset), "limit": str(safe_limit + 1)}) or []
+    return {"items": rows[:safe_limit], "offset": safe_offset, "limit": safe_limit, "has_more": len(rows) > safe_limit}
 
 
 async def create_coupon(payload: CouponCreate, auth: AuthContext) -> dict[str, Any]:
@@ -219,8 +225,11 @@ async def create_campaign(payload: CampaignCreate, auth: AuthContext) -> dict[st
     )
 
 
-async def list_campaigns(establishment_id: str, auth: AuthContext) -> dict[str, Any]:
+async def list_campaigns(establishment_id: str, auth: AuthContext, campaign_offset: int = 0, queue_offset: int = 0, limit: int = 30) -> dict[str, Any]:
     await require_feature(establishment_id, auth, "permite_campanhas", "Campanhas segmentadas estão disponíveis no plano Elite.")
-    campaigns = await gateway.rest("campanhas", token=auth.token, params={"estabelecimento_id": f"eq.{establishment_id}", "select": "*", "order": "created_at.desc", "limit": "100"}) or []
-    queue = await gateway.rest("automacoes_mensagens", token=auth.token, params={"estabelecimento_id": f"eq.{establishment_id}", "select": "id,tipo,canal,status,agendada_para,processada_em,ultimo_erro", "order": "agendada_para.desc", "limit": "100"}) or []
-    return {"campanhas": campaigns, "fila": queue}
+    safe_limit = min(max(limit, 1), 60)
+    campaign_offset, queue_offset = min(max(campaign_offset, 0), 10_000), min(max(queue_offset, 0), 10_000)
+    campaigns = await gateway.rest("campanhas", token=auth.token, params={"estabelecimento_id": f"eq.{establishment_id}", "select": "*", "order": "created_at.desc,id.desc", "offset": str(campaign_offset), "limit": str(safe_limit + 1)}) or []
+    queue = await gateway.rest("automacoes_mensagens", token=auth.token, params={"estabelecimento_id": f"eq.{establishment_id}", "select": "id,tipo,canal,status,agendada_para,processada_em,ultimo_erro", "order": "agendada_para.desc,id.desc", "offset": str(queue_offset), "limit": str(safe_limit + 1)}) or []
+    return {"campanhas": campaigns[:safe_limit], "fila": queue[:safe_limit], "campanhas_has_more": len(campaigns) > safe_limit,
+            "fila_has_more": len(queue) > safe_limit, "campaign_offset": campaign_offset, "queue_offset": queue_offset, "limit": safe_limit}

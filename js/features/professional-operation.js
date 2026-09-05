@@ -9,7 +9,7 @@
     agendaView: "dia",
     agendaDate: "",
     agendaProfessional: "",
-    schedule: { appointments: [], blocks: [] },
+    schedule: { appointments: [], blocks: [], appointments_has_more:false, blocks_has_more:false },
     crmSegment: "",
     crmClients: [],
     crmSelected: null,
@@ -173,6 +173,7 @@
         }).join("") : `<div class="operation-state compact"><i class="bi bi-calendar-minus"></i><strong>Sem eventos</strong></div>`}</section>`;
       }).join("");
     }
+    if(state.schedule.appointments_has_more||state.schedule.blocks_has_more) $("#agendaTimeline19").insertAdjacentHTML("beforeend",'<button class="btn btn-dark agenda-more110" data-agenda-more110 type="button"><i class="bi bi-chevron-down"></i> Carregar mais eventos</button>');
     const upcoming = appointments.filter(item => ["pendente", "confirmado"].includes(item.status)).sort((a, b) => new Date(appointmentStart(a)) - new Date(appointmentStart(b))).slice(0, 3);
     $("#agendaSide19").innerHTML = `<div class="rail-card"><span>Período</span><strong>${safe(formatDate(start))}${end !== start ? ` — ${safe(formatDate(end))}` : ""}</strong><small>${appointments.length} atendimentos · ${blocks.length} bloqueios</small></div>${upcoming.map(item => `<div class="rail-card"><span>Próximo</span><strong>${safe(formatTime(item.hora_inicio))} · ${safe(item.cliente_nome)}</strong><small>${safe(item.profissionais?.nome || "Profissional")} · ${safe(appointmentServices(item))}</small></div>`).join("") || `<div class="rail-card"><span>Próximos</span><strong>Nenhuma pendência</strong><small>O período está organizado.</small></div>`}`;
   }
@@ -244,6 +245,12 @@
     }
     if (!state.crmClients.length) return host.innerHTML = stateHtml("bi-person-plus", "Nenhum cliente neste segmento", "A carteira será alimentada pelos atendimentos da agenda.");
     host.innerHTML = state.crmClients.map(item => `<button class="crm-client ${String(state.crmSelected) === String(item.id) ? "ativo" : ""}" data-crm-client="${safe(item.id)}" type="button"><span class="crm-avatar">${safe(initials(item.nome))}</span><span class="crm-client-copy"><strong>${safe(item.nome)}</strong><span>${safe(item.telefone || item.email || "Sem contato informado")} · ${safe((item.segmento || "novo").replace("_", " "))}</span></span><span class="crm-client-meta"><strong>${Number(item.visitas_concluidas || 0)} visitas</strong><small>${money(item.gasto_total)}</small></span></button>`).join("") + (state.crmHasMore ? `<button class="btn btn-dark btn-small crm-more110" data-crm-more type="button"><i class="bi bi-chevron-down"></i> Carregar mais clientes</button>` : "");
+  }
+
+  async function loadMoreAgenda(button){
+    const period=schedulePeriod();global.bhSetButtonLoading?.(button,true,"Carregando...");
+    try{const page=await api().scheduleRange({establishmentId:establishment().id,...period,professionalId:state.agendaProfessional||null,appointmentOffset:state.schedule.appointments.length,blockOffset:state.schedule.blocks.length});state.schedule.appointments.push(...page.appointments);state.schedule.blocks.push(...page.blocks);state.schedule.appointments_has_more=page.appointments_has_more;state.schedule.blocks_has_more=page.blocks_has_more;renderAgenda();}
+    catch(error){toast("erro","Agenda não atualizada",errorMessage(error));}finally{global.bhSetButtonLoading?.(button,false);}
   }
 
   async function loadCrm(append = false) {
@@ -552,6 +559,7 @@
     refreshVisible:() => refreshSection($(".panel-section.ativo")?.id)
   };
   document.addEventListener("click", event => {
+    const more=event.target.closest("[data-agenda-more110]");if(more){loadMoreAgenda(more);return;}
     if (!event.target.closest("[data-operation-retry]")) return;
     state.ready = false;
     state.initializing = false;

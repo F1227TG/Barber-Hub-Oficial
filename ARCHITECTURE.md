@@ -1,4 +1,4 @@
-# Arquitetura do Barber Hub 1.10.0
+# Arquitetura do Barber Hub 1.10.1
 
 ## Visão geral
 
@@ -11,7 +11,7 @@ Navegador/PWA
                 ├─ leituras públicas simples sob RLS
                 └─ /api/v1/*
                        │
-                 FastAPI 1.6
+                 FastAPI 1.6.1
                  ├─ autenticação e rate limit
                  ├─ validação Pydantic
                  ├─ regras em backend/domain
@@ -109,7 +109,7 @@ Fórmulas são rejeitadas e a mesma importação não deve ser confirmada duas v
 
 ### Avisos
 
-Preferências, consentimento e horário silencioso ficam separados da entrega. Notificação interna funciona como fallback. Web Push precisa de chaves VAPID e worker externo que processe a fila com repetição limitada.
+Preferências, consentimento e horário silencioso ficam separados da entrega. Notificação interna funciona como fallback. Web Push usa um job autenticado, reivindicação atômica da fila, repetição limitada e desativação de assinaturas expiradas; a entrega externa ainda depende de chaves VAPID e `CRON_SECRET` no deploy.
 
 ## Segurança e credenciais
 
@@ -122,7 +122,7 @@ Preferências, consentimento e horário silencioso ficam separados da entrega. N
 
 ## Migrations
 
-Arquivos em `sql/` formam uma sequência imutável. Migrations 01–28 são histórico. A versão 1.10 depende de 29, 30 e 31, seguidas por `verificar_31_release_1_10.sql`. Elas ainda não foram aplicadas no ambiente de produção.
+Arquivos históricos numerados permanecem em `sql/`; migrations novas gerenciadas pela CLI ficam em `supabase/migrations/`. No ambiente conectado, os objetos 29–31 existem, mas a execução manual não foi registrada no histórico. A 1.10.1 acrescenta `20260904180741_32_conclusao_pos31_1_10_1.sql` e `sql/verificar_32_conclusao_1_10_1.sql`.
 
 ## Deploy e reversão
 

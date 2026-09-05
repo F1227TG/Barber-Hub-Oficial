@@ -7,6 +7,7 @@
  */
 
 let bhOnboardingStep = 1;
+let bhOnboardingCover = null;
 const BH_TOTAL_STEPS = 4;
 
 function bhAtualizarStepper() {
@@ -88,6 +89,19 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   bhConfigurarPreview("fotoArquivo", "fotoPreview");
   bhConfigurarPreview("capaArquivo", "capaPreview");
+  window.bhBackendApi?.coverLibrary().then(items => {
+    const host = document.getElementById("coverLibraryOnboarding");
+    if (!host) return;
+    host.innerHTML = (items || []).map(item => `<button type="button" role="radio" aria-checked="false" data-onboarding-cover="${escapeHTML(item.url)}"><img src="..${escapeHTML(item.url)}" alt="${escapeHTML(item.texto_alternativo)}"><span>${escapeHTML(item.nome)}</span></button>`).join("") || "<p>Nenhuma capa disponível agora. Você pode enviar a sua.</p>";
+    host.addEventListener("click", event => {
+      const button = event.target.closest("[data-onboarding-cover]"); if (!button) return;
+      host.querySelectorAll("button").forEach(item => item.setAttribute("aria-checked", String(item === button)));
+      bhOnboardingCover = button.dataset.onboardingCover;
+      const input = document.getElementById("capaArquivo"); input.value = "";
+      window.bhLimparImagemEditada?.("capaArquivo");
+    });
+  }).catch(() => { const host=document.getElementById("coverLibraryOnboarding"); if(host) host.innerHTML="<p>Você pode enviar sua própria capa agora e escolher uma oficial depois.</p>"; });
+  document.getElementById("capaArquivo")?.addEventListener("change", () => { bhOnboardingCover=null; document.querySelectorAll("[data-onboarding-cover]").forEach(item=>item.setAttribute("aria-checked","false")); });
 
   document.getElementById("btnAvancarStep").addEventListener("click", () => {
     if (!bhValidarStep(bhOnboardingStep)) return;
@@ -139,7 +153,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         profissionalNome: document.getElementById("profissionalNome").value.trim(),
         profissionalEspecialidade: document.getElementById("profissionalEspecialidade").value.trim(),
         fotoUrl,
-        capaUrl
+        capaUrl: capaUrl || bhOnboardingCover
       };
       await bhCriarEstabelecimentoInicial(payload);
       mostrarToast("sucesso", "Cadastro concluído", "Sua página e seu painel já estão disponíveis.");

@@ -165,7 +165,7 @@ async function bhRecarregarCliente() {
     bhListarAgendamentosCliente(),
     bhListarFavoritosCliente().catch(erro => { console.warn("Favoritos indisponíveis.", erro); return []; }),
     bhListarMinhasAvaliacoes().catch(erro => { console.warn("Avaliações ainda não disponíveis.", erro); return []; }),
-    window.bhBackendApi?.listWaitlist().catch(erro => { console.warn("Lista de espera ainda não disponível.", erro); return []; }) || [],
+    window.bhBackendApi?.listWaitlist().then(page => page.items || []).catch(erro => { console.warn("Lista de espera ainda não disponível.", erro); return []; }) || [],
     window.bhBackendApi?.listRecurrences().catch(erro => { console.warn("Recorrências ainda não disponíveis.", erro); return []; }) || [],
     window.bhBackendApi?.clientLoyalty().catch(erro => { console.warn("Fidelidade ainda não disponível.", erro); return []; }) || []
   ]);

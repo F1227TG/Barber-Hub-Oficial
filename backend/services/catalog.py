@@ -116,12 +116,16 @@ async def regional_search(
     *, query: str | None = None, city: str | None = None, neighborhood: str | None = None,
     state: str | None = None, open_now: bool = False, agenda: bool = False,
     latitude: float | None = None, longitude: float | None = None,
-    radius_km: float | None = None, offset: int = 0, limit: int = 24,
+    radius_km: float | None = None, service: str | None = None,
+    min_price: float | None = None, max_price: float | None = None,
+    min_rating: float | None = None, offset: int = 0, limit: int = 24,
 ) -> dict[str, Any]:
+    from backend.services.flags import require_enabled
+    await require_enabled("marketplace.regional")
     safe_limit = min(max(int(limit or 24), 1), 60)
     safe_offset = min(max(int(offset or 0), 0), 10_000)
     ranked = await gateway.rest(
-        "buscar_marketplace_regional_110", method="POST", admin=False, rpc=True,
+        "buscar_marketplace_regional_1101", method="POST", admin=False, rpc=True,
         json={
             "p_busca": (query or "").strip() or None,
             "p_cidade": (city or "").strip() or None,
@@ -129,6 +133,8 @@ async def regional_search(
             "p_estado": (state or "").strip().upper() or None,
             "p_aberto_agora": bool(open_now), "p_com_agenda": bool(agenda),
             "p_latitude": latitude, "p_longitude": longitude, "p_raio_km": radius_km,
+            "p_servico": (service or "").strip() or None,
+            "p_preco_min": min_price, "p_preco_max": max_price, "p_avaliacao_min": min_rating,
             "p_offset": safe_offset, "p_limite": safe_limit,
         },
     ) or []
@@ -146,6 +152,8 @@ async def regional_search(
 
 
 async def cover_library() -> list[dict[str, Any]]:
+    from backend.services.flags import require_enabled
+    await require_enabled("perfil.biblioteca_capas")
     return await gateway.rest(
         "biblioteca_capas", admin=False,
         params={"select": "id,chave,nome,estilo,url,texto_alternativo,cor_dominante,ordem", "ativo": "eq.true", "order": "ordem.asc,id.asc"},

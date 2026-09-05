@@ -23,7 +23,33 @@
   const errorMessage = error => global.bhErroMensagem?.(error) || error?.message || "Não foi possível concluir.";
   const time = value => String(value || "").slice(0, 5);
   const today = () => global.bhHojeISO?.() || new Date().toISOString().slice(0, 10);
-  const key = prefix => `${prefix}.${Date.now()}.${global.crypto?.randomUUID?.() || Math.random().toString(36).slice(2)}`;
+  const draftScope = () => `${(typeof bhPainelPerfil !== "undefined" ? bhPainelPerfil?.id : null) || "session"}:${establishment()?.id}`;
+  const draftKind = form => form.id === "formManualService110" ? "manual" : "expense";
+  function preserveDraft(form) {
+    const fields = Object.fromEntries(new FormData(form));
+    return global.bhOperationDraft.save(draftScope(), draftKind(form), fields);
+  }
+  function restoreDraft(form) {
+    const saved = global.bhOperationDraft?.load(draftScope(), draftKind(form));
+    if (saved) Object.entries(saved.fields).forEach(([name,value]) => { if (form.elements[name]) form.elements[name].value = value; });
+    form.querySelectorAll('[data-custom-service],[data-custom-duration]').forEach(node => { node.hidden = form.elements.servico_id?.value !== "custom"; });
+    const note = document.createElement("p");
+    note.className = "span-4 draft-feedback";
+    note.setAttribute("role", "status");
+    note.textContent = saved?.payload ? "Envio sem confirmação. Tente novamente: os mesmos dados serão conferidos, sem criar outro lançamento." : "Rascunho protegido nesta aba por até duas horas. Não será enviado automaticamente.";
+    form.prepend(note);
+    if (saved?.payload) lockDraft(form);
+    form.addEventListener("input", () => { try { preserveDraft(form); } catch (error) { note.textContent = error.message; } });
+  }
+  function lockDraft(form) {
+    form.querySelectorAll("input,select,textarea").forEach(field => { field.disabled = true; });
+    form.querySelector(".draft-feedback").textContent = "Aguardando confirmação. Se a conexão falhar, use Registrar novamente para conferir este mesmo lançamento.";
+  }
+  function unlockRejectedDraft(form) {
+    form.querySelectorAll("input,select,textarea").forEach(field => { field.disabled = false; });
+    const note = form.querySelector(".draft-feedback");
+    if (note) note.textContent = "Revise os campos indicados e registre novamente. A proteção contra duplicidade continua ativa.";
+  }
 
   function errorState(title, detail, retry = "") {
     return `<div class="operation-state error"><i class="bi bi-exclamation-triangle"></i><strong>${safe(title)}</strong><small>${safe(detail)}</small>${retry ? `<button class="btn btn-outline btn-small" type="button" ${retry}><i class="bi bi-arrow-clockwise"></i> Tentar novamente</button>` : ""}</div>`;
@@ -168,29 +194,49 @@
     const close = `<button class="icon-btn" data-operation110-close type="button" aria-label="Fechar"><i class="bi bi-x-lg"></i></button>`;
     if (kind === "manual-service") host.innerHTML = `<div class="composer-header"><div><strong>Registrar atendimento já realizado</strong><small>Para balcão, telefone ou WhatsApp. A receita entra no financeiro uma única vez.</small></div>${close}</div><form class="composer-grid" id="formManualService110"><label class="campo span-2"><span>Profissional</span><select name="profissional_id" required><option value="">Selecione</option>${professionalOptions()}</select></label><label class="campo span-2"><span>Serviço</span><select name="servico_id" required><option value="">Selecione</option>${serviceOptions()}<option value="custom">Outro serviço</option></select></label><label class="campo" data-custom-service hidden><span>Nome do serviço</span><input name="servico_nome" minlength="2" maxlength="140"></label><label class="campo" data-custom-duration hidden><span>Duração</span><input name="duracao_min" type="number" min="5" max="480" step="5" value="30"></label><label class="campo span-2"><span>Cliente (opcional)</span><input name="cliente_nome" maxlength="140" placeholder="Nome para o histórico"></label><label class="campo"><span>Telefone</span><input name="cliente_telefone" inputmode="tel"></label><label class="campo"><span>Origem</span><select name="canal_origem"><option value="balcao">Balcão</option><option value="whatsapp">WhatsApp</option><option value="telefone">Telefone</option><option value="outro">Outro</option></select></label><label class="campo span-2"><span>Data e hora</span><input name="inicio" type="datetime-local" value="${localDateTime()}" required></label><label class="campo"><span>Valor recebido</span><input name="valor" type="number" min="0" max="1000000" step="0.01" required></label><label class="campo"><span>Pagamento</span><select name="forma_pagamento"><option value="pix">Pix</option><option value="dinheiro">Dinheiro</option><option value="credito">Crédito</option><option value="debito">Débito</option><option value="outro">Outro</option></select></label><label class="campo span-4"><span>Observação</span><textarea name="observacao" maxlength="800"></textarea></label><div class="composer-actions"><button class="btn btn-dark" data-operation110-close type="button">Cancelar</button><button class="btn btn-primary" type="submit"><i class="bi bi-check2-circle"></i> Registrar atendimento</button></div></form>`;
     if (kind === "expense") host.innerHTML = `<div class="composer-header"><div><strong>Registrar gasto</strong><small>Inclua uma saída real para enxergar o resultado estimado do período.</small></div>${close}</div><form class="composer-grid" id="formExpense110"><label class="campo"><span>Data</span><input name="competencia" type="date" value="${today()}" required></label><label class="campo"><span>Valor</span><input name="valor" type="number" min="0.01" max="1000000" step="0.01" required></label><label class="campo"><span>Categoria</span><input name="categoria" minlength="2" maxlength="80" placeholder="Ex.: materiais" required></label><label class="campo"><span>Pagamento</span><select name="forma_pagamento"><option value="pix">Pix</option><option value="dinheiro">Dinheiro</option><option value="credito">Crédito</option><option value="debito">Débito</option><option value="boleto">Boleto</option><option value="transferencia">Transferência</option><option value="outro">Outro</option></select></label><label class="campo span-4"><span>Descrição</span><input name="descricao" minlength="2" maxlength="180" required></label><label class="campo span-4"><span>Observação</span><textarea name="observacao" maxlength="500"></textarea></label><div class="composer-actions"><button class="btn btn-dark" data-operation110-close type="button">Cancelar</button><button class="btn btn-primary" type="submit"><i class="bi bi-receipt"></i> Registrar gasto</button></div></form>`;
+    const form = host.querySelector("form");
+    if (form) restoreDraft(form);
     host.scrollIntoView({ behavior:"smooth", block:"nearest" });
   }
 
   async function submitOperation(form) {
+    if (form.dataset.submitting === "true") return;
+    if (!navigator.onLine) return toast("aviso", "Você está sem conexão", "O rascunho permanece nesta aba. Volte a registrar quando a conexão retornar.");
+    form.dataset.submitting = "true";
+    const saved = global.bhOperationDraft.load(draftScope(), draftKind(form));
     const data = new FormData(form);
+    if (saved?.payload) Object.entries(saved.fields).forEach(([name,value]) => data.set(name,value));
     const button = form.querySelector("button[type='submit']");
     global.bhSetButtonLoading?.(button, true, "Registrando...");
     try {
       if (form.id === "formManualService110") {
         const custom = data.get("servico_id") === "custom";
-        await api().createManualService({ estabelecimento_id:establishment().id, profissional_id:data.get("profissional_id"), servico_id:custom ? null : data.get("servico_id"), servico_nome:custom ? data.get("servico_nome") : null, duracao_min:custom ? Number(data.get("duracao_min")) : null, cliente_id:null, cliente_nome:data.get("cliente_nome") || null, cliente_email:null, cliente_telefone:data.get("cliente_telefone") || null, inicio:new Date(data.get("inicio")).toISOString(), valor:Number(data.get("valor")), forma_pagamento:data.get("forma_pagamento"), canal_origem:data.get("canal_origem"), observacao:data.get("observacao") || null, chave_idempotencia:key("manual"), concluir:true });
+        const payload = global.bhOperationDraft.begin(draftScope(), "manual", Object.fromEntries(data), { estabelecimento_id:establishment().id, profissional_id:data.get("profissional_id"), servico_id:custom ? null : data.get("servico_id"), servico_nome:custom ? data.get("servico_nome") : null, duracao_min:custom ? Number(data.get("duracao_min")) : null, cliente_id:null, cliente_nome:data.get("cliente_nome") || null, cliente_email:null, cliente_telefone:data.get("cliente_telefone") || null, inicio:new Date(data.get("inicio")).toISOString(), valor:Number(data.get("valor")), forma_pagamento:data.get("forma_pagamento"), canal_origem:data.get("canal_origem"), observacao:data.get("observacao") || null, concluir:true });
+        lockDraft(form);
+        await api().createManualService(payload);
         toast("sucesso", "Atendimento registrado", "Agenda e financeiro foram atualizados juntos.");
       }
       if (form.id === "formExpense110") {
-        await api().createExpense({ estabelecimento_id:establishment().id, competencia:data.get("competencia"), valor:Number(data.get("valor")), categoria:data.get("categoria"), descricao:data.get("descricao"), forma_pagamento:data.get("forma_pagamento"), observacao:data.get("observacao") || null, chave_idempotencia:key("expense") });
+        const payload = global.bhOperationDraft.begin(draftScope(), "expense", Object.fromEntries(data), { estabelecimento_id:establishment().id, competencia:data.get("competencia"), valor:Number(data.get("valor")), categoria:data.get("categoria"), descricao:data.get("descricao"), forma_pagamento:data.get("forma_pagamento"), observacao:data.get("observacao") || null });
+        lockDraft(form);
+        await api().createExpense(payload);
         toast("sucesso", "Gasto registrado", "O resultado estimado agora considera esta saída.");
       }
+      global.bhOperationDraft.clear(draftScope(), draftKind(form));
       form.closest(".operation-composer").hidden = true;
       form.closest(".operation-composer").innerHTML = "";
       await global.bhRecarregarPainel?.();
       global.bhOperacao19?.refreshVisible?.();
-    } catch (error) { toast("erro", "Não foi possível registrar", errorMessage(error)); }
-    finally { global.bhSetButtonLoading?.(button, false); }
+    } catch (error) {
+      // 4xx conclusivos significam que nada foi gravado. Libera a edição sem
+      // descartar a chave estável. Timeout, rede e 5xx conservam o mesmo envio.
+      if ([400, 401, 403, 404, 409, 422].includes(Number(error?.status))) {
+        global.bhOperationDraft.release(draftScope(), draftKind(form));
+        unlockRejectedDraft(form);
+      }
+      toast("erro", "Não foi possível registrar", errorMessage(error));
+    }
+    finally { form.dataset.submitting = "false"; global.bhSetButtonLoading?.(button, false); }
   }
 
   function bytesToBase64(buffer) {

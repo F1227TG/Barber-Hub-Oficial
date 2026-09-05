@@ -45,7 +45,7 @@ def main() -> int:
     check("Ranking/destaques", all(x in sql for x in ["e.destaque", "relevancia", "e.avaliacao"]), "ranking inicial documentado")
 
     # 3. Booking modal
-    booking = text("js/booking-modal.js")
+    booking = text("js/features/booking.js")
     check("Agendamento em modal", all(x in booking for x in ["bookingModal", "booking-service-choice", "booking-professional-choice", "data-booking-panel"]), "4 etapas")
     check("Múltiplos serviços", "new Set" in booking and "servicosIds: [...state.services]" in booking, "seleção combinável")
     check("Profissional radio + foto", all(x in booking for x in ["type=\"radio\"", "avatar_url", "booking-radio-dot"]), "cartões de profissional")

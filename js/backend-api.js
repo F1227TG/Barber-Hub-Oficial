@@ -122,7 +122,7 @@
       return request(`marketplace/search?${params.toString()}`, { auth: false });
     },
     featuredMarketplace: (limit = 6) => request(`marketplace/featured?limit=${encodeURIComponent(limit)}`, { auth: false }),
-    regionalMarketplace: ({ query = "", city = "", neighborhood = "", state = "", openNow = false, agenda = false, latitude = null, longitude = null, radiusKm = null, offset = 0, limit = 24 } = {}) => {
+    regionalMarketplace: ({ query = "", city = "", neighborhood = "", state = "", openNow = false, agenda = false, latitude = null, longitude = null, radiusKm = null, service = "", minPrice = null, maxPrice = null, minRating = null, offset = 0, limit = 24 } = {}) => {
       const params = new URLSearchParams({ offset: String(offset), limit: String(limit) });
       if (query) params.set("q", query);
       if (city) params.set("city", city);
@@ -135,6 +135,10 @@
         params.set("longitude", String(longitude));
       }
       if (radiusKm) params.set("radius_km", String(radiusKm));
+      if (service) params.set("service", service);
+      if (minPrice !== null) params.set("min_price", String(minPrice));
+      if (maxPrice !== null) params.set("max_price", String(maxPrice));
+      if (minRating !== null) params.set("min_rating", String(minRating));
       return request(`marketplace/regional?${params.toString()}`, { auth: false });
     },
     coverLibrary: () => request("catalog/cover-library", { auth: false }),
@@ -153,9 +157,12 @@
       auth: true,
       body: { status, motivo }
     }),
-    scheduleRange: ({ establishmentId, start, end, professionalId = null }) => {
+    scheduleRange: ({ establishmentId, start, end, professionalId = null, appointmentOffset = 0, blockOffset = 0, limit = 100 }) => {
       const params = new URLSearchParams({ establishment_id: establishmentId, start, end });
       if (professionalId) params.set("professional_id", professionalId);
+      params.set("appointment_offset", String(appointmentOffset));
+      params.set("block_offset", String(blockOffset));
+      params.set("limit", String(limit));
       return request(`schedule/range?${params.toString()}`, { auth: true });
     },
     openingPeriods: establishmentId => request(`schedule/opening-periods?establishment_id=${encodeURIComponent(establishmentId)}`, { auth: true }),
@@ -169,21 +176,21 @@
     rescheduleAppointment: (appointmentId, data) => request(`appointments/${encodeURIComponent(appointmentId)}/reschedule`, { method: "PATCH", auth: true, body: data }),
     confirmAppointment: (appointmentId, origem, confirmacao) => request(`appointments/${encodeURIComponent(appointmentId)}/confirmation`, { method: "PATCH", auth: true, body: { origem, confirmacao } }),
     markNoShow: appointmentId => request(`appointments/${encodeURIComponent(appointmentId)}/no-show`, { method: "PATCH", auth: true }),
-    listWaitlist: (establishmentId = null) => request(`retention/waitlist${establishmentId ? `?establishment_id=${encodeURIComponent(establishmentId)}` : ""}`, { auth: true }),
+    listWaitlist: (establishmentId = null, offset = 0, limit = 30) => request(`retention/waitlist?offset=${offset}&limit=${limit}${establishmentId ? `&establishment_id=${encodeURIComponent(establishmentId)}` : ""}`, { auth: true }),
     joinWaitlist: data => request("retention/waitlist", { method: "POST", auth: true, body: data }),
     updateWaitlist: (itemId, status) => request(`retention/waitlist/${encodeURIComponent(itemId)}`, { method: "PATCH", auth: true, body: { status } }),
     createRecurrence: (appointmentId, data) => request(`appointments/${encodeURIComponent(appointmentId)}/recurrence`, { method: "POST", auth: true, body: data }),
-    listRecurrences: (establishmentId = null) => request(`retention/recurrences${establishmentId ? `?establishment_id=${encodeURIComponent(establishmentId)}` : ""}`, { auth: true }),
+    listRecurrences: (establishmentId = null, offset = 0, limit = 30) => request(`retention/recurrences?offset=${offset}&limit=${limit}${establishmentId ? `&establishment_id=${encodeURIComponent(establishmentId)}` : ""}`, { auth: true }),
     loyaltyOverview: establishmentId => request(`retention/loyalty?establishment_id=${encodeURIComponent(establishmentId)}`, { auth: true }),
     clientLoyalty: () => request("client/loyalty", { auth: true }),
     saveLoyaltyProgram: data => request("retention/loyalty/program", { method: "PUT", auth: true, body: data }),
     createLoyaltyReward: data => request("retention/loyalty/rewards", { method: "POST", auth: true, body: data }),
     updateLoyaltyReward: (rewardId, data) => request(`retention/loyalty/rewards/${encodeURIComponent(rewardId)}`, { method: "PATCH", auth: true, body: data }),
     redeemLoyaltyReward: (rewardId, clientId) => request(`retention/loyalty/rewards/${encodeURIComponent(rewardId)}/redeem`, { method: "POST", auth: true, body: { cliente_id:clientId } }),
-    listCoupons: establishmentId => request(`retention/coupons?establishment_id=${encodeURIComponent(establishmentId)}`, { auth: true }),
+    listCoupons: (establishmentId, offset = 0, limit = 30) => request(`retention/coupons?establishment_id=${encodeURIComponent(establishmentId)}&offset=${offset}&limit=${limit}`, { auth: true }),
     createCoupon: data => request("retention/coupons", { method: "POST", auth: true, body: data }),
     updateCoupon: (couponId, data) => request(`retention/coupons/${encodeURIComponent(couponId)}`, { method: "PATCH", auth: true, body: data }),
-    listCampaigns: establishmentId => request(`retention/campaigns?establishment_id=${encodeURIComponent(establishmentId)}`, { auth: true }),
+    listCampaigns: (establishmentId, campaignOffset = 0, queueOffset = 0, limit = 30) => request(`retention/campaigns?establishment_id=${encodeURIComponent(establishmentId)}&campaign_offset=${campaignOffset}&queue_offset=${queueOffset}&limit=${limit}`, { auth: true }),
     createCampaign: data => request("retention/campaigns", { method: "POST", auth: true, body: data }),
     teamPermissions: establishmentId => request(`team/permissions?establishment_id=${encodeURIComponent(establishmentId)}`, { auth: true }),
     updateTeamPermissions: (memberId, permissions) => request(`team/members/${encodeURIComponent(memberId)}/permissions`, { method: "PATCH", auth: true, body: { permissoes:permissions } }),

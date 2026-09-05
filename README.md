@@ -1,10 +1,10 @@
-# Barber Hub 1.10.0
+# Barber Hub 1.10.1
 
 Marketplace de serviços e sistema de gestão para barbearias, desenvolvido por **The Gamers Tech**. O cliente encontra estabelecimentos, compara serviços e agenda. Profissionais e proprietários administram agenda, clientes, equipe, dinheiro e retenção em uma experiência web/PWA responsiva.
 
 ## Estado desta entrega
 
-A versão 1.10.0 está em preparação local. O código e os testes acompanham as novas funções, mas ela **ainda não deve ser publicada**: as migrations 29–31 não foram aplicadas no ambiente de produção e a homologação externa permanece pendente.
+A versão 1.10.1 conclui o escopo técnico do Planejamento Pós-31. No Supabase conectado, os objetos das migrations 29–31 foram confirmados, embora essas execuções manuais não constem no histórico oficial de migrations. A migration 32 e seu verificador são a etapa de banco ainda pendente; publicação também depende de configuração externa e homologação com contas reais.
 
 Principais avanços:
 
@@ -20,7 +20,8 @@ Principais avanços:
 ## Comece pela documentação
 
 - [Guia completo do projeto](docs/GUIA_COMPLETO_DO_PROJETO.md)
-- [Resumo da versão 1.10.0](docs/ATUALIZACAO_1_10_0.md)
+- [Resumo da versão 1.10.1](docs/ATUALIZACAO_1_10_1.md)
+- [Conferência final do Planejamento Pós-31](docs/RELATORIO_CONCLUSAO_PLANEJAMENTO_POS31_1_10_1.md)
 - [Migrations e deploy seguro](docs/MIGRATIONS_DEPLOY_1_10.md)
 - [Relatório de segurança](docs/RELATORIO_SEGURANCA_1_10.md)
 - [Homologação final](docs/HOMOLOGACAO_FINAL_1_10.md)
@@ -80,20 +81,22 @@ Antes de qualquer commit ou deploy:
 npm run check
 ```
 
-A validação reúne paridade mobile, roteamento, referências, sintaxe, regressões 1.9.3/1.10, segurança V01–V06, compilação e testes Python.
+A validação reúne paridade mobile, roteamento, referências, sintaxe, regressões 1.9.3/1.10/1.10.1, segurança V01–V06, compilação e testes Python.
 
 ## Banco e publicação
 
-As migrations 01–28 formam o histórico existente. A 1.10 adiciona:
+As migrations 01–28 formam o histórico registrado. A 1.10 adiciona:
 
 ```text
 29_operacao_real_horarios_atendimentos_1_10.sql
 30_localizacao_biblioteca_marketplace_1_10.sql
 31_push_importacoes_auditoria_flags_1_10.sql
 verificar_31_release_1_10.sql
+20260904180741_32_conclusao_pos31_1_10_1.sql
+verificar_32_conclusao_1_10_1.sql
 ```
 
-No ambiente atual, aplique somente **29 → 30 → 31 → verificador 31**, nessa ordem e depois de backup. Não execute isso automaticamente a partir do frontend nem altere migrations já aplicadas.
+No ambiente conectado, os objetos de 29–31 foram verificados como presentes. Não reaplique esses arquivos às cegas. Depois de backup, aplique a **migration 32** pelo fluxo oficial de migrations e execute o **verificador 32**. Isso preserva rastreabilidade a partir desta versão sem fingir que execuções manuais antigas constam no histórico.
 
 Também são externos ao Git: URLs autorizadas, CAPTCHA/Turnstile, proteção contra senhas vazadas quando disponível, origens da API, chaves VAPID/worker, Advisors e testes com contas reais por papel/plano.
 

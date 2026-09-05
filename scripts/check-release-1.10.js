@@ -10,7 +10,7 @@ const check = (condition, message) => { if (!condition) errors.push(message); };
 
 const continuation = read("js/core/continuation.js");
 const operation = read("js/features/operation-real-1.10.js");
-const panelOperation = read("js/painel-operacao-1.9.js");
+const panelOperation = read("js/features/professional-operation.js");
 const panel = read("html/painel.html");
 const publicPage = read("js/barbearia.js");
 const statusRules = read("js/status.js");
@@ -62,7 +62,7 @@ check(publicPage.includes("openstreetmap.org") && publicPage.includes("Como cheg
 check(admin.includes("adminReleaseGrid110") && admin.includes("bhAdminRenderRelease110"), "administração precisa mostrar prontidão do lançamento");
 check(admin.includes("data-admin-more") && read("js/backend-api.js").includes("adminRecords"), "listas administrativas precisam de paginação progressiva");
 check(css.includes("@media(max-width:380px)") && css.includes("admin-release-grid110"), "novos módulos precisam responder em telas compactas");
-check(sw.includes("barberhub-v1.10-mobile-r2") && sw.includes("self.addEventListener('push'"), "PWA precisa atualizar cache e receber avisos permitidos");
+check(sw.includes("barberhub-v1.10.1-mobile-r1") && sw.includes("self.addEventListener('push'"), "PWA precisa atualizar cache e receber avisos permitidos");
 
 for (const [name, sql, markers] of [
   ["29", migration29, ["estabelecimento_horario_periodos", "registrar_atendimento_manual_110", "registrar_despesa_110"]],
@@ -76,7 +76,7 @@ for (const [name, sql, markers] of [
 check(migration31.includes("revoke all on function public.confirmar_importacao_110"), "confirmação de importação precisa revogar execução pública");
 check(migration29.includes("p_servico_nome text") && migration29.includes("p_duracao_min integer"), "atendimento manual precisa aceitar serviço avulso com duração validada");
 check(migration31.includes("única mutação permitida: anonimização"), "auditoria imutável precisa permitir apenas anonimização de vínculos excluídos");
-check(read("package.json").includes('"version": "1.10.0"'), "package precisa declarar a versão 1.10.0");
+check(read("package.json").includes('"version": "1.10.1"'), "package precisa preservar a série 1.10");
 
 if (errors.length) {
   console.error(`Regressões 1.10 reprovadas:\n- ${errors.join("\n- ")}`);

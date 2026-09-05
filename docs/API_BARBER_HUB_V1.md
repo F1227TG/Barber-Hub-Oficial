@@ -1,4 +1,4 @@
-# API própria do Barber Hub — Python/FastAPI 1.6.0
+# API própria do Barber Hub — Python/FastAPI 1.6.1
 
 ## Objetivo
 
@@ -39,7 +39,7 @@ backend/services/audit.py    trilha operacional paginada
 backend/services/flags.py    avaliação autorizada de feature flags
 ```
 
-## Endpoints 1.6.0
+## Endpoints 1.6.1
 
 | Método | Rota | Acesso | Responsabilidade |
 |---|---|---|---|
@@ -126,6 +126,7 @@ backend/services/flags.py    avaliação autorizada de feature flags
 | GET | `/api/v1/push/config` | autenticado | configuração pública e disponibilidade de Push |
 | POST/DELETE | `/api/v1/push/subscriptions` | autenticado | registrar/remover dispositivo |
 | GET/PUT | `/api/v1/push/preferences` | autenticado | categorias e horário silencioso |
+| GET/POST | `/api/v1/jobs/push/deliver` | job com Bearer secreto | entrega em lote, silêncio, retries e limpeza de assinaturas expiradas |
 | GET | `/api/v1/audit/operational` | gestão autorizada | auditoria operacional paginada |
 | POST | `/api/v1/features/evaluate` | autenticado | capacidades e flags efetivas sem expor regras internas |
 

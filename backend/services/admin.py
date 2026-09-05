@@ -237,13 +237,13 @@ async def health_details(auth: AuthContext) -> dict[str, object]:
         "31": release_probes[2] is True,
     }
     return {
-        "api": {"status": "online", "version": "1.6.0"},
+        "api": {"status": "online", "version": "1.6.1"},
         "database": {"status": "online", "provider": "supabase-postgres"},
         "auth": {"status": "online", "provider": "supabase-auth"},
         "marketplace": marketplace,
         "overview": overview_data,
         "release": {
-            "version": "1.10.0",
+            "version": "1.10.1",
             "migrations": migrations,
             "configuration": {
                 "allowed_origins": bool(settings.allowed_origins),

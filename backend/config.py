@@ -22,6 +22,9 @@ class Settings:
     password_redirect_url: str
     turnstile_site_key: str
     vapid_public_key: str
+    vapid_private_key: str
+    vapid_subject: str
+    jobs_secret: str
 
     @property
     def is_configured(self) -> bool:
@@ -39,4 +42,7 @@ settings = Settings(
     ),
     turnstile_site_key=os.getenv("BARBER_HUB_TURNSTILE_SITE_KEY", "").strip(),
     vapid_public_key=os.getenv("BARBER_HUB_VAPID_PUBLIC_KEY", "").strip(),
+    vapid_private_key=os.getenv("BARBER_HUB_VAPID_PRIVATE_KEY", "").strip(),
+    vapid_subject=os.getenv("BARBER_HUB_VAPID_SUBJECT", "").strip(),
+    jobs_secret=os.getenv("BARBER_HUB_JOBS_SECRET", os.getenv("CRON_SECRET", "")).strip(),
 )

@@ -12,9 +12,12 @@ from backend.errors import ApiError
 from backend.models import ImportPreviewRequest
 from backend.security import AuthContext
 from backend.supabase import gateway
+from backend.services.flags import require_enabled
+from backend.services.access import first_visible
 
 
 async def preview(payload: ImportPreviewRequest, auth: AuthContext) -> dict[str, Any]:
+    await require_enabled("dados.importacao", auth, str(payload.estabelecimento_id))
     try:
         content = base64.b64decode(payload.conteudo_base64, validate=True)
     except (binascii.Error, ValueError) as exc:
@@ -30,11 +33,15 @@ async def preview(payload: ImportPreviewRequest, auth: AuthContext) -> dict[str,
     existing = await gateway.rest(
         "importacoes_operacionais", token=auth.token,
         params={"estabelecimento_id": f"eq.{establishment_id}", "tipo": f"eq.{payload.tipo}",
-                "conteudo_hash": f"eq.{content_hash}", "select": "id,status,relatorio", "limit": "1"},
+                "conteudo_hash": f"eq.{content_hash}", "select": "id,status,relatorio,total_linhas,validas,rejeitadas", "limit": "1"},
     ) or []
     if existing:
-        return {"id": str(existing[0]["id"]), "status": existing[0]["status"],
-                "duplicada": True, "relatorio": existing[0].get("relatorio") or {}}
+        job = existing[0]
+        samples = await gateway.rest("importacao_linhas", token=auth.token,
+            params={"importacao_id": f"eq.{job['id']}", "select": "numero_linha,status,dados,erros", "order": "numero_linha.asc", "limit": "100"}) or []
+        return {"id": str(job["id"]), "status": job["status"], "duplicada": True,
+                "relatorio": job.get("relatorio") or {}, "total": job["total_linhas"],
+                "validas": job["validas"], "rejeitadas": job["rejeitadas"], "amostra": samples}
 
     jobs = await gateway.rest(
         "importacoes_operacionais", method="POST", token=auth.token,
@@ -63,6 +70,9 @@ async def preview(payload: ImportPreviewRequest, auth: AuthContext) -> dict[str,
 
 
 async def commit(import_id: str, auth: AuthContext) -> dict[str, Any]:
+    job = await first_visible("importacoes_operacionais", import_id, auth,
+        select="id,estabelecimento_id", message="Importação não encontrada.")
+    await require_enabled("dados.importacao", auth, str(job["estabelecimento_id"]))
     result = await gateway.rest(
         "confirmar_importacao_110", method="POST", token=auth.token, rpc=True,
         json={"p_importacao_id": import_id},

@@ -379,7 +379,7 @@ function bhAdminRenderRelease110(data, error = null) {
   }
   const release = data.release;
   const checks = [
-    [true, `Versão ${release.version || "1.10.0"}`, `Serviço principal ${data.api?.version || "ativo"}.`],
+    [true, `Versão ${release.version || "1.10.1"}`, `Serviço principal ${data.api?.version || "ativo"}.`],
     [release.migrations?.["29"], "Operação e horários", "Atualização 29: períodos, atendimentos e financeiro."],
     [release.migrations?.["30"], "Localização e imagens", "Atualização 30: biblioteca, rota e busca regional."],
     [release.migrations?.["31"], "Importação e controle", "Atualização 31: avisos, auditoria e liberações."],

@@ -18,6 +18,7 @@ from backend.security import AuthContext
 from backend.domain.operations import normalize_origin_channel, normalize_payment_method
 from backend.services.access import first_visible, model_payload, require_feature
 from backend.supabase import gateway
+from backend.services.flags import require_enabled
 
 
 async def list_range(
@@ -26,6 +27,9 @@ async def list_range(
     end: date,
     professional_id: str | None,
     auth: AuthContext,
+    appointment_offset: int = 0,
+    block_offset: int = 0,
+    limit: int = 100,
 ) -> dict[str, Any]:
     if end < start or end > start + timedelta(days=31):
         raise ApiError(422, "INVALID_SCHEDULE_RANGE", "Consulte um período entre 1 e 32 dias.")
@@ -35,6 +39,8 @@ async def list_range(
         "permite_agenda_avancada",
         "A Agenda 2.0 está disponível a partir do plano Essencial.",
     )
+    safe_limit = min(max(limit, 1), 200)
+    appointment_offset, block_offset = min(max(appointment_offset, 0), 10_000), min(max(block_offset, 0), 10_000)
     params: dict[str, Any] = {
         "estabelecimento_id": f"eq.{establishment_id}",
         "data": f"gte.{start.isoformat()}",
@@ -47,7 +53,7 @@ async def list_range(
             "agendamento_servicos(ordem,nome_snapshot,preco_snapshot,duracao_min_snapshot)"
         ),
         "order": "inicio_previsto.asc,id.asc",
-        "limit": "500",
+        "offset": str(appointment_offset), "limit": str(safe_limit + 1),
     }
     if professional_id:
         params["profissional_id"] = f"eq.{professional_id}"
@@ -59,12 +65,16 @@ async def list_range(
         "fim": f"gt.{start.isoformat()}T00:00:00-03:00",
         "select": "id,estabelecimento_id,profissional_id,inicio,fim,tipo,motivo,criado_por",
         "order": "inicio.asc,id.asc",
-        "limit": "500",
+        "offset": str(block_offset), "limit": str(safe_limit + 1),
     }
     if professional_id:
         block_params["or"] = f"(profissional_id.is.null,profissional_id.eq.{professional_id})"
     blocks = await gateway.rest("agenda_bloqueios", token=auth.token, params=block_params)
-    return {"appointments": appointments or [], "blocks": blocks or [], "start": start.isoformat(), "end": end.isoformat()}
+    appointments, blocks = appointments or [], blocks or []
+    return {"appointments": appointments[:safe_limit], "blocks": blocks[:safe_limit],
+            "appointments_has_more": len(appointments) > safe_limit, "blocks_has_more": len(blocks) > safe_limit,
+            "appointment_offset": appointment_offset, "block_offset": block_offset,
+            "limit": safe_limit, "start": start.isoformat(), "end": end.isoformat()}
 
 
 async def create_walk_in(payload: WalkInCreate, auth: AuthContext) -> dict[str, str]:
@@ -217,6 +227,7 @@ async def get_opening_periods(establishment_id: str, auth: AuthContext) -> dict[
 
 async def replace_opening_periods(payload: OpeningPeriodsReplace, auth: AuthContext) -> dict[str, Any]:
     establishment_id = str(payload.estabelecimento_id)
+    await require_enabled("operacao.multiplos_periodos", auth, establishment_id)
     periods = [model_payload(item, exclude_unset=False) for item in payload.periodos]
     result = await gateway.rest(
         "substituir_periodos_funcionamento_110",
@@ -235,6 +246,7 @@ async def create_manual_service(payload: ManualServiceCreate, auth: AuthContext)
     """Atomically conclude an in-person/assisted service and its financial entry."""
 
     establishment_id = str(payload.estabelecimento_id)
+    await require_enabled("operacao.atendimento_manual", auth, establishment_id)
     await require_feature(
         establishment_id,
         auth,

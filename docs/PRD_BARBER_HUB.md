@@ -1,7 +1,7 @@
 # PRD — Barber Hub
 ### Product Requirements Document
 
-> **Revisão vigente:** a Seção 35 registra o estado da versão 1.10.0 e prevalece sobre backlog, números de versão e pendências históricas das seções anteriores. O histórico foi mantido para rastreabilidade, não como checklist de deploy atual.
+> **Revisão vigente:** a Seção 36 registra o estado da versão 1.10.1 e prevalece sobre backlog, números de versão e pendências históricas das seções anteriores. O histórico foi mantido para rastreabilidade, não como checklist de deploy atual.
 
 > Documento gerado a partir da leitura direta do código-fonte do repositório `Barber-Hub-Oficial-main` (não a partir de suposições ou apenas da documentação existente). Toda afirmação de status foi confirmada em código; onde isso não foi possível, o item está marcado como **não confirmado**.
 
@@ -26,8 +26,8 @@
 | Vertical | Barbearias, com expansão de posicionamento em andamento para "negócios de beleza" em geral (ver `html/beauty-hub.html`, descrição do `manifest.webmanifest`: *"Encontre barbearias, agende serviços e gerencie seu negócio em um só lugar"*) |
 | Tipo de produto | Aplicação web + interface HTML mobile dedicada, instalável como PWA, multi-tenant (múltiplos estabelecimentos independentes), com backend próprio (API Python/FastAPI) sobre infraestrutura Supabase |
 | Empresa/divisão | The Gamers Tech |
-| Estágio atual | Produto em produção ativa, com a versão 1.10.0 em homologação local e preparação para a fase final de usuários-piloto |
-| Versão analisada | Front-end/PWA **1.10.0** · API própria **1.6.0** · schema local versionado até a migration **31**; migrations 29–31 ainda pendentes no ambiente publicado |
+| Estágio atual | Produto em produção ativa, com a versão 1.10.1 em homologação e preparação para usuários-piloto |
+| Versão analisada | Front-end/PWA **1.10.1** · API própria **1.6.1** · objetos 29–31 confirmados no ambiente conectado e migration **32** preparada |
 | Repositório analisado | `Barber-Hub-Oficial-main.zip`, domínio de referência `barberhuboficial.vercel.app` |
 | Stack confirmada em código | HTML/CSS/JS vanilla + Bootstrap 5.3.6 (local, em camada `@layer`); Supabase (PostgreSQL, Auth, Storage, RLS, Realtime); backend próprio em Python 3.13+/FastAPI 0.117+/Pydantic 2.10+, empacotado como função serverless da Vercel (`api/index.py`); PWA com Service Worker e manifest próprios |
 
@@ -126,7 +126,7 @@ Time da The Gamers Tech responsável por moderar conteúdo (avaliações, denún
 
 1. **Descoberta** (`index.html`, `html/portal.html`): visitante vê a landing e/ou a listagem/busca de estabelecimentos (`bhListarEstabelecimentos`), com status calculado (Aberto/Fechado) exibido no card.
 2. **Estabelecimento** (`html/barbearia.html`): página pública com serviços, preços, profissionais, portfólio, redes sociais (Instagram/TikTok/WhatsApp), avaliações verificadas e da comunidade, e botão de favoritar (exige login).
-3. **Serviços e agendamento** (`html/barbearia.html` + `js/booking-modal.js`): o botão **Agendar** abre um modal em quatro etapas, com múltiplos serviços, profissional em cartão/radio com foto quando disponível, data e horários livres que consideram a duração total. Usuário não logado pode montar as escolhas principais e só é levado ao login na confirmação; serviços e profissional são preservados na URL de retorno. `html/agendamento.html` permanece apenas como compatibilidade de links antigos.
+3. **Serviços e agendamento** (`html/barbearia.html` + `js/features/booking.js`): o botão **Agendar** abre um modal em quatro etapas, com múltiplos serviços, profissional em cartão/radio com foto quando disponível, data e horários livres que consideram a duração total. Usuário não logado pode montar as escolhas principais e só é levado ao login na confirmação; o contexto seguro é preservado para retomada. `html/agendamento.html` permanece apenas como compatibilidade de links antigos.
 4. **Confirmação**: `bhConfirmarAgendamento` chama a API própria (`POST /api/v1/appointments`), que executa a função de banco `criar_agendamento_multisservico` (checagem de conflito no próprio Postgres).
 5. **Acompanhamento** (`html/cliente.html`): histórico de agendamentos com status (pendente/confirmado/concluído/cancelado/recusado), opção de "agendar novamente", cancelamento pelo próprio cliente e notificações (`html/notificacoes.html`) quando o estabelecimento muda o status.
 6. **Avaliação**: após o agendamento estar `concluido`, cliente pode registrar uma **avaliação verificada** (nota 1–5 + comentário, vinculada ao atendimento real); adicionalmente pode deixar uma **avaliação da comunidade** vinculada ao estabelecimento (ou a uma publicação específica do portfólio), sem exigir um agendamento concluído.
@@ -159,7 +159,7 @@ Levantamento de todas as páginas HTML do repositório, com objetivo, estado rea
 | `index.html` | Visitante | Landing institucional, menu para visitante (Login/Cadastro) | ✅ Funcional | — | — |
 | `html/portal.html` | Cliente/visitante | Marketplace paginado: busca FTS com fallback ILIKE, ranking, destaques, filtros compactos e carregar mais | ✅ Funcional na 1.6 | API Python `/marketplace/*` + migration 15 | — |
 | `html/barbearia.html` | Cliente/visitante | Página pública: serviços, equipe, portfólio, redes sociais, avaliações verificadas e da comunidade | ✅ Funcional | Supabase direto | — |
-| `html/agendamento.html` | Compatibilidade | Rota legada que redireciona para o perfil do estabelecimento e abre o modal de agendamento | ✅ Compatibilidade 1.6 | `booking-modal.js` | O fluxo principal deixou de ser página independente |
+| `html/agendamento.html` | Compatibilidade | Rota legada que redireciona para o perfil do estabelecimento e abre o modal de agendamento | ✅ Compatibilidade 1.6 | `js/features/booking.js` | O fluxo principal deixou de ser página independente |
 | `html/cliente.html` | Cliente autenticado | Histórico de agendamentos, favoritos, avaliações, "agendar novamente", cancelamento | ✅ Funcional | Supabase direto + Realtime | — |
 | `html/cadastro.html` | Visitante | Criar conta (cliente ou barbeiro) | ✅ Funcional | Supabase Auth | — |
 | `html/cadastro-barbearia.html` | Barbeiro | Onboarding do estabelecimento em etapas (negócio, endereço, horário, 1º profissional, 1º serviço) | ✅ Funcional | RPC `criar_estabelecimento_inicial` | — |
@@ -1342,7 +1342,7 @@ A 1.9.0 introduz os quatro módulos que sustentam o uso diário: Agenda profissi
 
 O PostgreSQL recebe as migrations 18–22 com nove tabelas protegidas por RLS, eventos e snapshots de atendimento, papéis operacionais, entitlements por plano, RPCs transacionais e proteções de concorrência. A API 1.4.0 expõe contratos próprios para agenda, CRM, financeiro e equipe. Regras de período, segmentação, comissão e papel ficam testáveis offline.
 
-No produto, `js/painel-operacao-1.9.js` isola a nova experiência sem substituir a arquitetura vanilla existente. `css/release-1.9.css` reaproveita os tokens escuros/quentes e dourados, adicionando hierarquia operacional, estados completos e layouts próprios para desktop/mobile. A navegação profissional instalada prioriza `Painel | Agenda | Clientes | Financeiro | Mais`.
+No produto, o módulo hoje localizado em `js/features/professional-operation.js` isola a experiência sem substituir a arquitetura vanilla existente. `css/release-1.9.css` reaproveita os tokens escuros/quentes e dourados, adicionando hierarquia operacional, estados completos e layouts próprios para desktop/mobile. A navegação profissional instalada prioriza `Painel | Agenda | Clientes | Financeiro | Mais`.
 
 ### 34.1 Estado de publicação
 
@@ -1399,3 +1399,30 @@ A 1.10.0 é a atualização ampla anterior às duas rodadas finais de correção
 ### 35.3 Fora do escopo concluído
 
 Gateway de cobrança recorrente, entrega externa de WhatsApp/e-mail sem provedor configurado, observabilidade APM comercial e Beauty Hub operacional independente não são apresentados como prontos. A próxima decisão de produto deve ser baseada no piloto, não em adicionar telas sem uso medido.
+
+---
+
+## 36. Revisão vigente — Barber Hub 1.10.1
+
+A 1.10.1 conclui o escopo técnico do Planejamento Pós-31 e corrige as lacunas encontradas na revisão da 1.10.0.
+
+### 36.1 Conclusões adicionadas
+
+- rascunho e chave idempotente estáveis para atendimento/despesa em falha incerta;
+- continuidade de favoritos e avaliações após autenticação;
+- paginação de agenda e módulos de retenção;
+- filtros regionais avançados executados no servidor;
+- biblioteca de capas integrada ao cadastro;
+- worker Web Push autenticado, com reivindicação atômica, silêncio e tentativas limitadas;
+- feature flags efetivas e protegidas no banco;
+- auditoria expandida para operações críticas;
+- módulos JavaScript reorganizados em `core/` e `features/`;
+- regressão automatizada específica da 1.10.1.
+
+### 36.2 Banco e publicação
+
+Os objetos 29–31 foram confirmados no Supabase conectado, mas essas aplicações manuais não constam no histórico. A migration 32 consolida os controles finais e deve ser aplicada pelo fluxo oficial, seguida por `verificar_32_conclusao_1_10_1.sql`.
+
+### 36.3 Estado do planejamento
+
+Todo item técnico do documento está implementado ou teve decisão explícita. Entrevistas, aparelhos reais, preços finais e expansão geográfica continuam sendo validação externa: o produto oferece roteiro, métricas e feature flags, mas não declara evidência de campo inexistente. A matriz completa está em `RELATORIO_CONCLUSAO_PLANEJAMENTO_POS31_1_10_1.md`.

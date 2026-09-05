@@ -1,14 +1,19 @@
-# Barber Hub 1.10.0 — migrations e deploy seguro
+# Barber Hub 1.10.1 — migrations e deploy seguro
 
 ## Estado real
 
-As migrations 11–28 já pertencem ao histórico aplicado da 1.9.3. A 1.10.0 adiciona três migrations novas, ainda pendentes no ambiente de produção:
+As migrations até 28 aparecem no histórico registrado. No projeto Supabase conectado, os objetos e funções esperados das migrations 29–31 foram consultados e estão presentes. Porém, como esses arquivos foram executados manualmente no SQL Editor, seus números não aparecem no histórico oficial de migrations.
 
 1. `29_operacao_real_horarios_atendimentos_1_10.sql`;
 2. `30_localizacao_biblioteca_marketplace_1_10.sql`;
 3. `31_push_importacoes_auditoria_flags_1_10.sql`.
 
-Depois delas, execute `verificar_31_release_1_10.sql`. Não pule a ordem e não edite uma migration depois que ela for aplicada; uma correção posterior recebe outro número.
+Não reaplique 29–31 sem uma análise de estado. A etapa nova desta versão é:
+
+1. `supabase/migrations/20260904180741_32_conclusao_pos31_1_10_1.sql`;
+2. `sql/verificar_32_conclusao_1_10_1.sql`.
+
+Não edite uma migration depois que ela for aplicada; uma correção posterior recebe outro timestamp/número.
 
 ## O que é uma migration
 
@@ -18,22 +23,22 @@ Migration é uma alteração versionada do banco. Ela cria ou ajusta tabelas, í
 
 1. confirme que o projeto selecionado é o correto;
 2. gere ou confirme um backup recuperável;
-3. confira se 28 é a última migration já aplicada;
-4. não publique o frontend 1.10 antes do banco;
+3. confirme que os objetos 29–31 estão presentes;
+4. não publique o frontend 1.10.1 antes da migration 32;
 5. reserve uma janela sem alterações administrativas simultâneas;
 6. execute os testes locais e mantenha o commit anterior disponível para rollback do código.
 
-## Aplicação pelo SQL Editor
+## Aplicação
 
-Para cada arquivo, abra o SQL Editor do Supabase, crie uma consulta, cole o conteúdo completo e execute. Aguarde sucesso antes de seguir ao próximo número.
+Prefira aplicar a migration 32 pelo fluxo oficial do Supabase CLI/MCP para que ela apareça no histórico. Se o SQL Editor for a única opção, registre manualmente a data, o responsável e o resultado.
 
-Ordem:
+Ordem desta conclusão:
 
 ```text
-29 → 30 → 31 → verificar_31_release_1_10.sql
+migration 32 → verificar_32_conclusao_1_10_1.sql
 ```
 
-O verificador deve terminar sem exceção. Ele confirma objetos, RLS, privilégios anônimos, RPCs sensíveis, flags, biblioteca, auditoria e anonimização.
+O verificador é somente leitura e deve terminar sem exceção. Ele confirma funções, gatilhos, privilégios, flags, plano, índice e auditoria.
 
 ## Depois das migrations
 
@@ -71,9 +76,8 @@ O verificador deve terminar sem exceção. Ele confirma objetos, RLS, privilégi
 
 ### Tarefas agendadas
 
-Web Push exige um worker autenticado que processe `push_entregas`, respeite horário silencioso, marque sucesso/falha e repita com limite. E-mail/WhatsApp exigem provedor próprio e consentimento; a fila interna não significa que o envio externo esteja concluído.
+Web Push usa `GET /api/v1/jobs/push/deliver` e aceita o segredo somente por `Authorization: Bearer`. Configure `CRON_SECRET`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` e `VAPID_SUBJECT` no deploy. A migration 32 fornece a reivindicação atômica de `push_entregas`; o worker respeita horário silencioso, marca sucesso/falha e repete no máximo cinco vezes. E-mail/WhatsApp continuam exigindo provedor e consentimento próprios.
 
 ## Rollback
 
 O rollback preferencial do código é promover o commit anterior. Banco com dados reais não deve receber `DROP` improvisado. Se uma migration falhar, interrompa o deploy, preserve o erro completo e crie uma migration corretiva depois de avaliar dados e dependências.
-

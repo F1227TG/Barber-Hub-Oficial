@@ -39,7 +39,9 @@ function bhRenderRedesSociais(item) {
 function bhRenderMapaPublico(item, compact = false) {
   const address = [item.endereco, item.numero, item.bairro, item.cidade, item.estado, item.cep].filter(Boolean).join(", ");
   if (!address) return "";
-  const hasCoordinates = Number.isFinite(Number(item.latitude)) && Number.isFinite(Number(item.longitude));
+  const coordinate = (value, limit) => value !== null && value !== undefined
+    && String(value).trim() !== "" && Number.isFinite(Number(value)) && Math.abs(Number(value)) <= limit;
+  const hasCoordinates = coordinate(item.latitude, 90) && coordinate(item.longitude, 180);
   const destination = hasCoordinates ? `${Number(item.latitude)},${Number(item.longitude)}` : address;
   const route = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`;
   if (compact || !hasCoordinates) return `<a class="btn btn-outline btn-small route110" href="${route}" target="_blank" rel="noopener noreferrer"><i class="bi bi-sign-turn-right"></i> Como chegar</a>`;
@@ -54,7 +56,7 @@ function bhRenderAvaliacoesPublicas() {
   const acao = bhPerfilPortfolio?.tipo === "cliente"
     ? `<button type="button" class="btn btn-primary btn-small" data-avaliar-estabelecimento><i class="bi bi-star"></i> Avaliar estabelecimento</button>`
     : !bhPerfilPortfolio
-      ? `<a class="btn btn-outline btn-small" href="login.html?next=${encodeURIComponent(location.pathname + location.search + "#avaliacoes")}"><i class="bi bi-box-arrow-in-right"></i> Entrar para avaliar</a>`
+      ? `<a class="btn btn-outline btn-small" data-login-action="review" href="login.html?next=${encodeURIComponent(location.pathname + location.search + "#avaliacoes")}"><i class="bi bi-box-arrow-in-right"></i> Entrar para avaliar</a>`
       : "";
   if (!bhAvaliacoesPublicas.length) return `<section class="card reviews-public-card" id="avaliacoes"><div class="card-body"><div class="section-top compact"><div><span class="tag"><i class="bi bi-star"></i> Reputação</span><h2>Ainda sem avaliações</h2><p class="texto-section">Clientes podem avaliar atendimentos verificados ou compartilhar uma experiência realizada fora da agenda online.</p></div><div class="reviews-public-actions">${acao}</div></div></div></section>`;
   const media = bhAvaliacoesPublicas.reduce((soma, item) => soma + Number(item.nota || 0), 0) / bhAvaliacoesPublicas.length;
@@ -261,7 +263,7 @@ function bhRenderDetalheEstabelecimento(item) {
           <div class="mobile-business-actions">
             ${item.aceitaAgendamento ? `<button type="button" class="btn btn-primary" data-booking-open="${item.id}"><i class="bi bi-calendar2-check"></i> Agendar</button>` : ""}
             ${whatsapp ? `<a href="https://wa.me/${whatsapp}" target="_blank" rel="noopener" class="icon-btn" aria-label="Abrir WhatsApp"><i class="bi bi-whatsapp"></i></a>` : ""}
-            ${bhPerfilPortfolio?.tipo === "cliente" ? `<button type="button" class="icon-btn favorite-business-btn ${bhFavoritoAtual ? "ativo" : ""}" data-favoritar-estabelecimento aria-label="${bhFavoritoAtual ? "Remover dos favoritos" : "Favoritar"}"><i class="bi ${bhFavoritoAtual ? "bi-heart-fill" : "bi-heart"}"></i></button>` : ""}
+            ${bhPerfilPortfolio?.tipo === "cliente" ? `<button type="button" class="icon-btn favorite-business-btn ${bhFavoritoAtual ? "ativo" : ""}" data-favoritar-estabelecimento aria-label="${bhFavoritoAtual ? "Remover dos favoritos" : "Favoritar"}"><i class="bi ${bhFavoritoAtual ? "bi-heart-fill" : "bi-heart"}"></i></button>` : !bhPerfilPortfolio ? `<a class="icon-btn" data-login-action="favorite" href="login.html?next=${encodeURIComponent(location.pathname + location.search)}" aria-label="Entrar para favoritar"><i class="bi bi-heart"></i></a>` : ""}
           </div>
         </div>
       </section>
@@ -304,7 +306,7 @@ function bhRenderDetalheEstabelecimento(item) {
         <div class="hero-actions">
           ${item.aceitaAgendamento ? `<button type="button" class="btn btn-primary" data-booking-open="${item.id}"><i class="bi bi-calendar2-check"></i> Agendar horário</button>` : ""}
           ${whatsapp ? `<a href="https://wa.me/${whatsapp}" target="_blank" rel="noopener" class="btn btn-outline"><i class="bi bi-whatsapp"></i> WhatsApp</a>` : ""}
-          ${bhPerfilPortfolio?.tipo === "cliente" ? `<button type="button" class="btn btn-outline favorite-business-btn ${bhFavoritoAtual ? "ativo" : ""}" data-favoritar-estabelecimento><i class="bi ${bhFavoritoAtual ? "bi-heart-fill" : "bi-heart"}"></i> ${bhFavoritoAtual ? "Favoritado" : "Favoritar"}</button>` : !bhPerfilPortfolio ? `<a class="btn btn-outline" href="login.html?next=${encodeURIComponent(location.pathname + location.search)}"><i class="bi bi-heart"></i> Entrar para favoritar</a>` : ""}
+          ${bhPerfilPortfolio?.tipo === "cliente" ? `<button type="button" class="btn btn-outline favorite-business-btn ${bhFavoritoAtual ? "ativo" : ""}" data-favoritar-estabelecimento><i class="bi ${bhFavoritoAtual ? "bi-heart-fill" : "bi-heart"}"></i> ${bhFavoritoAtual ? "Favoritado" : "Favoritar"}</button>` : !bhPerfilPortfolio ? `<a class="btn btn-outline" data-login-action="favorite" href="login.html?next=${encodeURIComponent(location.pathname + location.search)}"><i class="bi bi-heart"></i> Entrar para favoritar</a>` : ""}
         </div>
       </div>
     </section>
@@ -359,6 +361,21 @@ document.addEventListener("DOMContentLoaded", async () => {
       try { bhCurtidasPortfolio = await bhObterCurtidasMinhas(bhPortfolioPublico.map(item => item.id)); } catch (_) { bhCurtidasPortfolio = new Set(); }
     }
     bhRenderDetalheEstabelecimento(bhEstabelecimentoPortfolio);
+    const continuation = bhPerfilPortfolio?.tipo === "cliente" && window.bhContinuation?.peek?.();
+    if (continuation?.payload?.establishmentId === bhEstabelecimentoPortfolio.id) {
+      if (continuation.action === "favorite") {
+        try {
+          bhFavoritoAtual = await bhAlternarFavorito(bhEstabelecimentoPortfolio.id, false);
+          window.bhContinuation.consume("favorite"); bhRenderDetalheEstabelecimento(bhEstabelecimentoPortfolio);
+          mostrarToast("sucesso", "Adicionado aos favoritos", "A ação iniciada antes do login foi concluída.");
+        } catch (erro) {
+          mostrarToast("erro", "Favorito não concluído", `${bhErroMensagem(erro)} Tente novamente; a página continua disponível.`);
+        }
+      }
+      if (continuation.action === "review") {
+        window.bhContinuation.consume("review"); setTimeout(() => bhAbrirAvaliacaoComunidade(null), 0);
+      }
+    }
   } catch (erro) {
     main.innerHTML = `<div class="container section"><div class="card empty"><span class="big">💈</span><h2>Não foi possível abrir esta página</h2><p>${escapeHTML(bhErroMensagem(erro))}</p><a class="btn btn-primary" href="portal.html">Voltar ao portal</a></div></div>`;
     return;
@@ -372,6 +389,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   main.addEventListener("click", async evento => {
+    const loginAction = evento.target.closest("[data-login-action]");
+    if (loginAction) {
+      evento.preventDefault();
+      window.bhContinuation?.capture?.(loginAction.dataset.loginAction,{establishmentId:bhEstabelecimentoPortfolio.id},location.pathname+location.search+"#avaliacoes");
+      location.href=loginAction.href; return;
+    }
     const morePortfolio = evento.target.closest("[data-portfolio-more]");
     if (morePortfolio) {
       try {

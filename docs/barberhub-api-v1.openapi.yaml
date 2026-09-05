@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Barber Hub API
   description: API própria do Barber Hub, executada em Python/FastAPI.
-  version: 1.6.0
+  version: 1.6.1
 paths:
   /api/v1/health:
     get:
@@ -216,6 +216,45 @@ paths:
             exclusiveMinimum: 0
           - type: 'null'
           title: Radius Km
+      - name: service
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            maxLength: 120
+          - type: 'null'
+          title: Service
+      - name: min_price
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: number
+            maximum: 1000000
+            minimum: 0
+          - type: 'null'
+          title: Min Price
+      - name: max_price
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: number
+            maximum: 1000000
+            minimum: 0
+          - type: 'null'
+          title: Max Price
+      - name: min_rating
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: number
+            maximum: 5
+            minimum: 0
+          - type: 'null'
+          title: Min Rating
       - name: offset
         in: query
         required: false
@@ -398,6 +437,33 @@ paths:
             maxLength: 36
           - type: 'null'
           title: Professional Id
+      - name: appointment_offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 10000
+          minimum: 0
+          default: 0
+          title: Appointment Offset
+      - name: block_offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 10000
+          minimum: 0
+          default: 0
+          title: Block Offset
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 200
+          minimum: 1
+          default: 100
+          title: Limit
       - name: authorization
         in: header
         required: false
@@ -725,6 +791,24 @@ paths:
             maxLength: 36
           - type: 'null'
           title: Establishment Id
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 10000
+          minimum: 0
+          default: 0
+          title: Offset
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 60
+          minimum: 1
+          default: 30
+          title: Limit
       - name: authorization
         in: header
         required: false
@@ -864,6 +948,24 @@ paths:
             maxLength: 36
           - type: 'null'
           title: Establishment Id
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 10000
+          minimum: 0
+          default: 0
+          title: Offset
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 60
+          minimum: 1
+          default: 30
+          title: Limit
       - name: authorization
         in: header
         required: false
@@ -1091,6 +1193,24 @@ paths:
           minLength: 36
           maxLength: 36
           title: Establishment Id
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 10000
+          minimum: 0
+          default: 0
+          title: Offset
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 60
+          minimum: 1
+          default: 30
+          title: Limit
       - name: authorization
         in: header
         required: false
@@ -1191,6 +1311,33 @@ paths:
           minLength: 36
           maxLength: 36
           title: Establishment Id
+      - name: campaign_offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 10000
+          minimum: 0
+          default: 0
+          title: Campaign Offset
+      - name: queue_offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 10000
+          minimum: 0
+          default: 0
+          title: Queue Offset
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 60
+          minimum: 1
+          default: 30
+          title: Limit
       - name: authorization
         in: header
         required: false
@@ -2861,6 +3008,89 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/jobs/push/deliver:
+    post:
+      summary: Deliver Push Job
+      operationId: deliver_push_job_api_v1_jobs_push_deliver_post
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 50
+          title: Limit
+      - name: Authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      - name: X-Jobs-Secret
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Jobs-Secret
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    get:
+      summary: Deliver Push Job
+      operationId: deliver_push_job_api_v1_jobs_push_deliver_get
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 50
+          title: Limit
+      - name: Authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      - name: X-Jobs-Secret
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Jobs-Secret
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /api/v1/audit/operational:
     get:
       summary: Operational Audit
@@ -2880,7 +3110,7 @@ paths:
         schema:
           anyOf:
           - type: string
-            pattern: ^(agenda|financeiro|horarios|fechamento|importacao|configuracao)$
+            pattern: ^(agenda|financeiro|horarios|fechamento|importacao|configuracao|equipe|retencao|campanhas|crescimento|metas)$
           - type: 'null'
           title: Resource
       - name: offset

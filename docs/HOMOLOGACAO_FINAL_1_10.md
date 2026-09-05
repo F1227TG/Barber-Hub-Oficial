@@ -1,4 +1,4 @@
-# Checklist de homologação final — Barber Hub 1.10.0
+# Checklist de homologação final — Barber Hub 1.10.1
 
 ## Porta de entrada
 
@@ -46,8 +46,9 @@
 
 ## Segurança/infraestrutura
 
-- [ ] migrations 29 → 30 → 31;
-- [ ] verificador 31;
+- [x] objetos previstos em 29–31 confirmados no ambiente conectado;
+- [ ] migration 32 aplicada pelo fluxo oficial;
+- [ ] verificador 32 aprovado;
 - [ ] CAPTCHA, URLs, senhas vazadas, origens e VAPID;
 - [ ] Advisors revisados;
 - [ ] contas cliente/profissional/recepção/gerente/proprietário/admin/sem vínculo;
@@ -57,4 +58,3 @@
 ## Decisão de publicação
 
 Só marque “aprovado” quando todos os bloqueadores estiverem resolvidos. Um item externo pendente precisa de responsável e data; não pode ser tratado como concluído apenas porque o código está pronto.
-

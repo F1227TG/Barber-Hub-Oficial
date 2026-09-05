@@ -1,4 +1,4 @@
-# Barber Hub 1.10.0 — relatório de segurança
+# Barber Hub 1.10.1 — relatório de segurança
 
 ## Auditoria diferencial V01–V06
 
@@ -13,7 +13,7 @@
 
 Os controles automatizados V01–V06 continuam aprovados. “Corrigido” no código não substitui aplicar migrations ou configurar serviços externos.
 
-## Proteções novas da 1.10
+## Proteções consolidadas na 1.10.1
 
 - RLS em todas as tabelas novas;
 - RPCs sensíveis sem execução por `anon`;
@@ -25,6 +25,10 @@ Os controles automatizados V01–V06 continuam aprovados. “Corrigido” no có
 - anonimização automática de ator/estabelecimento excluído sem apagar a trilha;
 - paginação e limites máximos contra consultas sem fronteira;
 - localização apenas mediante autorização do navegador.
+- rascunho operacional com idempotência estável em falha incerta;
+- job Push autenticado por segredo, comparação em tempo constante e reivindicação atômica;
+- guardas de feature flag também no banco, não apenas no menu;
+- busca regional avançada no servidor sem fallback silencioso para resultados incorretos.
 
 ## Senhas
 
@@ -36,14 +40,17 @@ Criar uma coluna com senha “criptografada” e uma chave capaz de descriptogra
 
 Perfis, contatos, histórico, preferências e anotações são dados pessoais. Acesso deve seguir necessidade por papel, consentimento/canal e finalidade informada. Exportações e logs não devem conter tokens, chaves ou senhas. Exclusão deve remover ou anonimizar vínculos conforme obrigação legal e política de retenção.
 
+## Advisors revisados em 5 de setembro de 2026
+
+Não houve erro crítico. O Security Advisor registrou 58 avisos e 1 informação; o Performance Advisor, 1 aviso e 92 informações. A migration 32 revoga o acesso público à RPC regional antiga. Avisos remanescentes sobre `SECURITY DEFINER`, extensões e índices precisam de revisão por função/uso; uma revogação ou remoção em massa seria insegura para o produto. A fotografia detalhada está em `ADVISORS_SUPABASE_2026_09_05.md`.
+
 ## Pendências obrigatórias antes do deploy
 
-- aplicar 29, 30 e 31 e aprovar o verificador 31;
+- aplicar a migration 32 e aprovar o verificador 32;
 - ativar CAPTCHA e proteção contra senhas vazadas quando disponível;
 - revisar URLs de login/recuperação e origens da API;
 - configurar VAPID/worker;
-- revisar Advisors;
+- revisar novamente os Advisors depois da migration 32;
 - testar RLS com contas separadas;
 - definir retenção e resposta a incidentes;
 - confirmar backup e recuperação.
-

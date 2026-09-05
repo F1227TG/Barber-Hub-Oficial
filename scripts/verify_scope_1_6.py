@@ -23,7 +23,7 @@ def main() -> int:
     portal_html = read("html/portal.html")
     portal_js = read("js/portal.js")
     sql = read("sql/15_marketplace_fts_api_seguranca.sql").lower()
-    booking = read("js/booking-modal.js")
+    booking = read("js/features/booking.js")
     api = read("api/index.py")
     backend_client = read("js/backend-api.js")
     css = read("css/release-1.6.css")

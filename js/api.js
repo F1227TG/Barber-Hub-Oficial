@@ -185,15 +185,18 @@ async function bhBuscarMarketplace({ busca = "", tipo = "todos", agenda = null, 
   return { items, total: Number(count || items.length), offset, limit, has_more: offset + (data || []).length < Number(count || 0), search_engine: "supabase_ilike_fallback" };
 }
 
-async function bhBuscarMarketplaceRegional({ busca = "", cidade = "", bairro = "", estado = "", abertoAgora = false, agenda = false, latitude = null, longitude = null, raioKm = null, offset = 0, limit = 24 } = {}) {
+async function bhBuscarMarketplaceRegional({ busca = "", cidade = "", bairro = "", estado = "", abertoAgora = false, agenda = false, latitude = null, longitude = null, raioKm = null, servico = "", precoMin = null, precoMax = null, avaliacaoMin = null, offset = 0, limit = 24 } = {}) {
+  const filtrosExclusivosDaApi = Boolean(servico || precoMin !== null || precoMax !== null || avaliacaoMin !== null || cidade || bairro || estado || latitude !== null || raioKm !== null);
   if (!window.bhBackendApi?.regionalMarketplace) {
+    if (filtrosExclusivosDaApi) throw new Error("Os filtros avançados precisam da conexão segura do Barber Hub. Tente novamente em instantes.");
     return bhBuscarMarketplace({ busca, agenda:agenda || null, status:abertoAgora ? "aberta" : "todos", offset, limit });
   }
   try {
-    const result = await window.bhBackendApi.regionalMarketplace({ query:busca, city:cidade, neighborhood:bairro, state:estado, openNow:abertoAgora, agenda, latitude, longitude, radiusKm:raioKm, offset, limit });
+    const result = await window.bhBackendApi.regionalMarketplace({ query:busca, city:cidade, neighborhood:bairro, state:estado, openNow:abertoAgora, agenda, latitude, longitude, radiusKm:raioKm, service:servico, minPrice:precoMin, maxPrice:precoMax, minRating:avaliacaoMin, offset, limit });
     return { ...result, items:(result?.items || []).map(bhNormalizarEstabelecimento) };
   } catch (erro) {
     if (!bhBackendPodeUsarFallback(erro)) throw erro;
+    if (filtrosExclusivosDaApi) throw new Error("Os filtros avançados estão temporariamente indisponíveis. Nenhum resultado diferente do filtro foi exibido.");
     return bhBuscarMarketplace({ busca, agenda:agenda || null, status:abertoAgora ? "aberta" : "todos", offset, limit });
   }
 }

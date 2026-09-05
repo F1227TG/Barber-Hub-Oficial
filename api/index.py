@@ -1,4 +1,4 @@
-"""Barber Hub API v1.6.0.
+"""Barber Hub API v1.6.1.
 
 FastAPI is the server-side validation layer of the marketplace. Supabase keeps
 Auth, PostgreSQL, Storage and Realtime responsibilities; sensitive business
@@ -8,6 +8,7 @@ rules increasingly pass through this API before reaching those services.
 from __future__ import annotations
 
 import json
+import hmac
 import time
 from datetime import date, datetime
 from uuid import uuid4
@@ -90,7 +91,7 @@ from backend.services import push as push_service
 from backend.services import audit as audit_service
 from backend.services import flags as flag_service
 
-API_VERSION = "1.6.0"
+API_VERSION = "1.6.1"
 
 app = FastAPI(
     title="Barber Hub API",
@@ -265,16 +266,23 @@ async def marketplace_regional(
     latitude: float | None = Query(default=None, ge=-90, le=90),
     longitude: float | None = Query(default=None, ge=-180, le=180),
     radius_km: float | None = Query(default=None, gt=0, le=500),
+    service: str | None = Query(default=None, max_length=120),
+    min_price: float | None = Query(default=None, ge=0, le=1_000_000),
+    max_price: float | None = Query(default=None, ge=0, le=1_000_000),
+    min_rating: float | None = Query(default=None, ge=0, le=5),
     offset: int = Query(default=0, ge=0, le=10_000),
     limit: int = Query(default=24, ge=1, le=60),
 ) -> JSONResponse:
     await enforce_rate_limit(request, "marketplace-regional", limit=180, window_seconds=60)
     if (latitude is None) != (longitude is None):
         raise ApiError(422, "COORDINATE_PAIR_REQUIRED", "Informe latitude e longitude juntas.")
+    if min_price is not None and max_price is not None and min_price > max_price:
+        raise ApiError(422, "INVALID_PRICE_RANGE", "O preço mínimo não pode superar o máximo.")
     return ok(await catalog_service.regional_search(
         query=q, city=city, neighborhood=neighborhood, state=state_filter,
         open_now=open_now, agenda=agenda, latitude=latitude, longitude=longitude,
-        radius_km=radius_km, offset=offset, limit=limit,
+        radius_km=radius_km, service=service, min_price=min_price, max_price=max_price,
+        min_rating=min_rating, offset=offset, limit=limit,
     ))
 
 
@@ -324,12 +332,15 @@ async def schedule_range(
     start: date = Query(),
     end: date = Query(),
     professional_id: str | None = Query(default=None, min_length=36, max_length=36),
+    appointment_offset: int = Query(default=0, ge=0, le=10_000),
+    block_offset: int = Query(default=0, ge=0, le=10_000),
+    limit: int = Query(default=100, ge=1, le=200),
     auth: AuthContext = Depends(require_user),
 ) -> JSONResponse:
     if end < start or (end - start).days > 31:
         raise ApiError(422, "INVALID_SCHEDULE_RANGE", "Consulte no máximo 32 dias por vez.")
     await enforce_rate_limit(request, "schedule-range", limit=120, window_seconds=60, identity=auth.user_id)
-    return ok(await schedule_service.list_range(establishment_id, start, end, professional_id, auth))
+    return ok(await schedule_service.list_range(establishment_id, start, end, professional_id, auth, appointment_offset, block_offset, limit))
 
 
 @app.post("/api/v1/schedule/walk-ins", status_code=status.HTTP_201_CREATED)
@@ -428,10 +439,12 @@ async def mark_appointment_no_show(
 async def retention_waitlist(
     request: Request,
     establishment_id: str | None = Query(default=None, min_length=36, max_length=36),
+    offset: int = Query(default=0, ge=0, le=10_000),
+    limit: int = Query(default=30, ge=1, le=60),
     auth: AuthContext = Depends(require_user),
 ) -> JSONResponse:
     await enforce_rate_limit(request, "retention-waitlist-list", limit=90, window_seconds=60, identity=auth.user_id)
-    return ok(await retention_service.list_waitlist(establishment_id, auth))
+    return ok(await retention_service.list_waitlist(establishment_id, auth, offset, limit))
 
 
 @app.post("/api/v1/retention/waitlist", status_code=status.HTTP_201_CREATED)
@@ -470,10 +483,12 @@ async def create_appointment_recurrence(
 async def retention_recurrences(
     request: Request,
     establishment_id: str | None = Query(default=None, min_length=36, max_length=36),
+    offset: int = Query(default=0, ge=0, le=10_000),
+    limit: int = Query(default=30, ge=1, le=60),
     auth: AuthContext = Depends(require_user),
 ) -> JSONResponse:
     await enforce_rate_limit(request, "retention-recurrence-list", limit=60, window_seconds=60, identity=auth.user_id)
-    return ok(await retention_service.list_recurrences(establishment_id, auth))
+    return ok(await retention_service.list_recurrences(establishment_id, auth, offset, limit))
 
 
 @app.get("/api/v1/retention/loyalty")
@@ -541,10 +556,12 @@ async def redeem_loyalty_reward(
 async def retention_coupons(
     request: Request,
     establishment_id: str = Query(min_length=36, max_length=36),
+    offset: int = Query(default=0, ge=0, le=10_000),
+    limit: int = Query(default=30, ge=1, le=60),
     auth: AuthContext = Depends(require_user),
 ) -> JSONResponse:
     await enforce_rate_limit(request, "retention-coupon-list", limit=60, window_seconds=60, identity=auth.user_id)
-    return ok(await retention_service.list_coupons(establishment_id, auth))
+    return ok(await retention_service.list_coupons(establishment_id, auth, offset, limit))
 
 
 @app.post("/api/v1/retention/coupons", status_code=status.HTTP_201_CREATED)
@@ -572,10 +589,13 @@ async def update_retention_coupon(
 async def retention_campaigns(
     request: Request,
     establishment_id: str = Query(min_length=36, max_length=36),
+    campaign_offset: int = Query(default=0, ge=0, le=10_000),
+    queue_offset: int = Query(default=0, ge=0, le=10_000),
+    limit: int = Query(default=30, ge=1, le=60),
     auth: AuthContext = Depends(require_user),
 ) -> JSONResponse:
     await enforce_rate_limit(request, "retention-campaign-list", limit=60, window_seconds=60, identity=auth.user_id)
-    return ok(await retention_service.list_campaigns(establishment_id, auth))
+    return ok(await retention_service.list_campaigns(establishment_id, auth, campaign_offset, queue_offset, limit))
 
 
 @app.post("/api/v1/retention/campaigns", status_code=status.HTTP_201_CREATED)
@@ -1076,11 +1096,27 @@ async def update_push_preferences(
     return ok(await push_service.update_preferences(payload, auth))
 
 
+@app.get("/api/v1/jobs/push/deliver")
+@app.post("/api/v1/jobs/push/deliver")
+async def deliver_push_job(
+    request: Request,
+    authorization: str | None = Header(default=None, alias="Authorization"),
+    x_jobs_secret: str | None = Header(default=None, alias="X-Jobs-Secret"),
+    limit: int = Query(default=50, ge=1, le=100),
+) -> JSONResponse:
+    bearer = authorization[7:] if authorization and authorization.startswith("Bearer ") else None
+    supplied = bearer or x_jobs_secret
+    if not settings.jobs_secret or not supplied or not hmac.compare_digest(supplied, settings.jobs_secret):
+        raise ApiError(401, "JOB_UNAUTHORIZED", "Tarefa não autorizada.")
+    await enforce_rate_limit(request, "push-delivery-job", limit=12, window_seconds=60, identity="push-worker")
+    return ok(await push_service.deliver_pending(limit))
+
+
 @app.get("/api/v1/audit/operational")
 async def operational_audit(
     request: Request,
     establishment_id: str = Query(min_length=36, max_length=36),
-    resource: str | None = Query(default=None, pattern="^(agenda|financeiro|horarios|fechamento|importacao|configuracao)$"),
+    resource: str | None = Query(default=None, pattern="^(agenda|financeiro|horarios|fechamento|importacao|configuracao|equipe|retencao|campanhas|crescimento|metas)$"),
     offset: int = Query(default=0, ge=0, le=10_000), limit: int = Query(default=30, ge=1, le=100),
     auth: AuthContext = Depends(require_user),
 ) -> JSONResponse:
