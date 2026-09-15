@@ -22,6 +22,7 @@
 <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
 <link href="../css/mobile-app.css" rel="stylesheet"/><link href="../css/release-1.4.1.css" rel="stylesheet"/>
 <link href="../css/product-redesign.css" rel="stylesheet"/><link href="../css/release-1.6.css" rel="stylesheet"/><link href="../css/release-1.7.css" rel="stylesheet"/><link href="../css/release-1.7.1.css" rel="stylesheet"/><link href="../css/brand-assets-1.8.css" rel="stylesheet"/><link href="../css/release-1.9.3.css" rel="stylesheet"/>
+<link href="../css/releases/release-1.11.css" rel="stylesheet"/>
 </head>
 <body class="page-cadastro"><script src="../js/device-router.js"></script>
 <!-- Cabeçalho e navegação principal -->
@@ -149,12 +150,17 @@
        Após este cadastro básico, você será direcionado para informar nome do estabelecimento, endereço, horários, serviços, equipe e imagens.
       </p>
 </div>
+<div class="legal-consent-group111">
 <label class="check-line">
-<input aria-label="Confirmo que as informações são verdadeiras e aceito o uso dos dados para funcionamento da plataforma." id="termos" type="checkbox"/>
-<span>
-       Confirmo que as informações são verdadeiras e aceito o uso dos dados para funcionamento da plataforma.
-      </span>
+<input aria-describedby="legalConsentHelp111" aria-label="Aceitar os Termos de uso e a Política de privacidade" id="termos" required="" type="checkbox"/>
+<span>Li e aceito os <a href="termos.html" target="_blank" rel="noopener">Termos de uso</a> e confirmo que conheço a <a href="privacidade.html" target="_blank" rel="noopener">Política de privacidade</a>.</span>
 </label>
+<small id="legalConsentHelp111">Aceite obrigatório para criar a conta · versão 11 de setembro de 2026.</small>
+<label class="check-line optional-consent111">
+<input aria-label="Aceitar comunicações promocionais opcionais" id="marketing" type="checkbox"/>
+<span>Quero receber novidades, dicas e ofertas do Barber Hub. <b>Opcional</b>.</span>
+</label>
+</div>
 <button class="btn btn-primary full" type="submit">
       Criar conta segura
      </button>
@@ -201,6 +207,8 @@
 </script>
 <script src="../js/api.js">
 </script>
+<script src="../js/core/view-state.js"></script>
+<script src="../js/notification-center.js"></script>
 <script src="../js/status.js">
 </script>
 <script src="../js/ia.js">

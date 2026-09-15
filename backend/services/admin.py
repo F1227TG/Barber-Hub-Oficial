@@ -5,9 +5,11 @@ import re
 
 from backend.config import settings
 from backend.errors import ApiError
-from backend.models import AdminSubscriptionUpdate, DeleteAccountRequest, PasswordRecoveryRequest
+from backend.models import AdminSubscriptionUpdate, PasswordRecoveryRequest
 from backend.security import AuthContext
+from backend.services.access import object_payload, rows_payload
 from backend.supabase import gateway
+from backend.version import API_VERSION, RELEASE_VERSION
 
 
 _ADMIN_RESOURCES = {
@@ -103,7 +105,7 @@ async def list_records(
         params=params,
         headers={"Prefer": "count=exact"},
     )
-    items = response.json() or []
+    items = rows_payload(response.json(), message="Não foi possível carregar esta lista administrativa agora.")
     content_range = response.headers.get("content-range", "")
     try:
         total = int(content_range.rsplit("/", 1)[1])
@@ -130,18 +132,6 @@ async def _count(table: str, filters: dict[str, str] | None = None) -> int:
         return int(content_range.rsplit("/", 1)[1])
     except (ValueError, IndexError):
         return 0
-
-
-async def delete_own_account(payload: DeleteAccountRequest, auth: AuthContext) -> None:
-    if payload.confirmacao.strip().upper() != "EXCLUIR MINHA CONTA":
-        raise ApiError(422, "CONFIRMATION_REQUIRED", "Digite EXCLUIR MINHA CONTA para confirmar a exclusão.")
-    await gateway.rest(
-        "excluir_minha_conta",
-        method="POST",
-        token=auth.token,
-        rpc=True,
-        json={},
-    )
 
 
 async def overview(_auth: AuthContext) -> dict[str, int]:
@@ -229,21 +219,23 @@ async def health_details(auth: AuthContext) -> dict[str, object]:
         _release_probe("estabelecimento_horario_periodos"),
         _release_probe("biblioteca_capas"),
         _release_probe("feature_flags"),
+        _release_probe("solicitacoes_exclusao_conta"),
         return_exceptions=True,
     )
     migrations = {
         "29": release_probes[0] is True,
         "30": release_probes[1] is True,
         "31": release_probes[2] is True,
+        "33": release_probes[3] is True,
     }
     return {
-        "api": {"status": "online", "version": "1.6.1"},
+        "api": {"status": "online", "version": API_VERSION},
         "database": {"status": "online", "provider": "supabase-postgres"},
         "auth": {"status": "online", "provider": "supabase-auth"},
         "marketplace": marketplace,
         "overview": overview_data,
         "release": {
-            "version": "1.10.1",
+            "version": RELEASE_VERSION,
             "migrations": migrations,
             "configuration": {
                 "allowed_origins": bool(settings.allowed_origins),
@@ -320,16 +312,16 @@ async def list_subscriptions(_auth: AuthContext) -> dict[str, object]:
             method="GET",
             admin=True,
             params={
-                "select": "id,estabelecimento_id,plano_id,status,inicio_em,teste_termina_em,periodo_atual_inicio,periodo_atual_fim,observacoes,updated_at,planos(id,slug,nome,ordenacao)",
+                "select": "id,estabelecimento_id,plano_id,status,inicio_em,teste_termina_em,periodo_atual_inicio,periodo_atual_fim,observacoes,updated_at,planos(id,slug,nome,ordenacao,permite_agenda)",
                 "limit": "500",
             },
         ),
     )
     return {
-        "plans": plans or [],
-        "establishments": establishments or [],
-        "profiles": profiles or [],
-        "subscriptions": subscriptions or [],
+        "plans": rows_payload(plans, message="Não foi possível carregar os planos agora."),
+        "establishments": rows_payload(establishments, message="Não foi possível carregar os estabelecimentos agora."),
+        "profiles": rows_payload(profiles, message="Não foi possível carregar os responsáveis agora."),
+        "subscriptions": rows_payload(subscriptions, message="Não foi possível carregar as assinaturas agora."),
     }
 
 
@@ -337,9 +329,11 @@ async def assign_subscription(
     establishment_id: str,
     payload: AdminSubscriptionUpdate,
     auth: AuthContext,
+    *,
+    idempotency_key: str | None = None,
 ) -> dict[str, object]:
     rows = await gateway.rest(
-        "admin_atribuir_plano",
+        "admin_atribuir_plano_111",
         method="POST",
         token=auth.token,
         rpc=True,
@@ -349,8 +343,7 @@ async def assign_subscription(
             "p_status": payload.status,
             "p_periodo_fim": payload.periodo_fim.isoformat() if payload.periodo_fim else None,
             "p_observacoes": payload.observacoes,
+            "p_chave_idempotencia": idempotency_key or payload.chave_idempotencia,
         },
     )
-    if isinstance(rows, list):
-        return rows[0] if rows else {}
-    return rows or {}
+    return object_payload(rows, message="Não foi possível confirmar a assinatura agora.")

@@ -27,7 +27,8 @@
       method = "GET",
       body,
       auth = "optional",
-      timeout = 15_000
+      timeout = 15_000,
+      idempotencyKey = null
     } = options;
 
     if (global.navigator && global.navigator.onLine === false) {
@@ -49,7 +50,7 @@
     const liveServerLocal = ["localhost", "127.0.0.1", "::1"].includes(location.hostname)
       && ["5500", "5501", "5502"].includes(location.port);
     if (liveServerLocal || location.protocol === "file:") {
-      const error = new Error("Backend próprio indisponível neste servidor local; usando fallback de desenvolvimento.");
+      const error = new Error("Este serviço está temporariamente indisponível neste ambiente.");
       error.code = "BACKEND_NOT_CONFIGURED";
       error.status = 503;
       throw error;
@@ -65,7 +66,8 @@
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {})
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          ...(idempotencyKey ? { "Idempotency-Key": String(idempotencyKey) } : {})
         },
         ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
         signal: controller.signal
@@ -78,7 +80,7 @@
           ? details.map(item => item?.message || item?.msg).filter(Boolean).join(" ")
           : null;
         const error = new Error(
-          validationMessage || payload?.error?.message || "A API não conseguiu concluir a operação."
+          validationMessage || payload?.error?.message || "Não foi possível concluir a operação."
         );
         error.code = payload?.error?.code || "API_ERROR";
         error.status = response.status;
@@ -90,7 +92,7 @@
       return payload?.data;
     } catch (error) {
       if (error.name === "AbortError") {
-        const timeoutError = new Error("A API demorou para responder. Tente novamente.");
+        const timeoutError = new Error("A plataforma demorou para responder. Tente novamente.");
         timeoutError.code = "API_TIMEOUT";
         global.dispatchEvent(new CustomEvent("bh:network-state", { detail:{ state:"error", path, method, code:timeoutError.code } }));
         throw timeoutError;
@@ -122,14 +124,16 @@
       return request(`marketplace/search?${params.toString()}`, { auth: false });
     },
     featuredMarketplace: (limit = 6) => request(`marketplace/featured?limit=${encodeURIComponent(limit)}`, { auth: false }),
-    regionalMarketplace: ({ query = "", city = "", neighborhood = "", state = "", openNow = false, agenda = false, latitude = null, longitude = null, radiusKm = null, service = "", minPrice = null, maxPrice = null, minRating = null, offset = 0, limit = 24 } = {}) => {
+    regionalMarketplace: ({ query = "", tipo = "todos", status = "todos", city = "", neighborhood = "", state = "", openNow = null, agenda = null, latitude = null, longitude = null, radiusKm = null, service = "", minPrice = null, maxPrice = null, minRating = null, offset = 0, limit = 24 } = {}) => {
       const params = new URLSearchParams({ offset: String(offset), limit: String(limit) });
       if (query) params.set("q", query);
+      if (tipo && tipo !== "todos") params.set("tipo", tipo);
+      const effectiveStatus = status && status !== "todos" ? status : (openNow === true ? "aberta" : null);
+      if (effectiveStatus) params.set("status", effectiveStatus);
       if (city) params.set("city", city);
       if (neighborhood) params.set("neighborhood", neighborhood);
       if (state) params.set("state", state);
-      if (openNow) params.set("open_now", "true");
-      if (agenda) params.set("agenda", "true");
+      if (agenda !== null && agenda !== undefined) params.set("agenda", String(Boolean(agenda)));
       if (latitude !== null && longitude !== null) {
         params.set("latitude", String(latitude));
         params.set("longitude", String(longitude));
@@ -145,8 +149,13 @@
     createAppointment: data => request("appointments", {
       method: "POST",
       auth: true,
-      body: data
+      body: data,
+      idempotencyKey: data.chave_idempotencia || null
     }),
+    publicReviews: (establishmentId, offset = 0, limit = 10) => request(
+      `establishments/${encodeURIComponent(establishmentId)}/reviews?offset=${encodeURIComponent(offset)}&limit=${encodeURIComponent(limit)}`,
+      { auth: false }
+    ),
     cancelAppointment: (appointmentId, motivo = "Cancelado pelo cliente") => request(`appointments/${encodeURIComponent(appointmentId)}`, {
       method: "DELETE",
       auth: true,
@@ -181,6 +190,7 @@
     updateWaitlist: (itemId, status) => request(`retention/waitlist/${encodeURIComponent(itemId)}`, { method: "PATCH", auth: true, body: { status } }),
     createRecurrence: (appointmentId, data) => request(`appointments/${encodeURIComponent(appointmentId)}/recurrence`, { method: "POST", auth: true, body: data }),
     listRecurrences: (establishmentId = null, offset = 0, limit = 30) => request(`retention/recurrences?offset=${offset}&limit=${limit}${establishmentId ? `&establishment_id=${encodeURIComponent(establishmentId)}` : ""}`, { auth: true }),
+    cancelRecurrence: recurrenceId => request(`retention/recurrences/${encodeURIComponent(recurrenceId)}`, { method: "PATCH", auth: true, body: { status: "cancelada" } }),
     loyaltyOverview: establishmentId => request(`retention/loyalty?establishment_id=${encodeURIComponent(establishmentId)}`, { auth: true }),
     clientLoyalty: () => request("client/loyalty", { auth: true }),
     saveLoyaltyProgram: data => request("retention/loyalty/program", { method: "PUT", auth: true, body: data }),
@@ -276,8 +286,19 @@
     deleteAccount: confirmation => request("account", {
       method: "DELETE",
       auth: true,
-      body: { confirmacao: confirmation }
+      body: { confirmacao: confirmation, retencao_ciente: true }
     }),
+    accountDeletion: () => request("account/deletion", { auth: true }),
+    scheduleAccountDeletion: ({ confirmation = "EXCLUIR MINHA CONTA", reason = null } = {}) => request("account/deletion", {
+      method: "POST",
+      auth: true,
+      body: { confirmacao: confirmation, motivo: reason || null, retencao_ciente: true }
+    }),
+    cancelAccountDeletion: () => request("account/deletion", { method: "DELETE", auth: true }),
+    accountExport: () => request("account/export", { auth: true, timeout: 30_000 }),
+    accountSessions: () => request("account/sessions", { auth: true }),
+    revokeOtherSessions: () => request("account/sessions/others", { method: "DELETE", auth: true }),
+    revokeAllSessions: () => request("account/sessions", { method: "DELETE", auth: true }),
     adminOverview: () => request("admin/overview", { auth: true }),
     adminRecords: (resource, options = {}) => {
       const params = new URLSearchParams();
@@ -288,7 +309,12 @@
       return request(`admin/records/${encodeURIComponent(resource)}?${params}`, { auth: true });
     },
     adminSubscriptions: () => request("admin/subscriptions", { auth: true }),
-    adminAssignSubscription: (establishmentId, data) => request(`admin/establishments/${encodeURIComponent(establishmentId)}/subscription`, { method: "PATCH", auth: true, body: data }),
+    adminAssignSubscription: (establishmentId, data) => request(`admin/establishments/${encodeURIComponent(establishmentId)}/subscription`, {
+      method: "PATCH",
+      auth: true,
+      body: data,
+      idempotencyKey: data?.chave_idempotencia || null
+    }),
     sendPasswordRecovery: (userId, motivo = "") => request(
       `admin/users/${encodeURIComponent(userId)}/password-recovery`,
       { method: "POST", auth: true, body: { motivo } }

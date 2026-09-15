@@ -121,6 +121,34 @@ function bhMascaraCEP(valor) {
   return digitos.length > 5 ? `${digitos.slice(0, 5)}-${digitos.slice(5)}` : digitos;
 }
 
+function bhNormalizarCNPJ(valor) {
+  return String(valor || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 14);
+}
+
+function bhMascaraCNPJ(valor) {
+  const text = bhNormalizarCNPJ(valor);
+  const parts = [text.slice(0, 2), text.slice(2, 5), text.slice(5, 8), text.slice(8, 12), text.slice(12, 14)];
+  let result = parts[0];
+  if (parts[1]) result += `.${parts[1]}`;
+  if (parts[2]) result += `.${parts[2]}`;
+  if (parts[3]) result += `/${parts[3]}`;
+  if (parts[4]) result += `-${parts[4]}`;
+  return result;
+}
+
+function bhValidarCNPJ(valor) {
+  const text = bhNormalizarCNPJ(valor);
+  if (!/^[A-Z0-9]{12}[0-9]{2}$/.test(text) || /^([A-Z0-9])\1{13}$/.test(text)) return false;
+  const digit = (base, weights) => {
+    const sum = [...base].reduce((total, character, index) => total + (character.charCodeAt(0) - 48) * weights[index], 0);
+    const remainder = sum % 11;
+    return remainder < 2 ? 0 : 11 - remainder;
+  };
+  const first = digit(text.slice(0, 12), [5,4,3,2,9,8,7,6,5,4,3,2]);
+  const second = digit(`${text.slice(0, 12)}${first}`, [6,5,4,3,2,9,8,7,6,5,4,3,2]);
+  return text.endsWith(`${first}${second}`);
+}
+
 function bhDebounce(funcao, espera = 250) {
   let timer;
   return (...args) => {
@@ -180,7 +208,15 @@ function bhErroMensagem(erro, fallback = "Não foi possível concluir a operaç�
     ["permission denied", "Você não tem permissão para realizar esta ação."]
   ];
   const achado = mapa.find(([trecho]) => mensagem.includes(trecho));
-  return achado ? achado[1] : mensagem;
+  if (achado) return achado[1];
+
+  // Mensagens desconhecidas podem conter nomes de funções, tabelas, políticas
+  // ou detalhes do provedor. Só reaproveitamos texto curto que já tenha forma
+  // de orientação ao usuário; todo o restante recebe uma resposta neutra.
+  const texto = String(mensagem || "").trim();
+  const pareceTecnico = /(?:supabase|postgrest|pgrst|postgres|sqlstate|stack|traceback|javascript|typeerror|referenceerror|constraint|schema|relation|column|row-level|\brpc\b|\bjwt\b|\bnull\b|\bundefined\b|\bfunction\b|\bfun(?:ç|c)[aã]o\b|\.js:\d+|[a-z_]{3,}\([^)]*\))/i.test(texto);
+  const pareceOrientacao = /^(?:selecione|informe|preencha|escolha|confirme|aguarde|revise|faça|você|sua|seu|não|este|esta|esse|essa|o\s|a\s)/i.test(texto);
+  return texto.length <= 220 && pareceOrientacao && !pareceTecnico ? texto : fallback;
 }
 
 function bhQueryParam(nome) {

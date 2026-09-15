@@ -40,8 +40,9 @@ migrations = {number: read(f"sql/{name}") for number, name in {
     28: "28_hardening_objetos_1_9_3.sql",
 }.items()}
 
-check("frontend preserves release 1.9.3 or newer", package.get("version") in {"1.9.3", "1.10.0", "1.10.1"})
-check("API preserves version 1.5.0 or newer", any(marker in api for marker in ['API_VERSION = "1.5.0"', 'API_VERSION = "1.6.0"', 'API_VERSION = "1.6.1"']))
+check("frontend preserves release 1.9.3 or newer", package.get("version") in {"1.9.3", "1.10.0", "1.10.1", "1.11.0"})
+version_module = read("backend/version.py")
+check("API preserves version 1.5.0 or newer", 'API_VERSION = "1.7.0"' in version_module)
 check("all operational migrations exist", all(migrations.values()))
 check("agenda entities have RLS", all(token in migrations[18] for token in [
     "agenda_bloqueios enable row level security",
@@ -134,7 +135,7 @@ verifier_193 = read("sql/verificar_25_release_1_9_3.sql")
 check("SQL verifier covers complete 1.9.3", bool(verifier_193))
 check("SQL verifier rejects anonymous table grants", "has_table_privilege('anon'" in verifier_193)
 check("release verification report exists", (ROOT / "docs/VERIFICACAO_1_9_0.md").exists())
-check("service worker preserves release 1.9.3 or newer", any(marker in read("service-worker.js") for marker in ["barberhub-v1.9.3", "barberhub-v1.10"]))
+check("service worker preserves release 1.9.3 or newer", any(marker in read("service-worker.js") for marker in ["barberhub-v1.9.3", "barberhub-v1.10", "barberhub-v1.11"]))
 
 failed = [label for label, ok in checks if not ok]
 for label, ok in checks:

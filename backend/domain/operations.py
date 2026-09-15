@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from datetime import time
 from decimal import Decimal
 from typing import Any, Iterable, Mapping
@@ -74,6 +75,27 @@ def canonical_request_hash(payload: Mapping[str, Any]) -> str:
 
     encoded = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"), default=str)
     return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
+
+
+def normalize_idempotency_key(value: str | None) -> str | None:
+    """Validate a caller-controlled idempotency key without accepting headers."""
+
+    key = (value or "").strip()
+    if not key:
+        return None
+    if not 16 <= len(key) <= 100 or not re.fullmatch(r"[A-Za-z0-9._:-]+", key):
+        raise ValueError("A chave de repetição segura é inválida.")
+    return key
+
+
+def choose_idempotency_key(header_value: str | None, body_value: str | None) -> str | None:
+    """Unify header/body keys and reject ambiguous requests."""
+
+    header = normalize_idempotency_key(header_value)
+    body = normalize_idempotency_key(body_value)
+    if header and body and header != body:
+        raise ValueError("A chave informada no cabeçalho difere da chave do conteúdo.")
+    return header or body
 
 
 def normalize_page(limit: int, offset: int = 0, *, maximum: int = 100) -> tuple[int, int]:

@@ -1,26 +1,31 @@
-# Barber Hub 1.10.1
+# Barber Hub 1.11.0
 
 Marketplace de serviços e sistema de gestão para barbearias, desenvolvido por **The Gamers Tech**. O cliente encontra estabelecimentos, compara serviços e agenda. Profissionais e proprietários administram agenda, clientes, equipe, dinheiro e retenção em uma experiência web/PWA responsiva.
 
 ## Estado desta entrega
 
-A versão 1.10.1 conclui o escopo técnico do Planejamento Pós-31. No Supabase conectado, os objetos das migrations 29–31 foram confirmados, embora essas execuções manuais não constem no histórico oficial de migrations. A migration 32 e seu verificador são a etapa de banco ainda pendente; publicação também depende de configuração externa e homologação com contas reais.
+A versão 1.11.0 reúne a conclusão do Planejamento Pós-31, o acabamento da operação diária e as correções finais de continuidade, conta, mobile, administração e privacidade. As duas migrations gerenciadas desta candidata já foram aplicadas no projeto Supabase conectado e o verificador 33 retornou todos os controles como verdadeiros. A publicação comercial ainda depende das configurações externas e da homologação com contas reais.
 
 Principais avanços:
 
-- agenda com múltiplos períodos, encaixe/atendimento manual e continuidade depois do login;
+- conta e privacidade reorganizadas, sessões protegidas, exportação e exclusão com prazo de cancelamento;
+- agenda com múltiplos períodos, encaixe/atendimento manual, recorrência e continuidade depois do login;
 - CRM e financeiro com busca, filtros e paginação;
 - marketplace regional, localização consentida, mapa, rota e biblioteca de capas;
 - importação orientada de dados, avisos no dispositivo, horário silencioso e fila Web Push;
 - auditoria operacional append-only e feature flags com kill switch;
-- administração com busca no servidor, carregamento progressivo e prontidão da release;
+- administração com busca, carregamento progressivo, prontidão e atribuição idempotente de assinaturas;
 - suporte mais curto, mobile reforçado e Beauty Hub novamente apresentada como expansão ativa;
-- segurança V01–V05 corrigida no código; V06 depende da ativação externa do CAPTCHA.
+- respostas externas normalizadas para impedir carregamento infinito em listas;
+- segurança V01–V05 corrigida; V06 permanece parcial até a ativação e o teste externo do CAPTCHA.
 
 ## Comece pela documentação
 
+- [Histórico de versões](CHANGELOG.md)
 - [Guia completo do projeto](docs/GUIA_COMPLETO_DO_PROJETO.md)
-- [Resumo da versão 1.10.1](docs/ATUALIZACAO_1_10_1.md)
+- [Relatório final da versão 1.11.0](docs/release-1.11/RELATORIO_FINAL_1_11_0.md)
+- [Checklist operacional da versão 1.11](docs/release-1.11/README.md)
+- [Histórico da versão 1.10.1](docs/ATUALIZACAO_1_10_1.md)
 - [Conferência final do Planejamento Pós-31](docs/RELATORIO_CONCLUSAO_PLANEJAMENTO_POS31_1_10_1.md)
 - [Migrations e deploy seguro](docs/MIGRATIONS_DEPLOY_1_10.md)
 - [Relatório de segurança](docs/RELATORIO_SEGURANCA_1_10.md)
@@ -35,7 +40,7 @@ Desktop (/html) ─┐
                  ├─ JavaScript e CSS compartilhados ─┐
 Mobile (/mobile) ┘                                    │
                                                       ▼
-                                               API FastAPI 1.6
+                                               API FastAPI 1.7
                                                       │
                        ┌──────────────────────────────┼──────────────┐
                        ▼                              ▼              ▼
@@ -81,22 +86,19 @@ Antes de qualquer commit ou deploy:
 npm run check
 ```
 
-A validação reúne paridade mobile, roteamento, referências, sintaxe, regressões 1.9.3/1.10/1.10.1, segurança V01–V06, compilação e testes Python.
+A validação reúne paridade mobile, roteamento, referências, sintaxe, regressões 1.9.3/1.10/1.10.1/1.11, segurança V01–V06, compilação e testes Python.
 
 ## Banco e publicação
 
-As migrations 01–28 formam o histórico registrado. A 1.10 adiciona:
+Os arquivos gerenciados que fecham esta candidata são:
 
 ```text
-29_operacao_real_horarios_atendimentos_1_10.sql
-30_localizacao_biblioteca_marketplace_1_10.sql
-31_push_importacoes_auditoria_flags_1_10.sql
-verificar_31_release_1_10.sql
-20260904180741_32_conclusao_pos31_1_10_1.sql
-verificar_32_conclusao_1_10_1.sql
+20260911132254_conclusao_pos31_1_10_1.sql
+20260911132328_barberhub_1_11_confiabilidade_privacidade.sql
+sql/verificar_33_release_1_11.sql
 ```
 
-No ambiente conectado, os objetos de 29–31 foram verificados como presentes. Não reaplique esses arquivos às cegas. Depois de backup, aplique a **migration 32** pelo fluxo oficial de migrations e execute o **verificador 32**. Isso preserva rastreabilidade a partir desta versão sem fingir que execuções manuais antigas constam no histórico.
+No projeto Supabase conectado, as migrations foram aplicadas nessa ordem e o verificador 33 foi aprovado. Não edite nem reaplique migrations já registradas. Antes do deploy, confirme o histórico remoto, mantenha backup recuperável, execute novamente o verificador somente leitura e revise os Advisors.
 
 Também são externos ao Git: URLs autorizadas, CAPTCHA/Turnstile, proteção contra senhas vazadas quando disponível, origens da API, chaves VAPID/worker, Advisors e testes com contas reais por papel/plano.
 

@@ -1,0 +1,809 @@
+/**
+ * Barber Hub 1.11 — acabamento de produção, continuidade e privacidade.
+ * Mantém a linguagem premium escura/quente/dourada já estabelecida.
+ */
+
+/* Base resiliente: nenhum filho de grid/flex deve forçar a página para os lados. */
+html { overflow-x: clip; }
+body { min-width: 280px; overflow-x: clip; }
+main, section, article, form, fieldset, .container, .card, .form-card,
+.dashboard, .painel-content, .panel-section, .table-wrap { min-width: 0; }
+img, video, iframe, canvas { max-width: 100%; }
+[hidden] { display: none !important; }
+
+:where(a, button, input, select, textarea, summary):focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--gold-2) 72%, #fff);
+  outline-offset: 3px;
+}
+
+.btn, .icon-btn, .btn-menu, .btn-tema { touch-action: manipulation; }
+.btn:disabled, button:disabled { cursor: not-allowed; opacity: .58; }
+
+/* O perfil principal cobre o card; as ações continuam independentes. */
+.page-portal .marketplace-card {
+  position: relative;
+  isolation: isolate;
+  cursor: pointer;
+}
+.page-portal .marketplace-card-primary::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+.page-portal .marketplace-card-actions {
+  position: relative;
+  z-index: 2;
+}
+.page-portal .marketplace-card:focus-within {
+  border-color: var(--gold-border);
+  box-shadow: var(--shadow-soft);
+}
+
+/* --------------------------------------------------------------------------
+   Conta contextual
+   -------------------------------------------------------------------------- */
+.page-conta .page-hero { padding-block: 34px 28px; }
+.page-conta .page-hero h1 { margin-bottom: 6px; }
+.page-conta .account-hub-container { width: min(100% - 40px, 1160px); }
+.page-conta .account-hub-layout111 {
+  display: grid;
+  grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+.page-conta .account-hub-sidebar {
+  top: 92px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 100% 0, color-mix(in srgb, var(--gold) 10%, transparent), transparent 42%),
+    var(--surface);
+}
+.page-conta .account-hub-menu { gap: 6px; }
+.page-conta .account-hub-menu button,
+.page-conta .account-hub-menu a {
+  display: grid;
+  min-height: 48px;
+  grid-template-columns: 25px minmax(0, 1fr) 16px;
+  align-items: center;
+  gap: 9px;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: .78rem;
+  font-weight: 800;
+  text-align: left;
+}
+.page-conta .account-hub-menu button:hover,
+.page-conta .account-hub-menu a:hover,
+.page-conta .account-hub-menu button.ativo {
+  border-color: var(--gold-border);
+  background: var(--gold-soft);
+  color: var(--text);
+}
+.page-conta .account-hub-menu button > i:first-child,
+.page-conta .account-hub-menu a > i:first-child { color: var(--gold-2); text-align: center; }
+.page-conta .account-menu-arrow { justify-self: end; color: var(--muted-2); font-size: .7rem; }
+.page-conta .account-verified111 {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 12px;
+  padding: 9px 11px;
+  border: 1px solid color-mix(in srgb, #efb45b 28%, var(--border));
+  border-radius: 12px;
+  color: #efb45b;
+  background: color-mix(in srgb, #efb45b 7%, transparent);
+  font-size: .7rem;
+  font-weight: 800;
+}
+.page-conta .account-verified111.is-verified {
+  border-color: color-mix(in srgb, #55cf91 28%, var(--border));
+  color: #55cf91;
+  background: color-mix(in srgb, #55cf91 7%, transparent);
+}
+.page-conta .account-hub-workspace { min-height: 480px; }
+.page-conta .account-hub-workspace .account-hub-panel { scroll-margin-top: 100px; }
+.page-conta .account-sheet-close { display: none; }
+.page-conta .account-overview111 { display: grid; gap: 18px; }
+.page-conta .account-overview111-profile {
+  display: grid;
+  gap: 4px;
+  padding: 18px;
+  border: 1px solid var(--gold-border);
+  border-radius: 18px;
+  background: linear-gradient(135deg, var(--gold-soft), var(--surface-soft));
+}
+.page-conta .account-overview111-profile > span,
+.page-conta .account-plan111 > span {
+  color: var(--gold-2);
+  font-size: .65rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.page-conta .account-overview111-profile > strong { font-size: clamp(1.2rem, 3vw, 1.7rem); }
+.page-conta .account-overview111-profile > small { color: var(--muted); }
+.page-conta .account-overview111-actions,
+.page-conta .account-support111 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.page-conta .account-overview111-actions a,
+.page-conta .account-support111 a {
+  display: grid;
+  min-height: 82px;
+  grid-template-columns: 40px minmax(0, 1fr);
+  align-items: center;
+  gap: 11px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 17px;
+  background: var(--surface-soft);
+  color: var(--text);
+}
+.page-conta .account-overview111-actions a:hover,
+.page-conta .account-support111 a:hover { border-color: var(--gold-border); transform: translateY(-1px); }
+.page-conta .account-overview111-actions a > i,
+.page-conta .account-support111 a > i {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 13px;
+  background: var(--gold-soft);
+  color: var(--gold-2);
+}
+.page-conta .account-overview111-actions strong,
+.page-conta .account-overview111-actions small,
+.page-conta .account-support111 strong,
+.page-conta .account-support111 small { display: block; min-width: 0; }
+.page-conta .account-overview111-actions small,
+.page-conta .account-support111 small { margin-top: 3px; color: var(--muted); font-size: .68rem; line-height: 1.35; }
+.page-conta .account-data-actions111,
+.page-conta .account-session-actions111 { display: flex; flex-wrap: wrap; gap: 8px; }
+.page-conta .account-sessions111,
+.page-conta .account-consents111 {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+.page-conta .account-sessions111 h3,
+.page-conta .account-consents111 h3 { margin: 0; font-size: 1rem; }
+.page-conta .account-sessions111 .section-top p { margin: 3px 0 0; color: var(--muted); font-size: .72rem; }
+.page-conta .account-session111,
+.page-conta .account-consent111 {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  margin: 9px 0;
+  padding: 11px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface-soft);
+}
+.page-conta .account-session111 > i,
+.page-conta .account-consent111 > i { color: var(--gold-2); text-align: center; font-size: 1rem; }
+.page-conta .account-session111 strong,
+.page-conta .account-session111 span,
+.page-conta .account-consent111 strong,
+.page-conta .account-consent111 small { display: block; overflow-wrap: anywhere; }
+.page-conta .account-session111 span,
+.page-conta .account-consent111 small { margin-top: 3px; color: var(--muted); font-size: .68rem; }
+.page-conta .account-session111.is-current { border-color: color-mix(in srgb, #55cf91 30%, var(--border)); }
+.page-conta .account-plan111 { display: grid; gap: 5px; margin-bottom: 16px; padding: 18px; border: 1px solid var(--gold-border); border-radius: 18px; background: var(--gold-soft); }
+.page-conta .account-plan111 > strong { font-size: 1.55rem; }
+.page-conta .account-plan111 > small,
+.page-conta .account-plan111 > div { color: var(--muted); font-size: .74rem; }
+.page-conta .account-deletion-pending111 {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, #efb45b 32%, var(--border));
+  border-radius: 14px;
+  background: color-mix(in srgb, #efb45b 7%, transparent);
+}
+.page-conta .account-deletion-impact111 { margin: 14px 0; padding: 13px 14px; border: 1px solid color-mix(in srgb, #d85b55 30%, var(--border)); border-radius: 15px; background: color-mix(in srgb, #d85b55 7%, var(--surface-soft)); }
+.page-conta .account-deletion-impact111:empty { display: none; }
+.page-conta .account-deletion-impact111 strong { display: flex; align-items: center; gap: 7px; color: var(--text); }
+.page-conta .account-deletion-impact111 p,
+.page-conta .account-deletion-impact111 ul { margin: 7px 0 0; color: var(--muted); font-size: .72rem; line-height: 1.55; }
+.page-conta .account-deletion-impact111 ul { padding-left: 19px; }
+.page-conta .account-deletion-pending111 > i { color: #efb45b; text-align: center; }
+.page-conta .account-deletion-pending111 strong,
+.page-conta .account-deletion-pending111 span { display: block; }
+.page-conta .account-deletion-pending111 span { margin-top: 2px; color: var(--muted); font-size: .7rem; }
+.account-reauth-dialog111 {
+  width: min(calc(100% - 24px), 430px);
+  padding: 0;
+  border: 1px solid var(--gold-border);
+  border-radius: 22px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, .52);
+}
+.account-reauth-dialog111::backdrop { background: rgba(4, 4, 4, .72); backdrop-filter: blur(5px); }
+.account-reauth-dialog111 form { display: grid; gap: 14px; padding: 18px; }
+.account-reauth-dialog111 header,
+.account-reauth-dialog111 footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.account-reauth-dialog111 header span { color: var(--gold-2); font-size: .62rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+.account-reauth-dialog111 header h2 { margin: 3px 0 0; font-size: 1.2rem; }
+.account-reauth-dialog111 p { margin: 0; color: var(--muted); font-size: .78rem; line-height: 1.5; }
+.account-reauth-dialog111 footer { justify-content: flex-end; }
+
+/* --------------------------------------------------------------------------
+   Centro de notificações e avaliações públicas
+   -------------------------------------------------------------------------- */
+.notification-center111,
+.reviews-drawer111 { position: fixed; z-index: 1900; inset: 0; visibility: hidden; pointer-events: none; }
+.notification-center111.is-open,
+.reviews-drawer111.is-open { visibility: visible; pointer-events: auto; }
+.notification-center111-backdrop,
+.reviews-drawer111-backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: rgba(4, 4, 4, .66);
+  opacity: 0;
+  backdrop-filter: blur(5px);
+  transition: opacity .2s ease;
+}
+.notification-center111.is-open .notification-center111-backdrop,
+.reviews-drawer111.is-open .reviews-drawer111-backdrop { opacity: 1; }
+.notification-center111-panel,
+.reviews-drawer111-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: grid;
+  width: min(100%, 440px);
+  height: 100dvh;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  border-left: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 96%, #080705);
+  box-shadow: -24px 0 60px rgba(0, 0, 0, .38);
+  transform: translateX(104%);
+  transition: transform .24s ease;
+}
+.reviews-drawer111-panel { grid-template-rows: auto minmax(0, 1fr) auto; }
+.notification-center111.is-open .notification-center111-panel,
+.reviews-drawer111.is-open .reviews-drawer111-panel { transform: none; }
+.notification-center111-head,
+.reviews-drawer111-panel > header {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: max(18px, env(safe-area-inset-top)) 18px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.notification-center111-head span,
+.reviews-drawer111-panel > header span { color: var(--gold-2); font-size: .62rem; font-weight: 900; letter-spacing: .09em; text-transform: uppercase; }
+.notification-center111-head h2,
+.reviews-drawer111-panel > header h2 { margin: 3px 0 0; font-size: 1.35rem; }
+.notification-center111-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--border); }
+.notification-center111-filters { display: flex; min-width: 0; gap: 5px; }
+.notification-center111-filters button,
+.notification-center111-read-all {
+  min-height: 35px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: var(--surface-soft);
+  color: var(--muted);
+  font: inherit;
+  font-size: .67rem;
+  font-weight: 800;
+}
+.notification-center111-filters button.ativo { border-color: var(--gold-border); background: var(--gold-soft); color: var(--gold-2); }
+.notification-center111-read-all { border-color: transparent; background: transparent; color: var(--gold-2); white-space: nowrap; }
+.notification-center111-list,
+.reviews-drawer111-list { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 10px 14px 22px; }
+.notification-center111-item { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 11px; padding: 14px 6px; border-bottom: 1px solid var(--border); }
+.notification-center111-item.is-unread { background: linear-gradient(90deg, var(--gold-soft), transparent 75%); }
+.notification-center111-icon { display: grid; width: 40px; height: 40px; place-items: center; border-radius: 13px; background: var(--gold-soft); color: var(--gold-2); }
+.notification-center111-title { display: flex; min-width: 0; align-items: start; justify-content: space-between; gap: 8px; }
+.notification-center111-title strong { overflow-wrap: anywhere; }
+.notification-center111-title time { flex: 0 0 auto; color: var(--muted-2); font-size: .61rem; }
+.notification-center111-item p { margin: 5px 0 8px; color: var(--muted); font-size: .74rem; line-height: 1.48; overflow-wrap: anywhere; }
+.notification-center111-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.notification-center111-actions a,
+.notification-center111-actions button,
+.notification-center111-actions span { padding: 0; border: 0; background: transparent; color: var(--gold-2); font: inherit; font-size: .66rem; font-weight: 800; }
+.notification-center111-footer,
+.reviews-drawer111-panel > footer { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 14px max(12px, env(safe-area-inset-bottom)); border-top: 1px solid var(--border); }
+.notification-center111-state { display: grid; min-height: 240px; place-items: center; align-content: center; gap: 7px; color: var(--muted); text-align: center; }
+.notification-center111-state > i { color: var(--gold-2); font-size: 1.45rem; }
+.notification-center111-state > span { font-size: .72rem; }
+.notification-center111-day { display: grid; gap: 7px; }
+.notification-center111-day + .notification-center111-day { margin-top: 15px; }
+.notification-center111-day > h3,
+.notification-day-group111 > h2 { margin: 0; color: var(--muted-2); font-size: .61rem; font-weight: 900; letter-spacing: .09em; text-transform: uppercase; }
+.notification-center111-day > div { display: grid; gap: 8px; }
+.page-notificacoes .notification-day-group111 { display: grid; gap: 9px; }
+.page-notificacoes .notification-day-group111 + .notification-day-group111 { margin-top: 20px; }
+.page-notificacoes .notification-day-group111 > div { display: grid; gap: 10px; }
+.notification-center111-trigger { position: relative; display: grid; width: 42px; height: 42px; flex: 0 0 42px; place-items: center; border: 1px solid var(--border); border-radius: 14px; background: var(--surface-soft); color: var(--text); }
+.notification-center111-trigger [data-notification-center-count] { position: absolute; top: -5px; right: -5px; display: grid; min-width: 19px; height: 19px; padding: 0 4px; place-items: center; border: 2px solid var(--bg); border-radius: 999px; background: #d94f48; color: #fff; font-size: .56rem; font-weight: 900; }
+body.notification-center-open,
+body.reviews-drawer-open111 { overflow: hidden; }
+.reviews-drawer111-list .review-public-item { margin-bottom: 10px; }
+.reviews-public-preview111 { margin-top: 16px; }
+.own-business-notice { display: inline-flex; max-width: 420px; align-items: center; gap: 8px; padding: 10px 12px; border: 1px solid var(--gold-border); border-radius: 13px; background: var(--gold-soft); color: var(--text); font-size: .72rem; font-weight: 750; }
+
+/* --------------------------------------------------------------------------
+   Planos, painel profissional, cliente e administração
+   -------------------------------------------------------------------------- */
+.page-planos .plan-card.is-current-plan111 { border-color: var(--gold-2); box-shadow: 0 0 0 1px var(--gold-2), var(--shadow-soft); }
+.page-planos .current-plan-label111 { display: inline-flex; align-items: center; gap: 5px; margin-bottom: 8px; color: var(--gold-2); font-size: .64rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+.page-planos .plan-current-more111 { display: inline-flex; align-items: center; min-height: 34px; padding: 7px 11px; border: 1px solid rgba(218, 174, 72, .34); border-radius: 999px; color: var(--gold-2); font-size: .76rem; font-weight: 800; text-decoration: none; }
+.page-planos .plan-current-more111:hover,
+.page-planos .plan-current-more111:focus-visible { border-color: var(--gold-2); background: rgba(218, 174, 72, .08); }
+.page-planos .plan-current-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.page-cliente .client-local-grid111 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.page-cliente .client-local-grid111 > .operation-state,
+.page-cliente .client-local-grid111 > .empty { grid-column: 1 / -1; }
+.page-cliente .client-local-card111 { display: grid; min-width: 0; grid-template-columns: 132px minmax(0, 1fr); overflow: hidden; border: 1px solid var(--border); border-radius: 18px; background: var(--surface-soft); }
+.page-cliente .client-local-cover111 { position: relative; display: block; min-height: 152px; background: linear-gradient(180deg, transparent, rgba(0, 0, 0, .3)), var(--client-local-cover) center/cover no-repeat; }
+.page-cliente .client-local-cover111 .marketplace-status { position: absolute; right: 8px; bottom: 8px; }
+.page-cliente .client-local-card111 > div { min-width: 0; padding: 13px; }
+.page-cliente .client-local-type111 { color: var(--gold-2); font-size: .58rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+.page-cliente .client-local-card111 h3 { margin: 5px 0 4px; font-size: .9rem; }
+.page-cliente .client-local-card111 h3 a { color: inherit; text-decoration: none; }
+.page-cliente .client-local-card111 p { margin: 0; color: var(--muted); font-size: .66rem; line-height: 1.45; overflow-wrap: anywhere; }
+.page-cliente .client-local-actions111 { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 11px; }
+.page-cliente .client-relation-error111 { gap: 6px; padding: 14px; }
+.page-cliente .client-relation-error111 small { color: var(--muted); }
+.page-cliente .client-retention-row > .btn { align-self: center; }
+.page-painel .painel-content { min-width: 0; overflow: clip; }
+.page-painel .panel-section > * { min-width: 0; }
+.page-painel .status-segment button { min-width: 0; word-break: normal; overflow-wrap: normal; }
+.page-painel .status-segment button span,
+.page-painel .status-segment button small { min-width: 0; word-break: normal; overflow-wrap: normal; white-space: normal; }
+.page-painel .crm-toolbar { align-items: stretch; }
+.page-painel .crm-toolbar .search-field { min-width: 240px; }
+.page-painel .crm-search-feedback { display: block; min-height: 1.2em; color: var(--muted); }
+.page-painel .push-device-status111 { display: grid; grid-template-columns: 42px minmax(0, 1fr); gap: 11px; align-items: center; margin-bottom: 12px; padding: 12px; border: 1px solid var(--border); border-radius: 15px; background: var(--surface-soft); }
+.page-painel .push-device-status111 > span { display: grid; width: 42px; height: 42px; place-items: center; border-radius: 13px; background: var(--gold-soft); color: var(--gold-2); }
+.page-painel .push-device-status111 small,
+.page-painel .push-device-status111 strong,
+.page-painel .push-device-status111 p { display: block; }
+.page-painel .push-device-status111 small { color: var(--muted-2); font-size: .58rem; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; }
+.page-painel .push-device-status111 strong { margin-top: 2px; font-size: .78rem; }
+.page-painel .push-device-status111 p { margin-top: 3px; font-size: .68rem; line-height: 1.45; }
+.page-painel .push-device-status111.is-denied { border-color: rgba(217, 79, 72, .35); }
+.page-painel .quiet-hours110 label { min-width: 0; }
+.page-painel .quiet-hours110 input { width: 100%; min-width: 0; }
+.page-painel .crm-roster,
+.page-painel .crm-profile { min-width: 0; }
+.page-painel .crm-client { width: 100%; min-width: 0; }
+.page-painel .crm-client-copy,
+.page-painel .crm-client-meta { min-width: 0; }
+.page-painel .crm-client-copy span { overflow-wrap: anywhere; }
+.page-cliente .dashboard-detail-grid,
+.page-cliente .client-overview-grid { align-items: stretch; }
+.page-admin .admin-toolbar,
+.page-admin-subscriptions .admin-tools { gap: 9px; }
+.page-admin .admin-section,
+.page-admin-subscriptions .subscription-list-section { scroll-margin-top: 92px; }
+.page-admin .admin-search input,
+.page-admin-subscriptions .admin-tools input { min-width: 0; }
+
+/* Assinaturas administrativas: edição clara no desktop e cartões sem rolagem lateral no mobile. */
+.page-admin-subscriptions .subscription-workspace {
+  display: grid;
+  grid-template-columns: minmax(250px, .8fr) minmax(0, 1.2fr);
+  gap: 16px;
+  margin: 22px 0 28px;
+  align-items: start;
+}
+.page-admin-subscriptions .subscription-editor { top: 96px; }
+.page-admin-subscriptions .subscription-editor .section-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.page-admin-subscriptions .subscription-editor .section-top > div { min-width: 0; }
+.page-admin-subscriptions .subscription-editor textarea { min-height: 92px; resize: vertical; }
+.page-admin-subscriptions .subscription-date-presets {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 5px;
+  margin-top: 7px;
+}
+.page-admin-subscriptions .subscription-date-presets button {
+  min-height: 34px;
+  padding: 5px 7px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-soft);
+  color: var(--muted);
+  font: inherit;
+  font-size: .62rem;
+  font-weight: 800;
+}
+.page-admin-subscriptions .subscription-date-presets button:hover,
+.page-admin-subscriptions .subscription-date-presets button:focus-visible {
+  border-color: var(--gold-border);
+  background: var(--gold-soft);
+  color: var(--gold-2);
+}
+.page-admin-subscriptions .subscription-current-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 24px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 13px;
+  border: 1px solid var(--gold-border);
+  border-radius: 15px;
+  background: linear-gradient(135deg, var(--gold-soft), var(--surface-soft));
+}
+.page-admin-subscriptions .subscription-current-summary > div { min-width: 0; }
+.page-admin-subscriptions .subscription-current-summary span,
+.page-admin-subscriptions .subscription-current-summary strong,
+.page-admin-subscriptions .subscription-current-summary small { display: block; overflow-wrap: anywhere; }
+.page-admin-subscriptions .subscription-current-summary span { color: var(--muted-2); font-size: .58rem; font-weight: 900; letter-spacing: .07em; text-transform: uppercase; }
+.page-admin-subscriptions .subscription-current-summary strong { margin-top: 3px; font-size: .78rem; }
+.page-admin-subscriptions .subscription-current-summary small { margin-top: 2px; color: var(--muted); font-size: .64rem; }
+.page-admin-subscriptions .subscription-current-summary > i { color: var(--gold-2); text-align: center; }
+.page-admin-subscriptions .subscription-current-summary > p { grid-column: 1 / -1; margin: 2px 0 0; color: var(--muted); font-size: .68rem; line-height: 1.45; }
+.page-admin-subscriptions .subscription-editor-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 15px;
+}
+.page-admin-subscriptions .subscription-editor-actions .btn { min-width: 128px; }
+.page-admin-subscriptions .subscription-results-count { display: block; margin-top: 5px; color: var(--muted); }
+.page-admin-subscriptions .subscription-effective-note { display: block; margin-top: 5px; color: var(--muted); }
+.page-admin-subscriptions .subscription-mobile-list { display: none; }
+.page-admin-subscriptions .subscription-account-card {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--surface);
+}
+.page-admin-subscriptions .subscription-account-card > header {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 11px;
+  border-bottom: 1px solid var(--border);
+}
+.page-admin-subscriptions .subscription-account-card > header strong,
+.page-admin-subscriptions .subscription-account-card > header span { display: block; overflow-wrap: anywhere; }
+.page-admin-subscriptions .subscription-account-card > header span { margin-top: 2px; color: var(--muted); font-size: .67rem; }
+.page-admin-subscriptions .subscription-account-card dl { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0; }
+.page-admin-subscriptions .subscription-account-card dl > div { min-width: 0; }
+.page-admin-subscriptions .subscription-account-card dt { margin-bottom: 4px; color: var(--muted-2); font-size: .57rem; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; }
+.page-admin-subscriptions .subscription-account-card dd { margin: 0; overflow-wrap: anywhere; font-size: .72rem; font-weight: 750; }
+
+/* Conteúdo jurídico claro e legível. */
+.page-termos .legal-document111,
+.page-privacidade .legal-document111 { display: grid; gap: 0; max-width: 860px; }
+.legal-document111 .legal-intro111 { margin: -4px 0 18px; padding: 15px 17px; border-left: 3px solid var(--gold-2); border-radius: 0 14px 14px 0; background: var(--gold-soft); }
+.legal-document111 h2 { margin: 22px 0 6px; font-size: 1.13rem; }
+.legal-document111 h2:first-of-type { margin-top: 0; }
+.legal-document111 ul { display: grid; gap: 7px; margin: 6px 0 2px; padding-left: 20px; color: var(--muted); line-height: 1.6; }
+.legal-document111 .legal-meta111 { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); color: var(--muted); font-size: .72rem; }
+
+/* Suporte curto, Sobre sem sobreposição e Beauty viva sem mudar sua identidade. */
+.page-contato .support-hero { min-height: auto; }
+.page-contato .support-topics-section,
+.page-contato .support-workspace,
+.page-contato .support-history-section,
+.page-contato .support-faq-section { padding-block: 26px; }
+.page-contato .support-topic-card { min-height: 92px; }
+.page-sobre .about-final-section { overflow: clip; }
+.page-sobre .about-cta-shell { isolation: isolate; overflow: hidden; }
+.page-sobre .about-cta-shell::after { z-index: -1; pointer-events: none; }
+.page-sobre .about-cta-action { position: relative; z-index: 1; min-width: 0; }
+.page-beauty-hub .beauty-hero,
+.page-beauty-hub .beauty-section { overflow: clip; }
+.page-barbearia .business-hero { position: relative; isolation: isolate; overflow: clip; }
+.page-barbearia .brand-barber-pole-business {
+  right: -2px;
+  bottom: 50%;
+  height: min(88%, 410px);
+  transform: translateY(50%);
+  filter: drop-shadow(-16px 22px 26px rgba(0, 0, 0, .55));
+}
+
+@media (max-width: 900px) {
+  .page-conta .account-hub-layout111 { grid-template-columns: 1fr; }
+  .page-conta .account-hub-sidebar { position: static; }
+  .page-admin .admin-kpi-grid,
+  .page-admin-subscriptions .admin-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .page-admin-subscriptions .subscription-workspace { grid-template-columns: 1fr; }
+  .page-admin-subscriptions .subscription-editor { position: static; }
+}
+
+@media (max-width: 840px) {
+  .header .nav { min-width: 0; gap: 8px; }
+  .header .logo { min-width: 0; flex: 0 1 auto; }
+  .header .logo > span { min-width: 0; max-width: min(34vw, 150px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .header .nav-actions { min-width: 0; margin-left: auto; gap: 6px; }
+  .header .nav-actions > * { flex-shrink: 0; }
+  .notification-center111-trigger { width: 40px; height: 40px; flex-basis: 40px; }
+
+  .page-conta .page-hero { padding-block: 24px 18px; }
+  .page-conta .page-hero p { display: none; }
+  .page-conta .account-hub-container { width: min(100% - 24px, 680px); }
+  .page-conta .account-hub-sidebar { padding: 15px; border-radius: 20px; }
+  .page-conta .account-hub-menu { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .page-conta .account-hub-menu button,
+  .page-conta .account-hub-menu a { min-height: 58px; grid-template-columns: 24px minmax(0, 1fr); padding: 8px 10px; }
+  .page-conta .account-hub-menu .account-menu-arrow { display: none; }
+  .page-conta .account-hub-workspace .account-hub-panel {
+    position: fixed;
+    z-index: 1750;
+    inset: 0;
+    display: none;
+    height: 100dvh;
+    margin: 0;
+    padding: max(14px, env(safe-area-inset-top)) 13px calc(90px + env(safe-area-inset-bottom));
+    overflow-y: auto;
+    border: 0;
+    border-radius: 0;
+    background: var(--bg);
+    box-shadow: none;
+  }
+  .page-conta.account-sheet-open111 .account-hub-workspace .account-hub-panel.ativo { display: block; }
+  .page-conta:not(.account-sheet-open111) .account-hub-workspace .account-hub-panel { display: none; }
+
+  /* Match the mobile-native specificity and legacy !important rules. The
+     account workspace behaves as a sheet, so inactive content stays hidden. */
+  body.mobile-native.page-conta .account-hub-menu {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  body.mobile-native.page-conta .account-hub-menu button,
+  body.mobile-native.page-conta .account-hub-menu a {
+    display: grid !important;
+    min-width: 0;
+    grid-template-columns: 24px minmax(0, 1fr) !important;
+    align-items: center;
+    justify-items: start;
+    text-align: left;
+  }
+  body.mobile-native.page-conta .account-hub-workspace .account-hub-panel,
+  body.mobile-native.page-conta .account-hub-workspace .account-hub-panel.ativo {
+    display: none !important;
+    height: 100dvh !important;
+    margin: 0 !important;
+    padding: max(14px, env(safe-area-inset-top)) 13px calc(90px + env(safe-area-inset-bottom)) !important;
+    overflow-y: auto !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: var(--bg) !important;
+  }
+  body.mobile-native.page-conta.account-sheet-open111 .account-hub-workspace .account-hub-panel.ativo {
+    display: block !important;
+  }
+  body.mobile-native.page-conta .account-hub-container {
+    width: min(100% - 24px, 680px) !important;
+  }
+  .page-conta .account-sheet-close {
+    display: flex;
+    min-height: 44px;
+    align-items: center;
+    gap: 9px;
+    margin: 0 0 14px;
+    padding: 0 10px;
+    border: 1px solid var(--border);
+    border-radius: 13px;
+    background: var(--surface);
+    color: var(--text);
+    font: inherit;
+    font-weight: 850;
+  }
+  .page-conta .account-hub-workspace .form-card,
+  .page-conta .account-hub-workspace .danger-zone { padding: 15px; border-radius: 19px; }
+  .page-conta .account-overview111-actions,
+  .page-conta .account-support111 { grid-template-columns: 1fr; }
+  .page-conta .account-overview111-actions a,
+  .page-conta .account-support111 a { min-height: 68px; }
+  .page-conta .account-deletion-pending111 { grid-template-columns: 34px minmax(0, 1fr); }
+  .page-conta .account-deletion-pending111 .btn { grid-column: 1 / -1; width: 100%; }
+
+  .notification-center111-panel,
+  .reviews-drawer111-panel {
+    top: auto;
+    bottom: 0;
+    width: 100%;
+    height: min(88dvh, 760px);
+    border: 1px solid var(--border);
+    border-width: 1px 0 0;
+    border-radius: 24px 24px 0 0;
+    transform: translateY(104%);
+  }
+  .notification-center111-toolbar { align-items: stretch; flex-direction: column; }
+  .notification-center111-filters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .notification-center111-read-all { align-self: end; }
+
+  body.page-painel .dashboard { display: block !important; width: 100%; }
+  body.page-painel .sidebar { display: none !important; }
+  body.mobile-native.page-painel .dashboard > .sidebar { display: none !important; }
+  body.page-painel .painel-content { width: 100% !important; max-width: none !important; padding-inline: 12px !important; }
+  body.page-painel .painel-content > .panel-section { width: 100%; max-width: none; }
+  body.page-painel .section-top { align-items: stretch; }
+  body.page-painel .section-top > .btn,
+  body.page-painel .section-top > a.btn { width: 100%; }
+  body.page-painel .status-segment,
+  body.page-painel .config-status-segment { display: grid !important; grid-template-columns: 1fr !important; gap: 7px; overflow: visible !important; }
+  body.page-painel .status-segment button,
+  body.page-painel .config-status-segment button {
+    display: grid !important;
+    width: 100% !important;
+    min-height: 62px;
+    grid-template-columns: 34px minmax(0, 1fr) !important;
+    grid-template-rows: auto auto !important;
+    align-items: center;
+    gap: 2px 9px;
+    padding: 10px 12px !important;
+    text-align: left;
+  }
+  body.page-painel .status-segment button i { grid-row: 1 / 3; }
+  body.page-painel .status-segment button span,
+  body.page-painel .status-segment button small { grid-column: 2; width: auto; text-align: left; }
+  body.page-painel .crm-toolbar { display: grid; grid-template-columns: 1fr; gap: 8px; }
+  body.page-painel .crm-toolbar .search-field { width: 100%; min-width: 0; }
+  body.page-painel .segment-chips { display: grid; width: 100%; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; overflow: visible; }
+  body.page-painel .segment-chips button { min-width: 0; padding-inline: 5px; white-space: normal; }
+  body.page-painel .crm-workspace { display: grid; grid-template-columns: 1fr; gap: 10px; }
+  body.page-painel .operation-kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; overflow: visible; }
+  body.page-painel .operation-kpi { width: auto; min-width: 0; }
+  body.page-painel .table-wrap { width: 100%; max-width: 100%; overflow: visible; }
+
+  .page-portal .marketplace-filter-dialog { width: min(100%, 440px); max-width: 100%; }
+  .page-portal .marketplace-results-grid { grid-template-columns: 1fr; }
+  .page-sobre .about-cta-shell { grid-template-columns: 1fr; }
+  .page-sobre .about-cta-action { width: 100%; }
+
+  /* Plan comparison remains vertical on phones; no horizontal dragging is
+     required to discover or compare an option. */
+  body.mobile-native.page-planos .pricing-grid {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 11px !important;
+    margin-inline: 0 !important;
+    padding-inline: 0 !important;
+    overflow: visible !important;
+    scroll-snap-type: none !important;
+  }
+  body.mobile-native.page-planos .plan-card {
+    width: 100% !important;
+    min-width: 0 !important;
+    scroll-snap-align: none !important;
+  }
+
+  .page-admin-subscriptions .subscription-desktop-table { display: none !important; }
+  .page-admin-subscriptions .subscription-mobile-list { display: grid; gap: 10px; width: 100%; }
+  .page-admin-subscriptions .subscription-editor .section-top { align-items: stretch; flex-direction: column; }
+  .page-admin-subscriptions .subscription-editor .section-top .btn { width: 100%; }
+  .page-admin-subscriptions .subscription-date-presets { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .page-admin-subscriptions .subscription-editor-actions { display: grid; grid-template-columns: 1fr; }
+  .page-admin-subscriptions .subscription-editor-actions .btn { width: 100%; min-width: 0; }
+  .page-admin-subscriptions .admin-section-head { align-items: stretch; flex-direction: column; }
+  .page-admin-subscriptions .admin-tools { display: grid; grid-template-columns: 1fr; width: 100%; }
+  .page-admin-subscriptions .admin-tools > * { width: 100%; max-width: none; }
+}
+
+@media (max-width: 480px) {
+  .header .logo > span { max-width: 72px; }
+  .header .logo > span small { display: none; }
+  .header .account-link { max-width: 43px; padding-inline: 0; }
+  .header .account-link span { display: none; }
+  .page-conta .account-hub-profile { grid-template-columns: 56px minmax(0, 1fr); }
+  .page-conta .account-hub-avatar,
+  .page-conta .account-hub-avatar-fallback { width: 56px; height: 56px; border-radius: 17px; }
+  body.mobile-native.page-conta .account-hub-profile {
+    grid-template-columns: 56px minmax(0, 1fr) !important;
+  }
+  body.mobile-native.page-conta .account-hub-avatar,
+  body.mobile-native.page-conta .account-hub-avatar-fallback {
+    width: 56px !important;
+    height: 56px !important;
+    max-width: 56px !important;
+    border-radius: 17px !important;
+  }
+  .page-conta .account-hub-menu { grid-template-columns: 1fr 1fr; }
+  .page-conta .account-hub-menu button,
+  .page-conta .account-hub-menu a { font-size: .7rem; }
+  .page-conta .account-data-actions111,
+  .page-conta .account-session-actions111 { display: grid; grid-template-columns: 1fr; }
+  .page-conta .account-data-actions111 > *,
+  .page-conta .account-session-actions111 > * { width: 100%; }
+  .notification-center111-footer,
+  .reviews-drawer111-panel > footer { display: grid; grid-template-columns: 1fr 1fr; }
+  .notification-center111-footer > *,
+  .reviews-drawer111-panel > footer > * { width: 100%; min-width: 0; }
+  body.page-painel .segment-chips { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  body.page-painel .operation-kpis,
+  .page-admin .admin-kpi-grid,
+  .page-admin-subscriptions .admin-kpi-grid { grid-template-columns: 1fr 1fr !important; }
+  .page-admin .admin-kpi,
+  .page-admin-subscriptions .admin-kpi { padding: 11px 9px; }
+  .page-admin-subscriptions .subscription-current-summary { grid-template-columns: 1fr; }
+  .page-admin-subscriptions .subscription-current-summary > i { transform: rotate(90deg); }
+  .page-admin-subscriptions .subscription-account-card dl { grid-template-columns: 1fr; }
+  .legal-document111 { padding: 16px !important; }
+  .page-planos .plan-current-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .page-cliente .client-local-grid111 { grid-template-columns: 1fr; }
+  .page-cliente .client-local-card111 { grid-template-columns: 112px minmax(0, 1fr); }
+  .page-cliente .client-retention-row { grid-template-columns: 36px minmax(0, 1fr); }
+  .page-cliente .client-retention-row > :last-child { grid-column: 2; width: 100%; }
+}
+
+@media (max-width: 440px) {
+  .page-planos .plan-current-stats { grid-template-columns: 1fr; }
+  .page-cliente .client-local-card111 { grid-template-columns: 1fr; }
+  .page-cliente .client-local-cover111 { min-height: 130px; }
+  .page-cliente .client-local-actions111 .btn { flex: 1 1 110px; }
+}
+
+/* Cadastro profissional: a agenda é apresentada como próximo passo, sem
+   oferecer um controle incompatível com o plano inicial. */
+.page-cadastro-barbearia .onboarding-feature-note111 {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  align-items: start;
+  gap: 12px;
+  margin: 0 0 18px;
+  padding: 15px;
+  border: 1px solid color-mix(in srgb, var(--gold, #e5bc45) 38%, var(--border));
+  border-radius: 17px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--gold, #e5bc45) 9%, var(--surface)) 0%, var(--surface) 72%);
+  color: var(--text);
+}
+.page-cadastro-barbearia .onboarding-feature-note111-icon {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--gold, #e5bc45) 15%, transparent);
+  color: var(--gold, #e5bc45);
+  font-size: 1.05rem;
+}
+.page-cadastro-barbearia .onboarding-feature-note111 strong,
+.page-cadastro-barbearia .onboarding-feature-note111 small { display: block; }
+.page-cadastro-barbearia .onboarding-feature-note111 strong { margin: 1px 0 4px; }
+.page-cadastro-barbearia .onboarding-feature-note111 small {
+  color: var(--muted);
+  line-height: 1.52;
+}
+
+@media (max-width: 480px) {
+  .page-cadastro-barbearia .onboarding-feature-note111 {
+    grid-template-columns: 38px minmax(0, 1fr);
+    gap: 10px;
+    padding: 13px;
+  }
+  .page-cadastro-barbearia .onboarding-feature-note111-icon { width: 38px; height: 38px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+
+@media (forced-colors: active) {
+  .notification-center111-trigger,
+  .account-verified111,
+  .own-business-notice { forced-color-adjust: auto; }
+}

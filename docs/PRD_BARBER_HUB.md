@@ -1,7 +1,7 @@
 # PRD — Barber Hub
 ### Product Requirements Document
 
-> **Revisão vigente:** a Seção 36 registra o estado da versão 1.10.1 e prevalece sobre backlog, números de versão e pendências históricas das seções anteriores. O histórico foi mantido para rastreabilidade, não como checklist de deploy atual.
+> **Revisão vigente:** a Seção 37 registra o estado da versão 1.11.0 e prevalece sobre backlog, números de versão e pendências históricas das seções anteriores. O histórico foi mantido para rastreabilidade, não como checklist de deploy atual.
 
 > Documento gerado a partir da leitura direta do código-fonte do repositório `Barber-Hub-Oficial-main` (não a partir de suposições ou apenas da documentação existente). Toda afirmação de status foi confirmada em código; onde isso não foi possível, o item está marcado como **não confirmado**.
 
@@ -26,8 +26,8 @@
 | Vertical | Barbearias, com expansão de posicionamento em andamento para "negócios de beleza" em geral (ver `html/beauty-hub.html`, descrição do `manifest.webmanifest`: *"Encontre barbearias, agende serviços e gerencie seu negócio em um só lugar"*) |
 | Tipo de produto | Aplicação web + interface HTML mobile dedicada, instalável como PWA, multi-tenant (múltiplos estabelecimentos independentes), com backend próprio (API Python/FastAPI) sobre infraestrutura Supabase |
 | Empresa/divisão | The Gamers Tech |
-| Estágio atual | Produto em produção ativa, com a versão 1.10.1 em homologação e preparação para usuários-piloto |
-| Versão analisada | Front-end/PWA **1.10.1** · API própria **1.6.1** · objetos 29–31 confirmados no ambiente conectado e migration **32** preparada |
+| Estágio atual | Candidata 1.11.0 concluída localmente e no banco; configuração externa e homologação final pendentes |
+| Versão analisada | Front-end/PWA **1.11.0** · API própria **1.7.0** · migrations gerenciadas 32/33 aplicadas e verificador 33 aprovado |
 | Repositório analisado | `Barber-Hub-Oficial-main.zip`, domínio de referência `barberhuboficial.vercel.app` |
 | Stack confirmada em código | HTML/CSS/JS vanilla + Bootstrap 5.3.6 (local, em camada `@layer`); Supabase (PostgreSQL, Auth, Storage, RLS, Realtime); backend próprio em Python 3.13+/FastAPI 0.117+/Pydantic 2.10+, empacotado como função serverless da Vercel (`api/index.py`); PWA com Service Worker e manifest próprios |
 
@@ -1426,3 +1426,30 @@ Os objetos 29–31 foram confirmados no Supabase conectado, mas essas aplicaçõ
 ### 36.3 Estado do planejamento
 
 Todo item técnico do documento está implementado ou teve decisão explícita. Entrevistas, aparelhos reais, preços finais e expansão geográfica continuam sendo validação externa: o produto oferece roteiro, métricas e feature flags, mas não declara evidência de campo inexistente. A matriz completa está em `RELATORIO_CONCLUSAO_PLANEJAMENTO_POS31_1_10_1.md`.
+
+---
+
+## 37. Revisão vigente — Barber Hub 1.11.0
+
+A 1.11.0 fecha a candidata técnica com foco em continuidade, privacidade, operação mobile, administração e confiabilidade. A identidade premium escura, quente e dourada permanece a mesma; a mudança reorganiza tarefas e estados sem criar uma linguagem visual paralela.
+
+### 37.1 Entregas consolidadas
+
+- conta contextual para cliente e profissional, sessões, exportação e exclusão com prazo de cancelamento;
+- agendamento idempotente com continuidade após autenticação e bloqueio de autoagendamento;
+- Agenda 2.0, CRM, financeiro, equipe, retenção e crescimento completos;
+- lista de espera, recorrência, fidelidade, recompensas, cupons, campanhas e lembretes;
+- oportunidades, insights, metas e permissões granulares;
+- assinatura administrativa idempotente com melhor seleção, revisão e cartões mobile;
+- respostas externas normalizadas, estados de erro/vazio/repetição e proteção contra carregamento infinito;
+- marketplace regional, avaliações paginadas, mapas, capas e recomendações locais;
+- suporte simplificado, comunicação comercial e ponte responsiva para Beauty Hub;
+- páginas mobile sincronizadas, CSS atual por último, PWA cacheado e documentos operacionais.
+
+### 37.2 Banco e segurança
+
+As migrations `20260911132254_conclusao_pos31_1_10_1` e `20260911132328_barberhub_1_11_confiabilidade_privacidade` foram aplicadas no projeto conectado, nesta ordem. `sql/verificar_33_release_1_11.sql` retornou todos os controles como verdadeiros. V01–V05 estão corrigidos; V06 permanece parcial até o CAPTCHA ser ativado e testado no ambiente autorizado.
+
+### 37.3 Estado de publicação
+
+O código e o banco formam uma candidata de homologação. A publicação comercial continua condicionada a CAPTCHA, proteção contra senhas vazadas, URLs e variáveis corretas, VAPID/e-mail/jobs, teste RLS com contas separadas, backup/restauração, aparelhos/navegadores reais, revisão jurídica e smoke test do novo deployment. O relatório canônico é `release-1.11/RELATORIO_FINAL_1_11_0.md`.

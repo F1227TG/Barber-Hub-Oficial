@@ -4,6 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+
 <meta content="Mapa de navegação, responsabilidade e estado funcional das páginas do Barber Hub." name="description"/>
 <title>Mapa do sistema | Barber Hub</title>
 <link href="../img/favicon.ico" rel="shortcut icon" type="image/x-icon"/>
@@ -18,7 +19,8 @@
 <link href="../manifest.webmanifest" rel="manifest"/>
 <link href="../css/mobile-app.css" rel="stylesheet"/><link href="../css/release-1.4.1.css" rel="stylesheet"/>
 <link href="../css/product-redesign.css" rel="stylesheet"/><link href="../css/release-1.6.css" rel="stylesheet"/><link href="../css/release-1.7.css" rel="stylesheet"/><link href="../css/release-1.7.1.css" rel="stylesheet"/><link href="../css/releases/release-1.10.css" rel="stylesheet"/><link href="../css/brand-assets-1.8.css" rel="stylesheet"/>
-<meta content="yes" name="mobile-web-app-capable"/><meta content="noindex,follow" name="robots"/><link href="https://barberhuboficial.vercel.app/html/mapa-sistema" rel="canonical"/><link href="../css/mobile-redesign-1.8.css" rel="stylesheet"/><link href="../css/release-1.9.3.css" rel="stylesheet"/></head>
+
+<meta content="yes" name="mobile-web-app-capable"/><meta content="noindex,nofollow" name="robots"/><link href="https://barberhuboficial.vercel.app/html/mapa-sistema" rel="canonical"/><link href="../css/mobile-redesign-1.8.css" rel="stylesheet"/><link href="../css/release-1.9.3.css" rel="stylesheet"/><link href="../css/releases/release-1.11.css" rel="stylesheet"/></head>
 <body class="page-mapa-sistema auth-pending mobile-native">
 <!-- Cabeçalho e navegação principal -->
 <header class="header">
@@ -84,8 +86,8 @@
 <a class="system-map-item" href="/mobile/barbearia.html"><div><strong>Página pública</strong><span class="map-status ok">Funcional</span></div><p>Serviços, equipe, portfólio, redes sociais e avaliações.</p></a>
 <a class="system-map-item" href="/mobile/portal.html"><div><strong>Agendamento em modal</strong><span class="map-status ok">1.6</span></div><p>Iniciado no perfil do estabelecimento, com múltiplos serviços, profissional, data e horário.</p></a>
 <a class="system-map-item" href="/mobile/planos.html"><div><strong>Planos</strong><span class="map-status info">Comercial</span></div><p>Apresentação dos planos; cobrança real permanece futura.</p></a>
-<a class="system-map-item" href="/mobile/contato.html"><div><strong>Suporte</strong><span class="map-status ok">API Python</span></div><p>Abertura e acompanhamento de tickets.</p></a>
-<div class="system-map-item"><div><strong>Auditoria de navegação</strong><span class="map-status partial" data-navigation-audit-status="">Verificando</span></div><p>Conferência protegida pela API Python.</p></div></div>
+<a class="system-map-item" href="/mobile/contato.html"><div><strong>Suporte</strong><span class="map-status ok">Ativo</span></div><p>Abertura e acompanhamento de tickets.</p></a>
+<div class="system-map-item"><div><strong>Auditoria de navegação</strong><span class="map-status partial" data-navigation-audit-status="">Verificando</span></div><p>Conferência disponível somente para a administração.</p></div></div>
 </article>
 <article class="system-map-role">
 <header><i class="bi bi-person"></i><h2>Cliente</h2><p class="texto-section">Encontrar, reservar e acompanhar.</p></header>
@@ -112,25 +114,25 @@
 <header><i class="bi bi-shield-lock"></i><h2>Administrador</h2><p class="texto-section">Controle e segurança da plataforma.</p></header>
 <div class="system-map-list">
 <a class="system-map-item" href="/mobile/admin.html"><div><strong>Visão geral</strong><span class="map-status ok">Funcional</span></div><p>Métricas, estabelecimentos, agendamentos e operação.</p></a>
-<a class="system-map-item" href="/mobile/admin.html#usuarios"><div><strong>Usuários</strong><span class="map-status ok">API Python</span></div><p>Perfis, bloqueio e envio seguro de redefinição de senha.</p></a>
+<a class="system-map-item" href="/mobile/admin.html#usuarios"><div><strong>Usuários</strong><span class="map-status ok">Protegido</span></div><p>Perfis, bloqueio e envio seguro de redefinição de senha.</p></a>
 <a class="system-map-item" href="/mobile/admin.html#moderacao"><div><strong>Moderação</strong><span class="map-status ok">Funcional</span></div><p>Avaliações, denúncias e conteúdo público.</p></a>
 <a class="system-map-item" href="/mobile/admin.html#tickets"><div><strong>Tickets</strong><span class="map-status ok">Funcional</span></div><p>Atendimento, resposta, prioridade e encerramento.</p></a>
 </div>
 </article>
 <article class="system-map-role">
-<header><i class="bi bi-code-slash"></i><h2>Backend</h2><p class="texto-section">Camadas que sustentam o produto.</p></header>
+<header><i class="bi bi-code-slash"></i><h2>Serviços internos</h2><p class="texto-section">Camadas que sustentam o produto.</p></header>
 <div class="system-map-list">
-<div class="system-map-item"><div><strong>FastAPI</strong><span class="map-status ok">Própria</span></div><p>Rotas em <code>/api/v1</code>, validação e documentação automática.</p></div>
+<div class="system-map-item"><div><strong>Regras de operação</strong><span class="map-status ok">Ativas</span></div><p>Validação das ações, limites e resultados antes de cada alteração.</p></div>
 <div class="system-map-item"><div><strong>Autenticação gerenciada</strong><span class="map-status ok">Ativa</span></div><p>Sessões e representações não reversíveis de senha; senhas nunca são exibidas.</p></div>
 <div class="system-map-item"><div><strong>Dados e permissões</strong><span class="map-status ok">Ativos</span></div><p>Regras transacionais e acesso por perfil.</p></div>
-<div class="system-map-item"><div><strong>Storage e Realtime</strong><span class="map-status ok">Ativo</span></div><p>Imagens, atualizações e contadores.</p></div>
+<div class="system-map-item"><div><strong>Arquivos e atualizações</strong><span class="map-status ok">Ativos</span></div><p>Imagens, atualizações e contadores.</p></div>
 </div>
 </article>
 <article class="system-map-role">
-<header><i class="bi bi-tools"></i><h2>Próximas validações</h2><p class="texto-section">O que impede chamar a versão de lançamento.</p></header>
+<header><i class="bi bi-tools"></i><h2>Prontidão de publicação</h2><p class="texto-section">O que ainda precisa ser confirmado antes do lançamento.</p></header>
 <div class="system-map-list">
-<div class="system-map-item"><div><strong>Versão 1.10</strong><span class="map-status partial">Verificar</span></div><p>Aplicar as atualizações 29, 30 e 31 e executar a verificação de lançamento.</p></div>
-<div class="system-map-item"><div><strong>Variáveis Vercel</strong><span class="map-status partial">Conferir</span></div><p>URL e chaves pública/secret da API.</p></div>
+<div class="system-map-item"><div><strong>Versão 1.11</strong><span class="map-status ok">Banco atualizado</span></div><p>Atualizações do banco aplicadas e verificadas no projeto conectado.</p></div>
+<div class="system-map-item"><div><strong>Configuração de produção</strong><span class="map-status partial">Conferir</span></div><p>Confirmar acesso, avisos, e-mail, endereços permitidos e tarefas agendadas.</p></div>
 <div class="system-map-item"><div><strong>Teste físico</strong><span class="map-status partial">Pendente</span></div><p>Android, PWA, teclado, modais e redes móveis.</p></div>
 <div class="system-map-item"><div><strong>Piloto local</strong><span class="map-status partial">Pendente</span></div><p>Professor, barbearias e clientes reais.</p></div>
 </div>
@@ -192,6 +194,8 @@
 </script>
 <script src="../js/api.js">
 </script>
+<script src="../js/core/view-state.js"></script>
+<script src="../js/notification-center.js"></script>
 <script src="../js/status.js">
 </script>
 <script src="../js/ia.js">

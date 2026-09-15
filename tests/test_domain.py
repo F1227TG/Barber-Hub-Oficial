@@ -14,6 +14,7 @@ from backend.domain.retention import coupon_discount, loyalty_points, recurrence
 from backend.domain.schedule import Period, appointment_period, conflicts_with_blocks, periods_overlap, schedule_range
 from backend.domain.operations import (
     canonical_request_hash,
+    choose_idempotency_key,
     financial_result,
     normalize_origin_channel,
     normalize_page,
@@ -21,6 +22,7 @@ from backend.domain.operations import (
     validate_opening_periods,
 )
 from backend.domain.imports import normalize_import_rows, parse_import_file, spreadsheet_formula_risk
+from backend.domain.identity import cnpj_is_valid, normalize_cnpj
 
 
 class AppointmentTransitionTests(TestCase):
@@ -167,6 +169,15 @@ class OperationReadyTests(TestCase):
         self.assertEqual(financial_result("2450", "720"), Decimal("1730.00"))
         self.assertEqual(normalize_page(999, -4), (100, 0))
 
+    def test_idempotency_key_sources_must_agree(self) -> None:
+        self.assertEqual(choose_idempotency_key("booking-safe-key-0001", None), "booking-safe-key-0001")
+        self.assertEqual(
+            choose_idempotency_key("booking-safe-key-0001", "booking-safe-key-0001"),
+            "booking-safe-key-0001",
+        )
+        with self.assertRaises(ValueError):
+            choose_idempotency_key("booking-safe-key-0001", "booking-safe-key-0002")
+
     def test_form_values_are_normalized_for_storage(self) -> None:
         self.assertEqual(normalize_payment_method("credito"), "cartao_credito")
         self.assertEqual(normalize_payment_method("debito"), "cartao_debito")
@@ -192,4 +203,15 @@ class ImportSafetyTests(TestCase):
         ])
         self.assertEqual(len(valid), 1)
         self.assertEqual(len(rejected), 2)
+
+
+class BrazilianIdentityTests(TestCase):
+    def test_cnpj_accepts_legacy_and_new_receita_format(self) -> None:
+        self.assertTrue(cnpj_is_valid("04.252.011/0001-10"))
+        self.assertTrue(cnpj_is_valid("00.000.000/E08G-12"))
+        self.assertEqual(normalize_cnpj("00.000.000/e08g-12"), "00000000E08G12")
+
+    def test_cnpj_rejects_invalid_check_digits_and_shapes(self) -> None:
+        self.assertFalse(cnpj_is_valid("00.000.000/E08G-13"))
+        self.assertFalse(cnpj_is_valid("ABCDEFGHIJKLMN"))
 

@@ -9,6 +9,9 @@
 let bhOnboardingStep = 1;
 let bhOnboardingCover = null;
 const BH_TOTAL_STEPS = 4;
+// Todo novo estabelecimento inicia no plano de entrada, sem agenda online.
+// O servidor repete esta regra para que alterações no navegador não a contornem.
+const BH_ONBOARDING_ACEITA_AGENDAMENTO = false;
 
 function bhAtualizarStepper() {
   document.querySelectorAll("[data-step-panel]").forEach(panel => {
@@ -78,6 +81,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
   const cep = document.getElementById("cep");
   cep?.addEventListener("input", () => { cep.value = bhMascaraCEP(cep.value); });
+  const cnpj = document.getElementById("cnpjEstabelecimento");
+  cnpj?.addEventListener("input", () => { cnpj.value = bhMascaraCNPJ(cnpj.value); });
 
   document.querySelectorAll("[data-horario-aberto]").forEach(check => {
     check.addEventListener("change", () => {
@@ -117,6 +122,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("formOnboarding").addEventListener("submit", async evento => {
     evento.preventDefault();
     if (!bhValidarStep(4)) return;
+    const cnpjValue = document.getElementById("cnpjEstabelecimento")?.value.trim() || "";
+    if (cnpjValue && !bhValidarCNPJ(cnpjValue)) {
+      mostrarToast("erro", "CNPJ inválido", "Revise os caracteres e os dois dígitos verificadores.");
+      document.getElementById("cnpjEstabelecimento").focus();
+      return;
+    }
     const botao = document.getElementById("btnFinalizarOnboarding");
     bhSetButtonLoading(botao, true, "Criando seu espaço...");
     try {
@@ -129,6 +140,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const payload = {
         tipoEstabelecimento: document.getElementById("tipoEstabelecimento").value,
         nome: document.getElementById("nomeEstabelecimento").value.trim(),
+        cnpj: cnpjValue ? bhNormalizarCNPJ(cnpjValue) : null,
         descricao: document.getElementById("descricao").value.trim(),
         emailPublico: document.getElementById("emailPublico").value.trim(),
         telefone: document.getElementById("telefone").value.trim(),
@@ -141,7 +153,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         endereco: document.getElementById("endereco").value.trim(),
         numero: document.getElementById("numero").value.trim(),
         complemento: document.getElementById("complemento").value.trim(),
-        aceitaAgendamento: document.getElementById("aceitaAgendamento").checked,
+        aceitaAgendamento: BH_ONBOARDING_ACEITA_AGENDAMENTO,
         horarios: bhColetarHorarios(),
         servico: {
           nome: document.getElementById("servicoNome").value.trim(),

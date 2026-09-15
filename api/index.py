@@ -1,4 +1,4 @@
-"""Barber Hub API v1.6.1.
+"""Barber Hub API v1.7.0.
 
 FastAPI is the server-side validation layer of the marketplace. Supabase keeps
 Auth, PostgreSQL, Storage and Realtime responsibilities; sensitive business
@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import hmac
 import time
+from contextlib import asynccontextmanager
 from datetime import date, datetime
 from uuid import uuid4
 
@@ -33,7 +34,6 @@ from backend.models import (
     CommissionRuleCreate,
     CommissionRuleUpdate,
     DayClosingCreate,
-    DeleteAccountRequest,
     EstablishmentStatusUpdate,
     EstablishmentUpdate,
     FinancialAdjustmentCreate,
@@ -59,6 +59,7 @@ from backend.models import (
     TeamMemberUpdate,
     TeamPermissionsUpdate,
     RecurrenceCreate,
+    RecurrenceUpdate,
     WaitlistCreate,
     WaitlistUpdate,
     WalkInCreate,
@@ -75,6 +76,9 @@ from backend.models import (
 )
 from backend.rate_limit import enforce as enforce_rate_limit
 from backend.security import AuthContext, require_admin, require_user
+from backend.supabase import gateway
+from backend.version import API_VERSION
+from backend.domain.operations import choose_idempotency_key
 from backend.services import admin as admin_service
 from backend.services import appointments as appointment_service
 from backend.services import catalog as catalog_service
@@ -90,8 +94,16 @@ from backend.services import imports as import_service
 from backend.services import push as push_service
 from backend.services import audit as audit_service
 from backend.services import flags as flag_service
+from backend.services import email_delivery as email_service
+from backend.services import maintenance as maintenance_service
+from api.routers.account import router as account_router
+from api.routers.catalog import router as catalog_router
+from api.routers.system import router as system_router
 
-API_VERSION = "1.6.1"
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    yield
+    await gateway.aclose()
 
 app = FastAPI(
     title="Barber Hub API",
@@ -100,6 +112,7 @@ app = FastAPI(
     docs_url="/api/docs",
     redoc_url="/api/redoc",
     openapi_url="/api/openapi.json",
+    lifespan=lifespan,
 )
 
 if settings.allowed_origins:
@@ -108,8 +121,21 @@ if settings.allowed_origins:
         allow_origins=settings.allowed_origins,
         allow_credentials=True,
         allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
-        allow_headers=["Authorization", "Content-Type", "X-Request-ID"],
+        allow_headers=["Authorization", "Content-Type", "X-Request-ID", "Idempotency-Key"],
     )
+
+app.include_router(system_router)
+app.include_router(catalog_router)
+app.include_router(account_router)
+
+
+def _valid_job_secret(supplied: str | None) -> bool:
+    """Accept Vercel Cron and an optional external scheduler independently."""
+
+    if not supplied:
+        return False
+    configured = tuple(secret for secret in (settings.cron_secret, settings.jobs_secret) if secret)
+    return bool(configured) and any(hmac.compare_digest(supplied, secret) for secret in configured)
 
 
 @app.middleware("http")
@@ -259,10 +285,13 @@ async def marketplace_featured(request: Request, limit: int = Query(default=6, g
 async def marketplace_regional(
     request: Request,
     q: str | None = Query(default=None, max_length=120),
+    tipo: str | None = Query(default=None, pattern="^(barbearia|salao|todos)?$"),
+    status_filter: str | None = Query(default=None, alias="status", pattern="^(aberta|fechada|todos)?$"),
     city: str | None = Query(default=None, max_length=120),
     neighborhood: str | None = Query(default=None, max_length=120),
     state_filter: str | None = Query(default=None, alias="state", min_length=2, max_length=2),
-    open_now: bool = Query(default=False), agenda: bool = Query(default=False),
+    open_now: bool | None = Query(default=None),
+    agenda: bool | None = Query(default=None),
     latitude: float | None = Query(default=None, ge=-90, le=90),
     longitude: float | None = Query(default=None, ge=-180, le=180),
     radius_km: float | None = Query(default=None, gt=0, le=500),
@@ -278,9 +307,12 @@ async def marketplace_regional(
         raise ApiError(422, "COORDINATE_PAIR_REQUIRED", "Informe latitude e longitude juntas.")
     if min_price is not None and max_price is not None and min_price > max_price:
         raise ApiError(422, "INVALID_PRICE_RANGE", "O preço mínimo não pode superar o máximo.")
+    if open_now is True and status_filter == "fechada":
+        raise ApiError(422, "INCOMPATIBLE_STATUS_FILTER", "Revise o filtro de funcionamento informado.")
+    effective_status = "aberta" if open_now is True and status_filter in (None, "", "todos") else status_filter
     return ok(await catalog_service.regional_search(
-        query=q, city=city, neighborhood=neighborhood, state=state_filter,
-        open_now=open_now, agenda=agenda, latitude=latitude, longitude=longitude,
+        query=q, tipo=tipo, status=effective_status, city=city, neighborhood=neighborhood, state=state_filter,
+        agenda=agenda, latitude=latitude, longitude=longitude,
         radius_km=radius_km, service=service, min_price=min_price, max_price=max_price,
         min_rating=min_rating, offset=offset, limit=limit,
     ))
@@ -296,10 +328,20 @@ async def catalog_cover_library(request: Request) -> JSONResponse:
 async def create_appointment(
     request: Request,
     payload: AppointmentCreate,
+    idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
     auth: AuthContext = Depends(require_user),
 ) -> JSONResponse:
     await enforce_rate_limit(request, "appointments-create", limit=12, window_seconds=300, identity=auth.user_id)
-    result = await appointment_service.create(payload, auth)
+    try:
+        key = choose_idempotency_key(idempotency_key, payload.chave_idempotencia)
+    except ValueError as exc:
+        mismatch = bool(idempotency_key and payload.chave_idempotencia)
+        raise ApiError(
+            409 if mismatch else 422,
+            "IDEMPOTENCY_KEY_MISMATCH" if mismatch else "INVALID_IDEMPOTENCY_KEY",
+            str(exc),
+        ) from exc
+    result = await appointment_service.create(payload, auth, idempotency_key=key)
     return ok(result, status.HTTP_201_CREATED)
 
 
@@ -489,6 +531,17 @@ async def retention_recurrences(
 ) -> JSONResponse:
     await enforce_rate_limit(request, "retention-recurrence-list", limit=60, window_seconds=60, identity=auth.user_id)
     return ok(await retention_service.list_recurrences(establishment_id, auth, offset, limit))
+
+
+@app.patch("/api/v1/retention/recurrences/{recurrence_id}")
+async def update_retention_recurrence(
+    recurrence_id: str,
+    request: Request,
+    payload: RecurrenceUpdate,
+    auth: AuthContext = Depends(require_user),
+) -> JSONResponse:
+    await enforce_rate_limit(request, "retention-recurrence-update", limit=20, window_seconds=300, identity=auth.user_id)
+    return ok(await retention_service.update_recurrence(recurrence_id, payload, auth))
 
 
 @app.get("/api/v1/retention/loyalty")
@@ -1106,10 +1159,45 @@ async def deliver_push_job(
 ) -> JSONResponse:
     bearer = authorization[7:] if authorization and authorization.startswith("Bearer ") else None
     supplied = bearer or x_jobs_secret
-    if not settings.jobs_secret or not supplied or not hmac.compare_digest(supplied, settings.jobs_secret):
+    if not _valid_job_secret(supplied):
         raise ApiError(401, "JOB_UNAUTHORIZED", "Tarefa não autorizada.")
     await enforce_rate_limit(request, "push-delivery-job", limit=12, window_seconds=60, identity="push-worker")
     return ok(await push_service.deliver_pending(limit))
+
+
+@app.get("/api/v1/jobs/email/deliver")
+@app.post("/api/v1/jobs/email/deliver")
+async def deliver_email_job(
+    request: Request,
+    authorization: str | None = Header(default=None, alias="Authorization"),
+    x_jobs_secret: str | None = Header(default=None, alias="X-Jobs-Secret"),
+    limit: int = Query(default=30, ge=1, le=100),
+) -> JSONResponse:
+    bearer = authorization[7:] if authorization and authorization.startswith("Bearer ") else None
+    supplied = bearer or x_jobs_secret
+    if not _valid_job_secret(supplied):
+        raise ApiError(401, "JOB_UNAUTHORIZED", "Tarefa não autorizada.")
+    await enforce_rate_limit(request, "email-delivery-job", limit=12, window_seconds=60, identity="email-worker")
+    return ok(await email_service.deliver_pending(limit))
+
+
+@app.get("/api/v1/jobs/maintenance/run")
+@app.post("/api/v1/jobs/maintenance/run")
+async def run_maintenance_job(
+    request: Request,
+    authorization: str | None = Header(default=None, alias="Authorization"),
+    x_jobs_secret: str | None = Header(default=None, alias="X-Jobs-Secret"),
+    email_limit: int = Query(default=30, ge=1, le=100),
+    deletion_limit: int = Query(default=5, ge=1, le=20),
+) -> JSONResponse:
+    """Run account deletion and e-mail work in the second Hobby cron slot."""
+
+    bearer = authorization[7:] if authorization and authorization.startswith("Bearer ") else None
+    supplied = bearer or x_jobs_secret
+    if not _valid_job_secret(supplied):
+        raise ApiError(401, "JOB_UNAUTHORIZED", "Tarefa não autorizada.")
+    await enforce_rate_limit(request, "maintenance-job", limit=12, window_seconds=60, identity="maintenance-worker")
+    return ok(await maintenance_service.run(email_limit=email_limit, deletion_limit=deletion_limit))
 
 
 @app.get("/api/v1/audit/operational")
@@ -1132,17 +1220,6 @@ async def evaluate_features(
 ) -> JSONResponse:
     await enforce_rate_limit(request, "feature-evaluate", limit=120, window_seconds=60, identity=auth.user_id)
     return ok(await flag_service.evaluate(payload, auth))
-
-
-@app.delete("/api/v1/account")
-async def delete_account(
-    request: Request,
-    payload: DeleteAccountRequest,
-    auth: AuthContext = Depends(require_user),
-) -> JSONResponse:
-    await enforce_rate_limit(request, "account-delete", limit=3, window_seconds=900, identity=auth.user_id)
-    await admin_service.delete_own_account(payload, auth)
-    return ok({"deleted": True, "user_id": auth.user_id})
 
 
 @app.get("/api/v1/admin/overview")
@@ -1213,10 +1290,24 @@ async def admin_assign_subscription(
     establishment_id: str,
     request: Request,
     payload: AdminSubscriptionUpdate,
+    idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
     auth: AuthContext = Depends(require_admin),
 ) -> JSONResponse:
     await enforce_rate_limit(request, "admin-subscription-update", limit=40, window_seconds=600, identity=auth.user_id)
-    result = await admin_service.assign_subscription(establishment_id, payload, auth)
+    try:
+        operation_key = choose_idempotency_key(idempotency_key, payload.chave_idempotencia)
+    except ValueError as exc:
+        raise ApiError(
+            409 if idempotency_key and payload.chave_idempotencia else 422,
+            "IDEMPOTENCY_KEY_MISMATCH" if idempotency_key and payload.chave_idempotencia else "INVALID_IDEMPOTENCY_KEY",
+            str(exc),
+        ) from exc
+    result = await admin_service.assign_subscription(
+        establishment_id,
+        payload,
+        auth,
+        idempotency_key=operation_key,
+    )
     await admin_service.audit_action(
         auth,
         action="subscription_changed",

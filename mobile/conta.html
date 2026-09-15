@@ -4,6 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+
 <meta content="Barber Hub — plataforma de gestão, agenda e divulgação para barbearias e futuros salões de beleza." name="description"/>
 <title>
    Minha conta | Barber Hub
@@ -22,7 +23,8 @@
 <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
 <link href="../css/mobile-app.css" rel="stylesheet"/><link href="../css/release-1.4.1.css" rel="stylesheet"/>
 <link href="../css/product-redesign.css" rel="stylesheet"/><link href="../css/release-1.6.css" rel="stylesheet"/><link href="../css/release-1.7.css" rel="stylesheet"/><link href="../css/release-1.7.1.css" rel="stylesheet"/><link href="../css/release-1.8.css" rel="stylesheet"/><link href="../css/brand-assets-1.8.css" rel="stylesheet"/>
-<link href="../css/image-editor.css" rel="stylesheet"/><meta content="yes" name="mobile-web-app-capable"/><meta content="noindex,follow" name="robots"/><link href="https://barberhuboficial.vercel.app/html/conta" rel="canonical"/><link href="../css/mobile-redesign-1.8.css" rel="stylesheet"/><link href="../css/release-1.9.3.css" rel="stylesheet"/></head>
+<link href="../css/image-editor.css" rel="stylesheet"/>
+<meta content="yes" name="mobile-web-app-capable"/><meta content="noindex,nofollow" name="robots"/><link href="https://barberhuboficial.vercel.app/html/conta" rel="canonical"/><link href="../css/mobile-redesign-1.8.css" rel="stylesheet"/><link href="../css/release-1.9.3.css" rel="stylesheet"/><link href="../css/releases/release-1.11.css" rel="stylesheet"/></head>
 <body class="page-conta mobile-native">
 <!-- Cabeçalho e navegação principal -->
 <header class="header">
@@ -185,44 +187,55 @@
         Excluir minha conta
        </h2>
 <p>
-        Esta ação remove seu acesso, seus favoritos e seus dados de perfil. Registros operacionais necessários podem ser anonimizados. Para contas profissionais, o estabelecimento e os dados vinculados também serão removidos.
+        A exclusão é programada para sete dias depois do pedido. Nesse período você pode cancelar; ao final, os dados pessoais são removidos ou anonimizados conforme as obrigações aplicáveis.
        </p>
+<div class="account-deletion-impact111" id="accountDeletionImpact111"></div>
+<div class="account-deletion-status" id="accountDeletionStatus111" aria-live="polite"></div>
 <button class="btn btn-danger" id="abrirExclusaoConta" type="button">
 <i class="bi bi-trash3">
 </i>
-        Solicitar exclusão
+        Programar exclusão em 7 dias
        </button>
-<form class="delete-account-form" hidden="" id="formExcluirConta">
+<form class="delete-account-form" data-private-form="" hidden="" id="formExcluirConta">
 <div class="delete-warning">
 <strong>
-          Esta ação é permanente.
+          Você terá sete dias para mudar de ideia.
          </strong>
 <span>
-          Digite sua senha atual e a palavra
+          Digite a frase
           <b>
            EXCLUIR MINHA CONTA
           </b>
-          para confirmar.
+          para programar o pedido.
          </span>
 </div>
 <div class="form-grid">
-<div class="campo">
-<label for="excluirSenhaAtual">
-           Senha atual
-          </label>
-<input autocomplete="current-password" id="excluirSenhaAtual" required="" type="password"/>
-</div>
 <div class="campo">
 <label for="excluirConfirmacao">
            Confirmação
           </label>
 <input autocomplete="off" id="excluirConfirmacao" placeholder="Digite EXCLUIR MINHA CONTA" required=""/>
 </div>
+<div class="campo">
+<label for="excluirMotivo">Motivo <span class="muted">(opcional)</span></label>
+<select id="excluirMotivo">
+<option value="">Prefiro não informar</option>
+<option value="nao_uso">Não uso mais a plataforma</option>
+<option value="privacidade">Quero remover meus dados</option>
+<option value="outra_conta">Criei outra conta</option>
+<option value="outro">Outro motivo</option>
+</select>
+</div>
+<div class="campo full">
+<label for="excluirSenhaAtual">Senha atual</label>
+<input autocomplete="current-password" data-no-persist="" id="excluirSenhaAtual" required="" type="password"/>
+<small>Usada somente para confirmar sua identidade neste pedido.</small>
+</div>
 </div>
 <label class="check-line delete-check">
-<input aria-label="Entendo que não será possível recuperar a conta." id="excluirCiente" required="" type="checkbox"/>
+<input aria-label="Entendo o prazo de sete dias e a política de retenção." id="excluirCiente" required="" type="checkbox"/>
 <span>
-          Entendo que não será possível recuperar a conta.
+          Entendo o prazo de sete dias e que alguns registros podem ser anonimizados ou mantidos quando houver obrigação legal.
          </span>
 </label>
 <div class="delete-actions">
@@ -232,7 +245,7 @@
 <button class="btn btn-danger" type="submit">
 <i class="bi bi-trash3">
 </i>
-          Excluir definitivamente
+          Programar exclusão
          </button>
 </div>
 </form>
@@ -295,6 +308,8 @@
 </script>
 <script src="../js/api.js">
 </script>
+<script src="../js/core/view-state.js"></script>
+<script src="../js/notification-center.js"></script>
 <script src="../js/status.js">
 </script>
 <script src="../js/ia.js">

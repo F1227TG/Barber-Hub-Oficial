@@ -6,13 +6,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   marcarMenuAtivo("admin");
   const badge = document.querySelector("[data-navigation-audit-status]");
   try {
-    if (!window.bhBackendApi?.navigationAudit) throw new Error("API indisponível");
+    if (!window.bhBackendApi?.navigationAudit) throw new Error("Verificação indisponível");
     const data = await window.bhBackendApi.navigationAudit();
     if (badge) {
-      badge.textContent = data?.status === "available" ? "API conectada" : "Verificar";
+      badge.textContent = data?.status === "available" ? "Verificação concluída" : "Verificar";
       badge.className = `map-status ${data?.status === "available" ? "ok" : "partial"}`;
     }
   } catch (_) {
-    if (badge) { badge.textContent = "API indisponível"; badge.className = "map-status partial"; }
+    if (badge) { badge.textContent = "Verificação indisponível"; badge.className = "map-status partial"; }
   }
 });

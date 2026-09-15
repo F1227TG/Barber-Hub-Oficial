@@ -1,22 +1,32 @@
 # Central de documentação do Barber Hub
 
-Este é o índice canônico da versão **1.10.1**. Documentos de versões anteriores permanecem como histórico; quando houver divergência sobre o estado atual, use primeiro os arquivos desta seção.
+Este é o índice canônico da versão **1.11.0**. Documentos de versões anteriores permanecem como histórico; quando houver divergência sobre o estado atual, use primeiro o guia e o diretório `release-1.11/`.
 
 ## Comece por aqui
 
 - [`GUIA_COMPLETO_DO_PROJETO.md`](GUIA_COMPLETO_DO_PROJETO.md): produto, arquitetura, pastas, funcionamento, segurança, testes e publicação.
-- [`GUIA_COMPLETO_BARBER_HUB_1_10_1.docx`](GUIA_COMPLETO_BARBER_HUB_1_10_1.docx): edição Word do guia completo da versão atual.
+- [`GUIA_COMPLETO_BARBER_HUB_1_11_0.docx`](GUIA_COMPLETO_BARBER_HUB_1_11_0.docx): edição Word do guia completo da versão atual.
 - [`../README.md`](../README.md): visão curta para desenvolver e publicar.
 - [`../ARCHITECTURE.md`](../ARCHITECTURE.md): fronteiras entre interface, API e banco.
 - [`MAPA_DE_NAVEGACAO.md`](MAPA_DE_NAVEGACAO.md): rotas e áreas da plataforma.
 - [`GUIA_DE_CODIGO.md`](GUIA_DE_CODIGO.md): convenções de manutenção.
 
-## Versão 1.10.1
+## Versão 1.11.0
+
+- [`release-1.11/README.md`](release-1.11/README.md): estado verificado, regras de decisão e índice operacional.
+- [`release-1.11/RELATORIO_FINAL_1_11_0.md`](release-1.11/RELATORIO_FINAL_1_11_0.md): tudo que foi implementado, corrigido, testado e o que ainda é externo.
+- [`release-1.11/MATRIZ_REQUISITOS_E_ACEITE.md`](release-1.11/MATRIZ_REQUISITOS_E_ACEITE.md): rastreabilidade dos requisitos e critérios de aceite.
+- [`release-1.11/CHECKLIST_PRE_RELEASE.md`](release-1.11/CHECKLIST_PRE_RELEASE.md): decisão formal de publicação.
+- [`release-1.11/CONFIGURACAO_EXTERNA.md`](release-1.11/CONFIGURACAO_EXTERNA.md): configuração de Auth, e-mail, Push, jobs e ambiente.
+- [`release-1.11/TESTES_DE_PERFIS_E_RLS.md`](release-1.11/TESTES_DE_PERFIS_E_RLS.md): homologação por conta, papel e plano.
+- [`release-1.11/ADVISORS_SUPABASE_2026_09_11.md`](release-1.11/ADVISORS_SUPABASE_2026_09_11.md): revisão posterior às migrations aplicadas.
+- [`MIGRATIONS_DEPLOY_1_10.md`](MIGRATIONS_DEPLOY_1_10.md): estado atual das migrations 32/33, verificador e publicação segura.
+
+## Histórico 1.10.1
 
 - [`ATUALIZACAO_1_10_1.md`](ATUALIZACAO_1_10_1.md): tudo que foi concluído nesta atualização.
 - [`RELATORIO_CONCLUSAO_PLANEJAMENTO_POS31_1_10_1.md`](RELATORIO_CONCLUSAO_PLANEJAMENTO_POS31_1_10_1.md): conferência item a item contra o documento de origem.
 - [`RELATORIO_VALIDACAO_1_10_1.md`](RELATORIO_VALIDACAO_1_10_1.md): testes automatizados, navegador, Word e estado de release.
-- [`MIGRATIONS_DEPLOY_1_10.md`](MIGRATIONS_DEPLOY_1_10.md): estado 29–31, migration 32, verificador e configuração externa.
 - [`RELATORIO_SEGURANCA_1_10.md`](RELATORIO_SEGURANCA_1_10.md): V01–V06, novas proteções e decisão sobre senhas.
 - [`ADVISORS_SUPABASE_2026_09_05.md`](ADVISORS_SUPABASE_2026_09_05.md): fotografia real dos Advisors antes da migration 32.
 - [`AUDITORIA_SENHAS_BARBER_BEAUTY_1_10_1.md`](AUDITORIA_SENHAS_BARBER_BEAUTY_1_10_1.md): responsabilidade do Auth e comparação com o código local do Beauty Hub.
@@ -28,7 +38,7 @@ Este é o índice canônico da versão **1.10.1**. Documentos de versões anteri
 
 ## API e banco
 
-- [`API_BARBER_HUB_V1.md`](API_BARBER_HUB_V1.md): endpoints e regras da API FastAPI 1.6.1.
+- [`API_BARBER_HUB_V1.md`](API_BARBER_HUB_V1.md): endpoints e regras da API FastAPI 1.7.0.
 - [`barberhub-api-v1.openapi.yaml`](barberhub-api-v1.openapi.yaml): fotografia estática do contrato; `/api/openapi.json` é a fonte executável.
 - [`CONFIGURACAO_SUPABASE.md`](CONFIGURACAO_SUPABASE.md): conceitos e configuração inicial.
 - [`CONFIGURACAO_EXTERNA_1_9.md`](CONFIGURACAO_EXTERNA_1_9.md): histórico de CAPTCHA, Auth, URL e Cron ainda útil para a 1.10.
@@ -43,7 +53,7 @@ Este é o índice canônico da versão **1.10.1**. Documentos de versões anteri
 
 ## Segurança e histórico
 
-O relatório atual é `RELATORIO_SEGURANCA_1_10.md`. Relatórios e notas `1.9.x`, `1.8.x` e anteriores registram o que era verdade naquelas versões e não devem ser usados isoladamente para aprovar um deploy atual.
+O estado atual está consolidado em `release-1.11/RELATORIO_FINAL_1_11_0.md`. Relatórios e notas `1.10.x`, `1.9.x`, `1.8.x` e anteriores registram o que era verdade naquelas versões e não devem ser usados isoladamente para aprovar um deploy atual.
 
 ## Regra de organização
 

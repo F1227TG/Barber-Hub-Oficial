@@ -1,4 +1,4 @@
-# Arquitetura do Barber Hub 1.10.1
+# Arquitetura do Barber Hub 1.11.0
 
 ## Visão geral
 
@@ -11,7 +11,7 @@ Navegador/PWA
                 ├─ leituras públicas simples sob RLS
                 └─ /api/v1/*
                        │
-                 FastAPI 1.6.1
+                 FastAPI 1.7.0
                  ├─ autenticação e rate limit
                  ├─ validação Pydantic
                  ├─ regras em backend/domain
@@ -34,7 +34,7 @@ Navegador/PWA
 Novos módulos ficam em:
 
 - `js/core/`: conectividade, repetição segura e infraestrutura de navegador;
-- `js/features/`: recursos isolados da release 1.10;
+- `js/features/`: recursos funcionais isolados por domínio;
 - `css/releases/`: camadas visuais versionadas sem romper o tema premium escuro/quente e dourado.
 
 ### API
@@ -111,6 +111,14 @@ Fórmulas são rejeitadas e a mesma importação não deve ser confirmada duas v
 
 Preferências, consentimento e horário silencioso ficam separados da entrega. Notificação interna funciona como fallback. Web Push usa um job autenticado, reivindicação atômica da fila, repetição limitada e desativação de assinaturas expiradas; a entrega externa ainda depende de chaves VAPID e `CRON_SECRET` no deploy.
 
+### Conta e privacidade
+
+Sessões, exportação e exclusão programada passam pela API autenticada. A exclusão aguarda sete dias, pode ser cancelada e é concluída pelo worker de manutenção, que limpa arquivos pelo serviço de armazenamento antes de anonimizar dados e remover a identidade. Consentimentos possuem versão/data e são registrados no fluxo seguro de criação da conta.
+
+### Assinaturas administrativas
+
+A área administrativa carrega planos, estabelecimentos, responsáveis e assinaturas em uma operação protegida. A atribuição usa RPC idempotente e registra auditoria; clique repetido ou reenvio da mesma intenção não cria eventos duplicados.
+
 ## Segurança e credenciais
 
 - chave pública pode existir no navegador somente com RLS correto;
@@ -122,7 +130,7 @@ Preferências, consentimento e horário silencioso ficam separados da entrega. N
 
 ## Migrations
 
-Arquivos históricos numerados permanecem em `sql/`; migrations novas gerenciadas pela CLI ficam em `supabase/migrations/`. No ambiente conectado, os objetos 29–31 existem, mas a execução manual não foi registrada no histórico. A 1.10.1 acrescenta `20260904180741_32_conclusao_pos31_1_10_1.sql` e `sql/verificar_32_conclusao_1_10_1.sql`.
+Arquivos históricos numerados permanecem em `sql/`; migrations gerenciadas ficam em `supabase/migrations/`. No projeto conectado, `20260911132254_conclusao_pos31_1_10_1` e `20260911132328_barberhub_1_11_confiabilidade_privacidade` estão registradas como aplicadas, nessa ordem. O verificador `sql/verificar_33_release_1_11.sql` retornou todos os controles como verdadeiros em 11 de setembro de 2026. Migration aplicada não deve ser editada; uma correção posterior recebe uma versão nova.
 
 ## Deploy e reversão
 

@@ -132,6 +132,8 @@ function bhAplicarEntitlementsPainel() {
   });
 
   const agendaLiberada = Boolean(ent.permite_agenda);
+  const agendaSetting = document.querySelector("[data-agenda-setting]");
+  if (agendaSetting) agendaSetting.hidden = !agendaLiberada;
   document.querySelectorAll("[data-agenda-mode]").forEach(botao => {
     botao.disabled = !agendaLiberada;
     if (!agendaLiberada) botao.title = "Agenda online disponível a partir do Essencial";
@@ -421,6 +423,7 @@ function bhRenderRelatoriosPainel() {
 function bhRenderConfiguracoesPainel() {
   const b = bhPainelEstabelecimento;
   document.getElementById("configNome").value = b.nome || "";
+  document.getElementById("configCnpj").value = bhMascaraCNPJ(b.cnpj || "");
   document.getElementById("configTelefone").value = b.telefone || "";
   document.getElementById("configWhatsapp").value = b.whatsapp || "";
   document.getElementById("configInstagram").value = b.instagram || "";
@@ -716,6 +719,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   const mapaHash = { agenda: "secAgenda", clientes: "secClientes", financeiro: "secFinanceiro", relacionamento: "secRelacionamento", crescimento: "secCrescimento", promocoes: "secPromocoes", servicos: "secServicos", equipe: "secBarbeiros", relatorios: "secRelatorios", galeria: "secGaleria", avaliacoes: "secAvaliacoes", ferramentas: "secFerramentas", configuracoes: "secConfig", pagina: "secPagina" };
   if (mapaHash[hash]) bhAtivarSecaoPainel(mapaHash[hash]);
 
+  document.getElementById("configCnpj")?.addEventListener("input", event => { event.target.value = bhMascaraCNPJ(event.target.value); });
+
   document.querySelectorAll("[data-horario-aberto]").forEach(check => check.addEventListener("change", () => {
     const row = check.closest(".horario-config-painel");
     row.querySelectorAll("input[type='time']").forEach(input => { input.disabled = !check.checked; });
@@ -1003,7 +1008,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const item = bhPortfolioItemPorId(excluir.dataset.portfolioExcluir);
         if (!item || !await bhConfirmar({ titulo: "Excluir publicação", mensagem: "A publicação, as fotos e suas interações serão excluídas permanentemente.", confirmarTexto: "Excluir publicação", perigo: true, trigger: excluir })) return;
         await bhExcluirPublicacaoPortfolio(item);
-        mostrarToast("sucesso", "Publicação excluída", "As fotos foram removidas do Storage.");
+        mostrarToast("sucesso", "Publicação excluída", "As fotos foram removidas com segurança.");
       }
       if (status || destaque || excluir) await bhRecarregarPainel();
     } catch (erro) { mostrarToast("erro", "Ação não concluída", bhErroMensagem(erro)); }
@@ -1028,6 +1033,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     const botao = evento.currentTarget.querySelector("button[type='submit']");
     bhSetButtonLoading(botao, true, "Atualizando...");
     try {
+      const cnpjValue = document.getElementById("configCnpj").value.trim();
+      if (cnpjValue && !bhValidarCNPJ(cnpjValue)) throw new Error("Revise o CNPJ e seus dígitos verificadores.");
       const foto = window.bhArquivoImagem?.(document.getElementById("configFoto")) || document.getElementById("configFoto").files?.[0];
       const capa = window.bhArquivoImagem?.(document.getElementById("configCapa")) || document.getElementById("configCapa").files?.[0];
       const [fotoUrl, capaUrl] = await Promise.all([
@@ -1039,6 +1046,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
       await bhAtualizarEstabelecimento(bhPainelEstabelecimento.id, {
         nome: document.getElementById("configNome").value.trim(),
+        cnpj: cnpjValue ? bhNormalizarCNPJ(cnpjValue) : null,
         telefone: document.getElementById("configTelefone").value.trim(),
         whatsapp: bhNormalizarWhatsApp(document.getElementById("configWhatsapp").value),
         instagram: document.getElementById("configInstagram").value.trim(),

@@ -1,4 +1,4 @@
-# API própria do Barber Hub — Python/FastAPI 1.6.1
+# API própria do Barber Hub — Python/FastAPI 1.7.0
 
 ## Objetivo
 
@@ -16,6 +16,7 @@ Supabase Auth + PostgreSQL/PostgREST + RPC
 
 ```text
 api/index.py                 rotas, erros, request id e logging
+api/routers/                 rotas modulares de conta, catálogo e sistema
 backend/config.py            variáveis de ambiente
 backend/domain/              regras puras executáveis offline
 backend/models.py            contratos Pydantic
@@ -35,11 +36,15 @@ backend/services/support.py  suporte
 backend/services/admin.py    overview/health/auditoria/recuperação/assinaturas
 backend/services/imports.py  prévia, confirmação e histórico de importação
 backend/services/push.py     assinatura, preferências e fila Web Push
+backend/services/account.py  sessões, exportação e exclusão da própria conta
+backend/services/email_delivery.py fila e entrega de e-mail por job protegido
+backend/services/maintenance.py retenção e manutenção operacional
+backend/services/system.py   disponibilidade e prontidão
 backend/services/audit.py    trilha operacional paginada
 backend/services/flags.py    avaliação autorizada de feature flags
 ```
 
-## Endpoints 1.6.1
+## Endpoints 1.7.0
 
 | Método | Rota | Acesso | Responsabilidade |
 |---|---|---|---|
@@ -67,7 +72,7 @@ backend/services/flags.py    avaliação autorizada de feature flags
 | DELETE | `/api/v1/promotions/{id}` | dono sob RLS | desativar promoção |
 | GET | `/api/v1/support/tickets` | autenticado | tickets do usuário |
 | POST | `/api/v1/support/tickets` | público/autenticado | abrir ticket |
-| DELETE | `/api/v1/account` | autenticado | exclusão da própria conta |
+| DELETE | `/api/v1/account` | autenticado | compatibilidade para exclusão da própria conta |
 | GET | `/api/v1/admin/overview` | admin | totais globais |
 | GET | `/api/v1/admin/records/{resource}` | admin | busca e paginação de recursos permitidos |
 | GET | `/api/v1/admin/health` | admin | saúde API/DB/Auth + versão |
@@ -75,6 +80,23 @@ backend/services/flags.py    avaliação autorizada de feature flags
 | GET | `/api/v1/admin/subscriptions` | admin | workspace de planos, estabelecimentos e assinaturas |
 | PATCH | `/api/v1/admin/establishments/{id}/subscription` | admin | atribuir plano/status/validade e recalcular benefícios |
 | GET | `/api/v1/admin/navigation-audit` | admin | estado do mapa interno |
+
+### Conta, catálogo e operação adicionados na 1.7.0
+
+| Método | Rota | Acesso | Responsabilidade |
+|---|---|---|---|
+| GET | `/api/v1/account/deletion` | autenticado | consultar pedido e prazo de cancelamento |
+| POST | `/api/v1/account/deletion` | autenticado + reautenticação | solicitar exclusão com trilha e período de segurança |
+| DELETE | `/api/v1/account/deletion` | autenticado | cancelar pedido dentro do prazo |
+| GET | `/api/v1/account/export` | autenticado | exportar dados próprios permitidos |
+| GET | `/api/v1/account/sessions` | autenticado | listar sessões de forma sanitizada |
+| DELETE | `/api/v1/account/sessions/others` | autenticado | encerrar outras sessões |
+| DELETE | `/api/v1/account/sessions` | autenticado | encerrar todas as sessões da conta |
+| GET | `/api/v1/catalog/establishments/{id}/reviews` | público | avaliações paginadas e agregado correto |
+| GET | `/api/v1/system/live` | público | processo disponível |
+| GET | `/api/v1/system/ready` | público | dependências essenciais prontas |
+| GET/POST | `/api/v1/jobs/email/deliver` | job com Bearer secreto | reivindicar e entregar fila de e-mail |
+| GET/POST | `/api/v1/jobs/maintenance/run` | job com Bearer secreto | retenção e exclusões pendentes |
 
 ### Operação adicionada na 1.4.0
 
@@ -135,7 +157,7 @@ OpenAPI executável: `/api/openapi.json`
 
 ## Assinaturas e entitlements — 1.8/1.9
 
-A API 1.6.0 mantém as assinaturas das migrations 16–28 e depende das migrations 29–31 para os recursos novos. O proprietário consulta o plano efetivo por `/establishments/{id}/entitlements`; o administrador altera a assinatura pela rota administrativa. A escrita chama a RPC `admin_atribuir_plano`, que recalcula os benefícios cumulativos e aplica downgrade/upgrade de forma transacional.
+A API 1.7.0 mantém as assinaturas e capacidades acumuladas das versões anteriores. O proprietário consulta o plano efetivo por `/establishments/{id}/entitlements`; o administrador altera a assinatura pela rota administrativa. A escrita chama a RPC idempotente `admin_atribuir_plano_111`, registra o evento e recalcula os benefícios de forma transacional.
 
 Os limites críticos não dependem apenas do frontend: agenda, profissionais, promoções e portfólio também são validados no PostgreSQL. Assinaturas pausadas, canceladas, atrasadas ou vencidas caem para o conjunto de benefícios do Perfil gratuito sem apagar o histórico do estabelecimento.
 

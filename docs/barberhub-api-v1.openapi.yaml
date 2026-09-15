@@ -2,8 +2,302 @@ openapi: 3.1.0
 info:
   title: Barber Hub API
   description: API própria do Barber Hub, executada em Python/FastAPI.
-  version: 1.6.1
+  version: 1.7.0
 paths:
+  /api/v1/health/live:
+    get:
+      tags:
+      - system
+      summary: Liveness
+      operationId: liveness_api_v1_health_live_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /api/v1/health/ready:
+    get:
+      tags:
+      - system
+      summary: Readiness
+      operationId: readiness_api_v1_health_ready_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /api/v1/establishments/{establishment_id}/reviews:
+    get:
+      tags:
+      - catalog
+      summary: Establishment Reviews
+      operationId: establishment_reviews_api_v1_establishments__establishment_id__reviews_get
+      parameters:
+      - name: establishment_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Establishment Id
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 10000
+          minimum: 0
+          default: 0
+          title: Offset
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 30
+          minimum: 1
+          default: 10
+          title: Limit
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/account:
+    delete:
+      tags:
+      - account
+      summary: Delete Account
+      description: 'Compatibility route: deletion is now scheduled, never immediate.'
+      operationId: delete_account_api_v1_account_delete
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteAccountRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/account/deletion:
+    get:
+      tags:
+      - account
+      summary: Account Deletion Status
+      operationId: account_deletion_status_api_v1_account_deletion_get
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    post:
+      tags:
+      - account
+      summary: Schedule Account Deletion
+      operationId: schedule_account_deletion_api_v1_account_deletion_post
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteAccountRequest'
+      responses:
+        '202':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - account
+      summary: Cancel Account Deletion
+      operationId: cancel_account_deletion_api_v1_account_deletion_delete
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/account/export:
+    get:
+      tags:
+      - account
+      summary: Export Account Data
+      operationId: export_account_data_api_v1_account_export_get
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/account/sessions:
+    get:
+      tags:
+      - account
+      summary: Account Sessions
+      operationId: account_sessions_api_v1_account_sessions_get
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - account
+      summary: Revoke All Sessions
+      operationId: revoke_all_sessions_api_v1_account_sessions_delete
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/account/sessions/others:
+    delete:
+      tags:
+      - account
+      summary: Revoke Other Sessions
+      operationId: revoke_other_sessions_api_v1_account_sessions_others_delete
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /api/v1/health:
     get:
       summary: Health
@@ -144,6 +438,24 @@ paths:
             maxLength: 120
           - type: 'null'
           title: Q
+      - name: tipo
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            pattern: ^(barbearia|salao|todos)?$
+          - type: 'null'
+          title: Tipo
+      - name: status
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            pattern: ^(aberta|fechada|todos)?$
+          - type: 'null'
+          title: Status
       - name: city
         in: query
         required: false
@@ -176,15 +488,17 @@ paths:
         in: query
         required: false
         schema:
-          type: boolean
-          default: false
+          anyOf:
+          - type: boolean
+          - type: 'null'
           title: Open Now
       - name: agenda
         in: query
         required: false
         schema:
-          type: boolean
-          default: false
+          anyOf:
+          - type: boolean
+          - type: 'null'
           title: Agenda
       - name: latitude
         in: query
@@ -300,6 +614,14 @@ paths:
       summary: Create Appointment
       operationId: create_appointment_api_v1_appointments_post
       parameters:
+      - name: Idempotency-Key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Idempotency-Key
       - name: authorization
         in: header
         required: false
@@ -974,6 +1296,43 @@ paths:
           - type: string
           - type: 'null'
           title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/retention/recurrences/{recurrence_id}:
+    patch:
+      summary: Update Retention Recurrence
+      operationId: update_retention_recurrence_api_v1_retention_recurrences__recurrence_id__patch
+      parameters:
+      - name: recurrence_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Recurrence Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecurrenceUpdate'
       responses:
         '200':
           description: Successful Response
@@ -3091,6 +3450,192 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/jobs/email/deliver:
+    post:
+      summary: Deliver Email Job
+      operationId: deliver_email_job_api_v1_jobs_email_deliver_post
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 30
+          title: Limit
+      - name: Authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      - name: X-Jobs-Secret
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Jobs-Secret
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    get:
+      summary: Deliver Email Job
+      operationId: deliver_email_job_api_v1_jobs_email_deliver_get
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 30
+          title: Limit
+      - name: Authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      - name: X-Jobs-Secret
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Jobs-Secret
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/jobs/maintenance/run:
+    post:
+      summary: Run Maintenance Job
+      description: Run account deletion and e-mail work in the second Hobby cron slot.
+      operationId: run_maintenance_job_api_v1_jobs_maintenance_run_post
+      parameters:
+      - name: email_limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 30
+          title: Email Limit
+      - name: deletion_limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 20
+          minimum: 1
+          default: 5
+          title: Deletion Limit
+      - name: Authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      - name: X-Jobs-Secret
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Jobs-Secret
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    get:
+      summary: Run Maintenance Job
+      description: Run account deletion and e-mail work in the second Hobby cron slot.
+      operationId: run_maintenance_job_api_v1_jobs_maintenance_run_get
+      parameters:
+      - name: email_limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 30
+          title: Email Limit
+      - name: deletion_limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 20
+          minimum: 1
+          default: 5
+          title: Deletion Limit
+      - name: Authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      - name: X-Jobs-Secret
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Jobs-Secret
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /api/v1/audit/operational:
     get:
       summary: Operational Audit
@@ -3170,37 +3715,6 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/FeatureFlagEvaluationRequest'
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /api/v1/account:
-    delete:
-      summary: Delete Account
-      operationId: delete_account_api_v1_account_delete
-      parameters:
-      - name: authorization
-        in: header
-        required: false
-        schema:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Authorization
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DeleteAccountRequest'
       responses:
         '200':
           description: Successful Response
@@ -3403,6 +3917,14 @@ paths:
         schema:
           type: string
           title: Establishment Id
+      - name: Idempotency-Key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Idempotency-Key
       - name: authorization
         in: header
         required: false
@@ -3489,6 +4011,14 @@ components:
             maxLength: 800
           - type: 'null'
           title: Observacoes
+        chave_idempotencia:
+          anyOf:
+          - type: string
+            maxLength: 100
+            minLength: 16
+            pattern: ^[A-Za-z0-9._:-]+$
+          - type: 'null'
+          title: Chave Idempotencia
       type: object
       required:
       - plano_slug
@@ -3561,6 +4091,14 @@ components:
             minLength: 3
           - type: 'null'
           title: Cupom Codigo
+        chave_idempotencia:
+          anyOf:
+          - type: string
+            maxLength: 100
+            minLength: 16
+            pattern: ^[A-Za-z0-9._:-]+$
+          - type: 'null'
+          title: Chave Idempotencia
       type: object
       required:
       - estabelecimento_id
@@ -3949,6 +4487,16 @@ components:
           type: string
           maxLength: 80
           title: Confirmacao
+        motivo:
+          anyOf:
+          - type: string
+            maxLength: 500
+          - type: 'null'
+          title: Motivo
+        retencao_ciente:
+          type: boolean
+          title: Retencao Ciente
+          default: false
       type: object
       required:
       - confirmacao
@@ -4218,6 +4766,13 @@ components:
             minimum: 1.0
           - type: 'null'
           title: Limite Dias Agendamento
+        cnpj:
+          anyOf:
+          - type: string
+            maxLength: 18
+            minLength: 14
+          - type: 'null'
+          title: Cnpj
       type: object
       title: EstablishmentUpdate
     ExpenseCreate:
@@ -5121,6 +5676,16 @@ components:
       - frequencia
       - total_ocorrencias
       title: RecurrenceCreate
+    RecurrenceUpdate:
+      properties:
+        status:
+          type: string
+          const: cancelada
+          title: Status
+      type: object
+      required:
+      - status
+      title: RecurrenceUpdate
     ScheduleBlockCreate:
       properties:
         estabelecimento_id:

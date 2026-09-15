@@ -14,7 +14,7 @@ from backend.models import (
     ExpenseCreate,
 )
 from backend.security import AuthContext
-from backend.services.access import first_visible, model_payload, require_feature
+from backend.services.access import first_visible, model_payload, require_feature, rows_payload
 from backend.supabase import gateway
 
 
@@ -60,7 +60,7 @@ async def list_entries(establishment_id: str, start: date, end: date, offset: in
     if end < start or end > start + timedelta(days=366):
         raise ApiError(422, "INVALID_FINANCE_RANGE", "Consulte um período entre 1 e 367 dias.")
     await require_feature(establishment_id, auth, "permite_financeiro", "O financeiro está disponível a partir do plano Essencial.")
-    rows = await gateway.rest(
+    rows = rows_payload(await gateway.rest(
         "lancamentos_financeiros",
         token=auth.token,
         params={
@@ -72,7 +72,7 @@ async def list_entries(establishment_id: str, start: date, end: date, offset: in
             "offset": str(offset),
             "limit": str(limit + 1),
         },
-    ) or []
+    ))
     return {"items": rows[:limit], "offset": offset, "limit": limit, "has_more": len(rows) > limit}
 
 
@@ -113,7 +113,7 @@ async def close_day(payload: DayClosingCreate, auth: AuthContext) -> dict[str, A
 
 async def list_commission_rules(establishment_id: str, auth: AuthContext) -> list[dict[str, Any]]:
     await require_feature(establishment_id, auth, "permite_comissoes", "Comissões estão disponíveis a partir do plano Profissional.")
-    return await gateway.rest(
+    return rows_payload(await gateway.rest(
         "regras_comissao",
         token=auth.token,
         params={
@@ -121,19 +121,19 @@ async def list_commission_rules(establishment_id: str, auth: AuthContext) -> lis
             "select": "id,estabelecimento_id,profissional_id,servico_id,tipo,valor,ativo,created_at,updated_at",
             "order": "updated_at.desc,id.desc",
         },
-    ) or []
+    ))
 
 
 async def create_commission_rule(payload: CommissionRuleCreate, auth: AuthContext) -> dict[str, Any]:
     establishment_id = str(payload.estabelecimento_id)
     await require_feature(establishment_id, auth, "permite_comissoes", "Comissões estão disponíveis a partir do plano Profissional.")
-    rows = await gateway.rest(
+    rows = rows_payload(await gateway.rest(
         "regras_comissao",
         method="POST",
         token=auth.token,
         json=model_payload(payload, exclude_unset=False),
         headers={"Prefer": "return=representation"},
-    )
+    ))
     if not rows:
         raise ApiError(403, "COMMISSION_RULE_FORBIDDEN", "Não foi possível criar a regra de comissão.")
     return rows[0]
@@ -152,10 +152,10 @@ async def update_commission_rule(rule_id: str, payload: CommissionRuleUpdate, au
     effective_value = float(data.get("valor", current.get("valor", 0)))
     if effective_type == "percentual" and effective_value > 100:
         raise ApiError(422, "INVALID_COMMISSION", "A comissão percentual não pode ultrapassar 100%.")
-    rows = await gateway.rest(
+    rows = rows_payload(await gateway.rest(
         "regras_comissao", method="PATCH", token=auth.token,
         params={"id": f"eq.{rule_id}"}, json=data, headers={"Prefer": "return=representation"},
-    )
+    ))
     if not rows:
         raise ApiError(403, "COMMISSION_RULE_FORBIDDEN", "Não foi possível atualizar a regra de comissão.")
     return rows[0]

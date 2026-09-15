@@ -24,6 +24,11 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("textoFluxoProfissional").classList.toggle("hidden", tipo.value !== "barbeiro");
   }));
 
+  if (new URLSearchParams(location.search).get("tipo") === "barbeiro") {
+    const professional = document.querySelector('[data-tipo-conta="barbeiro"]');
+    professional?.click();
+  }
+
   telefone?.addEventListener("input", () => { telefone.value = bhMascaraTelefone(telefone.value); });
 
   form?.addEventListener("submit", async evento => {
@@ -35,6 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const senha = document.getElementById("senha").value;
     const confirmar = document.getElementById("confirmarSenha").value;
     const termos = document.getElementById("termos").checked;
+    const marketing = document.getElementById("marketing")?.checked === true;
 
     if (!nome || !email || !telefoneValor || !senha || !tipo.value) {
       mostrarToast("erro", "Cadastro incompleto", "Preencha todos os campos obrigatórios.");
@@ -50,14 +56,14 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     if (!termos) {
-      mostrarToast("aviso", "Termos necessários", "Confirme que leu as condições de uso do projeto.");
+      mostrarToast("aviso", "Aceite necessário", "Leia e aceite os Termos de uso e a Política de privacidade para criar sua conta.");
       return;
     }
 
     bhSetButtonLoading(botao, true, "Criando conta...");
     try {
       const captchaToken = await window.bhSecurity?.token?.(form);
-      const resultado = await bhRegistrar({ nome, email, telefone: telefoneValor, senha, tipo: tipo.value, next, captchaToken });
+      const resultado = await bhRegistrar({ nome, email, telefone: telefoneValor, senha, tipo: tipo.value, next, captchaToken, marketing, versaoLegal:"2026-09-11" });
       if (resultado.precisaConfirmarEmail) {
         form.classList.add("hidden");
         document.getElementById("confirmacaoEmail").classList.remove("hidden");

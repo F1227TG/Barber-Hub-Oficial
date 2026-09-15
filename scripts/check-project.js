@@ -79,7 +79,7 @@ const required = [
   "sql/30_localizacao_biblioteca_marketplace_1_10.sql",
   "sql/31_push_importacoes_auditoria_flags_1_10.sql",
   "sql/verificar_31_release_1_10.sql",
-  "supabase/migrations/20260904180741_32_conclusao_pos31_1_10_1.sql",
+  "supabase/migrations/20260911132254_conclusao_pos31_1_10_1.sql",
   "sql/verificar_32_conclusao_1_10_1.sql",
   "sql/verificar_22_operacao_1_9.sql",
   "mobile/index.html",
@@ -195,7 +195,7 @@ for (const page of ["html/painel.html", "html/planos.html", "html/admin.html", "
 // Regressões do Service Worker: a 1.7.2 falhou no Chromium porque
 // ./mobile/index.html aparecia duas vezes em cache.addAll().
 const serviceWorker = fs.readFileSync(path.join(root, "service-worker.js"), "utf8");
-if (!serviceWorker.includes("barberhub-v1.10.1-mobile-r1")) errors.push("Service Worker não usa o cache atual da versão 1.10.1.");
+if (!serviceWorker.includes("barberhub-v1.11.0-mobile-r2")) errors.push("Service Worker não usa o cache atual da versão 1.11.0.");
 if (serviceWorker.includes("cache.addAll(CORE)")) errors.push("Service Worker voltou a usar cache.addAll(CORE), que falha com requisições duplicadas.");
 if (!serviceWorker.includes("const CORE = [...new Set(CORE_SOURCE)]")) errors.push("Service Worker não deduplica a lista CORE preventivamente.");
 const coreMatch = serviceWorker.match(/const CORE_SOURCE = \[([\s\S]*?)\n\];/);
@@ -212,7 +212,7 @@ if (errors.length) {
   process.exit(1);
 }
 
-console.log(`Barber Hub 1.10.1: ${required.length} arquivos centrais encontrados.`);
+console.log(`Barber Hub 1.11.0: ${required.length} arquivos centrais encontrados.`);
 console.log(`${htmlFiles.length} páginas HTML verificadas, sem IDs duplicados ou links locais quebrados.`);
 console.log(`${jsFiles.length} arquivos JavaScript passaram por node --check.`);
 console.log("Nenhuma chave secreta foi encontrada nos arquivos públicos auditados.");

@@ -1,5 +1,5 @@
 /**
- * portal.js — Barber Hub 1.6
+ * portal.js — Barber Hub 1.11
  * --------------------------------------------------------------------------
  * Marketplace paginado com FTS no backend, filtros compactos e carregamento
  * incremental. Não carrega o catálogo inteiro no navegador.
@@ -26,8 +26,43 @@ const bhMarketplaceState = {
   total: 0,
   hasMore: false,
   items: [],
+  operatedIds: new Set(),
   loading: false
 };
+
+function bhMarketplaceLista(value) {
+  if (Array.isArray(value)) return value;
+  if (Array.isArray(value?.items)) return value.items;
+  if (Array.isArray(value?.data)) return value.data;
+  return [];
+}
+
+function bhMarketplaceLerUrl() {
+  const params = new URLSearchParams(location.search);
+  const enumValue = (key, allowed, fallback) => allowed.includes(params.get(key)) ? params.get(key) : fallback;
+  bhMarketplaceState.busca = String(params.get("q") || "").slice(0, 120);
+  bhMarketplaceState.tipo = enumValue("tipo", ["todos", "barbearia", "salao"], "todos");
+  bhMarketplaceState.status = enumValue("status", ["todos", "aberta", "fechada"], "todos");
+  bhMarketplaceState.agenda = enumValue("agenda", ["todos", "sim", "nao"], "todos");
+  bhMarketplaceState.cidade = String(params.get("cidade") || "").slice(0, 120);
+  bhMarketplaceState.bairro = String(params.get("bairro") || "").slice(0, 120);
+  bhMarketplaceState.estado = String(params.get("uf") || "").slice(0, 2).toUpperCase();
+  bhMarketplaceState.servico = String(params.get("servico") || "").slice(0, 120);
+  const numeric = (key, min, max) => { const raw = params.get(key); const value = raw === null || raw === "" ? null : Number(raw); return Number.isFinite(value) && value >= min && value <= max ? value : null; };
+  bhMarketplaceState.precoMin = numeric("preco_min", 0, 1_000_000);
+  bhMarketplaceState.precoMax = numeric("preco_max", 0, 1_000_000);
+  bhMarketplaceState.avaliacaoMin = numeric("avaliacao", 0, 5);
+}
+
+function bhMarketplaceAtualizarUrl() {
+  const params = new URLSearchParams();
+  const set = (key, value, fallback = "") => { if (value !== null && value !== undefined && value !== fallback && value !== "") params.set(key, String(value)); };
+  set("q", bhMarketplaceState.busca); set("tipo", bhMarketplaceState.tipo, "todos"); set("status", bhMarketplaceState.status, "todos"); set("agenda", bhMarketplaceState.agenda, "todos");
+  set("cidade", bhMarketplaceState.cidade); set("bairro", bhMarketplaceState.bairro); set("uf", bhMarketplaceState.estado); set("servico", bhMarketplaceState.servico);
+  set("preco_min", bhMarketplaceState.precoMin); set("preco_max", bhMarketplaceState.precoMax); set("avaliacao", bhMarketplaceState.avaliacaoMin);
+  const query = params.toString();
+  history.replaceState(history.state, "", `${location.pathname}${query ? `?${query}` : ""}${location.hash}`);
+}
 
 function bhMarketplaceFiltrosAtivos() {
   return [
@@ -51,7 +86,7 @@ function bhMarketplaceCard(item, { destaque = false } = {}) {
   const imagem = item.capaUrl || item.fotoUrl || "../img/placeholders/barbearia-01.webp";
   const tipo = item.tipoEstabelecimento === "salao" ? "Salão" : "Barbearia";
   const avaliacao = Number(item.avaliacao || 0);
-  const servicosAtivos = (item.servicos || []).filter(servico => servico.ativo && servico.publico);
+  const servicosAtivos = bhMarketplaceLista(item?.servicos).filter(servico => servico?.ativo && servico?.publico);
   const visiveis = servicosAtivos.slice(0, 2);
   const restante = Math.max(servicosAtivos.length - visiveis.length, 0);
   const servicos = [
@@ -60,15 +95,16 @@ function bhMarketplaceCard(item, { destaque = false } = {}) {
   ].join("") || "<span>Ver serviços</span>";
   const detalheUrl = `barbearia.html?id=${encodeURIComponent(item.id)}`;
   const agendarUrl = `${detalheUrl}&agendar=1`;
+  const proprio = bhMarketplaceState.operatedIds.has(String(item.id));
 
-  return `<article class="marketplace-card">
-    <a class="marketplace-card-image" href="${detalheUrl}" style="background-image:url('${escapeHTML(imagem)}')" aria-label="Abrir ${escapeHTML(item.nome)}">
+  return `<article class="marketplace-card" data-marketplace-card>
+    <div class="marketplace-card-image" style="background-image:url('${escapeHTML(imagem)}')" aria-hidden="true">
       <span class="marketplace-type">${escapeHTML(tipo)}</span>
-    </a>
+    </div>
     <div class="marketplace-card-body">
       ${destaque || item.destaque ? `<span class="marketplace-sponsored"><i class="bi bi-stars"></i> Destaque Barber Hub</span>` : ""}
       <div class="marketplace-card-title">
-        <h3><a href="${detalheUrl}">${escapeHTML(item.nome)}</a></h3>
+        <h3><a class="marketplace-card-primary" href="${detalheUrl}" aria-label="Abrir perfil de ${escapeHTML(item.nome)}">${escapeHTML(item.nome)}</a></h3>
         <span class="marketplace-rating"><i class="bi bi-star-fill"></i> ${avaliacao > 0 ? avaliacao.toFixed(1) : "Novo"}</span>
       </div>
       <p class="marketplace-location"><i class="bi bi-geo-alt"></i> ${escapeHTML([item.bairro, item.cidade].filter(Boolean).join(", "))}${item.distancia_km !== null && item.distancia_km !== undefined ? `<strong class="distance110">${Number(item.distancia_km).toFixed(1).replace(".", ",")} km</strong>` : ""}</p>
@@ -77,7 +113,11 @@ function bhMarketplaceCard(item, { destaque = false } = {}) {
         <span class="marketplace-status ${status.classe}"><i class="bi ${status.aberta ? "bi-circle-fill" : "bi-moon"}"></i> ${escapeHTML(status.texto)}</span>
         <div class="marketplace-card-actions">
           <a class="btn btn-outline btn-small" href="${detalheUrl}">Ver local</a>
-          ${item.aceitaAgendamento ? `<a class="btn btn-primary btn-small" href="${agendarUrl}">Agendar</a>` : ""}
+          ${proprio
+            ? `<a class="btn btn-primary btn-small" href="painel.html#agenda">Ver agenda</a>`
+            : item.aceitaAgendamento
+              ? `<a class="btn btn-primary btn-small" href="${agendarUrl}">Agendar</a>`
+              : ""}
         </div>
       </div>
     </div>
@@ -109,6 +149,7 @@ function bhMarketplaceRender({ append = false } = {}) {
     if (append) grid.insertAdjacentHTML("beforeend", html);
     else grid.innerHTML = html;
   }
+  bhMarketplaceRenderDestaques();
   bhMarketplaceAtualizarControles();
 }
 
@@ -119,19 +160,21 @@ async function bhMarketplaceCarregar({ reset = false } = {}) {
   if (reset) {
     bhMarketplaceState.offset = 0;
     bhMarketplaceState.items = [];
+    bhMarketplaceRenderDestaques();
     if (grid) grid.innerHTML = `<div class="marketplace-loading"><i class="bi bi-arrow-repeat spin"></i> Buscando os melhores resultados...</div>`;
   }
   const more = document.getElementById("carregarMaisMarketplace");
   bhSetButtonLoading(more, true, "Carregando...");
   try {
-    const useRegional = bhMarketplaceState.status !== "fechada" && bhMarketplaceState.tipo !== "salao";
-    const result = useRegional ? await bhBuscarMarketplaceRegional({
+    bhMarketplaceAtualizarUrl();
+    const result = await bhBuscarMarketplaceRegional({
       busca:bhMarketplaceState.busca,
+      tipo:bhMarketplaceState.tipo,
+      status:bhMarketplaceState.status,
       cidade:bhMarketplaceState.cidade,
       bairro:bhMarketplaceState.bairro,
       estado:bhMarketplaceState.estado,
-      abertoAgora:bhMarketplaceState.status === "aberta",
-      agenda:bhMarketplaceState.agenda === "sim",
+      agenda:bhMarketplaceAgendaBoolean(),
       latitude:bhMarketplaceState.latitude,
       longitude:bhMarketplaceState.longitude,
       raioKm:bhMarketplaceState.raioKm,
@@ -141,15 +184,8 @@ async function bhMarketplaceCarregar({ reset = false } = {}) {
       avaliacaoMin:bhMarketplaceState.avaliacaoMin,
       offset:bhMarketplaceState.offset,
       limit:BH_MARKETPLACE_PAGE_SIZE
-    }) : await bhBuscarMarketplace({
-      busca:bhMarketplaceState.busca,
-      tipo:bhMarketplaceState.tipo,
-      agenda:bhMarketplaceAgendaBoolean(),
-      status:bhMarketplaceState.status,
-      offset:bhMarketplaceState.offset,
-      limit:BH_MARKETPLACE_PAGE_SIZE
     });
-    const novos = result.items || [];
+    const novos = bhMarketplaceLista(result?.items);
     const append = !reset && bhMarketplaceState.offset > 0;
     bhMarketplaceState.items = append ? [...bhMarketplaceState.items, ...novos] : novos;
     bhMarketplaceState.total = Number(result.total || 0);
@@ -157,24 +193,21 @@ async function bhMarketplaceCarregar({ reset = false } = {}) {
     bhMarketplaceState.offset += novos.length;
     bhMarketplaceRender({ append: false });
   } catch (erro) {
-    if (grid) grid.innerHTML = `<div class="marketplace-empty"><i class="bi bi-exclamation-triangle big"></i><h3>Não foi possível carregar o marketplace</h3><p>${escapeHTML(bhErroMensagem(erro))}</p></div>`;
+    if (grid) grid.innerHTML = `<div class="marketplace-empty"><i class="bi bi-exclamation-triangle big"></i><h3>Não foi possível carregar os locais</h3><p>${escapeHTML(bhErroMensagem(erro))}</p><button class="btn btn-outline btn-small" data-marketplace-retry type="button"><i class="bi bi-arrow-clockwise"></i> Tentar novamente</button></div>`;
   } finally {
     bhMarketplaceState.loading = false;
     bhSetButtonLoading(more, false);
   }
 }
 
-async function bhMarketplaceCarregarDestaques() {
+function bhMarketplaceRenderDestaques() {
   const section = document.getElementById("secDestaquesMarketplace");
   const grid = document.getElementById("gridDestaquesMarketplace");
   if (!grid || !section) return;
-  try {
-    const items = await bhBuscarDestaquesMarketplace(matchMedia("(max-width:700px)").matches ? 5 : 6);
-    if (!items.length) { section.hidden = true; return; }
-    grid.innerHTML = items.map(item => bhMarketplaceCard(item, { destaque: true })).join("");
-  } catch (erro) {
-    section.hidden = true;
-  }
+  const limite = matchMedia("(max-width:700px)").matches ? 5 : 6;
+  const items = bhMarketplaceState.items.filter(item => item?.destaque).slice(0, limite);
+  section.hidden = !items.length;
+  grid.innerHTML = items.map(item => bhMarketplaceCard(item, { destaque: true })).join("");
 }
 
 function bhMarketplaceAbrirFiltros() {
@@ -195,18 +228,38 @@ function bhMarketplaceAbrirFiltros() {
   modal.setAttribute("aria-hidden", "false");
   document.body.classList.add("marketplace-filters-open");
   document.body.style.overflow = "hidden";
+  [...document.body.children].forEach(element => {
+    if (element === modal || ["SCRIPT", "STYLE", "LINK"].includes(element.tagName) || element.hasAttribute("inert")) return;
+    element.setAttribute("inert", ""); element.dataset.marketplaceInert111 = "1";
+  });
+  history.pushState({ ...(history.state || {}), bhMarketplaceFilters111:true }, "", location.href);
+  modal.dataset.historyEntry = "1";
   requestAnimationFrame(() => modal.querySelector("[data-fechar-filtros]")?.focus());
 }
 
-function bhMarketplaceFecharFiltros() {
+function bhMarketplaceFecharFiltros({ fromHistory = false } = {}) {
   const modal = document.getElementById("filtrosMarketplace");
-  if (!modal) return;
+  if (!modal?.classList.contains("ativo")) return;
   const trigger = document.getElementById("abrirFiltrosMarketplace");
   modal.classList.remove("ativo");
   document.body.classList.remove("marketplace-filters-open");
   trigger?.focus?.({ preventScroll:true });
   modal.setAttribute("aria-hidden", "true");
   document.body.style.overflow = "";
+  document.querySelectorAll('[data-marketplace-inert111="1"]').forEach(element => { element.removeAttribute("inert"); delete element.dataset.marketplaceInert111; });
+  if (!fromHistory && modal.dataset.historyEntry === "1") { modal.dataset.historyEntry = "0"; history.back(); setTimeout(bhMarketplaceAtualizarUrl, 80); }
+  else modal.dataset.historyEntry = "0";
+}
+
+function bhMarketplacePrenderFoco(event) {
+  if (event.key !== "Tab") return;
+  const dialog = document.querySelector("#filtrosMarketplace.ativo .marketplace-filter-dialog");
+  if (!dialog) return;
+  const focusable = [...dialog.querySelectorAll('button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),a[href],[tabindex]:not([tabindex="-1"])')].filter(item => !item.hidden && item.getClientRects().length);
+  if (!focusable.length) { event.preventDefault(); dialog.focus(); return; }
+  const first = focusable[0]; const last = focusable[focusable.length - 1];
+  if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+  else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
 }
 
 function bhMarketplaceAplicarFiltros() {
@@ -262,13 +315,28 @@ function bhMarketplacePertoDeMim(button) {
     bhMarketplaceCarregar({ reset:true });
   }, error => {
     bhSetButtonLoading(button, false);
-    mostrarToast("erro", "Não encontramos sua posição", error.message);
+    const mensagens = {
+      1: "Permita o acesso à localização no navegador ou pesquise por cidade e bairro nos filtros.",
+      2: "Não conseguimos identificar sua localização agora. Você ainda pode pesquisar por cidade ou bairro.",
+      3: "A localização demorou mais que o esperado. Tente novamente ou use os filtros de cidade e bairro."
+    };
+    mostrarToast("aviso", "Localização não ativada", mensagens[Number(error?.code)] || "Não foi possível usar sua localização agora. Pesquise por cidade ou bairro nos filtros.");
   }, { enableHighAccuracy:false, timeout:10_000, maximumAge:300_000 });
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   marcarMenuAtivo("portal");
+  bhMarketplaceLerUrl();
+  try {
+    const perfil = await bhGetPerfil();
+    if (perfil?.tipo === "barbeiro" && typeof bhListarMeusEstabelecimentosOperados === "function") {
+      bhMarketplaceState.operatedIds = new Set((await bhListarMeusEstabelecimentosOperados()).map(String));
+    }
+  } catch {
+    bhMarketplaceState.operatedIds = new Set();
+  }
   const search = document.getElementById("pesquisa");
+  if (search) search.value = bhMarketplaceState.busca || search.value;
   search?.addEventListener("input", bhDebounce(() => {
     bhMarketplaceState.busca = search.value.trim();
     bhMarketplaceCarregar({ reset: true });
@@ -302,8 +370,15 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll("[data-quick-filter]").forEach(button => button.addEventListener("click", () => bhMarketplaceAlternarRapido(button.dataset.quickFilter)));
   document.querySelector("[data-near-me]")?.addEventListener("click", event => bhMarketplacePertoDeMim(event.currentTarget));
   document.getElementById("carregarMaisMarketplace")?.addEventListener("click", () => bhMarketplaceCarregar());
-  document.addEventListener("keydown", event => { if (event.key === "Escape") bhMarketplaceFecharFiltros(); });
+  document.getElementById("gridBarbearias")?.addEventListener("click", event => { if (event.target.closest("[data-marketplace-retry]")) bhMarketplaceCarregar({ reset:true }); });
+  document.addEventListener("keydown", event => {
+    if (!document.getElementById("filtrosMarketplace")?.classList.contains("ativo")) return;
+    if (event.key === "Escape") { event.preventDefault(); bhMarketplaceFecharFiltros(); return; }
+    bhMarketplacePrenderFoco(event);
+  });
+  window.addEventListener("popstate", () => {
+    if (document.getElementById("filtrosMarketplace")?.classList.contains("ativo")) bhMarketplaceFecharFiltros({ fromHistory:true });
+  });
 
-  bhMarketplaceCarregarDestaques();
   bhMarketplaceCarregar({ reset: true });
 });

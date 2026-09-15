@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from backend.security import AuthContext
+from backend.services.access import rows_payload
 from backend.supabase import gateway
 
 
@@ -18,6 +19,6 @@ async def list_events(establishment_id: str, resource: str | None, offset: int, 
     }
     if resource:
         params["recurso"] = f"eq.{resource}"
-    rows = await gateway.rest("auditoria_operacional", token=auth.token, params=params) or []
+    rows = rows_payload(await gateway.rest("auditoria_operacional", token=auth.token, params=params))
     return {"items": rows[:safe_limit], "offset": safe_offset, "limit": safe_limit,
             "has_more": len(rows) > safe_limit}

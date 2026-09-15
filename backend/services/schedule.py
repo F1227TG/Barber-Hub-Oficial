@@ -16,7 +16,7 @@ from backend.models import (
 )
 from backend.security import AuthContext
 from backend.domain.operations import normalize_origin_channel, normalize_payment_method
-from backend.services.access import first_visible, model_payload, require_feature
+from backend.services.access import first_visible, model_payload, require_feature, rows_payload
 from backend.supabase import gateway
 from backend.services.flags import require_enabled
 
@@ -57,7 +57,10 @@ async def list_range(
     }
     if professional_id:
         params["profissional_id"] = f"eq.{professional_id}"
-    appointments = await gateway.rest("agendamentos", token=auth.token, params=params)
+    appointments = rows_payload(
+        await gateway.rest("agendamentos", token=auth.token, params=params),
+        message="Não foi possível carregar os agendamentos agora.",
+    )
 
     block_params: dict[str, Any] = {
         "estabelecimento_id": f"eq.{establishment_id}",
@@ -69,8 +72,10 @@ async def list_range(
     }
     if professional_id:
         block_params["or"] = f"(profissional_id.is.null,profissional_id.eq.{professional_id})"
-    blocks = await gateway.rest("agenda_bloqueios", token=auth.token, params=block_params)
-    appointments, blocks = appointments or [], blocks or []
+    blocks = rows_payload(
+        await gateway.rest("agenda_bloqueios", token=auth.token, params=block_params),
+        message="Não foi possível carregar os bloqueios da agenda agora.",
+    )
     return {"appointments": appointments[:safe_limit], "blocks": blocks[:safe_limit],
             "appointments_has_more": len(appointments) > safe_limit, "blocks_has_more": len(blocks) > safe_limit,
             "appointment_offset": appointment_offset, "block_offset": block_offset,
@@ -198,13 +203,13 @@ async def create_block(payload: ScheduleBlockCreate, auth: AuthContext) -> dict[
 
 
 async def delete_block(block_id: str, auth: AuthContext) -> dict[str, bool]:
-    rows = await gateway.rest(
+    rows = rows_payload(await gateway.rest(
         "agenda_bloqueios",
         method="DELETE",
         token=auth.token,
         params={"id": f"eq.{block_id}"},
         headers={"Prefer": "return=representation"},
-    )
+    ), message="Não foi possível confirmar a remoção do bloqueio agora.")
     if not rows:
         raise ApiError(404, "SCHEDULE_BLOCK_NOT_FOUND", "Bloqueio não encontrado ou sem permissão.")
     return {"deleted": True}
@@ -213,15 +218,13 @@ async def delete_block(block_id: str, auth: AuthContext) -> dict[str, bool]:
 async def get_opening_periods(establishment_id: str, auth: AuthContext) -> dict[str, Any]:
     """List every active opening period through the caller-scoped RPC."""
 
-    rows = await gateway.rest(
+    rows = rows_payload(await gateway.rest(
         "obter_periodos_funcionamento_110",
         method="POST",
         token=auth.token,
         rpc=True,
         json={"p_estabelecimento_id": establishment_id},
-    ) or []
-    if isinstance(rows, dict):
-        rows = rows.get("items", [])
+    ), message="Não foi possível carregar os horários de funcionamento agora.")
     return {"items": rows, "total": len(rows)}
 
 

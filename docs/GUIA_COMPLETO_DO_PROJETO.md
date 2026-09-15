@@ -1,10 +1,10 @@
 # Guia completo do Barber Hub
 
-Versão de referência: **1.10.1**
+Versão de referência: **1.11.0**
 
-API: **1.6.1**
+API: **1.7.0**
 
-Situação: **escopo técnico concluído; migration 32, configuração externa e homologação real pendentes**.
+Situação: **implementação e banco concluídos; configuração externa, homologação real e publicação da candidata pendentes**.
 
 ## 1. O projeto em uma frase
 
@@ -55,7 +55,7 @@ Pode operar agenda e cliente conforme o papel e as permissões concedidas, sem r
 
 Modera, acompanha saúde/prontidão, gerencia planos e encontra registros com busca e paginação. Pode enviar recuperação de senha, mas nunca vê a senha atual.
 
-## 5. O que a versão 1.10.1 entrega
+## 5. O que a versão 1.11.0 entrega
 
 ### Operação real
 
@@ -159,7 +159,7 @@ O Service Worker mantém o shell essencial, atualiza cache por versão, oferece 
 
 A identidade usa superfícies escuras/quentes, dourado como destaque, bordas discretas, tipografia legível e movimento contido. Novos recursos devem reutilizar tokens e componentes existentes. Beauty Hub recebe identidade relacionada, porém distinta, sem virar uma página extravagante ou anunciar uma operação inexistente.
 
-## 11. API FastAPI 1.6.1
+## 11. API FastAPI 1.7.0
 
 As rotas ficam sob `/api/v1`. A API usa autenticação Bearer, limites por escopo, validação Pydantic, mensagens padronizadas e `X-Request-ID`. Swagger fica em `/api/docs`; `/api/openapi.json` é o contrato executável.
 
@@ -214,30 +214,28 @@ Regras:
 5. executar o verificador correspondente;
 6. só publicar o código compatível depois do banco.
 
-Migrations 01–28 são o histórico registrado. Os objetos previstos em 29–31 foram confirmados no ambiente conectado, embora a aplicação manual não apareça no histórico de migrations. A conclusão adiciona:
+O histórico antigo permanece documentado, mas a referência operacional desta candidata são as duas migrations gerenciadas registradas no projeto conectado, nesta ordem:
 
 ```text
-29_operacao_real_horarios_atendimentos_1_10.sql
-30_localizacao_biblioteca_marketplace_1_10.sql
-31_push_importacoes_auditoria_flags_1_10.sql
-verificar_31_release_1_10.sql
-supabase/migrations/20260904180741_32_conclusao_pos31_1_10_1.sql
-verificar_32_conclusao_1_10_1.sql
+supabase/migrations/20260911132254_conclusao_pos31_1_10_1.sql
+supabase/migrations/20260911132328_barberhub_1_11_confiabilidade_privacidade.sql
+sql/verificar_33_release_1_11.sql
 ```
 
-Não reaplique 29–31 às cegas. Aplique a migration 32 pelo fluxo oficial e execute o verificador 32.
+As duas migrations já foram aplicadas no projeto conectado e o verificador 33 retornou todos os controles como verdadeiros. Não edite nem reaplique uma migration registrada; toda correção futura deve receber um novo identificador.
 
-## 14. Como aplicar a conclusão do banco
+## 14. Como confirmar o banco antes do deploy
 
-1. abra o projeto correto no Supabase;
-2. confirme um backup recuperável;
-3. confira que os objetos 29–31 continuam presentes e não reaplique os arquivos históricos;
-4. aplique `20260904180741_32_conclusao_pos31_1_10_1.sql` pelo fluxo oficial de migrations;
-5. execute `verificar_32_conclusao_1_10_1.sql` como consulta somente de verificação;
-7. não prossiga se qualquer etapa lançar exceção;
-8. revise Security Advisor e Performance Advisor;
-9. faça a homologação por papel/plano;
-10. publique API e frontend/PWA juntos.
+1. abra o projeto correto no Supabase e confirme seu identificador;
+2. confirme um backup recuperável e responsáveis por restauração;
+3. confira no histórico remoto, nessa ordem, `20260911132254_conclusao_pos31_1_10_1` e `20260911132328_barberhub_1_11_confiabilidade_privacidade`;
+4. não reaplique nenhum arquivo que já conste no histórico;
+5. execute `sql/verificar_33_release_1_11.sql` como consulta somente de verificação;
+6. não prossiga se qualquer controle retornar falso ou lançar exceção;
+7. revise Security Advisor e Performance Advisor;
+8. faça a homologação por papel e plano;
+9. publique API e frontend/PWA juntos;
+10. execute os testes rápidos no novo deployment e monitore erros.
 
 Detalhes e rollback estão em `MIGRATIONS_DEPLOY_1_10.md`.
 
@@ -376,7 +374,7 @@ Teste contas separadas: cliente, profissional, recepção, gerente, proprietári
 
 1. concluir testes locais;
 2. confirmar backup;
-3. aplicar a migration 32 e executar o verificador 32;
+3. confirmar as duas migrations gerenciadas e executar o verificador 33;
 4. configurar Auth, API, VAPID e worker;
 5. revisar Advisors;
 6. homologar papéis, planos, desktop e mobile;
@@ -413,8 +411,11 @@ Separar a API e o mobile agora adicionaria coordenação e risco perto da finali
 
 ## 29. Documentos de apoio
 
-- `ATUALIZACAO_1_10_1.md` — escopo entregue;
-- `RELATORIO_CONCLUSAO_PLANEJAMENTO_POS31_1_10_1.md` — comparação final com o documento;
+- `release-1.11/RELATORIO_FINAL_1_11_0.md` — implementação e verificação final;
+- `release-1.11/README.md` — estado, evidências e gates de publicação;
+- `release-1.11/CONFIGURACAO_EXTERNA.md` — Auth, Push, e-mail, jobs e ambiente;
+- `release-1.11/TESTES_DE_PERFIS_E_RLS.md` — matriz de contas, papéis e planos;
+- `ATUALIZACAO_1_10_1.md` — histórico da versão anterior;
 - `RELATORIO_SEGURANCA_1_10.md` — V01–V06 e pendências;
 - `MIGRATIONS_DEPLOY_1_10.md` — banco e publicação;
 - `HOMOLOGACAO_FINAL_1_10.md` — aprovação manual;

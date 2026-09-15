@@ -79,8 +79,8 @@ function bhLinksPorPerfil(perfil, contadores = {}) {
     ["html/conta.html", "conta", "Minha conta", "bi-person-gear"]
   ];
   return [
+    ["index.html", "home", "Início", "bi-house-door"],
     ["html/portal.html", "portal", "Explorar", "bi-shop"],
-    ["html/planos.html", "planos", "Planos", "bi-wallet2"],
     ["html/cliente.html", "cliente", "Meus horários", "bi-calendar2-check", "agenda"],
     ["html/notificacoes.html", "notificacoes", "Notificações", "bi-bell", "notificacoes"],
     ["html/conta.html", "conta", "Conta", "bi-person-circle"]
@@ -142,12 +142,16 @@ function bhAplicarMenuPorPerfil(perfil, contadores = {}) {
 
 function bhLinksExtrasDrawer(perfil, contadores = {}) {
   if (perfil?.tipo === "barbeiro") return [
-    ["html/painel.html#equipe", "Equipe", "bi-people"],
+    ["html/painel.html#clientes", "Clientes", "bi-person-lines-fill", null, "permite_clientes"],
+    ["html/painel.html#financeiro", "Financeiro", "bi-wallet2", null, "permite_financeiro"],
+    ["html/painel.html#equipe", "Equipe", "bi-people", null, "permite_equipe_acesso"],
     ["html/painel.html#galeria", "Galeria de trabalhos", "bi-images"],
     ["html/painel.html#avaliacoes", "Avaliações", "bi-star"],
+    ["html/painel.html#crescimento", "Crescimento", "bi-graph-up-arrow", null, "permite_insights"],
     ["html/painel.html#configuracoes", "Horários e configurações", "bi-gear"],
+    ["html/planos.html", "Meu plano", "bi-gem"],
     ["html/contato.html", "Suporte", "bi-headset"]
-  ];
+  ].filter(item => !item[4] || !contadores.entitlements || Boolean(contadores.entitlements[item[4]]));
   if (perfil?.tipo === "admin") return [
     ["html/admin-assinaturas.html", "Assinaturas e benefícios", "bi-gem"],
     ["html/mapa-sistema.html", "Mapa do sistema", "bi-diagram-3"],
@@ -187,7 +191,7 @@ function bhCriarDrawer(perfil, contadores = {}) {
   const legais = bhLinksLegaisDrawer().map(link => bhRenderLinkExtraDrawer(link, contadores)).join("");
   drawer.innerHTML = `
     <div class="drawer-overlay" id="drawerOverlay"></div>
-    <aside class="app-drawer" id="appDrawer" aria-hidden="true" inert>
+    <aside class="app-drawer" id="appDrawer" role="dialog" aria-modal="true" aria-label="Menu e opções da conta" aria-hidden="true" inert>
       <div class="drawer-head">
         <a class="logo" href="${bhUrl("index.html")}">
           <img src="${bhUrl("img/branding/barber-hub-compacta.png")}" alt="Barber Hub">
@@ -232,29 +236,57 @@ function bhCriarDrawer(perfil, contadores = {}) {
 
 let bhDrawerReturnFocus = null;
 
+function bhDrawerFundoInativo(drawerRoot, inactive) {
+  [...document.body.children].forEach(element => {
+    if (element === drawerRoot || ["SCRIPT", "STYLE", "LINK"].includes(element.tagName)) return;
+    if (inactive) {
+      if (!element.hasAttribute("inert")) { element.setAttribute("inert", ""); element.dataset.drawerInert111 = "1"; }
+    } else if (element.dataset.drawerInert111 === "1") {
+      element.removeAttribute("inert"); delete element.dataset.drawerInert111;
+    }
+  });
+}
+
+function bhDrawerPrenderFoco(evento, drawer) {
+  if (evento.key !== "Tab") return;
+  const focusable = [...drawer.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')]
+    .filter(item => !item.hidden && item.getClientRects().length);
+  if (!focusable.length) { evento.preventDefault(); drawer.focus(); return; }
+  const first = focusable[0]; const last = focusable[focusable.length - 1];
+  if (evento.shiftKey && document.activeElement === first) { evento.preventDefault(); last.focus(); }
+  else if (!evento.shiftKey && document.activeElement === last) { evento.preventDefault(); first.focus(); }
+}
+
 function bhAbrirDrawer() {
   const drawer = document.getElementById("appDrawer");
   const overlay = document.getElementById("drawerOverlay");
+  if (!drawer || drawer.classList.contains("aberto")) return;
   bhDrawerReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
   drawer?.classList.add("aberto");
   overlay?.classList.add("ativo");
   drawer?.removeAttribute("inert");
   drawer?.setAttribute("aria-hidden", "false");
   document.body.classList.add("drawer-open");
+  bhDrawerFundoInativo(drawer.parentElement, true);
+  history.pushState({ ...(history.state || {}), bhAppDrawer111:true }, "", location.href);
+  drawer.dataset.historyEntry = "1";
   requestAnimationFrame(() => drawer?.querySelector("#fecharDrawer")?.focus());
 }
 
-function bhFecharDrawer() {
+function bhFecharDrawer({ fromHistory = false } = {}) {
   const drawer = document.getElementById("appDrawer");
   const overlay = document.getElementById("drawerOverlay");
+  if (!drawer?.classList.contains("aberto")) return;
   drawer?.classList.remove("aberto");
   overlay?.classList.remove("ativo");
   document.body.classList.remove("drawer-open");
-  // Move o foco para fora do drawer antes de ocultá-lo da árvore acessível.
-  if (bhDrawerReturnFocus?.isConnected) bhDrawerReturnFocus.focus({ preventScroll:true });
-  else document.querySelector("#mobileMenuButton, #btnMenu")?.focus?.({ preventScroll:true });
   drawer?.setAttribute("aria-hidden", "true");
   drawer?.setAttribute("inert", "");
+  bhDrawerFundoInativo(drawer.parentElement, false);
+  if (bhDrawerReturnFocus?.isConnected) bhDrawerReturnFocus.focus({ preventScroll:true });
+  else document.querySelector("#mobileMenuButton, #btnMenu")?.focus?.({ preventScroll:true });
+  if (!fromHistory && drawer.dataset.historyEntry === "1") { drawer.dataset.historyEntry = "0"; history.back(); }
+  else drawer.dataset.historyEntry = "0";
 }
 
 function bhLiberarTravasOrfas() {
@@ -303,7 +335,13 @@ function bhConfigurarAcessibilidade() {
 
 async function bhAtualizarNavegacao(perfil) {
   let contadores = { notificacoes: 0, agenda: 0, tickets: 0, moderacao: 0, aceitaAgendamento: false, estabelecimento: null };
-  try { if (perfil) contadores = await bhObterContadoresNavegacao(perfil); } catch (erro) { console.warn("Contadores indisponíveis", erro); }
+  try {
+    if (perfil) contadores = await bhObterContadoresNavegacao(perfil);
+    if (perfil?.tipo === "barbeiro" && contadores.estabelecimento?.id && window.bhBackendApi?.getEntitlements) {
+      const access = await window.bhBackendApi.getEntitlements(contadores.estabelecimento.id);
+      contadores.entitlements = access?.entitlements || access?.recursos || access || null;
+    }
+  } catch (erro) { console.warn("Navegação contextual temporariamente indisponível", erro); }
   bhAplicarMenuPorPerfil(perfil, contadores);
   bhAtualizarBadgesNavegacao(contadores);
   return contadores;
@@ -380,7 +418,16 @@ async function bhInicializarInterface() {
   btnMenu?.addEventListener("click", bhAbrirDrawer);
   document.getElementById("fecharDrawer")?.addEventListener("click", bhFecharDrawer);
   document.getElementById("drawerOverlay")?.addEventListener("click", bhFecharDrawer);
-  document.addEventListener("keydown", evento => { if (evento.key === "Escape") bhFecharDrawer(); });
+  document.addEventListener("keydown", evento => {
+    const drawer = document.getElementById("appDrawer");
+    if (!drawer?.classList.contains("aberto")) return;
+    if (evento.key === "Escape") { evento.preventDefault(); bhFecharDrawer(); return; }
+    bhDrawerPrenderFoco(evento, drawer);
+  });
+  window.addEventListener("popstate", () => {
+    const drawer = document.getElementById("appDrawer");
+    if (drawer?.classList.contains("aberto")) bhFecharDrawer({ fromHistory:true });
+  });
 
   document.querySelectorAll("[data-user-name]").forEach(elemento => { elemento.textContent = perfil?.nome?.split(" ")[0] || "Entrar"; });
   document.querySelectorAll("[data-auth-link]").forEach(link => { link.href = perfil ? bhUrl("html/conta.html") : bhUrl("html/login.html"); });
@@ -541,11 +588,14 @@ function bhCriarDockMobile(perfil, contadores = {}){
   let primaryIndex = 1;
 
   if(perfil?.tipo === "barbeiro"){
+    const permits = contadores.entitlements || {};
+    const clients = permits.permite_clientes !== false;
+    const finance = permits.permite_financeiro !== false;
     links = [
       ["html/painel.html", "Painel", "bi-grid"],
       [contadores.aceitaAgendamento ? "html/painel.html#agenda" : "html/painel.html#configuracoes", contadores.aceitaAgendamento ? "Agenda" : "Ativar", "bi-calendar-week", "agenda"],
-      ["html/painel.html#servicos", "Serviços", "bi-scissors"],
-      ["html/notificacoes.html", "Avisos", "bi-bell", "notificacoes"],
+      [clients ? "html/painel.html#clientes" : "html/painel.html#servicos", clients ? "Clientes" : "Serviços", clients ? "bi-people" : "bi-scissors"],
+      [finance ? "html/painel.html#financeiro" : "html/notificacoes.html", finance ? "Financeiro" : "Avisos", finance ? "bi-wallet2" : "bi-bell", finance ? null : "notificacoes"],
       ["#menu", "Mais", "bi-grid-3x3-gap", null, "drawer"]
     ];
   } else if(perfil?.tipo === "admin"){
@@ -562,7 +612,7 @@ function bhCriarDockMobile(perfil, contadores = {}){
       ["html/portal.html", "Explorar", "bi-compass"],
       ["html/cliente.html", "Horários", "bi-calendar2-check", "agenda"],
       ["html/notificacoes.html", "Avisos", "bi-bell", "notificacoes"],
-      ["html/conta.html", "Conta", "bi-person-circle"]
+      ["#menu", "Mais", "bi-grid-3x3-gap", null, "drawer"]
     ];
   } else {
     primaryIndex = 1;

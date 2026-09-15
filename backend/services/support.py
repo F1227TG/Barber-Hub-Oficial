@@ -8,6 +8,7 @@ from fastapi import Request
 from backend.errors import ApiError
 from backend.models import SupportTicketCreate
 from backend.security import AuthContext
+from backend.services.access import rows_payload
 from backend.supabase import gateway
 
 
@@ -33,7 +34,7 @@ async def list_for_user(auth: AuthContext) -> list[dict]:
             "limit": "100",
         },
     )
-    return rows if isinstance(rows, list) else []
+    return rows_payload(rows, message="Não foi possível carregar seus atendimentos agora.")
 
 
 async def create(
@@ -56,7 +57,8 @@ async def create(
             "limit": "1",
         },
     )
-    if isinstance(recent, list) and recent:
+    recent = rows_payload(recent, message="Não foi possível validar o envio agora.")
+    if recent:
         raise ApiError(429, "RATE_LIMITED", "Aguarde um minuto antes de enviar outro ticket.")
 
     row = {
@@ -78,4 +80,5 @@ async def create(
     )
     ip = request.headers.get("x-forwarded-for", "")
     print(f"[Barber Hub API] support ticket={row['id']} authenticated={bool(auth)} ip={ip[:80]}")
-    return created[0] if isinstance(created, list) and created else row
+    created_rows = rows_payload(created, message="Não foi possível confirmar o envio agora.")
+    return created_rows[0] if created_rows else row

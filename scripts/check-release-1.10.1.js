@@ -31,7 +31,7 @@ sandbox.bhOperationDraft.release("user:shop", "expense");
 const corrected = sandbox.bhOperationDraft.begin("user:shop", "expense", { valor:"25" }, { valor:25 });
 check(corrected.chave_idempotencia === first.chave_idempotencia && corrected.valor === 25, "erro conclusivo deve liberar correção preservando a chave do rascunho");
 
-const migration = read("supabase/migrations/20260904180741_32_conclusao_pos31_1_10_1.sql").toLowerCase();
+const migration = read("supabase/migrations/20260911132254_conclusao_pos31_1_10_1.sql").toLowerCase();
 const verifier = read("sql/verificar_32_conclusao_1_10_1.sql").toLowerCase();
 const api = read("api/index.py");
 const push = read("backend/services/push.py");
@@ -61,11 +61,11 @@ check(portalApi.includes("Nenhum resultado diferente do filtro foi exibido"), "f
 check(registration.includes("coverLibrary") && registration.includes("data-onboarding-cover"), "cadastro precisa oferecer biblioteca oficial de capas");
 check(publicPage.includes('continuation.action === "favorite"') && publicPage.includes('continuation.action === "review"'), "favorito e avaliação precisam retomar depois do login");
 check(panel.includes('<option value="metas">Metas</option>'), "histórico precisa filtrar as novas áreas auditadas");
-check(sw.includes("barberhub-v1.10.1-mobile-r1") && sw.includes("./js/core/operation-draft.js"), "PWA precisa publicar a correção e proteger rascunhos offline");
+check(sw.includes("barberhub-v1.11.0-mobile-r2") && sw.includes("./js/core/operation-draft.js"), "PWA precisa publicar a correção e proteger rascunhos offline");
 check(beauty.includes("css/releases/release-1.10.css") && releaseCss.includes("page-beauty-hub .reveal-ready"), "Beauty Hub precisa carregar a release atual e não ocultar conteúdo por animação");
 check(completionReport.includes("Matriz item a item") && completionReport.includes("Entrevistas com barbeiros"), "relatório final precisa comparar o documento sem inventar validação externa");
-check(openapi.includes("version: 1.6.1") && openapi.includes("/api/v1/jobs/push/deliver"), "fotografia OpenAPI precisa refletir a API 1.6.1");
-check(read("package.json").includes('"version": "1.10.1"') && api.includes('API_VERSION = "1.6.1"'), "versões do frontend e da API não estão alinhadas");
+check(openapi.includes("version: 1.7.0") && openapi.includes("/api/v1/jobs/push/deliver"), "fotografia OpenAPI precisa refletir a API atual");
+check(read("package.json").includes('"version": "1.11.0"') && read("backend/version.py").includes('API_VERSION = "1.7.0"'), "versões do frontend e da API não estão alinhadas");
 for (const moved of ["js/booking-modal.js", "js/painel-operacao-1.9.js", "js/painel-retencao-1.9.3.js"]) {
   check(!fs.existsSync(path.join(root, moved)), `módulo antigo ainda existe fora da estrutura organizada: ${moved}`);
 }

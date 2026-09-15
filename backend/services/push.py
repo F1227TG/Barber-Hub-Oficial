@@ -12,7 +12,7 @@ from backend.config import settings
 from backend.errors import ApiError
 from backend.models import PushPreferencesUpdate, PushSubscriptionCreate
 from backend.security import AuthContext
-from backend.services.access import model_payload
+from backend.services.access import model_payload, rows_payload
 from backend.supabase import gateway
 from backend.services.flags import require_enabled
 
@@ -24,7 +24,7 @@ async def config() -> dict[str, Any]:
 async def subscribe(payload: PushSubscriptionCreate, auth: AuthContext) -> dict[str, Any]:
     await require_enabled("notificacoes.web_push", auth, str(payload.estabelecimento_id) if payload.estabelecimento_id else None)
     digest = hashlib.sha256(payload.endpoint.encode("utf-8")).hexdigest()
-    rows = await gateway.rest(
+    rows = rows_payload(await gateway.rest(
         "push_assinaturas", method="POST", token=auth.token,
         params={"on_conflict": "endpoint_hash"},
         json={"user_id": auth.user_id,
@@ -33,7 +33,7 @@ async def subscribe(payload: PushSubscriptionCreate, auth: AuthContext) -> dict[
               "auth_secret": payload.auth, "expiracao": payload.expiracao.isoformat() if payload.expiracao else None,
               "user_agent": payload.user_agent, "ativa": True},
         headers={"Prefer": "resolution=merge-duplicates,return=representation"},
-    ) or []
+    ), message="Não foi possível ativar as notificações neste dispositivo agora.")
     if not rows:
         raise ApiError(403, "PUSH_SUBSCRIPTION_FORBIDDEN", "Não foi possível ativar notificações neste dispositivo.")
     return {"id": str(rows[0]["id"]), "active": True}
@@ -50,7 +50,7 @@ async def unsubscribe(endpoint: str, auth: AuthContext) -> dict[str, bool]:
 async def get_preferences(establishment_id: str | None, auth: AuthContext) -> dict[str, Any]:
     params = {"user_id": f"eq.{auth.user_id}", "select": "*", "limit": "1"}
     params["estabelecimento_id"] = f"eq.{establishment_id}" if establishment_id else "is.null"
-    rows = await gateway.rest("push_preferencias", token=auth.token, params=params) or []
+    rows = rows_payload(await gateway.rest("push_preferencias", token=auth.token, params=params))
     return rows[0] if rows else {
         "estabelecimento_id": establishment_id, "agendamentos": True, "confirmacoes": True,
         "cancelamentos": True, "lembretes": True, "lista_espera": True,
@@ -62,16 +62,16 @@ async def update_preferences(payload: PushPreferencesUpdate, auth: AuthContext) 
     establishment_id = str(payload.estabelecimento_id) if payload.estabelecimento_id else None
     params = {"user_id": f"eq.{auth.user_id}", "select": "id", "limit": "1",
               "estabelecimento_id": f"eq.{establishment_id}" if establishment_id else "is.null"}
-    existing = await gateway.rest("push_preferencias", token=auth.token, params=params) or []
+    existing = rows_payload(await gateway.rest("push_preferencias", token=auth.token, params=params))
     data = model_payload(payload, exclude_unset=False)
     data.update({"user_id": auth.user_id, "estabelecimento_id": establishment_id})
     if existing:
-        rows = await gateway.rest("push_preferencias", method="PATCH", token=auth.token,
+        rows = rows_payload(await gateway.rest("push_preferencias", method="PATCH", token=auth.token,
                                   params={"id": f"eq.{existing[0]['id']}"}, json=data,
-                                  headers={"Prefer": "return=representation"}) or []
+                                  headers={"Prefer": "return=representation"}))
     else:
-        rows = await gateway.rest("push_preferencias", method="POST", token=auth.token, json=data,
-                                  headers={"Prefer": "return=representation"}) or []
+        rows = rows_payload(await gateway.rest("push_preferencias", method="POST", token=auth.token, json=data,
+                                  headers={"Prefer": "return=representation"}))
     if not rows:
         raise ApiError(403, "PUSH_PREFERENCES_FORBIDDEN", "Não foi possível salvar suas preferências.")
     return rows[0]
@@ -97,20 +97,20 @@ async def deliver_pending(limit: int = 50) -> dict[str, int]:
     from pywebpush import WebPushException, webpush_async
 
     now = datetime.now(timezone.utc)
-    rows = await gateway.rest(
+    rows = rows_payload(await gateway.rest(
         "reivindicar_entregas_push_1101", method="POST", admin=True, rpc=True,
         json={"p_limite": min(max(limit, 1), 100)},
-    ) or []
+    ), message="Não foi possível preparar os avisos pendentes agora.")
     result = {"examined": len(rows), "sent": 0, "retry": 0, "discarded": 0, "quiet": 0}
     for item in rows:
-        subscriptions = await gateway.rest("push_assinaturas", admin=True, params={"id": f"eq.{item['assinatura_id']}", "ativa": "eq.true", "select": "id,user_id,estabelecimento_id,endpoint,p256dh,auth_secret", "limit": "1"}) or []
-        notifications = await gateway.rest("notificacoes", admin=True, params={"id": f"eq.{item['notificacao_id']}", "select": "titulo,mensagem,url,dados", "limit": "1"}) or []
+        subscriptions = rows_payload(await gateway.rest("push_assinaturas", admin=True, params={"id": f"eq.{item['assinatura_id']}", "ativa": "eq.true", "select": "id,user_id,estabelecimento_id,endpoint,p256dh,auth_secret", "limit": "1"}))
+        notifications = rows_payload(await gateway.rest("notificacoes", admin=True, params={"id": f"eq.{item['notificacao_id']}", "select": "titulo,mensagem,url,dados", "limit": "1"}))
         if not subscriptions or not notifications:
             await _mark(str(item["id"]), {"status": "descartada", "erro_codigo": "SOURCE_MISSING"}); result["discarded"] += 1; continue
         subscription, notification = subscriptions[0], notifications[0]
         pref_params = {"user_id": f"eq.{subscription['user_id']}", "select": "horario_silencioso_inicio,horario_silencioso_fim", "limit": "1"}
         pref_params["estabelecimento_id"] = f"eq.{subscription['estabelecimento_id']}" if subscription.get("estabelecimento_id") else "is.null"
-        preferences = await gateway.rest("push_preferencias", admin=True, params=pref_params) or []
+        preferences = rows_payload(await gateway.rest("push_preferencias", admin=True, params=pref_params))
         preference = preferences[0] if preferences else {}
         if _inside_quiet_hours(preference.get("horario_silencioso_inicio"), preference.get("horario_silencioso_fim")):
             await _mark(str(item["id"]), {"status": "pendente", "tentativas": max(int(item.get("tentativas") or 1) - 1, 0), "proxima_tentativa_em": (now + timedelta(minutes=30)).isoformat()}); result["quiet"] += 1; continue

@@ -20,7 +20,8 @@
 <link href="../manifest.webmanifest" rel="manifest"/>
 <link href="../css/mobile-app.css" rel="stylesheet"/><link href="../css/release-1.4.1.css" rel="stylesheet"/>
 <link href="../css/product-redesign.css" rel="stylesheet"/><link href="../css/release-1.6.css" rel="stylesheet"/><link href="../css/release-1.7.css" rel="stylesheet"/><link href="../css/release-1.7.1.css" rel="stylesheet"/><link href="../css/release-1.8.css" rel="stylesheet"/><link href="../css/releases/release-1.10.css" rel="stylesheet"/><link href="../css/brand-assets-1.8.css" rel="stylesheet"/>
-<meta content="yes" name="mobile-web-app-capable"/><meta content="noindex,follow" name="robots"/><link href="https://barberhuboficial.vercel.app/html/planos" rel="canonical"/><link href="../css/mobile-redesign-1.8.css" rel="stylesheet"/><link href="../css/release-1.9.3.css" rel="stylesheet"/></head>
+
+<meta content="yes" name="mobile-web-app-capable"/><meta content="noindex,follow" name="robots"/><link href="https://barberhuboficial.vercel.app/html/planos" rel="canonical"/><link href="../css/mobile-redesign-1.8.css" rel="stylesheet"/><link href="../css/release-1.9.3.css" rel="stylesheet"/><link href="../css/releases/release-1.11.css" rel="stylesheet"/></head>
 <body class="plans-page page-planos mobile-native">
 <!-- Cabeçalho e navegação principal -->
 <header class="header">
@@ -86,7 +87,7 @@
        O Barber Hub evita cobranças semanais e trabalha com mensalidades mais claras, reduzindo pequenas transações e facilitando o controle para o negócio.
       </p>
 <div class="hero-actions">
-<a class="btn btn-primary" href="/mobile/cadastro.html">
+<a class="btn btn-primary" href="/mobile/cadastro.html?tipo=barbeiro">
 <i class="bi bi-shop">
 </i>
         Criar perfil grátis
@@ -178,7 +179,7 @@
       </div>
 </div>
 <div class="pricing-grid pricing-grid-monthly">
-<article class="plan-card">
+<article class="plan-card" data-plan-key="gratuito">
 <span class="plan-eyebrow">
         Presença digital
        </span>
@@ -224,11 +225,11 @@
         </li>
 <li><i class="bi bi-check2"></i> Biblioteca de capas Barber Hub</li>
 </ul>
-<div class="plan-card-action"><p class="plan-fit"><i class="bi bi-person-check"></i><span>Ideal para entrar no portal e validar sua presença digital.</span></p><a class="btn btn-outline" href="/mobile/cadastro.html">
+<div class="plan-card-action"><p class="plan-fit"><i class="bi bi-person-check"></i><span>Ideal para entrar no portal e validar sua presença digital.</span></p><a class="btn btn-outline" href="/mobile/cadastro.html?tipo=barbeiro">
         Criar perfil grátis
        </a></div>
 </article>
-<article class="plan-card recommended">
+<article class="plan-card recommended" data-plan-key="essencial">
 <span class="plan-ribbon">
         Mais indicado
        </span>
@@ -285,7 +286,7 @@
 </ul>
 <div class="plan-card-action"><p class="plan-fit"><i class="bi bi-lightning-charge"></i><span>Benefícios liberados imediatamente quando o plano é ativado.</span></p><a class="btn btn-primary" href="/mobile/contato.html">Solicitar ativação</a></div>
 </article>
-<article class="plan-card">
+<article class="plan-card" data-plan-key="profissional">
 <span class="plan-eyebrow">
         Equipe
        </span>
@@ -339,7 +340,7 @@
 </ul>
 <div class="plan-card-action"><p class="plan-fit"><i class="bi bi-graph-up-arrow"></i><span>Para equipes que já precisam medir desempenho e crescer com dados.</span></p><a class="btn btn-dark" href="/mobile/contato.html">Solicitar ativação</a></div>
 </article>
-<article class="plan-card">
+<article class="plan-card" data-plan-key="elite">
 <span class="plan-eyebrow">
         Alta capacidade
        </span>
@@ -480,7 +481,7 @@
 </div>
 </div>
 </section>
-<section class="section">
+<section class="section" id="comparativo-planos">
 <div class="container">
 <div class="table-wrap plans-table-wrap">
 <table class="plans-table">
@@ -626,6 +627,8 @@
 </script>
 <script src="../js/api.js">
 </script>
+<script src="../js/core/view-state.js"></script>
+<script src="../js/notification-center.js"></script>
 <script src="../js/status.js">
 </script>
 <script src="../js/ia.js">

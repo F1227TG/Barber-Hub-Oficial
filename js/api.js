@@ -185,19 +185,19 @@ async function bhBuscarMarketplace({ busca = "", tipo = "todos", agenda = null, 
   return { items, total: Number(count || items.length), offset, limit, has_more: offset + (data || []).length < Number(count || 0), search_engine: "supabase_ilike_fallback" };
 }
 
-async function bhBuscarMarketplaceRegional({ busca = "", cidade = "", bairro = "", estado = "", abertoAgora = false, agenda = false, latitude = null, longitude = null, raioKm = null, servico = "", precoMin = null, precoMax = null, avaliacaoMin = null, offset = 0, limit = 24 } = {}) {
+async function bhBuscarMarketplaceRegional({ busca = "", tipo = "todos", status = "todos", cidade = "", bairro = "", estado = "", abertoAgora = null, agenda = null, latitude = null, longitude = null, raioKm = null, servico = "", precoMin = null, precoMax = null, avaliacaoMin = null, offset = 0, limit = 24 } = {}) {
   const filtrosExclusivosDaApi = Boolean(servico || precoMin !== null || precoMax !== null || avaliacaoMin !== null || cidade || bairro || estado || latitude !== null || raioKm !== null);
   if (!window.bhBackendApi?.regionalMarketplace) {
     if (filtrosExclusivosDaApi) throw new Error("Os filtros avançados precisam da conexão segura do Barber Hub. Tente novamente em instantes.");
-    return bhBuscarMarketplace({ busca, agenda:agenda || null, status:abertoAgora ? "aberta" : "todos", offset, limit });
+    return bhBuscarMarketplace({ busca, tipo, agenda, status:status !== "todos" ? status : (abertoAgora ? "aberta" : "todos"), offset, limit });
   }
   try {
-    const result = await window.bhBackendApi.regionalMarketplace({ query:busca, city:cidade, neighborhood:bairro, state:estado, openNow:abertoAgora, agenda, latitude, longitude, radiusKm:raioKm, service:servico, minPrice:precoMin, maxPrice:precoMax, minRating:avaliacaoMin, offset, limit });
-    return { ...result, items:(result?.items || []).map(bhNormalizarEstabelecimento) };
+    const result = await window.bhBackendApi.regionalMarketplace({ query:busca, tipo, status, city:cidade, neighborhood:bairro, state:estado, openNow:abertoAgora, agenda, latitude, longitude, radiusKm:raioKm, service:servico, minPrice:precoMin, maxPrice:precoMax, minRating:avaliacaoMin, offset, limit });
+    return { ...result, items:(Array.isArray(result?.items) ? result.items : []).map(bhNormalizarEstabelecimento) };
   } catch (erro) {
     if (!bhBackendPodeUsarFallback(erro)) throw erro;
     if (filtrosExclusivosDaApi) throw new Error("Os filtros avançados estão temporariamente indisponíveis. Nenhum resultado diferente do filtro foi exibido.");
-    return bhBuscarMarketplace({ busca, agenda:agenda || null, status:abertoAgora ? "aberta" : "todos", offset, limit });
+    return bhBuscarMarketplace({ busca, tipo, agenda, status:status !== "todos" ? status : (abertoAgora ? "aberta" : "todos"), offset, limit });
   }
 }
 
@@ -256,11 +256,27 @@ async function bhObterMeuEstabelecimento() {
   return bhNormalizarEstabelecimento(data);
 }
 
+async function bhListarMeusEstabelecimentosOperados() {
+  const perfil = await bhGetPerfil();
+  if (!perfil) return [];
+  const client = bhExigirSupabase();
+  const { data, error } = await client.rpc("listar_meus_estabelecimentos_operados_111");
+  if (error) throw error;
+  const rows = Array.isArray(data) ? data : [];
+  return [...new Set(rows.map(item => String(item?.estabelecimento_id || "").trim()).filter(Boolean))];
+}
+
+async function bhUsuarioOperaEstabelecimento(estabelecimentoId) {
+  if (!estabelecimentoId) return false;
+  return (await bhListarMeusEstabelecimentosOperados()).includes(String(estabelecimentoId));
+}
+
 async function bhCriarEstabelecimentoInicial(payload) {
   const client = bhExigirSupabase();
   const { data, error } = await client.rpc("criar_estabelecimento_inicial", {
     p_tipo_estabelecimento: payload.tipoEstabelecimento,
     p_nome: payload.nome,
+    p_cnpj: payload.cnpj || null,
     p_descricao: payload.descricao || "",
     p_email_publico: payload.emailPublico || null,
     p_telefone: payload.telefone || null,
@@ -352,7 +368,7 @@ async function bhListarAgendamentosCliente() {
     .from("agendamentos")
     .select(`
       *,
-      estabelecimentos(nome,slug,tipo_estabelecimento),
+      estabelecimentos(nome,slug,tipo_estabelecimento,cidade,bairro,estado),
       profissionais(nome),
       servicos(id,nome,preco,duracao_min),
       agendamento_servicos(servico_id,ordem,nome_snapshot,preco_snapshot,duracao_min_snapshot,servicos(id,nome,preco,duracao_min))
@@ -397,6 +413,7 @@ async function bhObterHorariosOcupados(profissionalId, data) {
 async function bhCriarAgendamento(payload) {
   const servicosIds = [...new Set(payload.servicosIds || [payload.servicoId].filter(Boolean))];
   if (!servicosIds.length) throw new Error("Selecione pelo menos um serviço.");
+  const chaveIdempotencia = String(payload.chave_idempotencia || payload.chaveIdempotencia || `booking.${crypto.randomUUID()}`);
 
   // Produção: a API Python valida a sessão e chama a função transacional.
   if (window.bhBackendApi) {
@@ -408,7 +425,8 @@ async function bhCriarAgendamento(payload) {
         data: payload.data,
         hora_inicio: payload.hora,
         observacao: payload.observacao || null,
-        cupom_codigo: payload.cupomCodigo || null
+        cupom_codigo: payload.cupomCodigo || null,
+        chave_idempotencia: chaveIdempotencia
       });
     } catch (erro) {
       if (!bhBackendPodeUsarFallback(erro)) throw erro;
@@ -418,14 +436,15 @@ async function bhCriarAgendamento(payload) {
 
   // Desenvolvimento estático: fallback temporário para o Supabase.
   const client = bhExigirSupabase();
-  const { data, error } = await client.rpc("criar_agendamento_com_cupom_193", {
+  const { data, error } = await client.rpc("criar_agendamento_idempotente_111", {
     p_estabelecimento_id: payload.estabelecimentoId,
     p_profissional_id: payload.profissionalId,
     p_servicos_ids: servicosIds,
     p_data: payload.data,
     p_hora_inicio: payload.hora,
     p_observacao: payload.observacao || null,
-    p_cupom_codigo: payload.cupomCodigo || null
+    p_cupom_codigo: payload.cupomCodigo || null,
+    p_chave_idempotencia: chaveIdempotencia
   });
   if (error) throw error;
   return data;
@@ -721,12 +740,13 @@ async function bhAdminAtribuirPlano(estabelecimentoId, dados) {
     catch (erro) { if (!bhBackendPodeUsarFallback(erro)) throw erro; }
   }
   const client = bhExigirSupabase();
-  const { data, error } = await client.rpc("admin_atribuir_plano", {
+  const { data, error } = await client.rpc("admin_atribuir_plano_111", {
     p_estabelecimento_id: estabelecimentoId,
     p_plano_slug: dados.plano_slug,
     p_status: dados.status || "ativa",
     p_periodo_fim: dados.periodo_fim || null,
-    p_observacoes: dados.observacoes || null
+    p_observacoes: dados.observacoes || null,
+    p_chave_idempotencia: dados.chave_idempotencia || null
   });
   if (error) throw error;
   return Array.isArray(data) ? data[0] : data;
@@ -804,6 +824,17 @@ async function bhMarcarTodasNotificacoesLidas() {
     .is("lida_em", null);
   if (error) throw error;
 }
+
+async function bhListarMeusConsentimentos() {
+  const perfil = await bhGetPerfil();
+  if (!perfil) return [];
+  const client = bhExigirSupabase();
+  const { data, error } = await client.from("consentimentos_usuario").select("finalidade,documento,versao,acao,origem,created_at").eq("user_id", perfil.id).order("created_at", { ascending:false });
+  if (error) throw error;
+  return data || [];
+}
+
+window.bhListarMeusConsentimentos = bhListarMeusConsentimentos;
 
 async function bhObterContadoresNavegacao(perfil = null) {
   perfil ||= await bhGetPerfil();
@@ -1505,6 +1536,7 @@ async function bhListarAvaliacoesMeuEstabelecimento(estabelecimentoId) {
   return data || [];
 }
 
+/** @deprecated A exclusão imediata foi removida; novos pedidos respeitam sete dias. */
 async function bhExcluirMinhaConta(senhaAtual) {
   const perfil = await bhGetPerfil();
   if (!perfil) throw new Error("Sessão não encontrada.");
@@ -1517,25 +1549,10 @@ async function bhExcluirMinhaConta(senhaAtual) {
   });
   if (erroLogin) throw new Error("Senha atual incorreta.");
 
-  if (window.bhBackendApi) {
-    try {
-      await window.bhBackendApi.deleteAccount("EXCLUIR MINHA CONTA");
-      bhPerfilCache = null;
-      try { await client.auth.signOut(); } catch (_) {}
-      return;
-    } catch (erro) {
-      if (!bhBackendPodeUsarFallback(erro)) throw erro;
-      console.warn("[Barber Hub] API de exclusão indisponível; usando RPC local.", erro);
-    }
-  }
-
-  // Fallback de desenvolvimento. Em produção, a chamada passa por /api/v1.
   const token = login?.session?.access_token;
   if (!token) throw new Error("Não foi possível renovar sua sessão.");
-  const { error } = await client.rpc("excluir_minha_conta");
-  if (error) throw error;
-  bhPerfilCache = null;
-  try { await client.auth.signOut(); } catch (_) {}
+  if (!window.bhBackendApi?.scheduleAccountDeletion) throw new Error("O pedido de exclusão está temporariamente indisponível. Tente novamente mais tarde.");
+  return window.bhBackendApi.scheduleAccountDeletion({ confirmation:"EXCLUIR MINHA CONTA" });
 }
 
 async function bhAdminAtualizarPerfil(id, dados) {

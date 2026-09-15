@@ -8,6 +8,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
 
+from backend.schemas.account import DeleteAccountRequest
+
 
 class AppointmentCreate(BaseModel):
     estabelecimento_id: UUID
@@ -17,6 +19,12 @@ class AppointmentCreate(BaseModel):
     hora_inicio: time
     observacao: str | None = Field(default=None, max_length=800)
     cupom_codigo: str | None = Field(default=None, min_length=3, max_length=40)
+    chave_idempotencia: str | None = Field(
+        default=None,
+        min_length=16,
+        max_length=100,
+        pattern=r"^[A-Za-z0-9._:-]+$",
+    )
 
     @field_validator("servicos_ids")
     @classmethod
@@ -203,6 +211,10 @@ class RecurrenceCreate(BaseModel):
     total_ocorrencias: int = Field(ge=2, le=24)
 
 
+class RecurrenceUpdate(BaseModel):
+    status: Literal["cancelada"]
+
+
 class LoyaltyProgramUpsert(BaseModel):
     estabelecimento_id: UUID
     nome: str = Field(default="Clube de fidelidade", min_length=3, max_length=100)
@@ -336,6 +348,16 @@ class EstablishmentUpdate(BaseModel):
     intervalo_slots_min: int | None = Field(default=None, ge=10, le=180)
     antecedencia_min_horas: int | None = Field(default=None, ge=0, le=168)
     limite_dias_agendamento: int | None = Field(default=None, ge=1, le=365)
+    cnpj: str | None = Field(default=None, min_length=14, max_length=18)
+
+    @field_validator("cnpj")
+    @classmethod
+    def validate_cnpj(cls, value: str | None) -> str | None:
+        if value is None or not value.strip():
+            return None
+        from backend.domain.identity import validated_cnpj
+
+        return validated_cnpj(value)
 
 
 class EstablishmentStatusUpdate(BaseModel):
@@ -394,6 +416,18 @@ class AdminSubscriptionUpdate(BaseModel):
     status: Literal["teste", "ativa", "atrasada", "pausada", "cancelada", "expirada"] = "ativa"
     periodo_fim: date | None = None
     observacoes: str | None = Field(default=None, max_length=800)
+    chave_idempotencia: str | None = Field(
+        default=None,
+        min_length=16,
+        max_length=100,
+        pattern=r"^[A-Za-z0-9._:-]+$",
+    )
+
+    @model_validator(mode="after")
+    def validate_effective_period(self):
+        if self.status in {"teste", "ativa"} and self.periodo_fim and self.periodo_fim < date.today():
+            raise ValueError("A validade de uma assinatura ativa ou em teste não pode estar no passado.")
+        return self
 
 
 class PromotionCreate(BaseModel):
@@ -433,10 +467,6 @@ class SupportTicketCreate(BaseModel):
     assunto: str = Field(min_length=5, max_length=160)
     mensagem: str = Field(min_length=15, max_length=4000)
     website: str = Field(default="", max_length=200)
-
-
-class DeleteAccountRequest(BaseModel):
-    confirmacao: str = Field(max_length=80)
 
 
 class PasswordRecoveryRequest(BaseModel):

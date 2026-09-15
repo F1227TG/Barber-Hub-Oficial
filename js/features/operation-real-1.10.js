@@ -303,11 +303,22 @@
     return Uint8Array.from([...raw].map(char => char.charCodeAt(0)));
   }
 
+  function pushPermissionStatus(config) {
+    if (!config?.supported || !("serviceWorker" in navigator) || !("PushManager" in global) || !("Notification" in global)) {
+      return { code:"unavailable", label:"Indisponível neste ambiente", detail:"Os avisos continuam disponíveis dentro do Barber Hub.", disabled:true };
+    }
+    const permission = Notification.permission;
+    if (permission === "granted") return { code:"granted", label:"Permitido neste dispositivo", detail:"Escolha abaixo quais categorias deseja receber.", disabled:false };
+    if (permission === "denied") return { code:"denied", label:"Bloqueado no navegador", detail:"Para ativar, altere a permissão de notificações nas configurações do navegador.", disabled:true };
+    return { code:"default", label:"Ainda não solicitado", detail:"A autorização do navegador só será pedida quando você tocar em Ativar.", disabled:false };
+  }
+
   function renderPush(preferences, config) {
     const host = $("#pushPreferences110");
     if (!host) return;
     const choices = [["agendamentos", "Novos agendamentos"], ["confirmacoes", "Confirmações"], ["cancelamentos", "Cancelamentos"], ["lembretes", "Lembretes"], ["lista_espera", "Lista de espera"], ["oportunidades", "Oportunidades"], ["campanhas", "Campanhas"]];
-    host.innerHTML = `<form id="formPushPreferences110" class="push-preferences110">${choices.map(([name, label]) => `<label><input name="${name}" type="checkbox" ${preferences?.[name] !== false ? "checked" : ""}><span>${label}</span></label>`).join("")}<fieldset class="quiet-hours110"><legend>Não interromper</legend><label><span>Das</span><input name="horario_silencioso_inicio" type="time" value="${safe(time(preferences?.horario_silencioso_inicio))}"></label><label><span>Até</span><input name="horario_silencioso_fim" type="time" value="${safe(time(preferences?.horario_silencioso_fim))}"></label><small>Deixe os dois horários vazios para receber avisos a qualquer hora.</small></fieldset><button class="btn btn-outline" type="submit">Salvar preferências</button></form><button class="btn btn-primary" data-push-enable110 type="button" ${config?.supported ? "" : "disabled"}><i class="bi bi-bell"></i> Ativar avisos neste dispositivo</button><small>${config?.supported ? "O navegador pedirá sua autorização." : "As preferências internas já funcionam. O envio ao dispositivo será liberado após configurar o serviço de entrega."}</small>`;
+    const permission = pushPermissionStatus(config);
+    host.innerHTML = `<div class="push-device-status111 is-${permission.code}" role="status"><span><i class="bi ${permission.code === "granted" ? "bi-bell-fill" : permission.code === "denied" ? "bi-bell-slash" : "bi-bell"}"></i></span><div><small>Status neste dispositivo</small><strong>${safe(permission.label)}</strong><p>${safe(permission.detail)}</p></div></div><form id="formPushPreferences110" class="push-preferences110">${choices.map(([name, label]) => `<label><input name="${name}" type="checkbox" ${preferences?.[name] !== false ? "checked" : ""}><span>${label}</span></label>`).join("")}<fieldset class="quiet-hours110"><legend>Não interromper</legend><label><span>Início</span><input name="horario_silencioso_inicio" type="time" value="${safe(time(preferences?.horario_silencioso_inicio))}"></label><label><span>Fim</span><input name="horario_silencioso_fim" type="time" value="${safe(time(preferences?.horario_silencioso_fim))}"></label><small>Deixe os dois horários vazios para receber avisos a qualquer hora.</small></fieldset><button class="btn btn-outline" type="submit">Salvar preferências</button></form><button class="btn btn-primary" data-push-enable110 type="button" ${permission.disabled ? "disabled" : ""}><i class="bi bi-bell"></i> ${permission.code === "granted" ? "Reconectar avisos" : "Ativar avisos neste dispositivo"}</button>`;
   }
 
   async function loadPush() {
@@ -331,6 +342,7 @@
       const json = subscription.toJSON();
       await api().subscribePush({ estabelecimento_id:establishment().id, endpoint:json.endpoint, p256dh:json.keys.p256dh, auth:json.keys.auth, expiracao:subscription.expirationTime ? new Date(subscription.expirationTime).toISOString() : null, user_agent:navigator.userAgent.slice(0, 500) });
       toast("sucesso", "Avisos ativados", "Este dispositivo poderá receber os alertas escolhidos.");
+      await loadPush();
     } catch (error) { toast("erro", "Não foi possível ativar", errorMessage(error)); }
     finally { global.bhSetButtonLoading?.(button, false); }
   }

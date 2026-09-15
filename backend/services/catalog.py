@@ -8,6 +8,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from backend.errors import ApiError
+from backend.services.access import object_payload, rows_payload
 from backend.supabase import gateway
 
 CATALOG_SELECT = (
@@ -29,7 +31,7 @@ CATALOG_SELECT = (
 
 async def summary() -> dict[str, int]:
     data = await gateway.rest("metricas_publicas", method="POST", admin=False, json={}, rpc=True)
-    row = data[0] if isinstance(data, list) and data else (data or {})
+    row = object_payload(data, message="Não foi possível carregar o resumo público agora.")
     return {
         "estabelecimentos": int(row.get("estabelecimentos") or 0),
         "agendamentos": int(row.get("com_agenda") or 0),
@@ -55,7 +57,8 @@ async def _fetch_rows(ids: list[str]) -> list[dict[str, Any]]:
             "promocoes.ativo": "eq.true",
         },
     )
-    by_id = {str(row.get("id")): row for row in (rows or [])}
+    rows = rows_payload(rows, message="Não foi possível carregar o catálogo agora.")
+    by_id = {str(row.get("id")): row for row in rows if row.get("id")}
     return [by_id[item] for item in ids if item in by_id]
 
 
@@ -86,8 +89,8 @@ async def search(
             "p_somente_destaques": bool(featured_only),
         },
     )
-    rank_rows = ranks or []
-    ids = [str(item["id"]) for item in rank_rows]
+    rank_rows = rows_payload(ranks, message="Não foi possível pesquisar estabelecimentos agora.")
+    ids = [str(item["id"]) for item in rank_rows if item.get("id")]
     rows = await _fetch_rows(ids)
     metadata = {str(item["id"]): item for item in rank_rows}
     for row in rows:
@@ -113,8 +116,9 @@ async def featured(limit: int = 6) -> dict[str, Any]:
 
 
 async def regional_search(
-    *, query: str | None = None, city: str | None = None, neighborhood: str | None = None,
-    state: str | None = None, open_now: bool = False, agenda: bool = False,
+    *, query: str | None = None, tipo: str | None = None, status: str | None = None,
+    city: str | None = None, neighborhood: str | None = None,
+    state: str | None = None, agenda: bool | None = None,
     latitude: float | None = None, longitude: float | None = None,
     radius_km: float | None = None, service: str | None = None,
     min_price: float | None = None, max_price: float | None = None,
@@ -125,20 +129,23 @@ async def regional_search(
     safe_limit = min(max(int(limit or 24), 1), 60)
     safe_offset = min(max(int(offset or 0), 0), 10_000)
     ranked = await gateway.rest(
-        "buscar_marketplace_regional_1101", method="POST", admin=False, rpc=True,
+        "buscar_marketplace_regional_111", method="POST", admin=False, rpc=True,
         json={
             "p_busca": (query or "").strip() or None,
+            "p_tipo": tipo if tipo not in (None, "", "todos") else None,
+            "p_status": status if status not in (None, "", "todos") else None,
+            "p_agenda": agenda,
             "p_cidade": (city or "").strip() or None,
             "p_bairro": (neighborhood or "").strip() or None,
             "p_estado": (state or "").strip().upper() or None,
-            "p_aberto_agora": bool(open_now), "p_com_agenda": bool(agenda),
             "p_latitude": latitude, "p_longitude": longitude, "p_raio_km": radius_km,
             "p_servico": (service or "").strip() or None,
             "p_preco_min": min_price, "p_preco_max": max_price, "p_avaliacao_min": min_rating,
             "p_offset": safe_offset, "p_limite": safe_limit,
         },
-    ) or []
-    ids = [str(item["id"]) for item in ranked]
+    )
+    ranked = rows_payload(ranked, message="Não foi possível pesquisar estabelecimentos nesta região agora.")
+    ids = [str(item["id"]) for item in ranked if item.get("id")]
     rows = await _fetch_rows(ids)
     metadata = {str(item["id"]): item for item in ranked}
     for row in rows:
@@ -154,7 +161,49 @@ async def regional_search(
 async def cover_library() -> list[dict[str, Any]]:
     from backend.services.flags import require_enabled
     await require_enabled("perfil.biblioteca_capas")
-    return await gateway.rest(
+    return rows_payload(await gateway.rest(
         "biblioteca_capas", admin=False,
         params={"select": "id,chave,nome,estilo,url,texto_alternativo,cor_dominante,ordem", "ativo": "eq.true", "order": "ordem.asc,id.asc"},
-    ) or []
+    ), message="Não foi possível carregar as opções de capa agora.")
+
+
+async def reviews(establishment_id: str, *, offset: int = 0, limit: int = 10) -> dict[str, Any]:
+    """Return only published review fields with stable server-side pagination."""
+
+    safe_limit = min(max(int(limit), 1), 30)
+    safe_offset = min(max(int(offset), 0), 10_000)
+    response = await gateway.request(
+        "/rest/v1/avaliacoes",
+        admin=True,
+        params={
+            "select": "id,nota,comentario,resposta_estabelecimento,respondido_em,origem,verificada,created_at,perfis(nome,avatar_url)",
+            "estabelecimento_id": f"eq.{establishment_id}",
+            "status": "eq.publicada",
+            "order": "created_at.desc,id.desc",
+            "offset": str(safe_offset),
+            "limit": str(safe_limit),
+        },
+        headers={"Prefer": "count=exact"},
+    )
+    rows = rows_payload(response.json(), message="Não foi possível carregar as avaliações agora.")
+    content_range = response.headers.get("content-range", "")
+    try:
+        total = int(content_range.rsplit("/", 1)[1])
+    except (ValueError, IndexError):
+        total = safe_offset + len(rows)
+    establishment = await gateway.rest(
+        "estabelecimentos",
+        admin=True,
+        params={"select": "avaliacao", "id": f"eq.{establishment_id}", "visivel": "eq.true", "limit": "1"},
+    )
+    establishment = rows_payload(establishment, message="Não foi possível validar este estabelecimento agora.")
+    if not establishment:
+        raise ApiError(404, "ESTABLISHMENT_NOT_FOUND", "Estabelecimento não encontrado.")
+    return {
+        "items": rows,
+        "total": total,
+        "offset": safe_offset,
+        "limit": safe_limit,
+        "has_more": safe_offset + len(rows) < total,
+        "summary": {"average": float(establishment[0].get("avaliacao") or 0), "total": total},
+    }

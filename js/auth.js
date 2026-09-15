@@ -61,7 +61,7 @@ async function bhLogin(email, senha, captchaToken = undefined) {
   return { session: data.session, user: data.user, perfil };
 }
 
-async function bhRegistrar({ nome, email, telefone, senha, tipo, next = null, captchaToken = undefined }) {
+async function bhRegistrar({ nome, email, telefone, senha, tipo, next = null, captchaToken = undefined, marketing = false, versaoLegal = "2026-09-11" }) {
   const client = bhExigirSupabase();
   const destinoContinuacao = window.bhContinuation?.safeNext?.(next);
   const confirmacao = new URL(bhAbsoluteUrl("html/login.html"));
@@ -76,7 +76,11 @@ async function bhRegistrar({ nome, email, telefone, senha, tipo, next = null, ca
       data: {
         nome: nome.trim(),
         telefone: telefone.trim(),
-        tipo: tipo === "barbeiro" ? "barbeiro" : "cliente"
+        tipo: tipo === "barbeiro" ? "barbeiro" : "cliente",
+        aceite_termos_versao: versaoLegal,
+        aceite_privacidade_versao: versaoLegal,
+        aceite_em: new Date().toISOString(),
+        marketing_aceito: Boolean(marketing)
       }
     }
   });
@@ -113,6 +117,9 @@ async function bhLogout() {
   const { error } = await client.auth.signOut();
   if (error) throw error;
   bhPerfilCache = null;
+  window.bhViewState?.clearAll?.();
+  window.bhOperationDraft?.clearAll?.();
+  window.bhContinuation?.clear?.();
 }
 
 function bhDestinoPerfil(perfil, next = null) {
@@ -183,6 +190,11 @@ async function bhAtualizarEmail(email) {
 
 if (bhSupabasePronto()) {
   supabaseClient.auth.onAuthStateChange((_evento, session) => {
-    if (!session) bhPerfilCache = null;
+    if (!session) {
+      bhPerfilCache = null;
+      window.bhViewState?.clearAll?.();
+      window.bhOperationDraft?.clearAll?.();
+      window.bhContinuation?.clear?.();
+    }
   });
 }

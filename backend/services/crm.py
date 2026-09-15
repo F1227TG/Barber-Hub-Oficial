@@ -9,7 +9,7 @@ from backend.domain.crm import normalize_tags
 from backend.errors import ApiError
 from backend.models import CRMClientUpdate, CRMNoteCreate
 from backend.security import AuthContext
-from backend.services.access import first_visible, model_payload, require_feature
+from backend.services.access import first_visible, model_payload, require_feature, rows_payload
 from backend.supabase import gateway
 
 
@@ -23,7 +23,7 @@ async def list_clients(
     auth: AuthContext,
 ) -> list[dict[str, Any]]:
     await require_feature(establishment_id, auth, "permite_crm", "O CRM está disponível a partir do plano Essencial.")
-    return await gateway.rest(
+    return rows_payload(await gateway.rest(
         "listar_clientes_crm_19",
         method="POST",
         token=auth.token,
@@ -36,7 +36,7 @@ async def list_clients(
             "p_cursor_id": cursor_id,
             "p_limite": limit,
         },
-    ) or []
+    ), message="Não foi possível carregar seus clientes agora.")
 
 
 async def get_client(client_id: str, auth: AuthContext) -> dict[str, Any]:
@@ -52,7 +52,7 @@ async def get_client(client_id: str, auth: AuthContext) -> dict[str, Any]:
         message="Cliente não encontrado ou sem permissão de acesso.",
     )
     await require_feature(str(client["estabelecimento_id"]), auth, "permite_crm", "O CRM está indisponível no plano atual.")
-    notes = await gateway.rest(
+    notes = rows_payload(await gateway.rest(
         "cliente_notas",
         token=auth.token,
         params={
@@ -62,8 +62,8 @@ async def get_client(client_id: str, auth: AuthContext) -> dict[str, Any]:
             "order": "created_at.desc,id.desc",
             "limit": "100",
         },
-    )
-    return {**client, "notes": notes or []}
+    ))
+    return {**client, "notes": notes}
 
 
 async def update_client(client_id: str, payload: CRMClientUpdate, auth: AuthContext) -> dict[str, Any]:
@@ -80,14 +80,14 @@ async def update_client(client_id: str, payload: CRMClientUpdate, auth: AuthCont
         data["tags"] = normalize_tags(data["tags"])
     if not data:
         raise ApiError(422, "EMPTY_UPDATE", "Informe pelo menos um campo para atualizar.")
-    rows = await gateway.rest(
+    rows = rows_payload(await gateway.rest(
         "clientes_estabelecimento",
         method="PATCH",
         token=auth.token,
         params={"id": f"eq.{client_id}"},
         json=data,
         headers={"Prefer": "return=representation"},
-    )
+    ))
     if not rows:
         raise ApiError(403, "CRM_UPDATE_FORBIDDEN", "Não foi possível atualizar a ficha do cliente.")
     return rows[0]
@@ -102,13 +102,13 @@ async def add_note(client_id: str, payload: CRMNoteCreate, auth: AuthContext) ->
         message="Cliente não encontrado ou sem permissão para adicionar nota.",
     )
     await require_feature(str(current["estabelecimento_id"]), auth, "permite_crm", "O CRM está indisponível no plano atual.")
-    rows = await gateway.rest(
+    rows = rows_payload(await gateway.rest(
         "cliente_notas",
         method="POST",
         token=auth.token,
         json={"relacionamento_id": client_id, "autor_id": auth.user_id, "conteudo": payload.conteudo.strip()},
         headers={"Prefer": "return=representation"},
-    )
+    ))
     if not rows:
         raise ApiError(403, "CRM_NOTE_FORBIDDEN", "Não foi possível salvar a nota interna.")
     return rows[0]

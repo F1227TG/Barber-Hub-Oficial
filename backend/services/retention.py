@@ -15,11 +15,12 @@ from backend.models import (
     LoyaltyRewardCreate,
     LoyaltyRewardUpdate,
     RecurrenceCreate,
+    RecurrenceUpdate,
     WaitlistCreate,
     WaitlistUpdate,
 )
 from backend.security import AuthContext
-from backend.services.access import first_visible, model_payload, require_feature
+from backend.services.access import first_visible, model_payload, require_feature, rows_payload
 from backend.supabase import gateway
 
 
@@ -35,7 +36,10 @@ async def list_waitlist(establishment_id: str | None, auth: AuthContext, offset:
         params["estabelecimento_id"] = f"eq.{establishment_id}"
     else:
         params["cliente_id"] = f"eq.{auth.user_id}"
-    rows = await gateway.rest("lista_espera", token=auth.token, params=params) or []
+    rows = rows_payload(
+        await gateway.rest("lista_espera", token=auth.token, params=params),
+        message="Não foi possível carregar a lista de espera agora.",
+    )
     return {"items": rows[:safe_limit], "offset": safe_offset, "limit": safe_limit, "has_more": len(rows) > safe_limit}
 
 
@@ -80,13 +84,55 @@ async def list_recurrences(establishment_id: str | None, auth: AuthContext, offs
         params["estabelecimento_id"] = f"eq.{establishment_id}"
     else:
         params["cliente_id"] = f"eq.{auth.user_id}"
-    rows = await gateway.rest("agendamentos_recorrencias", token=auth.token, params=params) or []
-    return {"items": rows[:safe_limit], "offset": safe_offset, "limit": safe_limit, "has_more": len(rows) > safe_limit}
+    rows = rows_payload(
+        await gateway.rest("agendamentos_recorrencias", token=auth.token, params=params),
+        message="Não foi possível carregar as recorrências agora.",
+    )
+    items = rows[:safe_limit]
+    recurrence_ids = [str(item["id"]) for item in items if item.get("id")]
+    future_by_recurrence: dict[str, list[dict[str, Any]]] = {}
+    if recurrence_ids:
+        future_rows = rows_payload(
+            await gateway.rest(
+                "agendamentos",
+                token=auth.token,
+                params={
+                "recorrencia_id": f"in.({','.join(recurrence_ids)})",
+                "data": f"gte.{date.today().isoformat()}",
+                "status": "in.(pendente,confirmado)",
+                "select": "recorrencia_id,data,hora_inicio,status",
+                "order": "data.asc,hora_inicio.asc",
+                "limit": "1500",
+                },
+            ),
+            message="Não foi possível calcular os próximos horários das recorrências.",
+        )
+        for occurrence in future_rows:
+            recurrence_id = str(occurrence.get("recorrencia_id") or "")
+            if recurrence_id:
+                future_by_recurrence.setdefault(recurrence_id, []).append(occurrence)
+    for item in items:
+        occurrences = future_by_recurrence.get(str(item.get("id") or ""), [])
+        item["ocorrencias_restantes"] = len(occurrences)
+        item["proxima_ocorrencia"] = occurrences[0] if occurrences else None
+    return {"items": items, "offset": safe_offset, "limit": safe_limit, "has_more": len(rows) > safe_limit}
+
+
+async def update_recurrence(recurrence_id: str, payload: RecurrenceUpdate, auth: AuthContext) -> dict[str, Any]:
+    if payload.status != "cancelada":
+        raise ApiError(422, "RECURRENCE_STATUS_INVALID", "Escolha uma ação válida para a recorrência.")
+    return await gateway.rest(
+        "cancelar_recorrencia_agendamento_111",
+        method="POST",
+        token=auth.token,
+        rpc=True,
+        json={"p_recorrencia_id": recurrence_id},
+    )
 
 
 async def loyalty_overview(establishment_id: str, auth: AuthContext) -> dict[str, Any]:
     await require_feature(establishment_id, auth, "permite_fidelidade", "Fidelidade disponível a partir do plano Profissional.")
-    programs = await gateway.rest("fidelidade_programas", token=auth.token, params={"estabelecimento_id": f"eq.{establishment_id}", "select": "*", "limit": "1"}) or []
+    programs = rows_payload(await gateway.rest("fidelidade_programas", token=auth.token, params={"estabelecimento_id": f"eq.{establishment_id}", "select": "*", "limit": "1"}))
     program = programs[0] if programs else None
     if not program:
         return {"programa": None, "recompensas": [], "clientes": []}
@@ -96,7 +142,7 @@ async def loyalty_overview(establishment_id: str, auth: AuthContext) -> dict[str
 
 async def client_loyalty(auth: AuthContext) -> list[dict[str, Any]]:
     """Return only loyalty balances and rewards visible to the signed-in client."""
-    balances = await gateway.rest(
+    balances = rows_payload(await gateway.rest(
         "fidelidade_saldos",
         token=auth.token,
         params={
@@ -105,10 +151,10 @@ async def client_loyalty(auth: AuthContext) -> list[dict[str, Any]]:
             "order": "updated_at.desc",
             "limit": "100",
         },
-    ) or []
+    ))
     result: list[dict[str, Any]] = []
     for balance in balances:
-        programs = await gateway.rest(
+        programs = rows_payload(await gateway.rest(
             "fidelidade_programas",
             token=auth.token,
             params={
@@ -117,10 +163,10 @@ async def client_loyalty(auth: AuthContext) -> list[dict[str, Any]]:
                 "select": "id,estabelecimento_id,nome,pontos_por_visita,reais_por_ponto,estabelecimentos(nome,slug)",
                 "limit": "1",
             },
-        ) or []
+        ))
         if not programs:
             continue
-        rewards = await gateway.rest(
+        rewards = rows_payload(await gateway.rest(
             "fidelidade_recompensas",
             token=auth.token,
             params={
@@ -130,37 +176,37 @@ async def client_loyalty(auth: AuthContext) -> list[dict[str, Any]]:
                 "order": "pontos_necessarios.asc",
                 "limit": "100",
             },
-        ) or []
+        ))
         result.append({"programa": programs[0], "saldo": balance, "recompensas": rewards})
     return result
 
 
 async def _loyalty_children(program_id: str, auth: AuthContext) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
-    rewards = await gateway.rest("fidelidade_recompensas", token=auth.token, params={"programa_id": f"eq.{program_id}", "select": "*", "order": "pontos_necessarios.asc", "limit": "100"}) or []
-    balances = await gateway.rest("fidelidade_saldos", token=auth.token, params={"programa_id": f"eq.{program_id}", "select": "programa_id,cliente_id,pontos,total_creditado,total_resgatado,updated_at,perfis(nome,email)", "order": "pontos.desc", "limit": "200"}) or []
+    rewards = rows_payload(await gateway.rest("fidelidade_recompensas", token=auth.token, params={"programa_id": f"eq.{program_id}", "select": "*", "order": "pontos_necessarios.asc", "limit": "100"}))
+    balances = rows_payload(await gateway.rest("fidelidade_saldos", token=auth.token, params={"programa_id": f"eq.{program_id}", "select": "programa_id,cliente_id,pontos,total_creditado,total_resgatado,updated_at,perfis(nome,email)", "order": "pontos.desc", "limit": "200"}))
     return rewards, balances
 
 
 async def upsert_loyalty_program(payload: LoyaltyProgramUpsert, auth: AuthContext) -> dict[str, Any]:
     establishment_id = str(payload.estabelecimento_id)
     await require_feature(establishment_id, auth, "permite_fidelidade", "Fidelidade disponível a partir do plano Profissional.")
-    rows = await gateway.rest(
+    rows = rows_payload(await gateway.rest(
         "fidelidade_programas", method="POST", token=auth.token,
         params={"on_conflict": "estabelecimento_id"},
         json=model_payload(payload, exclude_unset=False),
         headers={"Prefer": "resolution=merge-duplicates,return=representation"},
-    )
+    ))
     if not rows:
         raise ApiError(403, "LOYALTY_PROGRAM_FORBIDDEN", "Não foi possível salvar o programa de fidelidade.")
     return rows[0]
 
 
 async def create_reward(payload: LoyaltyRewardCreate, auth: AuthContext) -> dict[str, Any]:
-    programs = await gateway.rest("fidelidade_programas", token=auth.token, params={"id": f"eq.{payload.programa_id}", "select": "id,estabelecimento_id", "limit": "1"}) or []
+    programs = rows_payload(await gateway.rest("fidelidade_programas", token=auth.token, params={"id": f"eq.{payload.programa_id}", "select": "id,estabelecimento_id", "limit": "1"}))
     if not programs:
         raise ApiError(404, "LOYALTY_PROGRAM_NOT_FOUND", "Programa de fidelidade não encontrado.")
     await require_feature(str(programs[0]["estabelecimento_id"]), auth, "permite_fidelidade", "Fidelidade indisponível no plano atual.")
-    rows = await gateway.rest("fidelidade_recompensas", method="POST", token=auth.token, json=model_payload(payload, exclude_unset=False), headers={"Prefer": "return=representation"})
+    rows = rows_payload(await gateway.rest("fidelidade_recompensas", method="POST", token=auth.token, json=model_payload(payload, exclude_unset=False), headers={"Prefer": "return=representation"}))
     if not rows:
         raise ApiError(403, "LOYALTY_REWARD_FORBIDDEN", "Não foi possível criar a recompensa.")
     return rows[0]
@@ -170,7 +216,7 @@ async def update_reward(reward_id: str, payload: LoyaltyRewardUpdate, auth: Auth
     data = model_payload(payload)
     if not data:
         raise ApiError(422, "EMPTY_UPDATE", "Informe ao menos um campo para atualizar.")
-    rows = await gateway.rest("fidelidade_recompensas", method="PATCH", token=auth.token, params={"id": f"eq.{reward_id}"}, json=data, headers={"Prefer": "return=representation"})
+    rows = rows_payload(await gateway.rest("fidelidade_recompensas", method="PATCH", token=auth.token, params={"id": f"eq.{reward_id}"}, json=data, headers={"Prefer": "return=representation"}))
     if not rows:
         raise ApiError(404, "LOYALTY_REWARD_NOT_FOUND", "Recompensa não encontrada ou sem permissão.")
     return rows[0]
@@ -183,7 +229,7 @@ async def redeem_reward(reward_id: str, payload: LoyaltyRedeem, auth: AuthContex
 async def list_coupons(establishment_id: str, auth: AuthContext, offset: int = 0, limit: int = 30) -> dict[str, Any]:
     await require_feature(establishment_id, auth, "permite_cupons", "Cupons disponíveis a partir do plano Essencial.")
     safe_offset, safe_limit = min(max(offset, 0), 10_000), min(max(limit, 1), 60)
-    rows = await gateway.rest("cupons", token=auth.token, params={"estabelecimento_id": f"eq.{establishment_id}", "select": "*", "order": "ativo.desc,termina_em.asc.nullslast,created_at.desc,id.desc", "offset": str(safe_offset), "limit": str(safe_limit + 1)}) or []
+    rows = rows_payload(await gateway.rest("cupons", token=auth.token, params={"estabelecimento_id": f"eq.{establishment_id}", "select": "*", "order": "ativo.desc,termina_em.asc.nullslast,created_at.desc,id.desc", "offset": str(safe_offset), "limit": str(safe_limit + 1)}))
     return {"items": rows[:safe_limit], "offset": safe_offset, "limit": safe_limit, "has_more": len(rows) > safe_limit}
 
 
@@ -193,7 +239,7 @@ async def create_coupon(payload: CouponCreate, auth: AuthContext) -> dict[str, A
     data = model_payload(payload, exclude_unset=False)
     data["codigo"] = payload.codigo.upper()
     data["criado_por"] = auth.user_id
-    rows = await gateway.rest("cupons", method="POST", token=auth.token, json=data, headers={"Prefer": "return=representation"})
+    rows = rows_payload(await gateway.rest("cupons", method="POST", token=auth.token, json=data, headers={"Prefer": "return=representation"}))
     if not rows:
         raise ApiError(403, "COUPON_FORBIDDEN", "Não foi possível criar o cupom.")
     return rows[0]
@@ -205,7 +251,7 @@ async def update_coupon(coupon_id: str, payload: CouponUpdate, auth: AuthContext
     data = model_payload(payload)
     if not data:
         raise ApiError(422, "EMPTY_UPDATE", "Informe ao menos um campo para atualizar.")
-    rows = await gateway.rest("cupons", method="PATCH", token=auth.token, params={"id": f"eq.{coupon_id}"}, json=data, headers={"Prefer": "return=representation"})
+    rows = rows_payload(await gateway.rest("cupons", method="PATCH", token=auth.token, params={"id": f"eq.{coupon_id}"}, json=data, headers={"Prefer": "return=representation"}))
     if not rows:
         raise ApiError(403, "COUPON_FORBIDDEN", "Não foi possível atualizar o cupom.")
     return rows[0]
@@ -229,7 +275,7 @@ async def list_campaigns(establishment_id: str, auth: AuthContext, campaign_offs
     await require_feature(establishment_id, auth, "permite_campanhas", "Campanhas segmentadas estão disponíveis no plano Elite.")
     safe_limit = min(max(limit, 1), 60)
     campaign_offset, queue_offset = min(max(campaign_offset, 0), 10_000), min(max(queue_offset, 0), 10_000)
-    campaigns = await gateway.rest("campanhas", token=auth.token, params={"estabelecimento_id": f"eq.{establishment_id}", "select": "*", "order": "created_at.desc,id.desc", "offset": str(campaign_offset), "limit": str(safe_limit + 1)}) or []
-    queue = await gateway.rest("automacoes_mensagens", token=auth.token, params={"estabelecimento_id": f"eq.{establishment_id}", "select": "id,tipo,canal,status,agendada_para,processada_em,ultimo_erro", "order": "agendada_para.desc,id.desc", "offset": str(queue_offset), "limit": str(safe_limit + 1)}) or []
+    campaigns = rows_payload(await gateway.rest("campanhas", token=auth.token, params={"estabelecimento_id": f"eq.{establishment_id}", "select": "*", "order": "created_at.desc,id.desc", "offset": str(campaign_offset), "limit": str(safe_limit + 1)}))
+    queue = rows_payload(await gateway.rest("automacoes_mensagens", token=auth.token, params={"estabelecimento_id": f"eq.{establishment_id}", "select": "id,tipo,canal,status,agendada_para,processada_em,ultimo_erro", "order": "agendada_para.desc,id.desc", "offset": str(queue_offset), "limit": str(safe_limit + 1)}))
     return {"campanhas": campaigns[:safe_limit], "fila": queue[:safe_limit], "campanhas_has_more": len(campaigns) > safe_limit,
             "fila_has_more": len(queue) > safe_limit, "campaign_offset": campaign_offset, "queue_offset": queue_offset, "limit": safe_limit}

@@ -39,7 +39,9 @@ function bhSupabasePronto() {
 
 function bhExigirSupabase() {
   if (!window.supabaseClient) {
-    throw new Error("Supabase ainda não configurado. Preencha js/supabase-config.js.");
+    const error = new Error("Não foi possível conectar aos serviços do Barber Hub. Tente novamente em instantes.");
+    error.code = "SERVICE_NOT_CONFIGURED";
+    throw error;
   }
   return window.supabaseClient;
 }

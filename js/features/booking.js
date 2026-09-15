@@ -18,8 +18,17 @@
     slot: null,
     step: 1,
     trigger: null,
-    loading: false
+    loading: false,
+    profile: null
   };
+
+  function operationScope(establishmentId = state.establishment?.id) {
+    return establishmentId ? `booking:${establishmentId}` : null;
+  }
+
+  function isOwnEstablishment(establishment = state.establishment) {
+    return Boolean(state.profile?.tipo === "barbeiro" && establishment?.ownerId === state.profile.id);
+  }
 
   function ensureModal() {
     let modal = document.getElementById("bookingModal");
@@ -200,6 +209,7 @@
     const serviceId = [...state.services][0];
     if (!serviceId || !state.date) return;
     bhSetButtonLoading(button, true, "Entrando...");
+    let joined = false;
     try {
       if (global.bhBackendApi?.joinWaitlist) {
         await global.bhBackendApi.joinWaitlist({
@@ -220,13 +230,17 @@
         });
         if (error) throw error;
       }
+      joined = true;
       mostrarToast("sucesso", "Você entrou na lista", "Avisaremos quando surgir uma vaga compatível.");
-      button.disabled = true;
-      button.innerHTML = '<i class="bi bi-check2-circle"></i> Na lista de espera';
     } catch (error) {
       mostrarToast("erro", "Não foi possível entrar na lista", bhErroMensagem(error));
     } finally {
       bhSetButtonLoading(button, false);
+      if (joined) {
+        button.disabled = true;
+        button.dataset.waitlistJoined = "true";
+        button.innerHTML = '<i class="bi bi-check2-circle"></i> Na lista de espera';
+      }
     }
   }
 
@@ -264,7 +278,7 @@
   }
 
   async function confirm() {
-    const profile = await bhGetPerfil();
+    const profile = state.profile || await bhGetPerfil();
     if (!profile) {
       mostrarToast("aviso", "Entre para confirmar", "Os serviços e o profissional escolhidos serão mantidos após o login.");
       preserveBooking("booking");
@@ -275,23 +289,31 @@
     renderFooter();
     const button = ensureModal().querySelector("#bookingModalNext");
     bhSetButtonLoading(button, true, "Confirmando...");
+    const request = {
+      estabelecimentoId: state.establishment.id,
+      profissionalId: state.professionalId,
+      servicosIds: [...state.services],
+      data: state.date,
+      hora: state.slot,
+      observacao: ensureModal().querySelector("#bookingModalNote").value.trim(),
+      cupomCodigo: ensureModal().querySelector("#bookingModalCoupon").value.trim().toUpperCase() || null
+    };
+    const scope = operationScope();
+    const protectedRequest = scope && global.bhOperationDraft
+      ? global.bhOperationDraft.begin(scope, "appointment", request, request)
+      : { ...request, chave_idempotencia: `booking.${global.crypto.randomUUID()}` };
     try {
-      const result = await bhCriarAgendamento({
-        estabelecimentoId: state.establishment.id,
-        profissionalId: state.professionalId,
-        servicosIds: [...state.services],
-        data: state.date,
-        hora: state.slot,
-        observacao: ensureModal().querySelector("#bookingModalNote").value.trim(),
-        cupomCodigo: ensureModal().querySelector("#bookingModalCoupon").value.trim().toUpperCase() || null
-      });
-      mostrarToast("sucesso", "Agendamento enviado", "O estabelecimento recebeu sua solicitação.");
+      const result = await bhCriarAgendamento(protectedRequest);
+      if (scope) global.bhOperationDraft?.clear?.(scope, "appointment");
+      mostrarToast("sucesso", result?.reutilizado ? "Agendamento já confirmado" : "Agendamento enviado", result?.reutilizado ? "A tentativa anterior já havia sido concluída; nenhum horário foi duplicado." : "O estabelecimento recebeu sua solicitação.");
       global.bhContinuation?.clear?.();
       close();
       setTimeout(() => { location.href = bhUrl("html/cliente.html"); }, 750);
       return result;
     } catch (error) {
       mostrarToast("erro", "Não foi possível agendar", bhErroMensagem(error));
+      const conclusive = Number(error?.status) >= 400 && Number(error?.status) < 500 && ![408, 409, 429].includes(Number(error?.status));
+      if (scope && conclusive) global.bhOperationDraft?.release?.(scope, "appointment");
       state.step = 3;
       setStep(3);
     } finally {
@@ -324,6 +346,24 @@
       state.establishment = await bhObterEstabelecimento(establishmentId);
       if (!state.establishment) throw new Error("Estabelecimento não encontrado.");
       if (!state.establishment.aceitaAgendamento) throw new Error("Este estabelecimento não está recebendo agendamentos online no momento.");
+      state.profile = await bhGetPerfil().catch(() => null);
+      if (state.profile?.tipo === "barbeiro") {
+        let operatesEstablishment = isOwnEstablishment();
+        if (typeof global.bhUsuarioOperaEstabelecimento === "function") {
+          operatesEstablishment = await global.bhUsuarioOperaEstabelecimento(state.establishment.id)
+            .catch(() => operatesEstablishment);
+        }
+        if (isOwnEstablishment() || operatesEstablishment) throw new Error("A agenda do seu próprio estabelecimento é administrada pelo painel profissional.");
+      }
+      const pending = global.bhOperationDraft?.load?.(operationScope(establishmentId), "appointment")?.fields;
+      if (pending?.estabelecimentoId === establishmentId) {
+        state.services = new Set(pending.servicosIds || []);
+        state.professionalId = pending.profissionalId || null;
+        state.date = pending.data || "";
+        state.slot = pending.hora || null;
+        modal.querySelector("#bookingModalCoupon").value = pending.cupomCodigo || "";
+        modal.querySelector("#bookingModalNote").value = pending.observacao || "";
+      }
       modal.querySelector("#bookingModalBusiness").textContent = state.establishment.nome;
       const validServices = new Set((state.establishment.servicos || []).map(item => item.id));
       state.services = new Set([...state.services].filter(id => validServices.has(id)));

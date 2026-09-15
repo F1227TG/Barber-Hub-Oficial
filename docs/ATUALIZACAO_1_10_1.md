@@ -54,7 +54,7 @@ A 1.10.1 conclui no código o escopo técnico do Planejamento Pós-31 sem altera
 O Supabase conectado possui os objetos previstos nas migrations 29–31, mas as execuções feitas manualmente não aparecem no histórico oficial. A 1.10.1 adiciona:
 
 ```text
-supabase/migrations/20260904180741_32_conclusao_pos31_1_10_1.sql
+supabase/migrations/20260911132254_conclusao_pos31_1_10_1.sql
 sql/verificar_32_conclusao_1_10_1.sql
 ```
 

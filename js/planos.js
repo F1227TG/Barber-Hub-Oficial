@@ -20,7 +20,11 @@ function bhRenderizarStatsPlano(stats = []) {
 function bhRenderizarRecursosPlano(recursos = []) {
   const alvo = document.getElementById("planoAtualRecursos");
   if (!alvo) return;
-  alvo.innerHTML = recursos.length ? recursos.map(item => `<span><i class="bi bi-check2-circle"></i>${escapeHTML(item)}</span>`).join("") : "";
+  const itens = Array.isArray(recursos) ? recursos.filter(Boolean) : [];
+  const resumo = itens.slice(0, 5);
+  alvo.innerHTML = resumo.length
+    ? `${resumo.map(item => `<span><i class="bi bi-check2-circle"></i>${escapeHTML(item)}</span>`).join("")}${itens.length > resumo.length ? '<a class="plan-current-more111" href="#comparativo-planos">Ver todos os benefícios</a>' : ""}`
+    : "";
 }
 
 async function bhCarregarPlanoAtual() {
@@ -33,26 +37,21 @@ async function bhCarregarPlanoAtual() {
     const perfil = await bhGetPerfil();
     if (!perfil) {
       bhRenderizarStatsPlano([
-        { valor: "10", label: "Publicações grátis" },
-        { valor: "1", label: "Profissional grátis" },
-        { valor: "Admin", label: "Ativação de upgrade" }
+        { valor: "R$ 0", label: "Para começar" },
+        { valor: "4", label: "Fases de crescimento" },
+        { valor: "Mensal", label: "Cobrança previsível" }
       ]);
       bhRenderizarRecursosPlano([]);
       return;
     }
 
     if (perfil.tipo !== "barbeiro") {
-      titulo.textContent = perfil.tipo === "admin"
-        ? "Conta administrativa conectada."
-        : "Conta de cliente conectada.";
-      texto.textContent = "A visualização detalhada de plano fica disponível para contas de barbeiro com estabelecimento cadastrado.";
-      bhRenderizarStatsPlano([
-        { valor: "Portal", label: "Acesso disponível" },
-        { valor: "Conta", label: "Perfil ativo" },
-        { valor: "Planos", label: "Prontos para expansão" }
-      ]);
+      card.hidden = true;
+      document.body.classList.add("plans-without-account-summary111");
       return;
     }
+
+    card.hidden = false;
 
     const resumo = await bhObterResumoAssinaturaBarbeiro();
     if (!resumo) {
@@ -68,10 +67,13 @@ async function bhCarregarPlanoAtual() {
 
     const planoNome = resumo.plano?.nome || "Perfil gratuito";
     const statusAssinatura = resumo.assinatura?.status || "gratuita";
+    const statusLegivel = ({ ativa:"Ativa", teste:"Em teste", atrasada:"Pagamento pendente", pausada:"Pausada", cancelada:"Cancelada", expirada:"Expirada", gratuita:"Gratuita" })[statusAssinatura] || statusAssinatura;
+    const periodoFim = resumo.assinatura?.periodo_atual_fim || resumo.assinatura?.teste_termina_em || resumo.entitlements?.assinatura_periodo_fim || null;
+    const validade = periodoFim ? ` Válido até ${bhFormatarData(periodoFim)}.` : " Sem vencimento definido nesta fase.";
     titulo.textContent = `${resumo.estabelecimento.nome} está no plano ${planoNome}.`;
     texto.textContent = statusAssinatura === "teste"
-      ? "Seu estabelecimento está em período de teste. Este é um ótimo momento para validar agenda, galeria e rotina do painel."
-      : `Status atual da assinatura: ${statusAssinatura}. Os benefícios do plano são aplicados automaticamente ao painel. A cobrança automática ainda não está integrada.`;
+      ? `Status: ${statusLegivel}.${validade} Use este período para validar agenda, galeria e rotina do painel.`
+      : `Status: ${statusLegivel}.${validade} Os recursos disponíveis aparecem automaticamente no seu painel.`;
     card.classList.toggle("is-highlight", true);
 
     const limitePublicacoes = resumo.plano?.limite_publicacoes || 10;
@@ -79,9 +81,17 @@ async function bhCarregarPlanoAtual() {
     bhRenderizarStatsPlano([
       { valor: `${resumo.uso.publicacoes}/${limitePublicacoes}`, label: "Publicações" },
       { valor: `${resumo.uso.profissionais}/${limiteProfissionais}`, label: "Profissionais" },
-      { valor: resumo.uso.aceitaAgendamento ? "Ativa" : (resumo.plano?.permite_agenda ? "Disponível" : "Indisponível"), label: "Agenda online" }
+      { valor: resumo.uso.aceitaAgendamento ? "Ativa" : (resumo.plano?.permite_agenda ? "Disponível" : "Indisponível"), label: "Agenda online" },
+      { valor: periodoFim ? bhFormatarData(periodoFim, { day:"2-digit", month:"short" }) : "Sem prazo", label: statusAssinatura === "teste" ? "Fim do teste" : "Validade" }
     ]);
     bhRenderizarRecursosPlano(resumo.entitlements?.recursos || resumo.plano?.recursos || []);
+    const planKey = bhSlug(planoNome).replace("perfil-", "");
+    document.querySelectorAll("[data-plan-key]").forEach(planCard => {
+      const current = planCard.dataset.planKey === planKey;
+      planCard.classList.toggle("is-current-plan111", current);
+      planCard.querySelector(".current-plan-label111")?.remove();
+      if (current) planCard.insertAdjacentHTML("afterbegin", '<span class="current-plan-label111"><i class="bi bi-check2-circle"></i> Seu plano atual</span>');
+    });
   } catch (erro) {
     console.warn("Falha ao carregar resumo do plano.", erro);
     titulo.textContent = "Não foi possível carregar seu plano agora.";

@@ -1,6 +1,6 @@
-# Mapa de navegação do Barber Hub 1.10.1
+# Mapa de navegação do Barber Hub 1.11.0
 
-O Barber Hub possui duas apresentações da mesma plataforma: web (`/html`) e app mobile (`/mobile`). Regras de negócio, API e scripts de domínio são compartilhados. Na 1.7, as páginas funcionais mobile são sincronizadas a partir das equivalentes web para impedir deriva de recursos.
+O Barber Hub possui duas apresentações da mesma plataforma: web (`/html`) e app mobile (`/mobile`). Regras de negócio, API e scripts de domínio são compartilhados. Na 1.11, 22 páginas funcionais mobile são sincronizadas a partir das equivalentes web para impedir deriva de recursos e de CSS.
 
 ## Cliente — fluxo principal
 
@@ -88,8 +88,9 @@ Painel
 
 ```text
 Admin
-  ├── Saúde da plataforma (API / DB / Auth / FTS)
-  ├── KPIs globais via API
+  ├── Saúde e prontidão da plataforma
+  ├── KPIs globais protegidos
+  ├── Assinaturas e benefícios
   ├── Pendências / conclusão / verificação / agenda online
   ├── Usuários
   ├── Estabelecimentos
@@ -110,22 +111,22 @@ Páginas administrativas relacionadas
 
 ## Navegação web
 
-| Destino | Arquivo | Estado 1.7 | Papel |
+| Destino | Arquivo | Estado 1.11 | Papel |
 |---|---|---|---|
 | Início | `index.html` | ✅ | Landing e instalação PWA |
 | Explorar | `html/portal.html` | ✅ | Marketplace FTS/paginado |
 | Estabelecimento | `html/barbearia.html` | ✅ | Página pública + modal de agendamento |
 | Agendamento legado | `html/agendamento.html` | ✅ Compatibilidade | Redireciona para estabelecimento + modal |
-| Cliente | `html/cliente.html` | ✅ | Agenda, indicadores, favoritos e histórico |
+| Cliente | `html/cliente.html` | ✅ | Agenda, espera, recorrências, fidelidade, favoritos e histórico |
 | Profissional | `html/painel.html` | ✅ | Gestão operacional + indicadores |
 | Admin | `html/admin.html` | ✅ | Controle, health e indicadores da plataforma |
-| Conta | `html/conta.html` | ✅ | Perfil, senha, exclusão |
+| Conta | `html/conta.html` | ✅ | Perfil, sessões, exportação, privacidade e exclusão programada |
 | Notificações | `html/notificacoes.html` | ✅ | Inbox in-app |
 | Planos | `html/planos.html` | 🟡 Comercial | Sem gateway de cobrança |
 | Suporte | `html/contato.html` | ✅ | Tickets via API |
 | Sobre | `html/sobre.html` | ✅ | Institucional |
-| Beauty Hub | `html/beauty-hub.html` | 🟡 Preparação | Visão e roadmap da expansão |
-| Mapa | `html/mapa-sistema.html` | ✅ | Estado técnico + API audit |
+| Beauty Hub | `html/beauty-hub.html` | ✅ Ponte ativa | Apresentação e acesso ao produto irmão |
+| Mapa | `html/mapa-sistema.html` | 🔒 Admin | Mapa interno, fora do sitemap público |
 
 ## Navegação mobile dedicada
 
@@ -231,11 +232,20 @@ Essas regras são verificadas automaticamente por `scripts/check-mobile-routing.
 ├── audit/operational
 ├── features/evaluate
 ├── account
+│   ├── sessions
+│   ├── export
+│   └── deletion
+├── jobs
+│   ├── push/deliver
+│   ├── email/deliver
+│   └── maintenance/run
 └── admin
     ├── overview
     ├── records/{resource}
     ├── health
     ├── navigation-audit
+    ├── subscriptions
+    ├── establishments/{id}/subscription
     └── users/{id}/password-recovery
 ```
 
@@ -270,3 +280,16 @@ A navegação admin global aponta para **Assinaturas** como página real, não c
 - o Admin carrega listas por recurso e página, evitando buscar o banco inteiro;
 - a página Beauty Hub permanece pública e encaminha para o produto irmão em desenvolvimento;
 - telas internas usam linguagem de produto e não expõem nomes de banco, migration ou chave ao usuário final.
+
+## Barber Hub 1.11 — confiabilidade, privacidade e fechamento
+
+- Conta diferencia cliente/profissional e oferece sessões, exportação e exclusão programada;
+- o botão mobile `Mais` abre opções contextuais, sem redirecionar diretamente para Conta;
+- o agendamento público preserva a escolha até a autenticação e usa idempotência na confirmação;
+- proprietário e membro não se autoagendam no próprio estabelecimento;
+- lista de espera e recorrências tratam resposta vazia, falha e repetição sem carregamento infinito;
+- filtros regionais, avaliações, mapa/rota e recomendações locais são processados de forma paginada;
+- assinaturas administrativas usam confirmação, validade, idempotência e cartões mobile;
+- a camada CSS 1.11 é a última nas páginas mobile e elimina as barras horizontais das tarefas principais;
+- o mapa interno usa `noindex`, foi removido do sitemap e exige conta administrativa;
+- a API está na versão 1.7.0 e o produto/PWA na versão 1.11.0.

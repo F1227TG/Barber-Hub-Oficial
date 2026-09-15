@@ -4,6 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+
 <meta content="Barber Hub — plataforma de gestão, agenda e divulgação para barbearias e futuros salões de beleza." name="description"/>
 <title>
    Cadastrar estabelecimento | Barber Hub
@@ -22,7 +23,8 @@
 <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
 <link href="../css/mobile-app.css" rel="stylesheet"/><link href="../css/release-1.4.1.css" rel="stylesheet"/>
 <link href="../css/product-redesign.css" rel="stylesheet"/><link href="../css/release-1.6.css" rel="stylesheet"/><link href="../css/release-1.7.css" rel="stylesheet"/><link href="../css/release-1.7.1.css" rel="stylesheet"/><link href="../css/brand-assets-1.8.css" rel="stylesheet"/>
-<link href="../css/image-editor.css" rel="stylesheet"/><meta content="yes" name="mobile-web-app-capable"/><meta content="noindex,follow" name="robots"/><link href="https://barberhuboficial.vercel.app/html/cadastro-barbearia" rel="canonical"/><link href="../css/mobile-redesign-1.8.css" rel="stylesheet"/><link href="../css/release-1.9.3.css" rel="stylesheet"/></head>
+<link href="../css/image-editor.css" rel="stylesheet"/>
+<meta content="yes" name="mobile-web-app-capable"/><meta content="noindex,nofollow" name="robots"/><link href="https://barberhuboficial.vercel.app/html/cadastro-barbearia" rel="canonical"/><link href="../css/mobile-redesign-1.8.css" rel="stylesheet"/><link href="../css/release-1.9.3.css" rel="stylesheet"/><link href="../css/releases/release-1.11.css" rel="stylesheet"/></head>
 <body class="page-cadastro-barbearia mobile-native">
 <!-- Cabeçalho e navegação principal -->
 <header class="header">
@@ -124,7 +126,7 @@
        Identidade do estabelecimento
       </h2>
 <p class="texto-section">
-       O banco já está preparado para barbearias e para a futura expansão Beauty Hub.
+       Estas informações formam a identidade pública e comercial do seu negócio.
       </p>
 <div class="form-grid">
 <div class="campo">
@@ -145,6 +147,11 @@
          Nome do estabelecimento
         </label>
 <input id="nomeEstabelecimento" placeholder="Ex: Central Barber Club" required=""/>
+</div>
+<div class="campo">
+<label for="cnpjEstabelecimento">CNPJ <span class="muted">(opcional agora)</span></label>
+<input autocomplete="off" id="cnpjEstabelecimento" inputmode="text" maxlength="18" placeholder="00.000.000/0000-00" spellcheck="false"/>
+<small>Aceita o formato numérico atual e o novo formato alfanumérico.</small>
 </div>
 <div class="campo full">
 <label for="descricao">
@@ -241,21 +248,15 @@
 </section>
 <section class="step-panel" data-step-panel="3">
 <h2>
-       Funcionamento e agenda
+       Funcionamento
       </h2>
-<label class="switch-card">
+<aside class="onboarding-feature-note111" data-agenda-entitlement="unavailable" role="note">
+<span aria-hidden="true" class="onboarding-feature-note111-icon"><i class="bi bi-calendar2-check"></i></span>
 <span>
-<strong>
-         Agendamento online
-        </strong>
-<small>
-         Permitir que clientes escolham data, serviço e profissional.
-        </small>
+<strong>Agenda online depois do cadastro</strong>
+<small>Seu perfil começa com presença no portal. Quando a agenda estiver disponível no seu plano, você poderá ativá-la com facilidade pelo painel.</small>
 </span>
-<input aria-label="Agendamento online Permitir que clientes escolham data, serviço e profissional." checked="" id="aceitaAgendamento" type="checkbox"/>
-<i>
-</i>
-</label>
+</aside>
 <div class="hours-editor">
 <div class="horario-config" data-dia="0">
 <label class="day-toggle">
@@ -445,6 +446,8 @@
 </script>
 <script src="../js/api.js">
 </script>
+<script src="../js/core/view-state.js"></script>
+<script src="../js/notification-center.js"></script>
 <script src="../js/status.js">
 </script>
 <script src="../js/ia.js">

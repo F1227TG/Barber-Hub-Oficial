@@ -4,6 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<meta content="noindex,nofollow" name="robots"/>
 <meta content="Barber Hub — plataforma de gestão, agenda e divulgação para barbearias e futuros salões de beleza." name="description"/>
 <title>
    Área do cliente | Barber Hub
@@ -22,6 +23,8 @@
 <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
 <link href="../css/mobile-app.css" rel="stylesheet"/><link href="../css/release-1.4.1.css" rel="stylesheet"/>
 <link href="../css/product-redesign.css" rel="stylesheet"/><link href="../css/release-1.6.css" rel="stylesheet"/><link href="../css/release-1.7.css" rel="stylesheet"/><link href="../css/release-1.7.1.css" rel="stylesheet"/><link href="../css/brand-assets-1.8.css" rel="stylesheet"/>
+<link href="../css/release-1.9.3.css" rel="stylesheet"/>
+<link href="../css/releases/release-1.11.css" rel="stylesheet"/>
 </head>
 <body class="page-cliente"><script src="../js/device-router.js"></script>
 <!-- Cabeçalho e navegação principal -->
@@ -136,6 +139,19 @@
 </div>
 <div class="recommend-card" id="clienteIA">
 </div>
+<section class="account-section client-local-section111" id="recomendacoes-locais">
+<div class="section-top">
+<div>
+<span class="tag"><i class="bi bi-geo-alt"></i> Perto de você</span>
+<h2 class="titulo-section">Sugestões para o próximo atendimento</h2>
+<p class="texto-section" id="clienteRecomendacoesContexto">Use sua localização ou seu histórico para encontrar opções relevantes.</p>
+</div>
+<button class="btn btn-outline btn-small" type="button" data-client-location><i class="bi bi-crosshair"></i> Usar minha localização</button>
+</div>
+<div class="client-local-grid111" id="clienteRecomendacoesLocais">
+<div class="operation-state loading"><span class="state-spinner"></span><strong>Preparando sugestões</strong></div>
+</div>
+</section>
 <section class="account-section" id="favoritos">
 <div class="section-top">
 <div>
@@ -184,7 +200,7 @@
 </article>
 </div>
 </section>
-<section class="account-section">
+<section class="account-section" id="proximos">
 <div class="section-top">
 <div>
 <span class="tag">
@@ -396,6 +412,8 @@
 </script>
 <script src="../js/api.js">
 </script>
+<script src="../js/core/view-state.js"></script>
+<script src="../js/notification-center.js"></script>
 <script src="../js/status.js">
 </script>
 <script src="../js/ia.js">

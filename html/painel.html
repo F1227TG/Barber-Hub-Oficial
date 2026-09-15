@@ -4,6 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<meta content="noindex,nofollow" name="robots"/>
 <meta content="Barber Hub — plataforma de gestão, agenda e divulgação para barbearias e futuros salões de beleza." name="description"/>
 <title>
    Painel profissional | Barber Hub
@@ -22,7 +23,8 @@
 <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
 <link href="../css/mobile-app.css" rel="stylesheet"/><link href="../css/release-1.4.1.css" rel="stylesheet"/>
 <link href="../css/product-redesign.css" rel="stylesheet"/><link href="../css/release-1.6.css" rel="stylesheet"/><link href="../css/release-1.7.css" rel="stylesheet"/><link href="../css/release-1.7.1.css" rel="stylesheet"/><link href="../css/release-1.8.css" rel="stylesheet"/><link href="../css/brand-assets-1.8.css" rel="stylesheet"/><link href="../css/release-1.9.css" rel="stylesheet"/><link href="../css/release-1.9.3.css" rel="stylesheet"/><link href="../css/releases/release-1.10.css" rel="stylesheet"/>
-<link href="../css/image-editor.css" rel="stylesheet"/></head>
+<link href="../css/image-editor.css" rel="stylesheet"/>
+<link href="../css/releases/release-1.11.css" rel="stylesheet"/></head>
 <body class="page-painel"><script src="../js/device-router.js"></script>
 <!-- Cabeçalho e navegação principal -->
 <header class="header">
@@ -193,7 +195,7 @@
         Estabelecimento
        </h1>
 </div>
-<a class="btn btn-outline" id="linkPaginaPublica" target="_blank">
+<a class="btn btn-outline" id="linkPaginaPublica" target="_blank" rel="noopener noreferrer">
        Abrir página pública
       </a>
 </div>
@@ -397,7 +399,7 @@
 <article class="retention-card retention-wide" data-feature-gate="permite_fidelidade"><header><div><span class="retention-icon"><i class="bi bi-award"></i></span><div><h3>Programa de fidelidade</h3><p>Pontos automáticos após atendimentos concluídos.</p></div></div><button class="btn btn-outline btn-small" data-retention-action="fidelidade" type="button"><i class="bi bi-sliders"></i> Configurar</button></header><div class="loyalty-workspace"><div class="retention-list" id="loyaltyRewards193"></div><div class="loyalty-clients" id="loyaltyClients193"></div></div></article>
 <article class="retention-card" data-feature-gate="permite_cupons"><header><div><span class="retention-icon"><i class="bi bi-ticket-perforated"></i></span><div><h3>Cupons</h3><p>Códigos, limites e validade controlados.</p></div></div></header><div class="retention-list" id="couponList193"></div></article>
 <article class="retention-card" data-feature-gate="permite_campanhas"><header><div><span class="retention-icon"><i class="bi bi-megaphone"></i></span><div><h3>Campanhas</h3><p>Segmentação com consentimento e fila de envio.</p></div></div></header><div class="retention-list" id="campaignList193"></div></article>
-<article class="retention-card retention-wide" data-feature-gate="permite_lembretes"><header><div><span class="retention-icon"><i class="bi bi-bell"></i></span><div><h3>Lembretes automáticos</h3><p>Avisos internos de 24h, 2h e solicitação de avaliação; canais externos dependem do provedor.</p></div></div><span class="status concluido">Fila protegida</span></header><div class="automation-strip" id="automationStatus193"></div></article>
+<article class="retention-card retention-wide" data-feature-gate="permite_lembretes"><header><div><span class="retention-icon"><i class="bi bi-bell"></i></span><div><h3>Lembretes automáticos</h3><p>Avisos de 24h, 2h e solicitação de avaliação; cada canal aparece quando estiver disponível para o estabelecimento.</p></div></div><span class="status concluido">Envios organizados</span></header><div class="automation-strip" id="automationStatus193"></div></article>
 </div>
 </section>
 <section class="panel-section" id="secCrescimento" data-plan-section="permite_metas">
@@ -861,6 +863,11 @@
 <input id="configNome" required=""/>
 </div>
 <div class="campo">
+<label for="configCnpj">CNPJ <span class="muted">(opcional)</span></label>
+<input autocomplete="off" id="configCnpj" maxlength="18" placeholder="00.000.000/0000-00" spellcheck="false"/>
+<small>Formato numérico ou alfanumérico.</small>
+</div>
+<div class="campo">
 <label for="configTelefone">
           Telefone
          </label>
@@ -953,7 +960,7 @@
          </label>
 <input id="configMotivoStatus" placeholder="Ex: feriado, evento, manutenção"/>
 </div>
-<div class="campo full">
+<div class="campo full" data-agenda-setting hidden>
 <label for="configAgenda">
           Agendamento online
          </label>
@@ -1067,6 +1074,8 @@
 </script>
 <script src="../js/api.js">
 </script>
+<script src="../js/core/view-state.js"></script>
+<script src="../js/notification-center.js"></script>
 <script src="../js/status.js">
 </script>
 <script src="../js/ia.js">

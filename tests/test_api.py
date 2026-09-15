@@ -1,7 +1,9 @@
 """Smoke and security regression tests that do not need real credentials."""
 
+import asyncio
 import json
-from datetime import datetime, timezone
+import time
+from datetime import date, datetime, timedelta, timezone
 from unittest import IsolatedAsyncioTestCase, TestCase
 from unittest.mock import AsyncMock, patch
 
@@ -11,6 +13,7 @@ from starlette.requests import Request
 
 from api.index import (
     admin_health,
+    admin_assign_subscription,
     admin_overview,
     admin_subscriptions,
     app,
@@ -19,12 +22,24 @@ from api.index import (
     list_support_tickets,
     navigation_audit,
     public_config,
+    create_appointment,
 )
+from backend.domain.identity import cnpj_is_valid, normalize_cnpj
 from backend.models import (
-    AdminSubscriptionUpdate, EstablishmentLocationUpdate, ManualServiceCreate,
-    OpeningPeriodsReplace, PromotionCreate, ServiceCreate, WaitlistCreate,
+    AdminSubscriptionUpdate, AppointmentCreate, DeleteAccountRequest, EstablishmentLocationUpdate,
+    EstablishmentUpdate, ManualServiceCreate, OpeningPeriodsReplace, PromotionCreate, ServiceCreate,
+    RecurrenceUpdate, WaitlistCreate,
 )
-from backend.security import AuthContext
+from backend.security import AuthContext, recent_authentication_age
+from backend.supabase import SupabaseGateway
+from backend.errors import ApiError
+from backend.services import account as account_service
+from backend.services import appointments as appointment_service
+from backend.services import catalog as catalog_service
+from backend.services import email_delivery as email_service
+from backend.services import admin as admin_service
+from backend.services import maintenance as maintenance_service
+from backend.services import retention as retention_service
 
 
 class ApiSmokeTests(TestCase):
@@ -42,7 +57,12 @@ class ApiSmokeTests(TestCase):
     def test_health_reports_api_version(self) -> None:
         response = self.client.get("/api/v1/health")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["data"]["version"], "1.6.1")
+        self.assertEqual(response.json()["data"]["version"], "1.7.0")
+
+    def test_liveness_is_independent_from_external_services(self) -> None:
+        response = self.client.get("/api/v1/health/live")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["data"]["status"], "alive")
 
     def test_support_validation_is_standardized(self) -> None:
         response = self.client.post("/api/v1/support/tickets", json={})
@@ -149,6 +169,14 @@ class ApiSmokeTests(TestCase):
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.json()["error"]["code"], "UNAUTHORIZED")
 
+    def test_active_subscription_rejects_expired_period(self) -> None:
+        with self.assertRaises(ValidationError):
+            AdminSubscriptionUpdate(
+                plano_slug="essencial",
+                status="ativa",
+                periodo_fim=date.today() - timedelta(days=1),
+            )
+
     def test_admin_paginated_records_require_session(self) -> None:
         response = self.client.get("/api/v1/admin/records/perfis?offset=0&limit=50")
         self.assertEqual(response.status_code, 401)
@@ -173,6 +201,51 @@ class ApiSmokeTests(TestCase):
         response = self.client.get("/api/v1/jobs/push/deliver")
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.json()["error"]["code"], "JOB_UNAUTHORIZED")
+
+    def test_email_delivery_job_rejects_unsigned_requests(self) -> None:
+        response = self.client.get("/api/v1/jobs/email/deliver")
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json()["error"]["code"], "JOB_UNAUTHORIZED")
+
+    def test_maintenance_job_rejects_unsigned_requests(self) -> None:
+        response = self.client.get("/api/v1/jobs/maintenance/run")
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json()["error"]["code"], "JOB_UNAUTHORIZED")
+
+    def test_job_auth_accepts_vercel_and_external_secrets_independently(self) -> None:
+        from types import SimpleNamespace
+        from api.index import _valid_job_secret
+
+        configured = SimpleNamespace(cron_secret="vercel-secret", jobs_secret="external-secret")
+        with patch("api.index.settings", configured):
+            self.assertTrue(_valid_job_secret("vercel-secret"))
+            self.assertTrue(_valid_job_secret("external-secret"))
+            self.assertFalse(_valid_job_secret("wrong-secret"))
+            self.assertFalse(_valid_job_secret(None))
+
+    def test_account_privacy_routes_require_session(self) -> None:
+        cases = [
+            ("get", "/api/v1/account/deletion"),
+            ("post", "/api/v1/account/deletion"),
+            ("delete", "/api/v1/account/deletion"),
+            ("get", "/api/v1/account/export"),
+            ("get", "/api/v1/account/sessions"),
+            ("delete", "/api/v1/account/sessions/others"),
+            ("delete", "/api/v1/account/sessions"),
+        ]
+        for method, path in cases:
+            with self.subTest(path=path):
+                response = self.client.request(method, path, json={} if method == "post" else None)
+                self.assertEqual(response.status_code, 401)
+                self.assertEqual(response.json()["error"]["code"], "UNAUTHORIZED")
+
+    def test_business_update_normalizes_legacy_and_alphanumeric_cnpj(self) -> None:
+        legacy = EstablishmentUpdate(cnpj="04.252.011/0001-10")
+        modern = EstablishmentUpdate(cnpj="00.000.000/E08G-12")
+        self.assertEqual(legacy.cnpj, "04252011000110")
+        self.assertEqual(modern.cnpj, "00000000E08G12")
+        with self.assertRaises(ValidationError):
+            EstablishmentUpdate(cnpj="00.000.000/E08G-13")
 
     def test_location_contract_requires_coordinate_pair(self) -> None:
         with self.assertRaises(ValidationError):
@@ -225,6 +298,19 @@ class ApiSmokeTests(TestCase):
         response = self.client.get("/api/v1/retention/waitlist")
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.json()["error"]["code"], "UNAUTHORIZED")
+
+    def test_recurrence_cancel_requires_session(self) -> None:
+        response = self.client.patch(
+            "/api/v1/retention/recurrences/00000000-0000-0000-0000-000000000001",
+            json={"status": "cancelada"},
+        )
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json()["error"]["code"], "UNAUTHORIZED")
+
+    def test_recurrence_update_only_accepts_cancellation(self) -> None:
+        self.assertEqual(RecurrenceUpdate(status="cancelada").status, "cancelada")
+        with self.assertRaises(ValidationError):
+            RecurrenceUpdate(status="pausada")
 
     def test_client_loyalty_requires_session(self) -> None:
         response = self.client.get("/api/v1/client/loyalty")
@@ -339,3 +425,334 @@ class RateLimitRegressionTests(IsolatedAsyncioTestCase):
         self.assertNotIn("secret", json.dumps(payload).lower())
         self.assertIn("turnstile_site_key", payload["data"])
         limiter.assert_awaited_once()
+
+
+class SecurityAndLifecycleRegressionTests(IsolatedAsyncioTestCase):
+    def setUp(self) -> None:
+        self.auth = AuthContext(
+            token="validated-token",
+            user_id="00000000-0000-0000-0000-000000000001",
+            user={"id": "00000000-0000-0000-0000-000000000001"},
+            claims={"session_id": "session-current", "amr": [{"method": "password", "timestamp": int(time.time())}]},
+        )
+
+    async def test_admin_subscription_uses_safe_idempotent_rpc(self) -> None:
+        rest = AsyncMock(return_value={"reutilizado": False, "assinatura": {"id": "subscription-1"}})
+        payload = AdminSubscriptionUpdate(
+            plano_slug="profissional",
+            status="ativa",
+            periodo_fim=date.today() + timedelta(days=90),
+            chave_idempotencia="admin-subscription-test-0001",
+        )
+        with patch("backend.services.admin.gateway.rest", rest):
+            result = await admin_service.assign_subscription(
+                "00000000-0000-0000-0000-000000000010",
+                payload,
+                self.auth,
+                idempotency_key="admin-subscription-test-0001",
+            )
+        self.assertFalse(result["reutilizado"])
+        self.assertEqual(rest.await_args.args[0], "admin_atribuir_plano_111")
+        self.assertEqual(rest.await_args.kwargs["json"]["p_chave_idempotencia"], "admin-subscription-test-0001")
+        self.assertTrue(rest.await_args.kwargs["rpc"])
+        self.assertFalse(rest.await_args.kwargs.get("admin", False))
+
+    async def test_admin_subscription_rejects_conflicting_idempotency_keys(self) -> None:
+        request = Request({
+            "type": "http", "method": "PATCH", "path": "/api/v1/admin/establishments/x/subscription",
+            "headers": [], "client": ("127.0.0.1", 12345), "server": ("testserver", 80),
+            "scheme": "http", "query_string": b"",
+        })
+        payload = AdminSubscriptionUpdate(
+            plano_slug="elite",
+            chave_idempotencia="admin-subscription-body-0001",
+        )
+        with patch("api.index.enforce_rate_limit", AsyncMock()), self.assertRaises(ApiError) as caught:
+            await admin_assign_subscription(
+                "00000000-0000-0000-0000-000000000010",
+                request,
+                payload,
+                "admin-subscription-header-0001",
+                self.auth,
+            )
+        self.assertEqual(caught.exception.status_code, 409)
+        self.assertEqual(caught.exception.code, "IDEMPOTENCY_KEY_MISMATCH")
+
+    async def test_gateway_maps_provider_details_to_safe_conflict(self) -> None:
+        error = SupabaseGateway._safe_error(400, {"code": "P0001", "message": "chave de idempotência reutilizada com payload diferente", "details": "private"})
+        self.assertEqual(error.status_code, 409)
+        self.assertEqual(error.code, "IDEMPOTENCY_CONFLICT")
+        self.assertIsNone(error.details)
+        slot = SupabaseGateway._safe_error(400, {"code": "P0001", "message": "SLOT_CONFLICT"})
+        self.assertEqual((slot.status_code, slot.code), (409, "APPOINTMENT_CONFLICT"))
+
+    async def test_recent_authentication_uses_strong_amr_timestamp(self) -> None:
+        age = recent_authentication_age(self.auth, now=time.time() + 25)
+        self.assertIsNotNone(age)
+        self.assertLess(age, 30)
+        missing = AuthContext(token="x", user_id="u", user={}, claims={})
+        self.assertIsNone(recent_authentication_age(missing))
+
+    async def test_account_deletion_requires_explicit_retention_acknowledgement(self) -> None:
+        with self.assertRaises(ApiError) as caught:
+            await account_service.request_deletion(
+                DeleteAccountRequest(confirmacao="EXCLUIR MINHA CONTA", retencao_ciente=False),
+                self.auth,
+            )
+        self.assertEqual(caught.exception.code, "RETENTION_ACK_REQUIRED")
+
+    async def test_account_deletion_uses_delayed_rpc_contract(self) -> None:
+        rest = AsyncMock(return_value={
+            "status": "agendada", "agendado_para": "2026-09-16T12:00:00Z", "reutilizado": False,
+        })
+        with patch("backend.services.account.gateway.rest", rest):
+            result = await account_service.request_deletion(
+                DeleteAccountRequest(
+                    confirmacao="EXCLUIR MINHA CONTA", motivo="Decisão pessoal", retencao_ciente=True,
+                ),
+                self.auth,
+            )
+        self.assertTrue(result["scheduled"])
+        self.assertEqual(result["grace_period_days"], 7)
+        self.assertEqual(rest.await_args.args[0], "solicitar_exclusao_conta_111")
+
+    async def test_connected_session_ids_are_not_exposed(self) -> None:
+        rows = [{
+            "id": "session-current", "user_agent": "Browser Test", "ip_masked": "192.0.2.xxx",
+            "created_at": "2026-09-09T10:00:00Z", "updated_at": "2026-09-09T10:01:00Z",
+        }]
+        with patch("backend.services.account.gateway.rest", AsyncMock(return_value=rows)):
+            result = await account_service.list_sessions(self.auth)
+        self.assertTrue(result["items"][0]["current"])
+        self.assertNotEqual(result["items"][0]["id"], "session-current")
+        self.assertEqual(result["items"][0]["ip_masked"], "192.0.2.xxx")
+
+    async def test_booking_is_idempotent_and_uses_new_rpc(self) -> None:
+        payload = AppointmentCreate(
+            estabelecimento_id="00000000-0000-0000-0000-000000000010",
+            profissional_id="00000000-0000-0000-0000-000000000011",
+            servicos_ids=["00000000-0000-0000-0000-000000000012"],
+            data="2026-09-15",
+            hora_inicio="10:00",
+        )
+        rest = AsyncMock(side_effect=[[], [], [], {"id": "appointment-1", "reutilizado": True, "status": "pendente"}])
+        with patch("backend.services.appointments.gateway.rest", rest):
+            result = await appointment_service.create(payload, self.auth, idempotency_key="booking-test-key-0001")
+        self.assertEqual(result["id"], "appointment-1")
+        self.assertTrue(result["replayed"])
+        self.assertEqual(rest.await_args_list[-1].args[0], "criar_agendamento_idempotente_111")
+        sent = rest.await_args_list[-1].kwargs["json"]
+        self.assertEqual(sent["p_chave_idempotencia"], "booking-test-key-0001")
+        self.assertNotIn("p_idempotencia_hash", sent)
+
+    async def test_booking_rejects_conflicting_header_and_body_keys(self) -> None:
+        request = Request({
+            "type": "http", "method": "POST", "path": "/api/v1/appointments", "headers": [],
+            "client": ("127.0.0.1", 12345), "server": ("testserver", 80), "scheme": "http", "query_string": b"",
+        })
+        payload = AppointmentCreate(
+            estabelecimento_id="00000000-0000-0000-0000-000000000010",
+            profissional_id="00000000-0000-0000-0000-000000000011",
+            servicos_ids=["00000000-0000-0000-0000-000000000012"],
+            data="2026-09-15", hora_inicio="10:00", chave_idempotencia="booking-body-key-0001",
+        )
+        with patch("api.index.enforce_rate_limit", AsyncMock()), self.assertRaises(ApiError) as caught:
+            await create_appointment(request, payload, "booking-header-key-1", self.auth)
+        self.assertEqual(caught.exception.status_code, 409)
+        self.assertEqual(caught.exception.code, "IDEMPOTENCY_KEY_MISMATCH")
+
+    async def test_professional_cannot_book_own_establishment(self) -> None:
+        payload = AppointmentCreate(
+            estabelecimento_id="00000000-0000-0000-0000-000000000010",
+            profissional_id="00000000-0000-0000-0000-000000000011",
+            servicos_ids=["00000000-0000-0000-0000-000000000012"],
+            data="2026-09-15",
+            hora_inicio="10:00",
+        )
+        rest = AsyncMock(side_effect=[[{"id": "owned"}], [], []])
+        with patch("backend.services.appointments.gateway.rest", rest), self.assertRaises(ApiError) as caught:
+            await appointment_service.create(payload, self.auth, idempotency_key="booking-test-key-0002")
+        self.assertEqual(caught.exception.code, "SELF_BOOKING_NOT_ALLOWED")
+
+    async def test_concurrent_retries_keep_one_booking_identity(self) -> None:
+        payload = AppointmentCreate(
+            estabelecimento_id="00000000-0000-0000-0000-000000000010",
+            profissional_id="00000000-0000-0000-0000-000000000011",
+            servicos_ids=["00000000-0000-0000-0000-000000000012"],
+            data="2026-09-15",
+            hora_inicio="10:00",
+        )
+        rpc_calls = 0
+
+        async def fake_rest(resource, **kwargs):
+            nonlocal rpc_calls
+            if resource in {"estabelecimentos", "profissionais", "estabelecimento_membros"}:
+                return []
+            self.assertEqual(resource, "criar_agendamento_idempotente_111")
+            self.assertEqual(kwargs["json"]["p_chave_idempotencia"], "booking-concurrent-0001")
+            rpc_calls += 1
+            return {"id": "appointment-one", "reutilizado": rpc_calls > 1, "status": "pendente"}
+
+        with patch("backend.services.appointments.gateway.rest", side_effect=fake_rest):
+            first, second = await asyncio.gather(
+                appointment_service.create(payload, self.auth, idempotency_key="booking-concurrent-0001"),
+                appointment_service.create(payload, self.auth, idempotency_key="booking-concurrent-0001"),
+            )
+        self.assertEqual(first["id"], second["id"])
+        self.assertEqual(rpc_calls, 2)
+
+    async def test_recurrences_include_remaining_and_next_occurrence_in_one_batch(self) -> None:
+        recurrence_id = "00000000-0000-0000-0000-000000000091"
+        recurrence_rows = [{
+            "id": recurrence_id,
+            "cliente_id": self.auth.user_id,
+            "status": "ativa",
+            "frequencia": "quinzenal",
+            "total_ocorrencias": 6,
+            "ocorrencias_criadas": 6,
+        }]
+        occurrence_rows = [
+            {"recorrencia_id": recurrence_id, "data": date.today().isoformat(), "hora_inicio": "14:30:00", "status": "confirmado"},
+            {"recorrencia_id": recurrence_id, "data": (date.today() + timedelta(days=14)).isoformat(), "hora_inicio": "14:30:00", "status": "pendente"},
+        ]
+        # The gateway may preserve provider envelopes. The service boundary
+        # must normalize them instead of treating the object like a list.
+        rest = AsyncMock(side_effect=[{"items": recurrence_rows}, {"data": occurrence_rows}])
+        with patch("backend.services.retention.gateway.rest", rest):
+            result = await retention_service.list_recurrences(None, self.auth)
+        self.assertEqual(result["items"][0]["ocorrencias_restantes"], 2)
+        self.assertEqual(result["items"][0]["proxima_ocorrencia"]["hora_inicio"], "14:30:00")
+        self.assertEqual(rest.await_count, 2)
+        occurrence_query = rest.await_args_list[1].kwargs["params"]
+        self.assertEqual(occurrence_query["recorrencia_id"], f"in.({recurrence_id})")
+        self.assertEqual(occurrence_query["status"], "in.(pendente,confirmado)")
+
+    async def test_waitlist_accepts_provider_data_envelope(self) -> None:
+        row = {
+            "id": "00000000-0000-0000-0000-000000000092",
+            "cliente_id": self.auth.user_id,
+            "status": "aguardando",
+        }
+        with patch(
+            "backend.services.retention.gateway.rest",
+            AsyncMock(return_value={"data": [row]}),
+        ):
+            result = await retention_service.list_waitlist(None, self.auth)
+        self.assertEqual(result["items"], [row])
+        self.assertFalse(result["has_more"])
+
+    async def test_waitlist_fails_cleanly_on_invalid_provider_shape(self) -> None:
+        with patch(
+            "backend.services.retention.gateway.rest",
+            AsyncMock(return_value={"message": "unexpected upstream payload"}),
+        ), self.assertRaises(ApiError) as caught:
+            await retention_service.list_waitlist(None, self.auth)
+        self.assertEqual(caught.exception.status_code, 502)
+        self.assertEqual(caught.exception.code, "UPSTREAM_RESPONSE_INVALID")
+
+    async def test_http_pool_is_shared_and_closed_explicitly(self) -> None:
+        gateway = SupabaseGateway()
+        first, second = await asyncio.gather(gateway._get_client(), gateway._get_client())
+        self.assertIs(first, second)
+        await gateway.aclose()
+        self.assertTrue(first.is_closed)
+
+    async def test_storage_cleanup_uses_supported_storage_api(self) -> None:
+        import httpx
+
+        gateway = SupabaseGateway()
+        request = AsyncMock(return_value=httpx.Response(200, json=[{"name": "user/photo.webp"}]))
+        with patch.object(gateway, "request", request):
+            removed = await gateway.storage_remove("barberhub-public", ["user/photo.webp"])
+        self.assertEqual(removed, 1)
+        self.assertEqual(request.await_args.args[0], "/storage/v1/object/barberhub-public")
+        self.assertEqual(request.await_args.kwargs["method"], "DELETE")
+        self.assertEqual(request.await_args.kwargs["json"], {"prefixes": ["user/photo.webp"]})
+        self.assertTrue(request.await_args.kwargs["admin"])
+
+    async def test_account_deletion_worker_cleans_storage_before_auth(self) -> None:
+        rpc = AsyncMock(side_effect=[
+            [{"solicitacao_id": "request-1", "user_id": "user-1"}],
+            [{"bucket_id": "barberhub-public", "nome": "user-1/avatar/photo.webp"}],
+            [],
+            {"anonimizada": True},
+            {"status": "concluida"},
+        ])
+        remove = AsyncMock(return_value=1)
+        delete_user = AsyncMock()
+        with patch("backend.services.maintenance._rpc", rpc), patch(
+            "backend.services.maintenance.gateway.storage_remove", remove
+        ), patch("backend.services.maintenance.gateway.admin_delete_user", delete_user):
+            result = await maintenance_service.process_account_deletions(5)
+        self.assertEqual(result, {"claimed": 1, "completed": 1, "failed": 0, "files_removed": 1})
+        remove.assert_awaited_once_with("barberhub-public", ["user-1/avatar/photo.webp"])
+        delete_user.assert_awaited_once_with("user-1")
+        called_rpcs = [call.args[0] for call in rpc.await_args_list]
+        self.assertLess(called_rpcs.index("listar_arquivos_conta_exclusao_111"), called_rpcs.index("anonimizar_conta_exclusao_111"))
+        self.assertLess(called_rpcs.index("anonimizar_conta_exclusao_111"), called_rpcs.index("concluir_exclusao_conta_111"))
+
+    async def test_reviews_are_paginated_and_hide_private_profile_fields(self) -> None:
+        import httpx
+
+        response = httpx.Response(
+            200,
+            json=[{"id": "r1", "nota": 5, "comentario": "Ótimo", "perfis": {"nome": "Ana"}}],
+            headers={"content-range": "0-0/12"},
+        )
+        with patch("backend.services.catalog.gateway.request", AsyncMock(return_value=response)) as request_mock, patch(
+            "backend.services.catalog.gateway.rest", AsyncMock(return_value=[{"avaliacao": 4.8}])
+        ):
+            page = await catalog_service.reviews("establishment-1", offset=0, limit=1)
+        self.assertEqual(page["total"], 12)
+        self.assertTrue(page["has_more"])
+        selected = request_mock.await_args.kwargs["params"]["select"]
+        self.assertNotIn("email", selected)
+        self.assertNotIn("telefone", selected)
+
+    async def test_regional_marketplace_keeps_all_filters_in_one_query(self) -> None:
+        rest = AsyncMock(return_value=[])
+        with patch("backend.services.flags.require_enabled", AsyncMock()), patch(
+            "backend.services.catalog.gateway.rest", rest
+        ):
+            result = await catalog_service.regional_search(
+                query="unhas",
+                tipo="salao",
+                status="fechada",
+                agenda=False,
+                city="Jacinto",
+                neighborhood="Centro",
+                state="MG",
+                service="manicure",
+                min_price=20,
+                max_price=80,
+                min_rating=4,
+            )
+        self.assertEqual(result["items"], [])
+        self.assertEqual(rest.await_args.args[0], "buscar_marketplace_regional_111")
+        sent = rest.await_args.kwargs["json"]
+        self.assertEqual(sent["p_tipo"], "salao")
+        self.assertEqual(sent["p_status"], "fechada")
+        self.assertIs(sent["p_agenda"], False)
+        self.assertEqual(sent["p_servico"], "manicure")
+
+    async def test_email_worker_records_delivery_without_exposing_provider_body(self) -> None:
+        from types import SimpleNamespace
+        import httpx
+
+        fake_settings = SimpleNamespace(
+            email_api_url="https://mailer.invalid/send",
+            email_api_key="private-test-key",
+            email_from="Barber Hub <avisos@example.test>",
+        )
+        rest = AsyncMock(side_effect=[[
+            {"id": "00000000-0000-0000-0000-000000000099", "destinatario": "ana@example.test", "assunto": "Aviso", "html": "<p>Olá</p>", "texto": "Olá"}
+        ], None])
+        response = httpx.Response(202, json={"id": "provider-message-1"})
+        with patch("backend.services.email_delivery.settings", fake_settings), patch(
+            "backend.services.email_delivery.gateway.rest", rest
+        ), patch("backend.services.email_delivery.gateway.external_request", AsyncMock(return_value=response)):
+            result = await email_service.deliver_pending(1)
+        self.assertEqual(result, {"processed": 1, "sent": 1, "failed": 0})
+        finalized = rest.await_args_list[-1].kwargs["json"]
+        self.assertEqual(finalized["p_provedor_id"], "provider-message-1")
+        self.assertNotIn("private-test-key", json.dumps(finalized))

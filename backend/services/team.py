@@ -7,13 +7,13 @@ from typing import Any
 from backend.errors import ApiError
 from backend.models import TeamMemberLink, TeamMemberUpdate
 from backend.security import AuthContext
-from backend.services.access import first_visible, model_payload, require_feature
+from backend.services.access import first_visible, model_payload, require_feature, rows_payload
 from backend.supabase import gateway
 
 
 async def list_members(establishment_id: str, auth: AuthContext) -> list[dict[str, Any]]:
     await require_feature(establishment_id, auth, "permite_equipe_acesso", "Acesso individual da equipe está disponível a partir do plano Profissional.")
-    return await gateway.rest(
+    return rows_payload(await gateway.rest(
         "estabelecimento_membros",
         token=auth.token,
         params={
@@ -22,7 +22,7 @@ async def list_members(establishment_id: str, auth: AuthContext) -> list[dict[st
             "order": "status.asc,papel.asc,created_at.asc",
             "limit": "200",
         },
-    ) or []
+    ))
 
 
 async def link_member(payload: TeamMemberLink, auth: AuthContext) -> dict[str, Any]:

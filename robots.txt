@@ -1,5 +1,3 @@
 User-agent: *
 Allow: /
-Disallow: /html/admin
-Disallow: /html/painel
 Sitemap: https://barberhuboficial.vercel.app/sitemap.xml

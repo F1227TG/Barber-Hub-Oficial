@@ -24,7 +24,11 @@ class Settings:
     vapid_public_key: str
     vapid_private_key: str
     vapid_subject: str
+    cron_secret: str
     jobs_secret: str
+    email_api_url: str
+    email_api_key: str
+    email_from: str
 
     @property
     def is_configured(self) -> bool:
@@ -44,5 +48,9 @@ settings = Settings(
     vapid_public_key=os.getenv("BARBER_HUB_VAPID_PUBLIC_KEY", "").strip(),
     vapid_private_key=os.getenv("BARBER_HUB_VAPID_PRIVATE_KEY", "").strip(),
     vapid_subject=os.getenv("BARBER_HUB_VAPID_SUBJECT", "").strip(),
-    jobs_secret=os.getenv("BARBER_HUB_JOBS_SECRET", os.getenv("CRON_SECRET", "")).strip(),
+    cron_secret=os.getenv("CRON_SECRET", "").strip(),
+    jobs_secret=os.getenv("BARBER_HUB_JOBS_SECRET", "").strip(),
+    email_api_url=os.getenv("BARBER_HUB_EMAIL_API_URL", "").strip(),
+    email_api_key=os.getenv("BARBER_HUB_EMAIL_API_KEY", "").strip(),
+    email_from=os.getenv("BARBER_HUB_EMAIL_FROM", "").strip(),
 )

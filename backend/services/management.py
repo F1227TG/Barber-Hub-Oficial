@@ -26,6 +26,7 @@ from backend.models import (
     ServiceUpdate,
 )
 from backend.security import AuthContext
+from backend.services.access import object_payload, rows_payload
 from backend.supabase import gateway
 
 
@@ -59,17 +60,17 @@ async def _write(
     json: dict[str, Any] | None = None,
     not_found_message: str,
 ) -> dict[str, Any]:
-    rows = await gateway.rest(
+    rows = rows_payload(await gateway.rest(
         table,
         method=method,
         token=auth.token,
         params=params,
         json=json,
         headers={"Prefer": "return=representation"},
-    )
+    ), message="Não foi possível confirmar esta alteração agora.")
     if not rows:
         raise ApiError(404, "RESOURCE_NOT_FOUND_OR_FORBIDDEN", not_found_message)
-    return rows[0] if isinstance(rows, list) else rows
+    return rows[0]
 
 
 async def get_entitlements(establishment_id: str, auth: AuthContext) -> dict[str, Any]:
@@ -80,9 +81,7 @@ async def get_entitlements(establishment_id: str, auth: AuthContext) -> dict[str
         rpc=True,
         json={"p_estabelecimento_id": establishment_id},
     )
-    if isinstance(data, list):
-        return data[0] if data else {}
-    return data or {}
+    return object_payload(data, message="Não foi possível validar os recursos do plano agora.")
 
 
 async def _active_count(table: str, establishment_id: str, auth: AuthContext) -> int:
@@ -202,12 +201,12 @@ async def update_professional(professional_id: str, payload: ProfessionalUpdate,
     if not data:
         raise ApiError(422, "EMPTY_UPDATE", "Informe pelo menos um campo para atualizar.")
     if data.get("ativo") is True:
-        rows = await gateway.rest(
+        rows = rows_payload(await gateway.rest(
             "profissionais",
             method="GET",
             token=auth.token,
             params={"select": "estabelecimento_id,ativo", "id": f"eq.{professional_id}", "limit": "1"},
-        )
+        ), message="Não foi possível validar este profissional agora.")
         if not rows:
             raise ApiError(404, "RESOURCE_NOT_FOUND_OR_FORBIDDEN", "Profissional não encontrado.")
         if not rows[0].get("ativo"):
@@ -258,12 +257,12 @@ async def update_promotion(promotion_id: str, payload: PromotionUpdate, auth: Au
     if not data:
         raise ApiError(422, "EMPTY_UPDATE", "Informe pelo menos um campo para atualizar.")
     if data.get("ativo") is True:
-        rows = await gateway.rest(
+        rows = rows_payload(await gateway.rest(
             "promocoes",
             method="GET",
             token=auth.token,
             params={"select": "estabelecimento_id", "id": f"eq.{promotion_id}", "limit": "1"},
-        )
+        ), message="Não foi possível validar esta promoção agora.")
         if not rows:
             raise ApiError(404, "RESOURCE_NOT_FOUND_OR_FORBIDDEN", "Promoção não encontrada.")
         entitlements = await get_entitlements(str(rows[0]["estabelecimento_id"]), auth)

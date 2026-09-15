@@ -22,21 +22,20 @@ from docx.shared import Inches, Pt, RGBColor
 
 
 ROOT = Path(__file__).resolve().parents[1]
-OUTPUT = ROOT / "docs" / "GUIA_COMPLETO_BARBER_HUB_1_10_1.docx"
+OUTPUT = ROOT / "docs" / "GUIA_COMPLETO_BARBER_HUB_1_11_0.docx"
 LOGO = ROOT / "img" / "branding" / "barber-hub-horizontal-fundo-claro.png"
 
 SOURCES = [
     (ROOT / "docs" / "GUIA_COMPLETO_DO_PROJETO.md", None),
     (ROOT / "docs" / "PESQUISA_VALIDACAO_BARBER_BEAUTY_HUB.md", "Apêndice A — Pesquisa e validação"),
-    (ROOT / "docs" / "RELATORIO_CONCLUSAO_PLANEJAMENTO_POS31_1_10_1.md", "Apêndice B — Conferência do planejamento"),
-    (ROOT / "docs" / "RELATORIO_SEGURANCA_1_10.md", "Apêndice C — Segurança"),
-    (ROOT / "docs" / "AUDITORIA_SENHAS_BARBER_BEAUTY_1_10_1.md", "Apêndice D — Senhas e autenticação"),
-    (ROOT / "docs" / "ADVISORS_SUPABASE_2026_09_05.md", "Apêndice E — Advisors"),
-    (ROOT / "docs" / "MIGRATIONS_DEPLOY_1_10.md", "Apêndice F — Banco e deploy"),
-    (ROOT / "docs" / "PILOTO_VALIDACAO_OPERACIONAL.md", "Apêndice G — Piloto"),
-    (ROOT / "docs" / "ESTRUTURA_PROJETO_1_10_1.md", "Apêndice H — Estrutura"),
-    (ROOT / "docs" / "HOMOLOGACAO_FINAL_1_10.md", "Apêndice I — Homologação"),
-    (ROOT / "docs" / "RELATORIO_VALIDACAO_1_10_1.md", "Apêndice J — Evidências de validação"),
+    (ROOT / "docs" / "release-1.11" / "RELATORIO_FINAL_1_11_0.md", "Apêndice B — Implementação e verificação final"),
+    (ROOT / "docs" / "RELATORIO_SEGURANCA_1_10.md", "Apêndice C — Auditoria diferencial de segurança"),
+    (ROOT / "docs" / "release-1.11" / "CREDENCIAIS_E_SENHAS.md", "Apêndice D — Credenciais e senhas"),
+    (ROOT / "docs" / "release-1.11" / "ADVISORS_SUPABASE_2026_09_11.md", "Apêndice E — Advisors"),
+    (ROOT / "docs" / "release-1.11" / "CONFIGURACAO_EXTERNA.md", "Apêndice F — Configuração externa"),
+    (ROOT / "docs" / "release-1.11" / "BACKUP_E_RESTAURACAO.md", "Apêndice G — Backup e restauração"),
+    (ROOT / "docs" / "release-1.11" / "TESTES_DE_PERFIS_E_RLS.md", "Apêndice H — Perfis, planos e RLS"),
+    (ROOT / "docs" / "release-1.11" / "CHECKLIST_PRE_RELEASE.md", "Apêndice I — Checklist de publicação"),
 ]
 
 INK = "231F1A"
@@ -263,7 +262,7 @@ def configure_document(doc: Document) -> None:
         fp = footer.paragraphs[0]
         fp.alignment = WD_ALIGN_PARAGRAPH.RIGHT
         fp.paragraph_format.space_before = Pt(0)
-        fr = fp.add_run("The Gamers Tech  ·  1.10.1  ·  ")
+        fr = fp.add_run("The Gamers Tech  ·  1.11.0  ·  ")
         fr.font.name = "Calibri"
         fr.font.size = Pt(8.5)
         fr.font.color.rgb = rgb(MUTED)
@@ -292,7 +291,7 @@ def add_cover(doc: Document) -> None:
     p = doc.add_paragraph()
     p.paragraph_format.space_after = Pt(16)
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    run = p.add_run("Barber Hub 1.10.1")
+    run = p.add_run("Barber Hub 1.11.0")
     run.font.name = "Calibri"
     run.font.size = Pt(18)
     run.font.bold = True
@@ -310,8 +309,8 @@ def add_cover(doc: Document) -> None:
     table.style = "Table Grid"
     values = [
         ("Produto", "Marketplace e gestão para barbearias"),
-        ("Situação", "Código em homologação; migrations 29–31 pendentes"),
-        ("Atualização", "2 de setembro de 2026"),
+        ("Situação", "Implementação e banco concluídos; homologação externa pendente"),
+        ("Atualização", "14 de setembro de 2026"),
     ]
     for r_idx, (label, value) in enumerate(values):
         table.cell(r_idx, 0).text = label
@@ -324,7 +323,7 @@ def add_cover(doc: Document) -> None:
 
     p = doc.add_paragraph(style="BH Callout")
     p.paragraph_format.space_before = Pt(22)
-    add_inline(p, "Documento canônico da versão 1.10. O código ainda não autoriza publicação: banco, serviços externos e homologação precisam ser concluídos.")
+    add_inline(p, "Documento canônico da versão 1.11. A candidata técnica está concluída; configuração externa, homologação e decisão formal de publicação ainda precisam ser concluídas.")
     shade_paragraph(p, PALE_GOLD)
     doc.add_page_break()
 
@@ -478,11 +477,11 @@ def parse_markdown(doc: Document, path: Path, part_title: str | None) -> None:
 
 def finalize(doc: Document) -> None:
     props = doc.core_properties
-    props.title = "Guia Completo Barber Hub 1.10.1"
+    props.title = "Guia Completo Barber Hub 1.11.0"
     props.subject = "Produto, arquitetura, segurança, operação, deploy e validação"
     props.author = "The Gamers Tech"
     props.keywords = "Barber Hub, Beauty Hub, FastAPI, Supabase, PWA, segurança"
-    props.comments = "Atualizado para a versão 1.10.1"
+    props.comments = "Atualizado para a versão 1.11.0"
     doc.settings.element.append(OxmlElement("w:updateFields"))
     doc.save(OUTPUT)
 

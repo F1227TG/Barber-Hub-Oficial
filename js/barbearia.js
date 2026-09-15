@@ -13,9 +13,43 @@ let bhEstabelecimentoPortfolio = null;
 let bhAvaliacoesPublicas = [];
 let bhPortfolioPublicoHasMore = false;
 let bhAvaliacoesPublicasHasMore = false;
+let bhAvaliacoesPublicasTotal = 0;
+let bhAvaliacoesPublicasResumo = null;
 let bhFavoritoAtual = false;
+let bhEstabelecimentoProprioPortfolio = false;
 let bhAlvoAvaliacaoComunidade = { publicacaoId: null };
 let bhFiltroPortfolio = { categoria: "todas", profissional: "todos", servico: "todos", modo: "todos", ordem: "recentes" };
+
+function bhAvaliacoesFundoInativo(drawer, inactive) {
+  [...document.body.children].forEach(element => {
+    if (element === drawer || ["SCRIPT", "STYLE", "LINK"].includes(element.tagName)) return;
+    if (inactive) {
+      if (!element.hasAttribute("inert")) { element.setAttribute("inert", ""); element.dataset.reviewsInert111 = "1"; }
+    } else if (element.dataset.reviewsInert111 === "1") {
+      element.removeAttribute("inert"); delete element.dataset.reviewsInert111;
+    }
+  });
+}
+
+function bhAvaliacoesPrenderFoco(evento, panel) {
+  if (evento.key !== "Tab") return;
+  const focusable = [...panel.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')]
+    .filter(item => !item.hidden && item.getClientRects().length);
+  if (!focusable.length) { evento.preventDefault(); panel.focus(); return; }
+  const first = focusable[0]; const last = focusable[focusable.length - 1];
+  if (evento.shiftKey && document.activeElement === first) { evento.preventDefault(); last.focus(); }
+  else if (!evento.shiftKey && document.activeElement === last) { evento.preventDefault(); first.focus(); }
+}
+
+function bhPodeAgendarPublico(item) {
+  return Boolean(item?.aceitaAgendamento && !(bhPerfilPortfolio?.tipo === "barbeiro" && (item.ownerId === bhPerfilPortfolio.id || bhEstabelecimentoProprioPortfolio)));
+}
+
+function bhAvisoAgendaPropria(item) {
+  return item?.aceitaAgendamento && !bhPodeAgendarPublico(item)
+    ? '<span class="own-business-notice"><i class="bi bi-shop-window"></i> Esta é sua página. Gerencie os horários pelo painel.</span>'
+    : "";
+}
 
 
 function bhUrlRedeSocial(valor, rede) {
@@ -38,16 +72,90 @@ function bhRenderRedesSociais(item) {
 
 function bhRenderMapaPublico(item, compact = false) {
   const address = [item.endereco, item.numero, item.bairro, item.cidade, item.estado, item.cep].filter(Boolean).join(", ");
-  if (!address) return "";
   const coordinate = (value, limit) => value !== null && value !== undefined
     && String(value).trim() !== "" && Number.isFinite(Number(value)) && Math.abs(Number(value)) <= limit;
   const hasCoordinates = coordinate(item.latitude, 90) && coordinate(item.longitude, 180);
+  if (!address && !hasCoordinates) return "";
   const destination = hasCoordinates ? `${Number(item.latitude)},${Number(item.longitude)}` : address;
   const route = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`;
   if (compact || !hasCoordinates) return `<a class="btn btn-outline btn-small route110" href="${route}" target="_blank" rel="noopener noreferrer"><i class="bi bi-sign-turn-right"></i> Como chegar</a>`;
   const lat = Number(item.latitude); const lng = Number(item.longitude); const delta = .012;
   const map = `https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(`${lng - delta},${lat - delta},${lng + delta},${lat + delta}`)}&layer=mapnik&marker=${encodeURIComponent(`${lat},${lng}`)}`;
   return `<div class="public-map110"><iframe src="${map}" title="Mapa de ${escapeHTML(item.nome)}" loading="lazy" referrerpolicy="no-referrer"></iframe><a class="btn btn-outline btn-small" href="${route}" target="_blank" rel="noopener noreferrer"><i class="bi bi-sign-turn-right"></i> Traçar rota</a></div>`;
+}
+
+function bhAvaliacaoPublicaMarkup(item) {
+  const verified = item.verificada || item.origem === "agendamento";
+  return `<article class="review-public-item">
+    <div class="review-public-head"><div class="review-avatar">${escapeHTML((item.perfis?.nome || item.cliente_nome || "C").slice(0,1).toUpperCase())}</div><div><strong>${escapeHTML(item.perfis?.nome || item.cliente_nome || "Cliente")}</strong><span class="review-stars" aria-label="${Number(item.nota || 0)} de 5 estrelas">${"★".repeat(Number(item.nota || 0))}${"☆".repeat(5 - Number(item.nota || 0))}</span></div><time>${new Intl.DateTimeFormat("pt-BR", { dateStyle:"medium" }).format(new Date(item.created_at))}</time></div>
+    <div class="review-meta-row"><span class="review-source ${verified ? "verified" : "community"}"><i class="bi ${verified ? "bi-patch-check-fill" : "bi-people-fill"}"></i> ${verified ? "Atendimento verificado" : "Avaliação da comunidade"}</span>${item.portfolio_publicacoes?.titulo ? `<span class="review-context"><i class="bi bi-image"></i> Sobre: ${escapeHTML(item.portfolio_publicacoes.titulo)}</span>` : ""}</div>
+    ${item.comentario ? `<p>${escapeHTML(item.comentario)}</p>` : '<p class="muted">Avaliação sem comentário.</p>'}
+    ${item.resposta_estabelecimento ? `<div class="business-reply"><strong><i class="bi bi-reply"></i> Resposta do estabelecimento</strong><p>${escapeHTML(item.resposta_estabelecimento)}</p></div>` : ""}
+  </article>`;
+}
+
+async function bhBuscarAvaliacoesPublicasPagina(offset = 0, limit = 10) {
+  if (window.bhBackendApi?.publicReviews) {
+    try {
+      const page = await window.bhBackendApi.publicReviews(bhEstabelecimentoPortfolio.id, offset, limit);
+      return { items:Array.isArray(page) ? page : (Array.isArray(page?.items) ? page.items : []), total:Number(page?.total || 0), hasMore:Boolean(page?.has_more), summary:page?.summary || null };
+    } catch (error) {
+      if (!bhBackendPodeUsarFallback(error)) throw error;
+    }
+  }
+  const items = await bhListarAvaliacoesEstabelecimento(bhEstabelecimentoPortfolio.id, { offset, limite:limit });
+  let total = offset + items.length; let average = Number(bhEstabelecimentoPortfolio?.avaliacao || 0);
+  try {
+    const client = bhExigirSupabase();
+    const { count } = await client.from("avaliacoes").select("id", { count:"exact", head:true }).eq("estabelecimento_id", bhEstabelecimentoPortfolio.id).eq("status", "publicada");
+    if (Number.isFinite(Number(count))) total = Number(count);
+  } catch (_) { /* A prévia continua disponível sem o contador auxiliar. */ }
+  return { items, total, hasMore:offset + items.length < total, summary:{ average, total } };
+}
+
+function bhGarantirDrawerAvaliacoes() {
+  let drawer = document.getElementById("reviewsDrawer111");
+  if (drawer) return drawer;
+  drawer = document.createElement("div");
+  drawer.id = "reviewsDrawer111";
+  drawer.className = "reviews-drawer111";
+  drawer.innerHTML = `<button class="reviews-drawer111-backdrop" type="button" data-reviews-close aria-label="Fechar avaliações"></button><aside class="reviews-drawer111-panel" role="dialog" aria-modal="true" aria-labelledby="reviewsDrawerTitle111" aria-hidden="true" inert><header><div><span>Reputação</span><h2 id="reviewsDrawerTitle111">Todas as avaliações</h2></div><button class="icon-btn" type="button" data-reviews-close aria-label="Fechar"><i class="bi bi-x-lg"></i></button></header><div class="reviews-drawer111-list" data-reviews-drawer-list></div><footer><button class="btn btn-outline" type="button" data-reviews-drawer-more>Carregar mais</button></footer></aside>`;
+  document.body.appendChild(drawer);
+  drawer.addEventListener("click", async event => {
+    if (event.target.closest("[data-reviews-close]")) return bhFecharDrawerAvaliacoes();
+    const more = event.target.closest("[data-reviews-drawer-more]");
+    if (!more) return;
+    bhSetButtonLoading(more, true, "Carregando...");
+    try {
+      const page = await bhBuscarAvaliacoesPublicasPagina(bhAvaliacoesPublicas.length, 10);
+      const ids = new Set(bhAvaliacoesPublicas.map(item => item.id));
+      bhAvaliacoesPublicas.push(...page.items.filter(item => !ids.has(item.id)));
+      bhAvaliacoesPublicasTotal = page.total || bhAvaliacoesPublicasTotal;
+      bhAvaliacoesPublicasHasMore = page.hasMore;
+      bhRenderDrawerAvaliacoes();
+    } catch (error) { mostrarToast("erro", "Não foi possível carregar mais", bhErroMensagem(error)); }
+    finally { bhSetButtonLoading(more, false); }
+  });
+  return drawer;
+}
+
+function bhRenderDrawerAvaliacoes() {
+  const drawer = bhGarantirDrawerAvaliacoes();
+  drawer.querySelector("[data-reviews-drawer-list]").innerHTML = bhAvaliacoesPublicas.length ? bhAvaliacoesPublicas.map(bhAvaliacaoPublicaMarkup).join("") : '<div class="empty compact">Ainda não há avaliações.</div>';
+  drawer.querySelector("[data-reviews-drawer-more]").hidden = !bhAvaliacoesPublicasHasMore;
+}
+
+function bhAbrirDrawerAvaliacoes(trigger) {
+  const drawer = bhGarantirDrawerAvaliacoes(); bhRenderDrawerAvaliacoes(); drawer.dataset.returnFocus = trigger?.id || "";
+  if (drawer.classList.contains("is-open")) return;
+  drawer.classList.add("is-open"); const panel = drawer.querySelector(".reviews-drawer111-panel"); panel.removeAttribute("inert"); panel.setAttribute("aria-hidden", "false"); panel.setAttribute("tabindex", "-1"); document.body.classList.add("reviews-drawer-open111"); bhAvaliacoesFundoInativo(drawer, true); history.pushState({ ...(history.state || {}), bhReviewsDrawer111:true }, "", location.href); drawer.dataset.historyEntry = "1"; requestAnimationFrame(() => panel.querySelector("[data-reviews-close]")?.focus());
+}
+
+function bhFecharDrawerAvaliacoes({ fromHistory = false } = {}) {
+  const drawer = bhGarantirDrawerAvaliacoes(); const panel = drawer.querySelector(".reviews-drawer111-panel"); drawer.classList.remove("is-open"); panel.setAttribute("aria-hidden", "true"); panel.setAttribute("inert", ""); document.body.classList.remove("reviews-drawer-open111"); document.getElementById(drawer.dataset.returnFocus)?.focus?.();
+  bhAvaliacoesFundoInativo(drawer, false);
+  if (!fromHistory && drawer.dataset.historyEntry === "1") { drawer.dataset.historyEntry = "0"; history.back(); }
+  else drawer.dataset.historyEntry = "0";
 }
 
 function bhRenderAvaliacoesPublicas() {
@@ -59,15 +167,11 @@ function bhRenderAvaliacoesPublicas() {
       ? `<a class="btn btn-outline btn-small" data-login-action="review" href="login.html?next=${encodeURIComponent(location.pathname + location.search + "#avaliacoes")}"><i class="bi bi-box-arrow-in-right"></i> Entrar para avaliar</a>`
       : "";
   if (!bhAvaliacoesPublicas.length) return `<section class="card reviews-public-card" id="avaliacoes"><div class="card-body"><div class="section-top compact"><div><span class="tag"><i class="bi bi-star"></i> Reputação</span><h2>Ainda sem avaliações</h2><p class="texto-section">Clientes podem avaliar atendimentos verificados ou compartilhar uma experiência realizada fora da agenda online.</p></div><div class="reviews-public-actions">${acao}</div></div></div></section>`;
-  const media = bhAvaliacoesPublicas.reduce((soma, item) => soma + Number(item.nota || 0), 0) / bhAvaliacoesPublicas.length;
+  const media = Number(bhAvaliacoesPublicasResumo?.average ?? bhAvaliacoesPublicasResumo?.media ?? (bhAvaliacoesPublicas.reduce((soma, item) => soma + Number(item.nota || 0), 0) / bhAvaliacoesPublicas.length));
+  const total = bhAvaliacoesPublicasTotal || bhAvaliacoesPublicas.length;
   return `<section class="card reviews-public-card" id="avaliacoes"><div class="card-body">
-    <div class="section-top compact"><div><span class="tag"><i class="bi bi-star"></i> Reputação</span><h2>Experiências compartilhadas</h2><p class="texto-section">Avaliações verificadas vêm de atendimentos concluídos no Barber Hub. Avaliações da comunidade são identificadas separadamente.</p><div class="review-counts"><span class="review-source verified"><i class="bi bi-patch-check-fill"></i> ${verificadas} verificada${verificadas === 1 ? "" : "s"}</span><span class="review-source community"><i class="bi bi-people-fill"></i> ${comunidade} da comunidade</span></div></div><div class="reviews-public-actions"><div class="rating-summary"><strong>${media.toFixed(1).replace(".", ",")}</strong><div><span>${"★".repeat(Math.round(media))}${"☆".repeat(5 - Math.round(media))}</span><small>${bhAvaliacoesPublicas.length} avaliação${bhAvaliacoesPublicas.length === 1 ? "" : "ões"} exibida${bhAvaliacoesPublicas.length === 1 ? "" : "s"}</small></div></div>${acao}</div></div>
-    <div class="reviews-public-list">${bhAvaliacoesPublicas.map(item => `<article class="review-public-item">
-      <div class="review-public-head"><div class="review-avatar">${escapeHTML((item.perfis?.nome || "C").slice(0,1).toUpperCase())}</div><div><strong>${escapeHTML(item.perfis?.nome || "Cliente")}</strong><span class="review-stars" aria-label="${item.nota} de 5 estrelas">${"★".repeat(Number(item.nota || 0))}${"☆".repeat(5 - Number(item.nota || 0))}</span></div><time>${new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium" }).format(new Date(item.created_at))}</time></div>
-      <div class="review-meta-row"><span class="review-source ${item.verificada || item.origem === "agendamento" ? "verified" : "community"}"><i class="bi ${item.verificada || item.origem === "agendamento" ? "bi-patch-check-fill" : "bi-people-fill"}"></i> ${item.verificada || item.origem === "agendamento" ? "Atendimento verificado" : "Avaliação da comunidade"}</span>${item.portfolio_publicacoes?.titulo ? `<span class="review-context"><i class="bi bi-image"></i> Sobre: ${escapeHTML(item.portfolio_publicacoes.titulo)}</span>` : ""}</div>
-      ${item.comentario ? `<p>${escapeHTML(item.comentario)}</p>` : `<p class="muted">Avaliação sem comentário.</p>`}
-      ${item.resposta_estabelecimento ? `<div class="business-reply"><strong><i class="bi bi-reply"></i> Resposta do estabelecimento</strong><p>${escapeHTML(item.resposta_estabelecimento)}</p></div>` : ""}
-    </article>`).join("")}</div>${bhAvaliacoesPublicasHasMore ? `<button class="btn btn-dark notification-more110" data-reviews-more type="button"><i class="bi bi-chevron-down"></i> Ver mais avaliações</button>` : ""}
+    <div class="section-top compact"><div><span class="tag"><i class="bi bi-star"></i> Reputação</span><h2>Experiências compartilhadas</h2><p class="texto-section">Avaliações de atendimentos concluídos recebem identificação própria; opiniões da comunidade aparecem separadamente.</p><div class="review-counts"><span class="review-source verified"><i class="bi bi-patch-check-fill"></i> ${verificadas} verificadas nesta prévia</span><span class="review-source community"><i class="bi bi-people-fill"></i> ${comunidade} da comunidade nesta prévia</span></div></div><div class="reviews-public-actions"><div class="rating-summary"><strong>${media.toFixed(1).replace(".", ",")}</strong><div><span>${"★".repeat(Math.round(media))}${"☆".repeat(5 - Math.round(media))}</span><small>${total} avaliação${total === 1 ? "" : "ões"}</small></div></div>${acao}</div></div>
+    <div class="reviews-public-list reviews-public-preview111">${bhAvaliacoesPublicas.slice(0, 3).map(bhAvaliacaoPublicaMarkup).join("")}</div><button class="btn btn-dark notification-more110" id="openReviewsDrawer111" data-reviews-open type="button"><i class="bi bi-chat-square-quote"></i> Ver todas as avaliações</button>
   </div></section>`;
 }
 
@@ -149,7 +253,12 @@ function bhRenderSecaoPortfolioPublico() {
 
 function bhAtualizarEstrelasComunidade(nota) {
   document.getElementById("avaliacaoComunidadeNota").value = nota || "";
-  document.querySelectorAll("#avaliacaoComunidadeEstrelas [data-nota]").forEach(item => item.classList.toggle("ativo", Number(item.dataset.nota) <= Number(nota || 0)));
+  document.querySelectorAll("#avaliacaoComunidadeEstrelas [data-nota]").forEach(item => {
+    const value = Number(item.dataset.nota); const selected = value === Number(nota || 0);
+    item.classList.toggle("ativo", value <= Number(nota || 0));
+    item.setAttribute("aria-checked", String(selected));
+    item.tabIndex = selected || (!nota && value === 1) ? 0 : -1;
+  });
 }
 
 async function bhAbrirAvaliacaoComunidade(publicacao = null, trigger = null) {
@@ -175,9 +284,14 @@ async function bhAbrirAvaliacaoComunidade(publicacao = null, trigger = null) {
 
 async function bhRecarregarReputacaoPublica() {
   const posicao = window.scrollY;
-  bhAvaliacoesPublicas = await bhListarAvaliacoesEstabelecimento(bhEstabelecimentoPortfolio.id);
-  bhEstabelecimentoPortfolio.avaliacao = bhAvaliacoesPublicas.length ? bhAvaliacoesPublicas.reduce((soma,item)=>soma+Number(item.nota||0),0)/bhAvaliacoesPublicas.length : 0;
+  const page = await bhBuscarAvaliacoesPublicasPagina(0, 10);
+  bhAvaliacoesPublicas = page.items;
+  bhAvaliacoesPublicasTotal = page.total;
+  bhAvaliacoesPublicasHasMore = page.hasMore;
+  bhAvaliacoesPublicasResumo = page.summary;
+  bhEstabelecimentoPortfolio.avaliacao = Number(page.summary?.average ?? page.summary?.media ?? (bhAvaliacoesPublicas.length ? bhAvaliacoesPublicas.reduce((soma,item)=>soma+Number(item.nota||0),0)/bhAvaliacoesPublicas.length : 0));
   bhRenderDetalheEstabelecimento(bhEstabelecimentoPortfolio);
+  if (document.getElementById("reviewsDrawer111")?.classList.contains("is-open")) bhRenderDrawerAvaliacoes();
   requestAnimationFrame(() => window.scrollTo({ top: posicao, behavior: "instant" }));
 }
 
@@ -231,6 +345,7 @@ function bhRenderDetalheEstabelecimento(item) {
   const imagem = item.capaUrl || item.fotoUrl || "../img/backgrounds/barbearia-hero-default.webp";
   const whatsapp = bhNormalizarWhatsApp(item.whatsapp || item.telefone);
   const tipoLabel = item.tipoEstabelecimento === "salao" ? "Salão de beleza" : "Barbearia";
+  const podeAgendar = bhPodeAgendarPublico(item);
 
   document.title = `${item.nome} | Barber Hub`;
 
@@ -261,7 +376,7 @@ function bhRenderDetalheEstabelecimento(item) {
           <p><i class="bi bi-geo-alt"></i> ${escapeHTML([item.bairro,item.cidade].filter(Boolean).join(", ") || "Localização não informada")}</p>
           <div class="mobile-business-status-row">${bhRenderStatus(item)}${item.verificado ? `<span class="verified-badge"><i class="bi bi-patch-check-fill"></i> Verificado</span>` : ""}</div>
           <div class="mobile-business-actions">
-            ${item.aceitaAgendamento ? `<button type="button" class="btn btn-primary" data-booking-open="${item.id}"><i class="bi bi-calendar2-check"></i> Agendar</button>` : ""}
+            ${podeAgendar ? `<button type="button" class="btn btn-primary" data-booking-open="${item.id}"><i class="bi bi-calendar2-check"></i> Agendar</button>` : bhAvisoAgendaPropria(item)}
             ${whatsapp ? `<a href="https://wa.me/${whatsapp}" target="_blank" rel="noopener" class="icon-btn" aria-label="Abrir WhatsApp"><i class="bi bi-whatsapp"></i></a>` : ""}
             ${bhPerfilPortfolio?.tipo === "cliente" ? `<button type="button" class="icon-btn favorite-business-btn ${bhFavoritoAtual ? "ativo" : ""}" data-favoritar-estabelecimento aria-label="${bhFavoritoAtual ? "Remover dos favoritos" : "Favoritar"}"><i class="bi ${bhFavoritoAtual ? "bi-heart-fill" : "bi-heart"}"></i></button>` : !bhPerfilPortfolio ? `<a class="icon-btn" data-login-action="favorite" href="login.html?next=${encodeURIComponent(location.pathname + location.search)}" aria-label="Entrar para favoritar"><i class="bi bi-heart"></i></a>` : ""}
           </div>
@@ -269,7 +384,7 @@ function bhRenderDetalheEstabelecimento(item) {
       </section>
       <section class="container mobile-business-content">
         <article class="mobile-business-block">
-          <div class="mobile-section-head"><div><span>Serviços</span><h2>Escolha o que precisa</h2></div>${item.aceitaAgendamento ? `<button class="text-link" data-booking-open="${item.id}">Agendar <i class="bi bi-arrow-right"></i></button>` : ""}</div>
+          <div class="mobile-section-head"><div><span>Serviços</span><h2>Escolha o que precisa</h2></div>${podeAgendar ? `<button class="text-link" data-booking-open="${item.id}">Agendar <i class="bi bi-arrow-right"></i></button>` : ""}</div>
           <div>${servicosMobile}</div>
         </article>
         <article class="mobile-business-block">
@@ -290,7 +405,7 @@ function bhRenderDetalheEstabelecimento(item) {
         </details>
         ${item.promocoes.some(p => p.ativo) ? `<article class="mobile-business-block"><div class="mobile-section-head"><div><span>Benefícios</span><h2>Promoções</h2></div></div>${promocoes}</article>` : ""}
       </section>
-      ${item.aceitaAgendamento ? `<div class="mobile-business-sticky"><button type="button" class="btn btn-primary" data-booking-open="${item.id}"><i class="bi bi-calendar2-check"></i> Agendar horário</button></div>` : ""}`;
+      ${podeAgendar ? `<div class="mobile-business-sticky"><button type="button" class="btn btn-primary" data-booking-open="${item.id}"><i class="bi bi-calendar2-check"></i> Agendar horário</button></div>` : ""}`;
     bhRenderCardsPortfolioPublico();
     return;
   }
@@ -304,7 +419,7 @@ function bhRenderDetalheEstabelecimento(item) {
         <h1>${escapeHTML(item.nome)} ${item.verificado ? `<span class="verified-badge" title="Estabelecimento verificado"><i class="bi bi-patch-check-fill"></i> Verificado</span>` : ""}</h1>
         <p>${escapeHTML(item.descricao)}</p>
         <div class="hero-actions">
-          ${item.aceitaAgendamento ? `<button type="button" class="btn btn-primary" data-booking-open="${item.id}"><i class="bi bi-calendar2-check"></i> Agendar horário</button>` : ""}
+          ${podeAgendar ? `<button type="button" class="btn btn-primary" data-booking-open="${item.id}"><i class="bi bi-calendar2-check"></i> Agendar horário</button>` : bhAvisoAgendaPropria(item)}
           ${whatsapp ? `<a href="https://wa.me/${whatsapp}" target="_blank" rel="noopener" class="btn btn-outline"><i class="bi bi-whatsapp"></i> WhatsApp</a>` : ""}
           ${bhPerfilPortfolio?.tipo === "cliente" ? `<button type="button" class="btn btn-outline favorite-business-btn ${bhFavoritoAtual ? "ativo" : ""}" data-favoritar-estabelecimento><i class="bi ${bhFavoritoAtual ? "bi-heart-fill" : "bi-heart"}"></i> ${bhFavoritoAtual ? "Favoritado" : "Favoritar"}</button>` : !bhPerfilPortfolio ? `<a class="btn btn-outline" data-login-action="favorite" href="login.html?next=${encodeURIComponent(location.pathname + location.search)}"><i class="bi bi-heart"></i> Entrar para favoritar</a>` : ""}
         </div>
@@ -347,13 +462,21 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!id) throw new Error("Estabelecimento não informado.");
     bhEstabelecimentoPortfolio = await bhObterEstabelecimento(id);
     if (!bhEstabelecimentoPortfolio) throw new Error("Estabelecimento não encontrado ou indisponível.");
-    [bhPortfolioPublico, bhAvaliacoesPublicas] = await Promise.all([
+    const [portfolioPage, reviewsPage] = await Promise.all([
       bhListarPortfolioPublico(bhEstabelecimentoPortfolio.id, { limite:18 }),
-      bhListarAvaliacoesEstabelecimento(bhEstabelecimentoPortfolio.id, { limite:20 }).catch(erro => { console.warn("Avaliações ainda não disponíveis.", erro); return []; })
+      bhBuscarAvaliacoesPublicasPagina(0, 10).catch(erro => { console.warn("Avaliações ainda não disponíveis.", erro); return { items:[], total:0, hasMore:false, summary:null }; })
     ]);
+    bhPortfolioPublico = portfolioPage;
+    bhAvaliacoesPublicas = reviewsPage.items;
+    bhAvaliacoesPublicasTotal = reviewsPage.total;
+    bhAvaliacoesPublicasResumo = reviewsPage.summary;
     bhPortfolioPublicoHasMore = bhPortfolioPublico.length === 18;
-    bhAvaliacoesPublicasHasMore = bhAvaliacoesPublicas.length === 20;
+    bhAvaliacoesPublicasHasMore = reviewsPage.hasMore;
     try { bhPerfilPortfolio = await bhGetPerfil(); } catch (_) { bhPerfilPortfolio = null; }
+    if (bhPerfilPortfolio?.tipo === "barbeiro") {
+      try { bhEstabelecimentoProprioPortfolio = await bhUsuarioOperaEstabelecimento(bhEstabelecimentoPortfolio.id); }
+      catch (_) { bhEstabelecimentoProprioPortfolio = bhEstabelecimentoPortfolio.ownerId === bhPerfilPortfolio.id; }
+    }
     if (bhPerfilPortfolio?.tipo === "cliente") {
       try { bhFavoritoAtual = await bhEstaFavorito(bhEstabelecimentoPortfolio.id); } catch (_) { bhFavoritoAtual = false; }
     }
@@ -395,6 +518,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       window.bhContinuation?.capture?.(loginAction.dataset.loginAction,{establishmentId:bhEstabelecimentoPortfolio.id},location.pathname+location.search+"#avaliacoes");
       location.href=loginAction.href; return;
     }
+    const reviewsOpen = evento.target.closest("[data-reviews-open]");
+    if (reviewsOpen) { bhAbrirDrawerAvaliacoes(reviewsOpen); return; }
     const morePortfolio = evento.target.closest("[data-portfolio-more]");
     if (morePortfolio) {
       try {
@@ -408,17 +533,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
         bhRenderCardsPortfolioPublico();
       } catch (erro) { mostrarToast("erro", "Não foi possível carregar mais trabalhos", bhErroMensagem(erro)); }
-      return;
-    }
-    const moreReviews = evento.target.closest("[data-reviews-more]");
-    if (moreReviews) {
-      try {
-        bhSetButtonLoading(moreReviews, true, "Carregando...");
-        const page = await bhListarAvaliacoesEstabelecimento(bhEstabelecimentoPortfolio.id, { offset:bhAvaliacoesPublicas.length, limite:20 });
-        bhAvaliacoesPublicas.push(...page.filter(item => !bhAvaliacoesPublicas.some(current => current.id === item.id)));
-        bhAvaliacoesPublicasHasMore = page.length === 20;
-        document.getElementById("avaliacoes").outerHTML = bhRenderAvaliacoesPublicas();
-      } catch (erro) { mostrarToast("erro", "Não foi possível carregar mais avaliações", bhErroMensagem(erro)); }
       return;
     }
     const favorito = evento.target.closest("[data-favoritar-estabelecimento]");
@@ -458,7 +572,28 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  document.querySelectorAll("#avaliacaoComunidadeEstrelas [data-nota]").forEach(botao => botao.addEventListener("click", () => bhAtualizarEstrelasComunidade(Number(botao.dataset.nota))));
+  const starButtons = [...document.querySelectorAll("#avaliacaoComunidadeEstrelas [data-nota]")];
+  starButtons.forEach(botao => {
+    botao.setAttribute("role", "radio"); botao.setAttribute("aria-checked", "false");
+    botao.addEventListener("click", () => bhAtualizarEstrelasComunidade(Number(botao.dataset.nota)));
+    botao.addEventListener("keydown", evento => {
+      const current = Number(botao.dataset.nota); let next = null;
+      if (["ArrowRight", "ArrowUp"].includes(evento.key)) next = Math.min(5, current + 1);
+      if (["ArrowLeft", "ArrowDown"].includes(evento.key)) next = Math.max(1, current - 1);
+      if (evento.key === "Home") next = 1; if (evento.key === "End") next = 5;
+      if (!next) return; evento.preventDefault(); bhAtualizarEstrelasComunidade(next); starButtons.find(item => Number(item.dataset.nota) === next)?.focus();
+    });
+  });
+  document.addEventListener("keydown", evento => {
+    const drawer = document.getElementById("reviewsDrawer111");
+    if (!drawer?.classList.contains("is-open")) return;
+    if (evento.key === "Escape") { evento.preventDefault(); bhFecharDrawerAvaliacoes(); return; }
+    bhAvaliacoesPrenderFoco(evento, drawer.querySelector(".reviews-drawer111-panel"));
+  });
+  window.addEventListener("popstate", () => {
+    const drawer = document.getElementById("reviewsDrawer111");
+    if (drawer?.classList.contains("is-open")) bhFecharDrawerAvaliacoes({ fromHistory:true });
+  });
 
   document.getElementById("formAvaliacaoComunidade")?.addEventListener("submit", async evento => {
     evento.preventDefault();
