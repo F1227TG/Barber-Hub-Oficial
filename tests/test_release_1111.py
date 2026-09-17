@@ -214,3 +214,24 @@ class AccountExportMigrationTests(TestCase):
         self.assertIn("exportacao_dados_conta_ampliada_ok", verifier)
         self.assertIn("endpoint", verifier)
         self.assertIn("não inclui crm", documentation)
+
+
+class OperationalGovernanceDecisionTests(TestCase):
+    def test_recovery_targets_are_defined_but_still_require_a_rehearsal(self) -> None:
+        runbook = (ROOT / "docs/release-1.11/BACKUP_E_RESTAURACAO.md").read_text(encoding="utf-8").lower()
+
+        self.assertIn("24 horas", runbook)
+        self.assertIn("8 horas", runbook)
+        self.assertIn("rpo observado", runbook)
+        self.assertIn("rto observado", runbook)
+        self.assertIn("não é evidência de capacidade", runbook)
+
+    def test_retention_and_password_controls_remain_fail_closed_until_external_approval(self) -> None:
+        retention = (ROOT / "docs/release-1.11/RETENCAO_SIMULACAO_1_11_1.md").read_text(encoding="utf-8").lower()
+        external = (ROOT / "docs/release-1.11/CONFIGURACAO_EXTERNA.md").read_text(encoding="utf-8").lower()
+
+        self.assertIn("simulação apenas", retention)
+        self.assertIn("2 dias", retention)
+        self.assertIn("90 dias", retention)
+        self.assertIn("não fazer upgrade pago", external)
+        self.assertIn("pwned passwords", external)

@@ -4,18 +4,25 @@
 
 Garantir que uma mudança possa ser revertida sem improviso e que o backup seja realmente restaurável. “Backup habilitado” não equivale a “restauração testada”.
 
-## Valores que precisam de decisão
+## Metas operacionais aprovadas preliminarmente
 
 | Parâmetro | Valor | Aprovador |
 |---|---|---|
-| RPO máximo aceitável | A definir | |
-| RTO máximo aceitável | A definir | |
+| RPO máximo aceitável | 24 horas | Diretriz de produto em 17/09/2026; depende de ensaio |
+| RTO máximo aceitável | 8 horas | Diretriz de produto em 17/09/2026; depende de ensaio |
 | Retenção de backup operacional | A definir conforme política LGPD/contrato | |
 | Região/local de cópia | A definir | |
 | Responsável primário | A definir | |
 | Substituto | A definir | |
 
-A release é **no-go** enquanto RPO, RTO e responsáveis permanecerem indefinidos.
+A meta ainda não é evidência de capacidade: a release é **no-go** enquanto responsáveis, mecanismo de backup, cópia de Storage e ensaio de restauração permanecerem indefinidos ou reprovados.
+
+### Como interpretar as metas
+
+- **RPO de 24 horas** é a maior janela de dados que pode precisar ser recuperada ou refeita após uma falha. Na prática, o ponto restaurado não pode estar mais de 24 horas atrás do incidente.
+- **RTO de 8 horas** é o tempo máximo entre declarar a restauração e voltar a operar com segurança. Inclui recuperar banco/Storage, validar RLS e fluxos críticos, decidir sobre escritas posteriores e reabrir o tráfego.
+
+O ensaio deve registrar RPO e RTO **observados**. Se ultrapassar qualquer meta, não se deve apenas alterar o número: é preciso corrigir backup, procedimento, capacidade ou escopo e repetir o ensaio.
 
 ## Escopo a proteger
 

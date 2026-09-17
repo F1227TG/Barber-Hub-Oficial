@@ -25,3 +25,16 @@ As demais categorias do inventário LGPD continuam no documento [INCIDENTES_E_RE
 ## Decisão necessária antes da aplicação real
 
 Para cada linha: aprovador (privacidade/jurídico e negócio), prazo em dias, marco inicial, exceções/hold, ação final, responsável pela operação e evidência do restore. Histórico financeiro, consentimentos e auditoria não serão apagados por esta rotina.
+
+## Diretriz de produto de 17/09/2026
+
+Foi escolhida uma política **completa por categoria**, aproveitando os candidatos técnicos de curta retenção abaixo. Isso não autoriza descarte agora: a rotina continua exclusivamente em simulação e as colunas `ativa` e `execucao_habilitada` devem permanecer `false` até aprovação formal e migration específica.
+
+| Categoria técnica | Candidato de prazo | Marco inicial | Ação futura candidata | Situação atual |
+|---|---:|---|---|---|
+| Limites de API expirados | 2 dias | `updated_at` | excluir | Simulação apenas |
+| Metadados de e-mail entregue/descartado | 90 dias | `updated_at` após estado final | excluir | Simulação apenas |
+| Metadados de Push enviado/descartado | 90 dias | `updated_at` após estado final | excluir | Simulação apenas |
+| Financeiro, auditoria e consentimentos | Não definido | A definir | revisar/anonimizar conforme política | Sem descarte automático |
+
+Antes de ativar qualquer uma das três primeiras linhas, privacidade/jurídico e negócio precisam aprovar finalidade, base legal, prazo, exceções de investigação/hold, responsável e tratamento após restore. A migration de ativação deve testar o candidato em homologação, guardar apenas evidência agregada e manter financeiro, auditoria e consentimentos fora do job automático.

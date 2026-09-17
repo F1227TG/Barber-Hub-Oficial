@@ -13,7 +13,8 @@ Este diretório transforma o escopo da 1.11 em critérios verificáveis e runboo
 - validação local: **99 testes, 27/27 controles V01–V06, 32/32 invariantes 1.9.3 e validadores 1.10/1.10.1/1.11 aprovados**;
 - Advisors pós-migration: **revisados e registrados em `ADVISORS_SUPABASE_2026_09_11.md`**;
 - responsável técnico, responsável de produto e responsável por privacidade: **a designar**;
-- gates ainda externos: **Turnstile, senhas vazadas, URLs, VAPID/e-mail, contas separadas/RLS, backup/restauração, aprovação jurídica e teste no deployment candidato**.
+- metas preliminares de recuperação: **RPO de 24h e RTO de 8h; ensaio e responsáveis ainda pendentes**;
+- gates ainda externos: **Turnstile, proteção contra senhas vazadas quando houver upgrade autorizado, URLs, VAPID/e-mail, contas separadas/RLS, backup/restauração, aprovação jurídica e teste no deployment candidato**.
 
 Relatórios de versões anteriores servem como histórico, mas não aprovam a 1.11. Em especial, resultados de `RELATORIO_VALIDACAO_1_10_1.md`, `ADVISORS_SUPABASE_2026_09_05.md` ou de verificadores antigos devem ser repetidos quando a mudança da 1.11 puder afetá-los.
 

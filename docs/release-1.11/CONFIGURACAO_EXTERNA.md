@@ -62,10 +62,11 @@ A secret do Turnstile é configurada no Supabase Auth/Bot and Abuse Protection; 
 
 ## Proteção contra senhas vazadas
 
-- [ ] Verificar disponibilidade no plano atual do Supabase.
-- [ ] Ativar no ambiente alvo quando disponível.
-- [ ] Testar cadastro/troca com credencial conhecida como comprometida usando procedimento seguro.
-- [ ] Se indisponível, registrar risco, mitigação, responsável e condição de reavaliação.
+- Estado em 17/09/2026: **adiado por decisão de produto**; não fazer upgrade pago somente para este controle.
+- A documentação do Supabase informa que o controle usa a API Pwned Passwords do Have I Been Pwned para rejeitar senha conhecida como vazada e que está disponível no plano Pro ou superior. Consulte a [documentação oficial](https://supabase.com/docs/guides/auth/password-security) no momento da mudança, pois condições de plano podem mudar.
+- Quando houver upgrade autorizado: confirmar o plano em homologação, ativar o controle nas configurações de Auth, testar cadastro e troca de senha com credencial sintética conhecida como comprometida, registrar o erro esperado e só então repetir em produção.
+- O aplicativo não precisa armazenar lista de senhas vazadas nem criar coluna de senha; a decisão e a validação pertencem ao Supabase Auth. Senhas existentes não devem ser redefinidas à força sem plano de comunicação e suporte.
+- Enquanto indisponível: manter requisito de senha forte, Turnstile/CAPTCHA, rate limit, recuperação autenticada e monitoramento como controles complementares; eles não equivalem à proteção contra senha vazada.
 
 Não faça upgrade pago sem autorização. Não marque como aprovado apenas porque o frontend valida complexidade.
 
