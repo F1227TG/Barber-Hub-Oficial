@@ -147,6 +147,18 @@ class SupabaseGateway:
             return ApiError(403, "RECENT_AUTH_REQUIRED", "Confirme novamente sua identidade para continuar.")
         if stable_code == "LAST_ACTIVE_ADMIN":
             return ApiError(409, "LAST_ACTIVE_ADMIN", "Defina outro administrador antes de solicitar a exclusão desta conta.")
+        if "nao pode alterar a localizacao" in normalized or "sem permissao para alterar a localizacao" in normalized:
+            return ApiError(
+                403,
+                "ESTABLISHMENT_LOCATION_FORBIDDEN",
+                "Sua conta não tem permissão para alterar a localização deste estabelecimento.",
+            )
+        if "endereco" in normalized and any(term in normalized for term in ("invalido", "obrigatorio", "informe", "revise")):
+            return ApiError(
+                422,
+                "INVALID_ESTABLISHMENT_LOCATION",
+                "Revise endereço, cidade, estado e CEP antes de salvar.",
+            )
         if status_code == 401:
             return ApiError(401, "INVALID_SESSION", "Sua sessão expirou. Entre novamente.")
         if status_code == 403:

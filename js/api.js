@@ -602,8 +602,16 @@ async function bhExcluirDiaBloqueado(id) {
 }
 
 async function bhCriarTicket(dados) {
+  const perfil = await bhGetPerfil();
+  if (!perfil) {
+    const erro = new Error("Entre na conta para abrir e acompanhar um ticket.");
+    erro.code = "UNAUTHORIZED";
+    throw erro;
+  }
+
   // Produção: usa a API própria para validar e registrar o ticket.
-  // Desenvolvimento com Live Server: mantém fallback temporário no Supabase.
+  // Desenvolvimento com Live Server mantém o fallback somente para uma
+  // sessão autenticada; a API é a via oficial de produção.
   if (window.bhBackendApi) {
     try {
       return await window.bhBackendApi.createSupportTicket(dados);
@@ -614,12 +622,10 @@ async function bhCriarTicket(dados) {
   }
 
   const client = bhExigirSupabase();
-  let perfil = null;
-  try { perfil = await bhGetPerfil(); } catch (_) { perfil = null; }
   const id = crypto.randomUUID();
   const payload = {
     id,
-    user_id: perfil?.id || null,
+    user_id: perfil.id,
     nome: dados.nome,
     email: dados.email,
     categoria: dados.categoria || "duvida",

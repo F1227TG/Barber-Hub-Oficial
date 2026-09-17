@@ -164,13 +164,12 @@ function bhConfigurarContadorMensagem() {
 
 async function bhPreencherPerfilSuporte() {
   try {
-    const perfil = bhSupabasePronto() ? await bhGetPerfil() : null;
+    let perfil = null;
+    try { perfil = bhSupabasePronto() ? await bhGetPerfil() : null; } catch (_) {}
     if (!perfil) return;
     document.getElementById("nome").value = perfil.nome || "";
     document.getElementById("email").value = perfil.email || "";
-  } catch (_) {
-    // O formulário continua disponível para visitantes.
-  }
+  } catch (_) {}
 }
 
 function bhDadosTicket() {
@@ -196,6 +195,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   form?.addEventListener("submit", async evento => {
     evento.preventDefault();
     const botao = form.querySelector("button[type='submit']");
+    const perfil = bhSupabasePronto() ? await bhGetPerfil() : null;
+    if (!perfil) {
+      const next = `${location.pathname}${location.search}#abrir-ticket`;
+      mostrarToast("aviso", "Entre para abrir um ticket", "O suporte fica vinculado à sua conta para você acompanhar a resposta.");
+      setTimeout(() => { location.href = `login.html?next=${encodeURIComponent(next)}`; }, 700);
+      return;
+    }
     const dados = bhDadosTicket();
 
     if (!dados.nome || !dados.email || !dados.assunto || dados.mensagem.length < 15) {

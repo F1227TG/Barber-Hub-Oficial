@@ -733,10 +733,10 @@ for all to authenticated
 using (cliente_id=auth.uid() or public.is_admin())
 with check (cliente_id=auth.uid() or public.is_admin());
 
--- Tickets: anônimo pode abrir; usuário vê os próprios; admin atende todos.
+-- Tickets: apenas uma conta autenticada abre e acompanha os próprios; admin atende todos.
 create policy tickets_insert_publico on public.tickets_suporte
-for insert to anon,authenticated
-with check (user_id is null or user_id=auth.uid());
+for insert to authenticated
+with check (user_id=auth.uid());
 
 create policy tickets_select_proprio_admin on public.tickets_suporte
 for select to authenticated
@@ -764,7 +764,7 @@ grant insert,update,delete on public.estabelecimentos,public.horarios_funcioname
 grant select on public.agendamentos,public.favoritos,public.tickets_suporte to authenticated;
 grant insert,update,delete on public.favoritos to authenticated;
 grant update (status,cancelamento_motivo,updated_at) on public.agendamentos to authenticated;
-grant insert on public.tickets_suporte to anon,authenticated;
+grant insert on public.tickets_suporte to authenticated;
 grant update (status,prioridade,resposta,respondido_em,updated_at) on public.tickets_suporte to authenticated;
 
 revoke execute on function public.is_admin() from public;

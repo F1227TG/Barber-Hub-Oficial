@@ -1082,10 +1082,10 @@ async def list_support_tickets(
 async def create_support_ticket(
     request: Request,
     payload: SupportTicketCreate,
-    authorization: str | None = Header(default=None),
+    auth: AuthContext = Depends(require_user),
 ) -> JSONResponse:
-    await enforce_rate_limit(request, "support-create", limit=6, window_seconds=600)
-    result = await support_service.create(payload, authorization, request)
+    await enforce_rate_limit(request, "support-create", limit=6, window_seconds=600, identity=auth.user_id)
+    result = await support_service.create(payload, auth, request)
     return ok(result, status.HTTP_201_CREATED)
 
 

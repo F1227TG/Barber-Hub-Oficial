@@ -23,6 +23,7 @@ from api.index import (
     navigation_audit,
     public_config,
     create_appointment,
+    create_support_ticket,
 )
 from backend.domain.identity import cnpj_is_valid, normalize_cnpj
 from backend.models import (
@@ -66,12 +67,11 @@ class ApiSmokeTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["data"]["status"], "alive")
 
-    def test_support_validation_is_standardized(self) -> None:
+    def test_support_ticket_requires_session_before_accepting_data(self) -> None:
         response = self.client.post("/api/v1/support/tickets", json={})
-        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.status_code, 401)
         payload = response.json()
-        self.assertEqual(payload["error"]["code"], "VALIDATION_ERROR")
-        self.assertIsInstance(payload["error"]["details"], list)
+        self.assertEqual(payload["error"]["code"], "UNAUTHORIZED")
 
     def test_admin_route_requires_session(self) -> None:
         response = self.client.get("/api/v1/admin/overview")
@@ -441,6 +441,20 @@ class RateLimitRegressionTests(IsolatedAsyncioTestCase):
             "api.index.retention_service.client_loyalty",
             [],
         )
+
+    async def test_support_creation_is_bound_to_authenticated_user(self) -> None:
+        limiter = AsyncMock(return_value={"allowed": True, "remaining": 5, "retry_after": 0})
+        service = AsyncMock(return_value={"id": "ticket-1"})
+        from backend.models import SupportTicketCreate
+        payload = SupportTicketCreate(
+            nome="Conta de teste", email="outro@example.com", assunto="Problema na agenda",
+            mensagem="A agenda não confirmou o atendimento de teste.",
+        )
+        with patch("api.index.enforce_rate_limit", limiter), patch("api.index.support_service.create", service):
+            response = await create_support_ticket(self.request, payload, self.auth)
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(limiter.await_args.kwargs["identity"], self.auth.user_id)
+        service.assert_awaited_once_with(payload, self.auth, self.request)
 
     async def test_public_config_never_exposes_a_secret(self) -> None:
         limiter = AsyncMock(return_value={"allowed": True, "remaining": 119, "retry_after": 0})

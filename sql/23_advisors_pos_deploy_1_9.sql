@@ -58,7 +58,8 @@ alter policy favoritos_proprio on public.favoritos
   with check (cliente_id = (select auth.uid()) or public.is_admin());
 
 alter policy tickets_insert_publico on public.tickets_suporte
-  with check (user_id is null or user_id = (select auth.uid()));
+  to authenticated
+  with check (user_id = (select auth.uid()));
 alter policy tickets_select_proprio_admin on public.tickets_suporte
   using (user_id = (select auth.uid()) or public.is_admin());
 

@@ -12,6 +12,15 @@ Desktop / Mobile / PWA
 Supabase Auth + PostgreSQL/PostgREST + RPC
 ```
 
+### Regra simples de responsabilidade
+
+1. **Leitura pública**: catálogo, perfil público, horários publicados e avaliações passam por rotas públicas que retornam somente dados próprios para visitantes.
+2. **Escrita autenticada**: agendamento, avaliação, favorito, suporte e dados pessoais exigem `Bearer` de uma conta confirmada.
+3. **Operação do negócio**: a API valida o contrato e envia o token do próprio usuário ao Supabase; o RLS confirma que ele é dono ou integrante autorizado.
+4. **Administração e jobs**: somente `admin` ativo ou segredo de job. A chave secreta do Supabase nunca é entregue ao navegador.
+
+Em outras palavras: a API concentra regras, contrato e mensagens seguras; o Supabase é a fonte de identidade, dados, RLS, RPC, Storage e Realtime.
+
 ## Estrutura
 
 ```text
@@ -55,6 +64,7 @@ backend/services/flags.py    avaliação autorizada de feature flags
 | GET | `/api/v1/marketplace/featured` | público | destaques Barber Hub |
 | GET | `/api/v1/marketplace/regional` | público | busca regional, raio e distância paginada |
 | GET | `/api/v1/catalog/cover-library` | público | biblioteca oficial de capas |
+| GET | `/api/v1/establishments/{id}/public` | público | perfil público curado para visitantes, sem dados de gestão |
 | POST | `/api/v1/appointments` | autenticado | criar agendamento multi-serviço |
 | PATCH | `/api/v1/appointments/{id}/status` | dono/admin sob RLS | confirmar/concluir/recusar/cancelar |
 | DELETE | `/api/v1/appointments/{id}` | autenticado | cancelar agendamento permitido |
@@ -71,7 +81,7 @@ backend/services/flags.py    avaliação autorizada de feature flags
 | PATCH | `/api/v1/promotions/{id}` | dono sob RLS + entitlement | editar/ativar promoção |
 | DELETE | `/api/v1/promotions/{id}` | dono sob RLS | desativar promoção |
 | GET | `/api/v1/support/tickets` | autenticado | tickets do usuário |
-| POST | `/api/v1/support/tickets` | público/autenticado | abrir ticket |
+| POST | `/api/v1/support/tickets` | autenticado | abrir ticket vinculado à própria conta |
 | DELETE | `/api/v1/account` | autenticado | compatibilidade para exclusão da própria conta |
 | GET | `/api/v1/admin/overview` | admin | totais globais |
 | GET | `/api/v1/admin/records/{resource}` | admin | busca e paginação de recursos permitidos |
@@ -92,9 +102,9 @@ backend/services/flags.py    avaliação autorizada de feature flags
 | GET | `/api/v1/account/sessions` | autenticado | listar sessões de forma sanitizada |
 | DELETE | `/api/v1/account/sessions/others` | autenticado | encerrar outras sessões |
 | DELETE | `/api/v1/account/sessions` | autenticado | encerrar todas as sessões da conta |
-| GET | `/api/v1/catalog/establishments/{id}/reviews` | público | avaliações paginadas e agregado correto |
-| GET | `/api/v1/system/live` | público | processo disponível |
-| GET | `/api/v1/system/ready` | público | dependências essenciais prontas |
+| GET | `/api/v1/establishments/{id}/reviews` | público | avaliações paginadas, filtro `source=all|verified|community` e agregado correto |
+| GET | `/api/v1/health/live` | público | processo disponível |
+| GET | `/api/v1/health/ready` | público | dependências essenciais prontas |
 | GET/POST | `/api/v1/jobs/email/deliver` | job com Bearer secreto | reivindicar e entregar fila de e-mail |
 | GET/POST | `/api/v1/jobs/maintenance/run` | job com Bearer secreto | retenção e exclusões pendentes |
 

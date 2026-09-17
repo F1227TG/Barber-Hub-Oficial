@@ -39,6 +39,12 @@ const SUPABASE_ANON_KEY = "SUA_CHAVE_PUBLICA";
 
 A chave `anon` ou `publishable` é pública por natureza. A segurança depende das políticas RLS.
 
+### Identidade e perfil público
+
+Não faça `INSERT`, `UPDATE` ou `DELETE` direto em `auth.users`. O Supabase Auth cria a identidade por cadastro/login; o trigger de criação registra o perfil de aplicação em `public.perfis`, que referencia o mesmo `id`. Dados de produto pertencem às tabelas `public.*`; senha e identidade pertencem ao Auth.
+
+Para um projeto já em produção, toda mudança de RLS deve ser aplicada como uma **nova migration versionada** pelo Supabase CLI/integração conectada, antes do deploy do frontend/API. Não reutilize o instalador `01_barberhub_supabase.sql`, porque ele contém comandos de limpeza.
+
 Nunca use no navegador:
 
 ```text

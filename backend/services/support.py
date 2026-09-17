@@ -12,17 +12,6 @@ from backend.services.access import rows_payload
 from backend.supabase import gateway
 
 
-async def _optional_user(authorization: str | None) -> AuthContext | None:
-    if not authorization or not authorization.lower().startswith("bearer "):
-        return None
-    token = authorization.split(" ", 1)[1].strip()
-    try:
-        user = await gateway.auth_user(token)
-    except ApiError:
-        return None
-    return AuthContext(token=token, user_id=str(user["id"]), user=user)
-
-
 async def list_for_user(auth: AuthContext) -> list[dict]:
     rows = await gateway.rest(
         "tickets_suporte",
@@ -39,19 +28,22 @@ async def list_for_user(auth: AuthContext) -> list[dict]:
 
 async def create(
     payload: SupportTicketCreate,
-    authorization: str | None,
+    auth: AuthContext,
     request: Request,
 ) -> dict:
     if payload.website.strip():
         raise ApiError(422, "SPAM_DETECTED", "Não foi possível validar o envio.")
 
-    auth = await _optional_user(authorization)
+    account_email = str(auth.user.get("email") or "").strip().lower()
+    if not account_email:
+        raise ApiError(403, "ACCOUNT_EMAIL_REQUIRED", "A conta precisa ter um e-mail válido para abrir um ticket.")
+
     since = (datetime.now(timezone.utc) - timedelta(minutes=1)).isoformat()
     recent = await gateway.rest(
         "tickets_suporte",
         admin=True,
         params={
-            "email": f"eq.{payload.email}",
+            "user_id": f"eq.{auth.user_id}",
             "created_at": f"gte.{since}",
             "select": "id",
             "limit": "1",
@@ -63,9 +55,10 @@ async def create(
 
     row = {
         "id": str(uuid4()),
-        "user_id": auth.user_id if auth else None,
+        "user_id": auth.user_id,
         "nome": payload.nome.strip(),
-        "email": str(payload.email).lower(),
+        # Bind the reply channel to the verified identity, never a browser field.
+        "email": account_email,
         "categoria": payload.categoria,
         "prioridade": payload.prioridade,
         "assunto": payload.assunto.strip(),
@@ -79,6 +72,6 @@ async def create(
         headers={"Prefer": "return=representation"},
     )
     ip = request.headers.get("x-forwarded-for", "")
-    print(f"[Barber Hub API] support ticket={row['id']} authenticated={bool(auth)} ip={ip[:80]}")
+    print(f"[Barber Hub API] support ticket={row['id']} user={auth.user_id} ip={ip[:80]}")
     created_rows = rows_payload(created, message="Não foi possível confirmar o envio agora.")
     return created_rows[0] if created_rows else row
