@@ -6,12 +6,12 @@ Este documento é uma recomendação de produto, não uma alteração de preço.
 
 | Plano | Mensal | Semanal no banco | Escopo declarado |
 |---|---:|---:|---|
-| Gratuito | R$ 0 | R$ 0 | Perfil público; sem agenda online, relatórios ou equipe |
+| Gratuito | R$ 0 | R$ 0 | Perfil público e agenda online básica configurável |
 | Essencial | R$ 49 | R$ 15 | 1 profissional, agenda, CRM, financeiro e relatórios básicos |
 | Profissional | R$ 89 | R$ 29 | Até 3 profissionais, equipe e comissões |
 | Elite | R$ 129 | R$ 45 | Até 10 profissionais; anuncia múltiplas unidades, estoque e automações |
 
-Os valores e limites são os atualmente cadastrados em `sql/11_planos_assinaturas.sql`. A ativação é manual pelo administrador e já possui API protegida, auditoria e idempotência; não há checkout, renovação ou cobrança automática.
+Os valores e limites históricos permanecem no banco como referência interna, mas não são oferta pública. A partir da migration 40, todos os planos carregam `estado_comercial = desenvolvimento`; a ativação é manual pelo administrador e serve apenas à homologação, com API protegida, auditoria e idempotência. Não há checkout, renovação ou cobrança automática.
 
 ## Referências de mercado
 
@@ -29,14 +29,21 @@ O Essencial está cerca de 39% abaixo da referência individual mensal do AppBar
 - O Elite é o ponto crítico: a própria seed o chama de “plano futuro”, mas a página e o banco anunciam múltiplas unidades, estoque e automações. Não é seguro precificar ou vender essas promessas como disponíveis.
 - A cobrança semanal registrada no banco não aparece como fluxo de cobrança real e é desproporcional ao mensal. Enquanto a ativação é manual, ela deve permanecer como dado interno não anunciado.
 
-## Recomendação
+## Decisão adotada
 
-1. Manter **R$ 49 Essencial** e **R$ 89 Profissional** como preços de piloto/entrada, sem aumento agora.
-2. Manter a ativação manual pelo admin, com data final e observação obrigatória no processo operacional.
-3. Suspender novas ativações comerciais do **Elite** até entregar e homologar as funcionalidades que o plano anuncia. Não desativar clientes já existentes sem plano de migração.
-4. Depois da homologação e de 60–90 dias de uso pago, medir conversão, churn, chamados, agenda criada, uso por profissional e custo de suporte. Só então reavaliar R$ 59/99 como tabela regular ou uma faixa maior compatível com o valor comprovado.
-5. Antes de uma nova tabela, alinhar a copy pública: “preço de piloto”, itens realmente ativos, ausência de checkout e canal de suporte.
+1. Todos os planos permanecem **em desenvolvimento** até que suas funcionalidades estejam 100% funcionais e validadas.
+2. A página pública não anuncia preço, cobrança ou ativação comercial dos planos pagos.
+3. A **Agenda Online básica** é parte do plano Gratuito para qualquer barbearia: ativação voluntária do barbeiro, dias de atendimento, períodos/horários, intervalo entre slots, antecedência e dias bloqueados.
+4. Agenda Profissional 2.0, CRM, financeiro, equipe e os demais recursos continuam separados pelos entitlements existentes; não foram prometidos como gratuitos.
+5. O administrador continua podendo atribuir qualquer plano manualmente para teste controlado, com status e observações, sem gateway de cobrança.
+
+## Próxima decisão comercial
+
+1. Homologar o conjunto de recursos declarado para cada nível sem tratar a página comercial como promessa de entrega.
+2. Medir, em uso de piloto, agenda criada, conversão, chamados, churn, uso por profissional e custo de suporte.
+3. Depois da validação e de 60–90 dias de dados reais, definir uma faixa de preço e a política de ativação comercial.
+4. Antes de publicar valores, revisar a copy, termos, suporte, cobrança e o que realmente está ativo em cada plano.
 
 ## Decisão pendente
 
-É necessária aprovação do responsável de negócio para (a) congelar o Elite para novas vendas, (b) manter ou revisar R$ 49/R$ 89 no piloto e (c) decidir se os valores semanais deixam de existir no cadastro. A implementação só deve alterar os preços, a disponibilidade ou a comunicação pública depois dessa aprovação.
+Quando a homologação terminar, será necessária aprovação do responsável de negócio para a tabela final, a conversão de `estado_comercial` para `ativo`, a regra de cobrança e eventual remoção dos valores semanais históricos.

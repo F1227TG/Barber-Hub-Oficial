@@ -37,9 +37,9 @@ async function bhCarregarPlanoAtual() {
     const perfil = await bhGetPerfil();
     if (!perfil) {
       bhRenderizarStatsPlano([
-        { valor: "R$ 0", label: "Para começar" },
+        { valor: "Grátis", label: "Para começar" },
         { valor: "4", label: "Fases de crescimento" },
-        { valor: "Mensal", label: "Cobrança previsível" }
+        { valor: "Em validação", label: "Planos" }
       ]);
       bhRenderizarRecursosPlano([]);
       return;
@@ -72,8 +72,8 @@ async function bhCarregarPlanoAtual() {
     const validade = periodoFim ? ` Válido até ${bhFormatarData(periodoFim)}.` : " Sem vencimento definido nesta fase.";
     titulo.textContent = `${resumo.estabelecimento.nome} está no plano ${planoNome}.`;
     texto.textContent = statusAssinatura === "teste"
-      ? `Status: ${statusLegivel}.${validade} Use este período para validar agenda, galeria e rotina do painel.`
-      : `Status: ${statusLegivel}.${validade} Os recursos disponíveis aparecem automaticamente no seu painel.`;
+      ? `Status: ${statusLegivel}.${validade} Use este período para validar agenda, galeria e rotina do painel; a oferta comercial permanece em desenvolvimento.`
+      : `Status: ${statusLegivel}.${validade} Os recursos disponíveis aparecem automaticamente no seu painel; a oferta comercial permanece em desenvolvimento.`;
     card.classList.toggle("is-highlight", true);
 
     const limitePublicacoes = resumo.plano?.limite_publicacoes || 10;

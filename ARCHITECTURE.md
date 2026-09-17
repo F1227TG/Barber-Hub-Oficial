@@ -117,7 +117,7 @@ Sessões, exportação e exclusão programada passam pela API autenticada. A exc
 
 ### Assinaturas administrativas
 
-A área administrativa carrega planos, estabelecimentos, responsáveis e assinaturas em uma operação protegida. A atribuição usa RPC idempotente e registra auditoria; clique repetido ou reenvio da mesma intenção não cria eventos duplicados.
+A área administrativa carrega planos, estabelecimentos, responsáveis e assinaturas em uma operação protegida. A atribuição usa RPC idempotente e registra auditoria; clique repetido ou reenvio da mesma intenção não cria eventos duplicados. Enquanto o catálogo estiver em `desenvolvimento`, essas atribuições são exclusivamente de homologação: não há checkout nem cobrança. A agenda online básica pertence ao plano Gratuito e só fica pública quando o barbeiro a ativa após configurar os horários.
 
 ## Segurança e credenciais
 

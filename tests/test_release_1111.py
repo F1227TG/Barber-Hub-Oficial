@@ -51,6 +51,37 @@ class PublicBookingEntitlementTests(TestCase):
         self.assertIn("data.aceita_agendamento = agendaEfetiva;", detail)
 
 
+class FreeOnlineScheduleAndCommercialStateTests(TestCase):
+    def test_free_plan_gets_basic_schedule_without_unlocking_advanced_schedule(self) -> None:
+        migration = (ROOT / "supabase/migrations/20260917153000_agenda_gratuita_planos_em_desenvolvimento.sql").read_text(
+            encoding="utf-8"
+        ).lower()
+
+        self.assertIn("estado_comercial = 'desenvolvimento'", migration)
+        self.assertIn("when slug = 'gratuito' then true", migration)
+        self.assertIn("agenda online básica", migration)
+        self.assertNotIn("permite_agenda_avancada = true", migration)
+
+    def test_appointment_guard_respects_the_barbers_switch(self) -> None:
+        migration = (ROOT / "supabase/migrations/20260917153000_agenda_gratuita_planos_em_desenvolvimento.sql").read_text(
+            encoding="utf-8"
+        ).lower()
+
+        self.assertIn("v_est.aceita_agendamento", migration)
+        self.assertIn("não está aceitando agendamentos online", migration)
+        self.assertIn("validar_estabelecimento_agenda_plano_1112", migration)
+
+    def test_public_copy_hides_unvalidated_prices_and_explains_free_schedule(self) -> None:
+        plans = (ROOT / "html/planos.html").read_text(encoding="utf-8").lower()
+
+        self.assertGreaterEqual(plans.count("em desenvolvimento"), 5)
+        self.assertIn("agenda online gratuita", plans)
+        self.assertIn("preço após homologação", plans)
+        self.assertNotIn("r$ 49", plans)
+        self.assertNotIn("r$ 89", plans)
+        self.assertNotIn("r$ 129", plans)
+
+
 class FinancialClosingMigrationTests(TestCase):
     def test_closing_adds_expense_and_result_fields_without_redefining_net_revenue(self) -> None:
         migration = (ROOT / "supabase/migrations/20260917123000_reconciliacao_fechamento_financeiro.sql").read_text(

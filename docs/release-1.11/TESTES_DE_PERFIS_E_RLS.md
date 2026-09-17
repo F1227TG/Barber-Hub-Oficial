@@ -88,11 +88,12 @@ A fonte esperada deve ser o resolvedor canônico do banco/API. Use `docs/MATRIZ_
 Para Gratuito, Essencial, Profissional e Elite:
 
 - [ ] Ler resumo de entitlements e salvar versão sanitizada.
+- [ ] No Gratuito, configurar dias/períodos, ativar a agenda e confirmar que o CTA público aparece; desativar e confirmar que o CTA e a inserção direta são recusados.
 - [ ] Conferir menu, sheet, conta, painel e rota direta.
 - [ ] Conferir limites de profissionais/publicações/destaques.
 - [ ] Tentar uma operação permitida e uma proibida.
 - [ ] Confirmar que permissão granular só reduz/intersecta; nunca cria entitlement.
-- [ ] Pausar/expirar assinatura e confirmar bloqueio efetivo da agenda.
+- [ ] Pausar/expirar assinatura e confirmar que a agenda básica gratuita permanece disponível somente quando o barbeiro a ativou; recursos pagos devem permanecer bloqueados.
 - [ ] Simular indisponibilidade do resolvedor e confirmar comportamento fail-closed.
 - [ ] Fazer upgrade/downgrade e confirmar atualização sem dado incoerente.
 - [ ] Confirmar que página/CTA “Planos” é exposta somente ao profissional conforme requisito 1.11.

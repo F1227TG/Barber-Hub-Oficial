@@ -122,7 +122,7 @@ Páginas administrativas relacionadas
 | Admin | `html/admin.html` | ✅ | Controle, health e indicadores da plataforma |
 | Conta | `html/conta.html` | ✅ | Perfil, sessões, exportação, privacidade e exclusão programada |
 | Notificações | `html/notificacoes.html` | ✅ | Inbox in-app |
-| Planos | `html/planos.html` | 🟡 Comercial | Sem gateway de cobrança |
+| Planos | `html/planos.html` | 🟡 Em desenvolvimento | Agenda online básica gratuita; sem preço, checkout ou ativação comercial |
 | Suporte | `html/contato.html` | ✅ | Tickets via API |
 | Sobre | `html/sobre.html` | ✅ | Institucional |
 | Beauty Hub | `html/beauty-hub.html` | ✅ Ponte ativa | Apresentação e acesso ao produto irmão |

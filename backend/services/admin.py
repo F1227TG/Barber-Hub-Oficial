@@ -312,7 +312,7 @@ async def list_subscriptions(_auth: AuthContext) -> dict[str, object]:
             method="GET",
             admin=True,
             params={
-                "select": "id,estabelecimento_id,plano_id,status,inicio_em,teste_termina_em,periodo_atual_inicio,periodo_atual_fim,observacoes,updated_at,planos(id,slug,nome,ordenacao,permite_agenda)",
+                "select": "id,estabelecimento_id,plano_id,status,inicio_em,teste_termina_em,periodo_atual_inicio,periodo_atual_fim,observacoes,updated_at,planos(id,slug,nome,ordenacao,permite_agenda,estado_comercial)",
                 "limit": "500",
             },
         ),

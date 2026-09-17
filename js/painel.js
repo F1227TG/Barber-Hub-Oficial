@@ -136,7 +136,8 @@ function bhAplicarEntitlementsPainel() {
   if (agendaSetting) agendaSetting.hidden = !agendaLiberada;
   document.querySelectorAll("[data-agenda-mode]").forEach(botao => {
     botao.disabled = !agendaLiberada;
-    if (!agendaLiberada) botao.title = "Agenda online disponível a partir do Essencial";
+    if (!agendaLiberada) botao.title = "A agenda online não está disponível na configuração atual";
+    else botao.removeAttribute("title");
   });
   const agendaSelect = document.getElementById("configAgenda");
   if (agendaSelect && !agendaLiberada) agendaSelect.value = "nao";
@@ -1042,7 +1043,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         capa ? bhUploadImagem(capa, "estabelecimento/capa") : Promise.resolve(bhPainelEstabelecimento.capaUrl)
       ]);
       if (document.getElementById("configAgenda").value === "sim" && !bhPlanoPermite("permite_agenda")) {
-        throw new Error("A agenda online está disponível a partir do plano Essencial.");
+        throw new Error("A agenda online não está disponível na configuração atual.");
       }
       await bhAtualizarEstabelecimento(bhPainelEstabelecimento.id, {
         nome: document.getElementById("configNome").value.trim(),

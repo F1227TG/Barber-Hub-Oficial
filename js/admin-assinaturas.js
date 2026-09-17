@@ -30,6 +30,11 @@ function bhSubscriptionPlanLabel(subscription) {
   return subscription?.planos?.nome || "Gratuito";
 }
 
+function bhSubscriptionCommercialState(plan) {
+  const state = plan?.estado_comercial || "desenvolvimento";
+  return ({ desenvolvimento:"Em desenvolvimento", ativo:"Ativo comercialmente", pausado:"Pausado" })[state] || state;
+}
+
 function bhSubscriptionStatus(subscription) {
   return subscription?.status || "ativa";
 }
@@ -85,7 +90,7 @@ function bhRenderSubscriptionCatalog() {
     const unique = [...new Set(inherited)];
     return `<article class="subscription-plan-mini ${plan?.destaque ? "recommended" : ""}">
       <div><span>${escapeHTML(plan?.nome || plan?.slug || "Plano")}</span><strong>${Number(plan?.preco_mensal || 0) > 0 ? `${bhMoeda(plan.preco_mensal)}/mês` : "Grátis"}</strong></div>
-      <small>${unique.length} benefício${unique.length===1?"":"s"} cumulativo${unique.length===1?"":"s"}</small>
+      <small>${bhSubscriptionCommercialState(plan)} · ${unique.length} benefício${unique.length===1?"":"s"} cumulativo${unique.length===1?"":"s"}</small>
       <div class="subscription-plan-chips">${own.slice(0,4).map(item=>`<span>${escapeHTML(item)}</span>`).join("")}</div>
     </article>`;
   }).join("") || `<div class="empty compact">Nenhum plano ativo foi encontrado.</div>`;
@@ -102,7 +107,7 @@ function bhRenderSubscriptionFilters() {
     if ([...planFilter.options].some(option => option.value === previous)) planFilter.value = previous;
   }
   if (planEditor) {
-    planEditor.innerHTML = bhSubscriptionData.plans.map(plan => `<option value="${escapeHTML(plan.slug)}">${escapeHTML(plan.nome)}${Number(plan.preco_mensal || 0) > 0 ? ` · ${bhMoeda(plan.preco_mensal)}/mês` : " · grátis"}</option>`).join("");
+    planEditor.innerHTML = bhSubscriptionData.plans.map(plan => `<option value="${escapeHTML(plan.slug)}">${escapeHTML(plan.nome)} · ${escapeHTML(bhSubscriptionCommercialState(plan))}</option>`).join("");
   }
   if (establishmentEditor) {
     const previous = bhSubscriptionSelected?.id || establishmentEditor.value;

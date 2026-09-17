@@ -105,7 +105,7 @@ async def update_establishment(establishment_id: str, payload: EstablishmentUpda
     if data.get("aceita_agendamento") is True:
         entitlements = await get_entitlements(establishment_id, auth)
         if not entitlements.get("permite_agenda"):
-            raise ApiError(403, "PLAN_FEATURE_REQUIRED", "A agenda online está disponível a partir do plano Essencial.")
+            raise ApiError(403, "PLAN_FEATURE_REQUIRED", "A agenda online não está disponível na configuração atual.")
     return await _write(
         "estabelecimentos",
         auth=auth,
