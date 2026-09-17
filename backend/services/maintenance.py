@@ -89,7 +89,7 @@ async def process_account_deletions(limit: int = 5) -> dict[str, int]:
 
 async def run(*, email_limit: int = 30, deletion_limit: int = 5) -> dict[str, Any]:
     deletions = await process_account_deletions(deletion_limit)
-    if settings.email_api_url and settings.email_api_key and settings.email_from:
+    if settings.external_notifications_enabled and settings.email_api_url and settings.email_api_key and settings.email_from:
         try:
             emails: dict[str, Any] = await email_delivery.deliver_pending(email_limit)
         except Exception as exc:

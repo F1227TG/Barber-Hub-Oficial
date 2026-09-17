@@ -241,7 +241,7 @@ async def health_details(auth: AuthContext) -> dict[str, object]:
                 "allowed_origins": bool(settings.allowed_origins),
                 "password_redirect": bool(settings.password_redirect_url),
                 "captcha": bool(settings.turnstile_site_key),
-                "device_notifications": bool(settings.vapid_public_key),
+                "device_notifications": bool(settings.external_notifications_enabled and settings.vapid_public_key),
             },
         },
     }

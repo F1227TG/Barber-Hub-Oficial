@@ -145,3 +145,17 @@ class RetentionSimulationMigrationTests(TestCase):
         self.assertIn("nenhuma categoria deve iniciar ativa", verifier)
         self.assertIn("não ativa descarte automático", inventory)
         self.assertIn("decisão necessária antes da aplicação real", inventory)
+
+
+class InternalNotificationPilotTests(TestCase):
+    def test_external_notification_delivery_requires_an_explicit_environment_switch(self) -> None:
+        config = (ROOT / "backend/config.py").read_text(encoding="utf-8")
+        push = (ROOT / "backend/services/push.py").read_text(encoding="utf-8")
+        email = (ROOT / "backend/services/email_delivery.py").read_text(encoding="utf-8")
+        vercel = (ROOT / "vercel.json").read_text(encoding="utf-8")
+
+        self.assertIn("BARBER_HUB_EXTERNAL_NOTIFICATIONS_ENABLED", config)
+        self.assertIn("external_notifications_enabled", push)
+        self.assertIn("EXTERNAL_NOTIFICATIONS_DISABLED", push)
+        self.assertIn("external_notifications_enabled", email)
+        self.assertNotIn('"path": "/api/v1/jobs/push/deliver?limit=50"', vercel)

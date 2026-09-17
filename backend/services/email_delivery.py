@@ -36,7 +36,9 @@ async def _finish(
 
 
 async def deliver_pending(limit: int = 30) -> dict[str, int]:
-    if not (settings.email_api_url and settings.email_api_key and settings.email_from):
+    if not settings.external_notifications_enabled or not (
+        settings.email_api_url and settings.email_api_key and settings.email_from
+    ):
         raise ApiError(503, "EMAIL_DELIVERY_NOT_CONFIGURED", "O envio de mensagens está temporariamente indisponível.")
 
     claimed = await gateway.rest(

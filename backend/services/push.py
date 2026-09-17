@@ -18,10 +18,18 @@ from backend.services.flags import require_enabled
 
 
 async def config() -> dict[str, Any]:
-    return {"supported": bool(settings.vapid_public_key), "vapid_public_key": settings.vapid_public_key or None}
+    supported = bool(
+        settings.external_notifications_enabled
+        and settings.vapid_public_key
+        and settings.vapid_private_key
+        and settings.vapid_subject
+    )
+    return {"supported": supported, "vapid_public_key": settings.vapid_public_key if supported else None}
 
 
 async def subscribe(payload: PushSubscriptionCreate, auth: AuthContext) -> dict[str, Any]:
+    if not settings.external_notifications_enabled:
+        raise ApiError(503, "EXTERNAL_NOTIFICATIONS_DISABLED", "Os avisos no dispositivo ainda não estão ativos. Consulte a central interna.")
     await require_enabled("notificacoes.web_push", auth, str(payload.estabelecimento_id) if payload.estabelecimento_id else None)
     digest = hashlib.sha256(payload.endpoint.encode("utf-8")).hexdigest()
     rows = rows_payload(await gateway.rest(
@@ -92,7 +100,7 @@ async def _mark(delivery_id: str, data: dict[str, Any]) -> None:
 
 async def deliver_pending(limit: int = 50) -> dict[str, int]:
     """Deliver one bounded queue batch. Safe for a protected scheduled request."""
-    if not settings.vapid_private_key or not settings.vapid_subject:
+    if not settings.external_notifications_enabled or not settings.vapid_private_key or not settings.vapid_subject:
         raise ApiError(503, "PUSH_DELIVERY_NOT_CONFIGURED", "O envio de avisos ainda não foi configurado.")
     from pywebpush import WebPushException, webpush_async
 

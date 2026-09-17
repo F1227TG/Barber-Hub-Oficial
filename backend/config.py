@@ -13,6 +13,10 @@ def _split_origins(value: str) -> list[str]:
     return [item.strip().rstrip("/") for item in value.split(",") if item.strip()]
 
 
+def _enabled(value: str) -> bool:
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
 @dataclass(frozen=True)
 class Settings:
     supabase_url: str
@@ -24,6 +28,7 @@ class Settings:
     vapid_public_key: str
     vapid_private_key: str
     vapid_subject: str
+    external_notifications_enabled: bool
     cron_secret: str
     jobs_secret: str
     email_api_url: str
@@ -48,6 +53,7 @@ settings = Settings(
     vapid_public_key=os.getenv("BARBER_HUB_VAPID_PUBLIC_KEY", "").strip(),
     vapid_private_key=os.getenv("BARBER_HUB_VAPID_PRIVATE_KEY", "").strip(),
     vapid_subject=os.getenv("BARBER_HUB_VAPID_SUBJECT", "").strip(),
+    external_notifications_enabled=_enabled(os.getenv("BARBER_HUB_EXTERNAL_NOTIFICATIONS_ENABLED", "")),
     cron_secret=os.getenv("CRON_SECRET", "").strip(),
     jobs_secret=os.getenv("BARBER_HUB_JOBS_SECRET", "").strip(),
     email_api_url=os.getenv("BARBER_HUB_EMAIL_API_URL", "").strip(),

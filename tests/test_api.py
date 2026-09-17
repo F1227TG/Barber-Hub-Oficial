@@ -29,6 +29,7 @@ from backend.models import (
     AdminSubscriptionUpdate, AppointmentCreate, DeleteAccountRequest, EstablishmentLocationUpdate,
     EstablishmentUpdate, FinancialAdjustmentCreate, DayClosingCreate, ManualServiceCreate, OpeningPeriodsReplace,
     PromotionCreate, ServiceCreate, RecurrenceUpdate, WaitlistCreate,
+    PushSubscriptionCreate,
 )
 from backend.security import AuthContext, recent_authentication_age
 from backend.supabase import SupabaseGateway
@@ -39,6 +40,7 @@ from backend.services import catalog as catalog_service
 from backend.services import email_delivery as email_service
 from backend.services import admin as admin_service
 from backend.services import maintenance as maintenance_service
+from backend.services import push as push_service
 from backend.services import retention as retention_service
 
 
@@ -716,6 +718,23 @@ class SecurityAndLifecycleRegressionTests(IsolatedAsyncioTestCase):
         self.assertEqual(result, {"claimed": 1, "completed": 1, "failed": 0, "files_removed": 0})
         self.assertEqual([call.args[0] for call in rpc.await_args_list][-1], "concluir_exclusao_conta_111")
 
+    async def test_device_push_stays_disabled_during_the_internal_notification_pilot(self) -> None:
+        from types import SimpleNamespace
+
+        with patch("backend.services.push.settings", SimpleNamespace(
+            external_notifications_enabled=False,
+            vapid_public_key="public", vapid_private_key="private", vapid_subject="mailto:ops@example.invalid",
+        )):
+            self.assertEqual(await push_service.config(), {"supported": False, "vapid_public_key": None})
+            with self.assertRaises(ApiError) as caught:
+                await push_service.subscribe(
+                    PushSubscriptionCreate(
+                        endpoint="https://push.example.invalid/subscription", p256dh="p" * 16, auth="a" * 8,
+                    ),
+                    self.auth,
+                )
+        self.assertEqual(caught.exception.code, "EXTERNAL_NOTIFICATIONS_DISABLED")
+
     async def test_reviews_are_paginated_and_hide_private_profile_fields(self) -> None:
         import httpx
 
@@ -765,6 +784,7 @@ class SecurityAndLifecycleRegressionTests(IsolatedAsyncioTestCase):
         import httpx
 
         fake_settings = SimpleNamespace(
+            external_notifications_enabled=True,
             email_api_url="https://mailer.invalid/send",
             email_api_key="private-test-key",
             email_from="Barber Hub <avisos@example.test>",

@@ -17,6 +17,7 @@ Este checklist descreve nomes e superfícies encontrados na referência local. E
 | `BARBER_HUB_VAPID_PUBLIC_KEY` | Backend/cliente por config pública | Não | Par correspondente à privada |
 | `BARBER_HUB_VAPID_PRIVATE_KEY` | Somente backend | Sim | Mesmo par; nunca resposta pública |
 | `BARBER_HUB_VAPID_SUBJECT` | Backend | Não sensível | `mailto:` ou origem aprovada |
+| `BARBER_HUB_EXTERNAL_NOTIFICATIONS_ENABLED` | Backend | Não | `false` no piloto interno; somente `true` após homologação de push/e-mail |
 | `CRON_SECRET` | Vercel/job | Sim | Aleatório, restrito, rotacionável |
 | `BARBER_HUB_JOBS_SECRET` | Agendador externo/compatibilidade | Sim | Alternativa aceita pelo backend; não duplicar sem necessidade |
 | `BARBER_HUB_EMAIL_API_URL` | Somente backend | Não | Endpoint HTTPS aprovado do provedor transacional |
@@ -84,10 +85,10 @@ Não faça upgrade pago sem autorização. Não marque como aprovado apenas porq
 
 A referência do repositório contém:
 
-- rotas publicadas no `vercel.json`: `/api/v1/jobs/push/deliver?limit=50` e `/api/v1/jobs/maintenance/run?email_limit=50&deletion_limit=5`; a rota direta `/api/v1/jobs/email/deliver?limit=50` também existe para um agendador externo autorizado;
+- rota publicada no `vercel.json`: `/api/v1/jobs/maintenance/run?email_limit=50&deletion_limit=5`; as rotas diretas `/api/v1/jobs/push/deliver?limit=50` e `/api/v1/jobs/email/deliver?limit=50` permanecem protegidas, porém bloqueadas enquanto `BARBER_HUB_EXTERNAL_NOTIFICATIONS_ENABLED` não for `true`;
 - métodos aceitos pela API: GET e POST;
 - autenticação: Bearer com `CRON_SECRET` ou `X-Jobs-Secret` com `BARBER_HUB_JOBS_SECRET`;
-- agendas no `vercel.json`: Push diário (`0 11 * * *`) e manutenção diária de exclusões/e-mail (`15 11 * * *`). Essas frequências respeitam o plano Hobby atualmente conectado; entrega transacional mais rápida exige agendador externo autorizado ou mudança de plano.
+- agenda no `vercel.json`: manutenção diária de exclusões (`15 11 * * *`). O piloto entrega avisos somente na central interna; entrega transacional mais rápida exige homologação de provedor, agendador externo autorizado ou mudança de plano.
 
 Validação:
 

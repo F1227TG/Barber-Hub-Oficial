@@ -4,10 +4,6 @@
   "trailingSlash": false,
   "crons": [
     {
-      "path": "/api/v1/jobs/push/deliver?limit=50",
-      "schedule": "0 11 * * *"
-    },
-    {
       "path": "/api/v1/jobs/maintenance/run?email_limit=50&deletion_limit=5",
       "schedule": "15 11 * * *"
     }
