@@ -49,3 +49,22 @@ class PublicBookingEntitlementTests(TestCase):
         self.assertIn("data.aceita_agendamento = false;", detail)
         self.assertIn('typeof agendaEfetiva !== "boolean"', detail)
         self.assertIn("data.aceita_agendamento = agendaEfetiva;", detail)
+
+
+class FinancialClosingMigrationTests(TestCase):
+    def test_closing_adds_expense_and_result_fields_without_redefining_net_revenue(self) -> None:
+        migration = (ROOT / "supabase/migrations/20260917123000_reconciliacao_fechamento_financeiro.sql").read_text(
+            encoding="utf-8"
+        ).lower()
+
+        self.assertIn("despesas_realizadas", migration)
+        self.assertIn("resultado_operacional", migration)
+        self.assertIn("resultado_apos_comissoes", migration)
+        self.assertIn("l.tipo = 'despesa'", migration)
+        self.assertIn("v_bruta + v_creditos - v_debitos, v_despesas", migration)
+
+    def test_closing_verifier_requires_the_new_contract(self) -> None:
+        verifier = (ROOT / "sql/verificar_35_reconciliacao_fechamento_financeiro.sql").read_text(encoding="utf-8").lower()
+
+        self.assertIn("colunas_de_reconciliacao_ok", verifier)
+        self.assertIn("fechamento_inclui_despesas_e_comissoes_ok", verifier)

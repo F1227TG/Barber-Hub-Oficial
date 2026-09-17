@@ -7,7 +7,7 @@ from unittest import TestCase
 from backend.domain.appointments import APPOINTMENT_TRANSITIONS, allowed_transitions, can_transition
 from backend.domain.plans import normalized_limit, plan_limit_reached
 from backend.domain.crm import average_ticket, classify_client, normalize_tags
-from backend.domain.finance import calculate_commission, net_revenue
+from backend.domain.finance import calculate_commission, net_revenue, operating_result, result_after_commissions
 from backend.domain.growth import goal_progress, occupancy_rate, opportunity_priority, retention_rate
 from backend.domain.permissions import can_manage_appointment, effective_capabilities, role_can
 from backend.domain.retention import coupon_discount, loyalty_points, recurrence_dates, waitlist_window_is_valid
@@ -97,6 +97,14 @@ class FinanceRuleTests(TestCase):
 
     def test_net_revenue_includes_adjustments(self) -> None:
         self.assertEqual(net_revenue(Decimal("500"), Decimal("30"), Decimal("45.10")), Decimal("484.90"))
+
+    def test_daily_closing_keeps_legacy_revenue_and_exposes_expenses_separately(self) -> None:
+        revenue = net_revenue(Decimal("100"), Decimal("0"), Decimal("0"))
+        operating = operating_result(revenue, Decimal("40"))
+
+        self.assertEqual(revenue, Decimal("100.00"))
+        self.assertEqual(operating, Decimal("60.00"))
+        self.assertEqual(result_after_commissions(operating, Decimal("15")), Decimal("45.00"))
 
 
 class TeamPermissionTests(TestCase):

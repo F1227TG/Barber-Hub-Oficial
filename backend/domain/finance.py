@@ -26,3 +26,15 @@ def calculate_commission(gross: Decimal, rule_type: str, rule_value: Decimal) ->
 def net_revenue(gross: Decimal, credits: Decimal, debits: Decimal) -> Decimal:
     return money(money(gross) + money(credits) - money(debits))
 
+
+def operating_result(net: Decimal, expenses: Decimal) -> Decimal:
+    """Return the operating result before commissions."""
+
+    return money(money(net) - money(expenses))
+
+
+def result_after_commissions(operating: Decimal, commissions: Decimal) -> Decimal:
+    """Return the final daily result after recorded commissions."""
+
+    return money(money(operating) - money(commissions))
+
