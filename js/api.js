@@ -234,9 +234,14 @@ async function bhObterEstabelecimento(idOuSlug) {
   // A configuração `aceita_agendamento` pertence ao estabelecimento, mas a
   // exposição pública depende também do plano efetivo. Isso evita anunciar
   // agenda de assinatura expirada/pausada até que o admin altere outro campo.
+  data.aceita_agendamento = false;
   try {
     const { data: agendaEfetiva, error: agendaErro } = await client.rpc("agenda_online_disponivel", { p_estabelecimento_id: data.id });
-    if (!agendaErro && typeof agendaEfetiva === "boolean") data.aceita_agendamento = agendaEfetiva;
+    if (agendaErro || typeof agendaEfetiva !== "boolean") {
+      console.warn("[Barber Hub] Não foi possível validar a agenda do plano.", agendaErro);
+    } else {
+      data.aceita_agendamento = agendaEfetiva;
+    }
   } catch (erroAgenda) {
     console.warn("[Barber Hub] Não foi possível validar a agenda do plano.", erroAgenda);
   }

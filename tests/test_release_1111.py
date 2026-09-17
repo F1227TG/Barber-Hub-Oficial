@@ -37,3 +37,15 @@ class PublicShowcaseRlsMigrationTests(TestCase):
         self.assertIn("politica_publica_segura_ok", verifier)
         self.assertIn("politica_operacional_isolada_ok", verifier)
         self.assertIn("anon_sem_acesso_ao_schema_privado_ok", verifier)
+
+
+class PublicBookingEntitlementTests(TestCase):
+    def test_public_detail_fails_closed_until_entitlement_is_confirmed(self) -> None:
+        api = (ROOT / "js/api.js").read_text(encoding="utf-8")
+        detail = api.split("async function bhObterEstabelecimento", 1)[1].split(
+            "async function bhObterMeuEstabelecimento", 1
+        )[0]
+
+        self.assertIn("data.aceita_agendamento = false;", detail)
+        self.assertIn('typeof agendaEfetiva !== "boolean"', detail)
+        self.assertIn("data.aceita_agendamento = agendaEfetiva;", detail)
