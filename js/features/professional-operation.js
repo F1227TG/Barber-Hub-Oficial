@@ -410,8 +410,14 @@
       if (form.id === "formBlock19") await api().createScheduleBlock({ estabelecimento_id:establishment().id, profissional_id:data.get("profissional_id") || null, inicio:new Date(data.get("inicio")).toISOString(), fim:new Date(data.get("fim")).toISOString(), tipo:data.get("tipo"), motivo:data.get("motivo") || null });
       if (form.id === "formReschedule19") await api().rescheduleAppointment(form.dataset.id, { profissional_id:data.get("profissional_id"), data:data.get("data"), hora_inicio:data.get("hora_inicio") });
       if (form.id === "formRecurrence193") await api().createRecurrence(form.dataset.id, { frequencia:data.get("frequencia"), total_ocorrencias:Number(data.get("total_ocorrencias")) });
-      if (form.id === "formFinanceAdjust19") await api().createFinancialAdjustment({ estabelecimento_id:establishment().id, competencia:data.get("competencia"), natureza:data.get("natureza"), valor:Number(data.get("valor")), descricao:data.get("descricao"), motivo:data.get("motivo") });
-      if (form.id === "formFinanceClose19") await api().closeFinancialDay({ estabelecimento_id:establishment().id, data:data.get("data"), observacao:data.get("observacao") || null });
+      if (form.id === "formFinanceAdjust19") {
+        form.dataset.idempotencyKey ||= `finance-adjustment:${crypto.randomUUID()}`;
+        await api().createFinancialAdjustment({ estabelecimento_id:establishment().id, competencia:data.get("competencia"), natureza:data.get("natureza"), valor:Number(data.get("valor")), descricao:data.get("descricao"), motivo:data.get("motivo"), chave_idempotencia:form.dataset.idempotencyKey });
+      }
+      if (form.id === "formFinanceClose19") {
+        form.dataset.idempotencyKey ||= `finance-closing:${crypto.randomUUID()}`;
+        await api().closeFinancialDay({ estabelecimento_id:establishment().id, data:data.get("data"), observacao:data.get("observacao") || null, chave_idempotencia:form.dataset.idempotencyKey });
+      }
       if (form.id === "formCommission19") await api().createCommissionRule({ estabelecimento_id:establishment().id, profissional_id:data.get("profissional_id") || null, servico_id:null, tipo:data.get("tipo"), valor:Number(data.get("valor")), ativo:true });
       if (form.id === "formTeamLink19") await api().linkTeamMember({ estabelecimento_id:establishment().id, email:data.get("email"), papel:data.get("papel"), profissional_id:data.get("profissional_id") || null });
       close();

@@ -27,8 +27,8 @@ from api.index import (
 from backend.domain.identity import cnpj_is_valid, normalize_cnpj
 from backend.models import (
     AdminSubscriptionUpdate, AppointmentCreate, DeleteAccountRequest, EstablishmentLocationUpdate,
-    EstablishmentUpdate, ManualServiceCreate, OpeningPeriodsReplace, PromotionCreate, ServiceCreate,
-    RecurrenceUpdate, WaitlistCreate,
+    EstablishmentUpdate, FinancialAdjustmentCreate, DayClosingCreate, ManualServiceCreate, OpeningPeriodsReplace,
+    PromotionCreate, ServiceCreate, RecurrenceUpdate, WaitlistCreate,
 )
 from backend.security import AuthContext, recent_authentication_age
 from backend.supabase import SupabaseGateway
@@ -181,6 +181,16 @@ class ApiSmokeTests(TestCase):
         response = self.client.get("/api/v1/admin/records/perfis?offset=0&limit=50")
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.json()["error"]["code"], "UNAUTHORIZED")
+
+    def test_financial_writes_require_an_idempotency_key(self) -> None:
+        establishment = "00000000-0000-0000-0000-000000000001"
+        with self.assertRaises(ValidationError):
+            FinancialAdjustmentCreate(
+                estabelecimento_id=establishment, competencia=date.today(), natureza="credito",
+                valor=10, descricao="Ajuste", motivo="Correção manual",
+            )
+        with self.assertRaises(ValidationError):
+            DayClosingCreate(estabelecimento_id=establishment, data=date.today())
 
     def test_release_110_operational_routes_require_session(self) -> None:
         establishment = "00000000-0000-0000-0000-000000000001"

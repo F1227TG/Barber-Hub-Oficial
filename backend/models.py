@@ -118,6 +118,7 @@ class FinancialAdjustmentCreate(BaseModel):
     valor: Decimal = Field(gt=0, le=1_000_000)
     descricao: str = Field(min_length=2, max_length=180)
     motivo: str = Field(min_length=3, max_length=500)
+    chave_idempotencia: str = Field(min_length=16, max_length=100, pattern=r"^[A-Za-z0-9._:-]+$")
 
 
 class CommissionRuleCreate(BaseModel):
@@ -146,6 +147,7 @@ class DayClosingCreate(BaseModel):
     estabelecimento_id: UUID
     data: date
     observacao: str | None = Field(default=None, max_length=800)
+    chave_idempotencia: str = Field(min_length=16, max_length=100, pattern=r"^[A-Za-z0-9._:-]+$")
 
 
 class TeamMemberLink(BaseModel):

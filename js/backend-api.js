@@ -229,9 +229,13 @@
       const params = new URLSearchParams({ establishment_id: establishmentId, start, end, offset: String(offset), limit: String(limit) });
       return request(`finance/entries?${params.toString()}`, { auth: true });
     },
-    createFinancialAdjustment: data => request("finance/adjustments", { method: "POST", auth: true, body: data }),
+    createFinancialAdjustment: data => request("finance/adjustments", {
+      method: "POST", auth: true, body: data, idempotencyKey: data?.chave_idempotencia || null
+    }),
     createExpense: data => request("finance/expenses", { method: "POST", auth: true, body: data }),
-    closeFinancialDay: data => request("finance/closings", { method: "POST", auth: true, body: data }),
+    closeFinancialDay: data => request("finance/closings", {
+      method: "POST", auth: true, body: data, idempotencyKey: data?.chave_idempotencia || null
+    }),
     commissionRules: establishmentId => request(`finance/commission-rules?establishment_id=${encodeURIComponent(establishmentId)}`, { auth: true }),
     createCommissionRule: data => request("finance/commission-rules", { method: "POST", auth: true, body: data }),
     updateCommissionRule: (ruleId, data) => request(`finance/commission-rules/${encodeURIComponent(ruleId)}`, { method: "PATCH", auth: true, body: data }),

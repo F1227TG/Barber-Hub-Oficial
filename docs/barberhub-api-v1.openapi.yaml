@@ -2047,6 +2047,14 @@ paths:
       summary: Create Financial Adjustment
       operationId: create_financial_adjustment_api_v1_finance_adjustments_post
       parameters:
+      - name: Idempotency-Key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Idempotency-Key
       - name: authorization
         in: header
         required: false
@@ -2109,6 +2117,14 @@ paths:
       summary: Close Financial Day
       operationId: close_financial_day_api_v1_finance_closings_post
       parameters:
+      - name: Idempotency-Key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Idempotency-Key
       - name: authorization
         in: header
         required: false
@@ -4476,10 +4492,17 @@ components:
             maxLength: 800
           - type: 'null'
           title: Observacao
+        chave_idempotencia:
+          type: string
+          maxLength: 100
+          minLength: 16
+          pattern: ^[A-Za-z0-9._:-]+$
+          title: Chave Idempotencia
       type: object
       required:
       - estabelecimento_id
       - data
+      - chave_idempotencia
       title: DayClosingCreate
     DeleteAccountRequest:
       properties:
@@ -4890,6 +4913,12 @@ components:
           maxLength: 500
           minLength: 3
           title: Motivo
+        chave_idempotencia:
+          type: string
+          maxLength: 100
+          minLength: 16
+          pattern: ^[A-Za-z0-9._:-]+$
+          title: Chave Idempotencia
       type: object
       required:
       - estabelecimento_id
@@ -4898,6 +4927,7 @@ components:
       - valor
       - descricao
       - motivo
+      - chave_idempotencia
       title: FinancialAdjustmentCreate
     GoalCreate:
       properties:

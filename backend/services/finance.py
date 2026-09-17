@@ -6,6 +6,7 @@ from datetime import date, timedelta
 from typing import Any
 
 from backend.errors import ApiError
+from backend.domain.operations import normalize_idempotency_key
 from backend.models import (
     CommissionRuleCreate,
     CommissionRuleUpdate,
@@ -76,11 +77,16 @@ async def list_entries(establishment_id: str, start: date, end: date, offset: in
     return {"items": rows[:limit], "offset": offset, "limit": limit, "has_more": len(rows) > limit}
 
 
-async def create_adjustment(payload: FinancialAdjustmentCreate, auth: AuthContext) -> dict[str, Any]:
+async def create_adjustment(
+    payload: FinancialAdjustmentCreate, auth: AuthContext, *, idempotency_key: str | None = None
+) -> dict[str, Any]:
     establishment_id = str(payload.estabelecimento_id)
     await require_feature(establishment_id, auth, "permite_financeiro", "Ajustes financeiros estão indisponíveis no plano atual.")
-    return await gateway.rest(
-        "criar_ajuste_financeiro_19",
+    key = normalize_idempotency_key(idempotency_key or payload.chave_idempotencia)
+    if key is None:
+        raise ApiError(422, "IDEMPOTENCY_KEY_REQUIRED", "Atualize esta etapa e tente registrar o ajuste novamente.")
+    result = await gateway.rest(
+        "criar_ajuste_financeiro_idempotente_1111",
         method="POST",
         token=auth.token,
         rpc=True,
@@ -91,15 +97,25 @@ async def create_adjustment(payload: FinancialAdjustmentCreate, auth: AuthContex
             "p_valor": float(payload.valor),
             "p_descricao": payload.descricao,
             "p_motivo": payload.motivo,
+            "p_chave_idempotencia": key,
+            "p_idempotencia_hash": None,
         },
     )
+    if not isinstance(result, dict) or not result.get("id"):
+        raise ApiError(502, "INVALID_FINANCE_ADJUSTMENT_RESPONSE", "O ajuste não pôde ser confirmado neste momento.")
+    return {"id": str(result["id"]), "replayed": bool(result.get("reutilizado")), "status": result.get("status")}
 
 
-async def close_day(payload: DayClosingCreate, auth: AuthContext) -> dict[str, Any]:
+async def close_day(
+    payload: DayClosingCreate, auth: AuthContext, *, idempotency_key: str | None = None
+) -> dict[str, Any]:
     establishment_id = str(payload.estabelecimento_id)
     await require_feature(establishment_id, auth, "permite_financeiro", "O fechamento do dia está indisponível no plano atual.")
-    return await gateway.rest(
-        "fechar_dia_financeiro_19",
+    key = normalize_idempotency_key(idempotency_key or payload.chave_idempotencia)
+    if key is None:
+        raise ApiError(422, "IDEMPOTENCY_KEY_REQUIRED", "Atualize esta etapa e tente fechar o dia novamente.")
+    result = await gateway.rest(
+        "fechar_dia_financeiro_idempotente_1111",
         method="POST",
         token=auth.token,
         rpc=True,
@@ -107,8 +123,16 @@ async def close_day(payload: DayClosingCreate, auth: AuthContext) -> dict[str, A
             "p_estabelecimento_id": establishment_id,
             "p_data": payload.data.isoformat(),
             "p_observacao": payload.observacao,
+            "p_chave_idempotencia": key,
+            "p_idempotencia_hash": None,
         },
     )
+    if not isinstance(result, dict) or not result.get("id"):
+        raise ApiError(502, "INVALID_FINANCE_CLOSING_RESPONSE", "O fechamento não pôde ser confirmado neste momento.")
+    return {
+        "id": str(result["id"]), "replayed": bool(result.get("reutilizado")),
+        "status": result.get("status"), "revision": result.get("revisao"),
+    }
 
 
 async def list_commission_rules(establishment_id: str, auth: AuthContext) -> list[dict[str, Any]]:

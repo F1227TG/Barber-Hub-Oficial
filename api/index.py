@@ -742,10 +742,19 @@ async def finance_entries(
 async def create_financial_adjustment(
     request: Request,
     payload: FinancialAdjustmentCreate,
+    idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
     auth: AuthContext = Depends(require_user),
 ) -> JSONResponse:
     await enforce_rate_limit(request, "finance-adjustment", limit=30, window_seconds=300, identity=auth.user_id)
-    return ok(await finance_service.create_adjustment(payload, auth), status.HTTP_201_CREATED)
+    try:
+        key = choose_idempotency_key(idempotency_key, payload.chave_idempotencia)
+    except ValueError as exc:
+        raise ApiError(
+            409 if idempotency_key and payload.chave_idempotencia else 422,
+            "IDEMPOTENCY_KEY_MISMATCH" if idempotency_key and payload.chave_idempotencia else "INVALID_IDEMPOTENCY_KEY",
+            str(exc),
+        ) from exc
+    return ok(await finance_service.create_adjustment(payload, auth, idempotency_key=key), status.HTTP_201_CREATED)
 
 
 @app.post("/api/v1/finance/expenses", status_code=status.HTTP_201_CREATED)
@@ -762,10 +771,19 @@ async def create_financial_expense(
 async def close_financial_day(
     request: Request,
     payload: DayClosingCreate,
+    idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
     auth: AuthContext = Depends(require_user),
 ) -> JSONResponse:
     await enforce_rate_limit(request, "finance-closing", limit=20, window_seconds=300, identity=auth.user_id)
-    return ok(await finance_service.close_day(payload, auth), status.HTTP_201_CREATED)
+    try:
+        key = choose_idempotency_key(idempotency_key, payload.chave_idempotencia)
+    except ValueError as exc:
+        raise ApiError(
+            409 if idempotency_key and payload.chave_idempotencia else 422,
+            "IDEMPOTENCY_KEY_MISMATCH" if idempotency_key and payload.chave_idempotencia else "INVALID_IDEMPOTENCY_KEY",
+            str(exc),
+        ) from exc
+    return ok(await finance_service.close_day(payload, auth, idempotency_key=key), status.HTTP_201_CREATED)
 
 
 @app.get("/api/v1/finance/commission-rules")

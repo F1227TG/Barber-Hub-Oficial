@@ -68,3 +68,25 @@ class FinancialClosingMigrationTests(TestCase):
 
         self.assertIn("colunas_de_reconciliacao_ok", verifier)
         self.assertIn("fechamento_inclui_despesas_e_comissoes_ok", verifier)
+
+
+class FinancialIdempotencyMigrationTests(TestCase):
+    def test_adjustments_and_closings_use_separate_idempotent_rpcs(self) -> None:
+        migration = (ROOT / "supabase/migrations/20260917130000_idempotencia_ajustes_fechamentos.sql").read_text(
+            encoding="utf-8"
+        ).lower()
+
+        self.assertIn("operacoes_financeiras_idempotentes", migration)
+        self.assertIn("criar_ajuste_financeiro_idempotente_1111", migration)
+        self.assertIn("fechar_dia_financeiro_idempotente_1111", migration)
+        self.assertIn("a chave de idempotência já foi usada com dados diferentes", migration)
+        self.assertIn("revoke all on function public.criar_ajuste_financeiro_19", migration)
+
+    def test_frontend_reuses_the_form_key_for_financial_retries(self) -> None:
+        operation = (ROOT / "js/features/professional-operation.js").read_text(encoding="utf-8")
+        api = (ROOT / "js/backend-api.js").read_text(encoding="utf-8")
+
+        self.assertIn("form.dataset.idempotencyKey ||= `finance-adjustment:${crypto.randomUUID()}`", operation)
+        self.assertIn("form.dataset.idempotencyKey ||= `finance-closing:${crypto.randomUUID()}`", operation)
+        self.assertIn("createFinancialAdjustment", api)
+        self.assertIn("idempotencyKey: data?.chave_idempotencia || null", api)
