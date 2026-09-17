@@ -2304,6 +2304,8 @@ body.claro .feature:hover {
 
 .experience-panel {
   position:relative;
+  display:flex;
+  flex-direction:column;
   min-height:420px;
   padding:35px;
   border:1px solid var(--border);
@@ -2377,12 +2379,18 @@ body.claro .feature:hover {
 }
 
 .experience-panel a {
-  position:absolute;
+  position:relative;
   z-index:2;
-  left:35px;
-  bottom:34px;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  width:max-content;
+  max-width:100%;
+  margin-top:auto;
+  padding-top:22px;
   color:var(--gold-2);
-  font-weight:900
+  font-weight:900;
+  overflow-wrap:anywhere
 }
 
 .brand-relationship {
@@ -3225,8 +3233,7 @@ body.claro .feature:hover {
     padding:24px
   }
   .experience-panel a {
-    left:24px;
-    bottom:25px
+    padding-top:18px
   }
   .brand-tree {
     padding:18px;

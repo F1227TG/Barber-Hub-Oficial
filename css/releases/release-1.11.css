@@ -338,6 +338,56 @@ img, video, iframe, canvas { max-width: 100%; }
 .notification-center111-trigger [data-notification-center-count] { position: absolute; top: -5px; right: -5px; display: grid; min-width: 19px; height: 19px; padding: 0 4px; place-items: center; border: 2px solid var(--bg); border-radius: 999px; background: #d94f48; color: #fff; font-size: .56rem; font-weight: 900; }
 body.notification-center-open,
 body.reviews-drawer-open111 { overflow: hidden; }
+
+/* --------------------------------------------------------------------------
+   Ajuste de densidade: planos e resumo do cliente
+   -------------------------------------------------------------------------- */
+.page-planos .plan-ribbon {
+  position: static;
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 6px;
+  max-width: 100%;
+  white-space: nowrap;
+}
+.page-planos .pricing-grid-monthly .plan-card { padding-top: 26px; }
+.page-planos .plan-price .plan-status-price {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.08rem;
+  line-height: 1.25;
+  letter-spacing: 0;
+}
+.page-planos .plan-price .plan-status-price i { font-size: .9rem; }
+
+.page-cliente .client-command-center { grid-template-columns: minmax(0, 1fr); }
+.page-cliente .command-primary { padding: 24px; }
+.client-command-footer { display: flex; align-items: center; flex-wrap: wrap; gap: 14px; margin-top: 16px; }
+.client-quick-links { display: flex; flex-wrap: wrap; gap: 12px; }
+.client-quick-links a { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: .78rem; font-weight: 800; }
+.client-quick-links a:hover { color: var(--gold-2); }
+.client-activity-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.client-activity-card { min-width: 0; padding: 20px; border: 1px solid var(--border); border-radius: 20px; background: var(--surface); }
+.client-activity-card > header { display: flex; align-items: center; gap: 11px; }
+.client-activity-card > header > i { display: grid; width: 40px; height: 40px; flex: 0 0 40px; place-items: center; border-radius: 13px; background: var(--gold-soft); color: var(--gold-2); }
+.client-activity-card header span,.client-activity-card header small { display: block; }
+.client-activity-card header span { font-size: .9rem; font-weight: 900; }
+.client-activity-card header small { margin-top: 2px; color: var(--muted); font-size: .7rem; }
+.client-activity-card dl { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 18px 0 0; }
+.client-activity-card dl > div { min-width: 0; padding-left: 10px; border-left: 1px solid var(--border); }
+.client-activity-card dt { color: var(--muted); font-size: .68rem; font-weight: 750; }
+.client-activity-card dd { margin: 4px 0 0; font-size: 1.35rem; font-weight: 900; line-height: 1; overflow-wrap: anywhere; }
+.client-activity-note { display: flex; align-items: baseline; gap: 6px; margin: 16px 0 0; color: var(--muted); font-size: .72rem; }
+.client-activity-note i { color: var(--gold-2); }
+.client-activity-note strong { color: var(--text); overflow-wrap: anywhere; }
+
+@media (max-width: 700px) {
+  .client-activity-grid { grid-template-columns: 1fr; }
+  .page-cliente .command-primary { padding: 18px; }
+  .client-activity-card { padding: 17px; }
+}
 .reviews-drawer111-list .review-public-item { margin-bottom: 10px; }
 .reviews-public-preview111 { margin-top: 16px; }
 .own-business-notice { display: inline-flex; max-width: 420px; align-items: center; gap: 8px; padding: 10px 12px; border: 1px solid var(--gold-border); border-radius: 13px; background: var(--gold-soft); color: var(--text); font-size: .72rem; font-weight: 750; }
