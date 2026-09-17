@@ -224,6 +224,16 @@ async function bhBuscarDestaquesMarketplace(limit = 6) {
 }
 
 async function bhObterEstabelecimento(idOuSlug) {
+  if (window.bhBackendApi?.publicEstablishment) {
+    try {
+      const data = await window.bhBackendApi.publicEstablishment(idOuSlug);
+      return bhNormalizarEstabelecimento(data);
+    } catch (erro) {
+      // Em produção não se volta para a Data API: ela não deve ter de
+      // conceder leitura a relações privadas para montar uma página pública.
+      if (!bhBackendPodeUsarFallback(erro)) throw erro;
+    }
+  }
   const client = bhExigirSupabase();
   let query = client.from("estabelecimentos").select(BH_ESTABELECIMENTO_SELECT);
   const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(idOuSlug || ""));

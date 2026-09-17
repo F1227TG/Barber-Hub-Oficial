@@ -7,6 +7,7 @@ migration 15 deliberately keeps ILIKE fallbacks for short/prefix terms.
 from __future__ import annotations
 
 from typing import Any
+from uuid import UUID
 
 from backend.errors import ApiError
 from backend.services.access import object_payload, rows_payload
@@ -26,6 +27,61 @@ CATALOG_SELECT = (
     "servicos(id,estabelecimento_id,nome,categoria,descricao,preco,duracao_min,ativo,publico,destaque),"
     "promocoes(id,estabelecimento_id,titulo,descricao,codigo,desconto_percentual,inicia_em,termina_em,ativo)"
 )
+
+
+def _public_catalog_params(*, reference: str, is_uuid: bool) -> dict[str, str]:
+    """Build the one public projection used by both listing and detail routes.
+
+    The API reads with server credentials, so relations must be filtered here
+    instead of relying on a browser-side query or on broad anonymous grants.
+    """
+
+    return {
+        "select": CATALOG_SELECT,
+        "id" if is_uuid else "slug": f"eq.{reference}",
+        "visivel": "eq.true",
+        "onboarding_concluido": "eq.true",
+        "profissionais.ativo": "eq.true",
+        "servicos.ativo": "eq.true",
+        "servicos.publico": "eq.true",
+        "promocoes.ativo": "eq.true",
+        "limit": "1",
+    }
+
+
+async def public_establishment(reference: str) -> dict[str, Any]:
+    """Return one visible establishment without exposing owner/admin fields."""
+
+    try:
+        UUID(reference)
+        is_uuid = True
+    except (TypeError, ValueError):
+        is_uuid = False
+
+    rows = rows_payload(await gateway.rest(
+        "estabelecimentos",
+        admin=True,
+        params=_public_catalog_params(reference=reference, is_uuid=is_uuid),
+    ), message="Não foi possível carregar este estabelecimento agora.")
+    if not rows:
+        raise ApiError(404, "ESTABLISHMENT_NOT_FOUND", "Estabelecimento não encontrado ou indisponível.")
+
+    establishment = rows[0]
+    # A disponibilidade anunciada nunca pode depender apenas do checkbox do
+    # estabelecimento: a RPC incorpora a assinatura efetiva e horários.
+    try:
+        agenda = await gateway.rest(
+            "agenda_online_disponivel",
+            method="POST",
+            admin=False,
+            rpc=True,
+            json={"p_estabelecimento_id": establishment["id"]},
+        )
+        establishment["aceita_agendamento"] = bool(agenda)
+    except ApiError:
+        # Falhar fechado impede anunciar uma agenda que não foi validada.
+        establishment["aceita_agendamento"] = False
+    return establishment
 
 
 

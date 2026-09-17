@@ -266,6 +266,20 @@ class ApiSmokeTests(TestCase):
                 latitude=-16.1,
             )
 
+    def test_location_contract_accepts_the_panel_address_format(self) -> None:
+        payload = EstablishmentLocationUpdate(
+            logradouro="Avenida Defensor Público Fabio Ruas",
+            numero="523",
+            complemento="Estabelecimento",
+            bairro="Centro",
+            cidade="Jacinto",
+            estado="MG",
+            cep="39930-000",
+            precisao_localizacao="endereco",
+        )
+        self.assertEqual(payload.cep, "39930-000")
+        self.assertEqual(payload.estado, "MG")
+
     def test_opening_period_contract_rejects_overlap(self) -> None:
         with self.assertRaises(ValidationError):
             OpeningPeriodsReplace(
@@ -752,6 +766,32 @@ class SecurityAndLifecycleRegressionTests(IsolatedAsyncioTestCase):
         selected = request_mock.await_args.kwargs["params"]["select"]
         self.assertNotIn("email", selected)
         self.assertNotIn("telefone", selected)
+
+    async def test_public_establishment_uses_a_filtered_server_projection(self) -> None:
+        row = {
+            "id": "5022cf83-66c9-47ad-a8af-8590b20b6c18",
+            "nome": "Barbearia do Igão",
+            "aceita_agendamento": True,
+        }
+        rest = AsyncMock(side_effect=[[row], True])
+        with patch("backend.services.catalog.gateway.rest", rest):
+            result = await catalog_service.public_establishment(row["id"])
+        self.assertTrue(result["aceita_agendamento"])
+        params = rest.await_args_list[0].kwargs["params"]
+        self.assertEqual(params["visivel"], "eq.true")
+        self.assertEqual(params["onboarding_concluido"], "eq.true")
+        self.assertEqual(params["profissionais.ativo"], "eq.true")
+        self.assertNotIn("owner_id", params["select"])
+
+    async def test_subscription_listing_does_not_depend_on_unapplied_plan_column(self) -> None:
+        rest = AsyncMock(return_value=[])
+        with patch("backend.services.admin.gateway.rest", rest):
+            await admin_service.list_subscriptions(self.auth)
+        subscription_call = next(
+            call for call in rest.await_args_list if call.args and call.args[0] == "assinaturas"
+        )
+        selected = subscription_call.kwargs["params"]["select"]
+        self.assertNotIn("estado_comercial", selected)
 
     async def test_regional_marketplace_keeps_all_filters_in_one_query(self) -> None:
         rest = AsyncMock(return_value=[])

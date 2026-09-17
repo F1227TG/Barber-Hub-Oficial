@@ -211,7 +211,7 @@ function bhRenderCardsPortfolioPublico() {
     return;
   }
   const contaNova = bhPerfilPortfolio && (Date.now() - new Date(bhPerfilPortfolio.created_at).getTime()) < 7 * 86400000;
-  const dono = bhPerfilPortfolio?.id === bhEstabelecimentoPortfolio?.ownerId;
+  const dono = bhEstabelecimentoProprioPortfolio;
   grid.innerHTML = itens.map(item => {
     const curtida = bhCurtidasPortfolio.has(item.id);
     const bloqueada = !bhPerfilPortfolio || contaNova || dono;

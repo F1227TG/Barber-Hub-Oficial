@@ -156,6 +156,10 @@
       `establishments/${encodeURIComponent(establishmentId)}/reviews?offset=${encodeURIComponent(offset)}&limit=${encodeURIComponent(limit)}`,
       { auth: false }
     ),
+    publicEstablishment: reference => request(
+      `establishments/${encodeURIComponent(reference)}/public`,
+      { auth: false }
+    ),
     cancelAppointment: (appointmentId, motivo = "Cancelado pelo cliente") => request(`appointments/${encodeURIComponent(appointmentId)}`, {
       method: "DELETE",
       auth: true,

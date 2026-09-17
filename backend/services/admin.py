@@ -312,7 +312,11 @@ async def list_subscriptions(_auth: AuthContext) -> dict[str, object]:
             method="GET",
             admin=True,
             params={
-                "select": "id,estabelecimento_id,plano_id,status,inicio_em,teste_termina_em,periodo_atual_inicio,periodo_atual_fim,observacoes,updated_at,planos(id,slug,nome,ordenacao,permite_agenda,estado_comercial)",
+                # ``estado_comercial`` foi introduzido depois da primeira
+                # versão desta tela. A listagem administrativa precisa continuar
+                # funcionando enquanto a migration ainda está sendo aplicada em
+                # um ambiente; o cliente usa "desenvolvimento" como padrão.
+                "select": "id,estabelecimento_id,plano_id,status,inicio_em,teste_termina_em,periodo_atual_inicio,periodo_atual_fim,observacoes,updated_at,planos(id,slug,nome,ordenacao,permite_agenda)",
                 "limit": "500",
             },
         ),
