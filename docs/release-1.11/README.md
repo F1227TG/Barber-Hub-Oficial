@@ -29,8 +29,9 @@ Relatórios de versões anteriores servem como histórico, mas não aprovam a 1.
 8. [Configuração externa](CONFIGURACAO_EXTERNA.md)
 9. [Testes de navegador, dispositivo, rede, PWA e carga](TESTES_NAVEGADOR_DISPOSITIVO_E_CARGA.md)
 10. [Credenciais e senhas](CREDENCIAIS_E_SENHAS.md)
-11. [Advisors do Supabase — 11/09/2026](ADVISORS_SUPABASE_2026_09_11.md)
-12. [Relatório final da implementação 1.11.0](RELATORIO_FINAL_1_11_0.md)
+11. [Retenção controlada e simulação 1.11.1](RETENCAO_SIMULACAO_1_11_1.md)
+12. [Advisors do Supabase — 11/09/2026](ADVISORS_SUPABASE_2026_09_11.md)
+13. [Relatório final da implementação 1.11.0](RELATORIO_FINAL_1_11_0.md)
 
 ## Convenções de evidência
 

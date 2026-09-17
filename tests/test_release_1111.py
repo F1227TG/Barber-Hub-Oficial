@@ -120,3 +120,28 @@ class AccountDeletionRecoveryMigrationTests(TestCase):
         self.assertIn("exclusao_recuperavel_ok", verifier)
         self.assertIn("user_id_tecnico is not null", verifier)
         self.assertIn("user_id_tecnico=null", verifier)
+
+
+class RetentionSimulationMigrationTests(TestCase):
+    def test_retention_cron_is_fail_closed_and_only_simulates(self) -> None:
+        migration = (ROOT / "supabase/migrations/20260917140000_retencao_simulacao_controlada.sql").read_text(
+            encoding="utf-8"
+        ).lower()
+        legacy = migration.split("create or replace function public.executar_retencao_tecnica_111()", 1)[1]
+
+        self.assertIn("execucao_habilitada boolean not null default false", migration)
+        self.assertIn("set ativa=false,execucao_habilitada=false", migration)
+        self.assertIn("retencao_simulacoes_1111", migration)
+        self.assertIn("'modo','simulacao'", migration)
+        self.assertIn("'acoes_aplicadas',0", migration)
+        self.assertIn("simular_retencao_tecnica_1111('cron')", legacy)
+        self.assertNotIn("delete from public.", legacy)
+
+    def test_retention_verifier_and_inventory_document_the_approval_boundary(self) -> None:
+        verifier = (ROOT / "sql/verificar_38_retencao_simulacao_controlada.sql").read_text(encoding="utf-8").lower()
+        inventory = (ROOT / "docs/release-1.11/RETENCAO_SIMULACAO_1_11_1.md").read_text(encoding="utf-8").lower()
+
+        self.assertIn("retencao_simulacao_controlada_ok", verifier)
+        self.assertIn("nenhuma categoria deve iniciar ativa", verifier)
+        self.assertIn("não ativa descarte automático", inventory)
+        self.assertIn("decisão necessária antes da aplicação real", inventory)
