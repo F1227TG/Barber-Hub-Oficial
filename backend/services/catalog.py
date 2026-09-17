@@ -223,22 +223,31 @@ async def cover_library() -> list[dict[str, Any]]:
     ), message="Não foi possível carregar as opções de capa agora.")
 
 
-async def reviews(establishment_id: str, *, offset: int = 0, limit: int = 10) -> dict[str, Any]:
+async def reviews(
+    establishment_id: str, *, offset: int = 0, limit: int = 10, source: str = "all",
+) -> dict[str, Any]:
     """Return only published review fields with stable server-side pagination."""
 
     safe_limit = min(max(int(limit), 1), 30)
     safe_offset = min(max(int(offset), 0), 10_000)
+    safe_source = source if source in {"all", "verified", "community"} else "all"
+    params = {
+        "select": "id,nota,comentario,resposta_estabelecimento,respondido_em,origem,verificada,created_at,perfis(nome,avatar_url)",
+        "estabelecimento_id": f"eq.{establishment_id}",
+        "status": "eq.publicada",
+        "order": "created_at.desc,id.desc",
+        "offset": str(safe_offset),
+        "limit": str(safe_limit),
+    }
+    if safe_source == "verified":
+        params["or"] = "(verificada.is.true,origem.eq.agendamento)"
+    elif safe_source == "community":
+        params["verificada"] = "is.false"
+        params["origem"] = "neq.agendamento"
     response = await gateway.request(
         "/rest/v1/avaliacoes",
         admin=True,
-        params={
-            "select": "id,nota,comentario,resposta_estabelecimento,respondido_em,origem,verificada,created_at,perfis(nome,avatar_url)",
-            "estabelecimento_id": f"eq.{establishment_id}",
-            "status": "eq.publicada",
-            "order": "created_at.desc,id.desc",
-            "offset": str(safe_offset),
-            "limit": str(safe_limit),
-        },
+        params=params,
         headers={"Prefer": "count=exact"},
     )
     rows = rows_payload(response.json(), message="Não foi possível carregar as avaliações agora.")
@@ -260,6 +269,7 @@ async def reviews(establishment_id: str, *, offset: int = 0, limit: int = 10) ->
         "total": total,
         "offset": safe_offset,
         "limit": safe_limit,
+        "source": safe_source,
         "has_more": safe_offset + len(rows) < total,
         "summary": {"average": float(establishment[0].get("avaliacao") or 0), "total": total},
     }

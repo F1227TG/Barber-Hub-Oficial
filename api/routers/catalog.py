@@ -29,6 +29,7 @@ async def establishment_reviews(
     request: Request,
     offset: int = Query(default=0, ge=0, le=10_000),
     limit: int = Query(default=10, ge=1, le=30),
+    source: str = Query(default="all", pattern="^(all|verified|community)$"),
 ) -> JSONResponse:
     await enforce_rate_limit(request, "public-reviews", limit=120, window_seconds=60)
-    return ok(await catalog_service.reviews(str(establishment_id), offset=offset, limit=limit))
+    return ok(await catalog_service.reviews(str(establishment_id), offset=offset, limit=limit, source=source))

@@ -15,6 +15,8 @@ let bhPortfolioPublicoHasMore = false;
 let bhAvaliacoesPublicasHasMore = false;
 let bhAvaliacoesPublicasTotal = 0;
 let bhAvaliacoesPublicasResumo = null;
+let bhAvaliacoesDrawer = [];
+let bhAvaliacoesDrawerState = { page:0, limit:8, source:"all", total:0, hasMore:false };
 let bhFavoritoAtual = false;
 let bhEstabelecimentoProprioPortfolio = false;
 let bhAlvoAvaliacaoComunidade = { publicacaoId: null };
@@ -94,10 +96,10 @@ function bhAvaliacaoPublicaMarkup(item) {
   </article>`;
 }
 
-async function bhBuscarAvaliacoesPublicasPagina(offset = 0, limit = 10) {
+async function bhBuscarAvaliacoesPublicasPagina(offset = 0, limit = 10, source = "all") {
   if (window.bhBackendApi?.publicReviews) {
     try {
-      const page = await window.bhBackendApi.publicReviews(bhEstabelecimentoPortfolio.id, offset, limit);
+      const page = await window.bhBackendApi.publicReviews(bhEstabelecimentoPortfolio.id, offset, limit, source);
       return { items:Array.isArray(page) ? page : (Array.isArray(page?.items) ? page.items : []), total:Number(page?.total || 0), hasMore:Boolean(page?.has_more), summary:page?.summary || null };
     } catch (error) {
       if (!bhBackendPodeUsarFallback(error)) throw error;
@@ -110,7 +112,8 @@ async function bhBuscarAvaliacoesPublicasPagina(offset = 0, limit = 10) {
     const { count } = await client.from("avaliacoes").select("id", { count:"exact", head:true }).eq("estabelecimento_id", bhEstabelecimentoPortfolio.id).eq("status", "publicada");
     if (Number.isFinite(Number(count))) total = Number(count);
   } catch (_) { /* A prévia continua disponível sem o contador auxiliar. */ }
-  return { items, total, hasMore:offset + items.length < total, summary:{ average, total } };
+  const filtered = source === "verified" ? items.filter(item => item.verificada || item.origem === "agendamento") : source === "community" ? items.filter(item => !item.verificada && item.origem !== "agendamento") : items;
+  return { items:filtered, total, hasMore:offset + filtered.length < total, summary:{ average, total } };
 }
 
 function bhGarantirDrawerAvaliacoes() {
@@ -119,36 +122,52 @@ function bhGarantirDrawerAvaliacoes() {
   drawer = document.createElement("div");
   drawer.id = "reviewsDrawer111";
   drawer.className = "reviews-drawer111";
-  drawer.innerHTML = `<button class="reviews-drawer111-backdrop" type="button" data-reviews-close aria-label="Fechar avaliações"></button><aside class="reviews-drawer111-panel" role="dialog" aria-modal="true" aria-labelledby="reviewsDrawerTitle111" aria-hidden="true" inert><header><div><span>Reputação</span><h2 id="reviewsDrawerTitle111">Todas as avaliações</h2></div><button class="icon-btn" type="button" data-reviews-close aria-label="Fechar"><i class="bi bi-x-lg"></i></button></header><div class="reviews-drawer111-list" data-reviews-drawer-list></div><footer><button class="btn btn-outline" type="button" data-reviews-drawer-more>Carregar mais</button></footer></aside>`;
+  drawer.innerHTML = `<button class="reviews-drawer111-backdrop" type="button" data-reviews-close aria-label="Fechar avaliações"></button><aside class="reviews-drawer111-panel" role="dialog" aria-modal="true" aria-labelledby="reviewsDrawerTitle111" aria-hidden="true" inert><header><div><span>Reputação</span><h2 id="reviewsDrawerTitle111">Todas as avaliações</h2></div><button class="icon-btn" type="button" data-reviews-close aria-label="Fechar"><i class="bi bi-x-lg"></i></button></header><div class="reviews-drawer111-toolbar" role="group" aria-label="Filtrar avaliações"><button type="button" data-reviews-filter="all" aria-pressed="true">Todas</button><button type="button" data-reviews-filter="verified" aria-pressed="false">Verificadas</button><button type="button" data-reviews-filter="community" aria-pressed="false">Comunidade</button></div><div class="reviews-drawer111-list" data-reviews-drawer-list></div><footer><button class="btn btn-outline btn-small" type="button" data-reviews-drawer-prev><i class="bi bi-chevron-left"></i> Anterior</button><span data-reviews-drawer-page></span><button class="btn btn-outline btn-small" type="button" data-reviews-drawer-next>Próxima <i class="bi bi-chevron-right"></i></button></footer></aside>`;
   document.body.appendChild(drawer);
   drawer.addEventListener("click", async event => {
     if (event.target.closest("[data-reviews-close]")) return bhFecharDrawerAvaliacoes();
-    const more = event.target.closest("[data-reviews-drawer-more]");
-    if (!more) return;
-    bhSetButtonLoading(more, true, "Carregando...");
-    try {
-      const page = await bhBuscarAvaliacoesPublicasPagina(bhAvaliacoesPublicas.length, 10);
-      const ids = new Set(bhAvaliacoesPublicas.map(item => item.id));
-      bhAvaliacoesPublicas.push(...page.items.filter(item => !ids.has(item.id)));
-      bhAvaliacoesPublicasTotal = page.total || bhAvaliacoesPublicasTotal;
-      bhAvaliacoesPublicasHasMore = page.hasMore;
-      bhRenderDrawerAvaliacoes();
-    } catch (error) { mostrarToast("erro", "Não foi possível carregar mais", bhErroMensagem(error)); }
-    finally { bhSetButtonLoading(more, false); }
+    const filter = event.target.closest("[data-reviews-filter]");
+    const previous = event.target.closest("[data-reviews-drawer-prev]");
+    const next = event.target.closest("[data-reviews-drawer-next]");
+    if (!filter && !previous && !next) return;
+    const targetPage = filter ? 0 : bhAvaliacoesDrawerState.page + (next ? 1 : -1);
+    const source = filter ? filter.dataset.reviewsFilter : bhAvaliacoesDrawerState.source;
+    await bhCarregarDrawerAvaliacoes(targetPage, source, filter || previous || next);
   });
   return drawer;
 }
 
 function bhRenderDrawerAvaliacoes() {
   const drawer = bhGarantirDrawerAvaliacoes();
-  drawer.querySelector("[data-reviews-drawer-list]").innerHTML = bhAvaliacoesPublicas.length ? bhAvaliacoesPublicas.map(bhAvaliacaoPublicaMarkup).join("") : '<div class="empty compact">Ainda não há avaliações.</div>';
-  drawer.querySelector("[data-reviews-drawer-more]").hidden = !bhAvaliacoesPublicasHasMore;
+  const totalPages = Math.max(1, Math.ceil(bhAvaliacoesDrawerState.total / bhAvaliacoesDrawerState.limit));
+  drawer.querySelector("[data-reviews-drawer-list]").innerHTML = bhAvaliacoesDrawer.length ? bhAvaliacoesDrawer.map(bhAvaliacaoPublicaMarkup).join("") : '<div class="empty compact">Nenhuma avaliação neste filtro.</div>';
+  drawer.querySelector("[data-reviews-drawer-page]").textContent = `Página ${bhAvaliacoesDrawerState.page + 1} de ${totalPages}`;
+  drawer.querySelector("[data-reviews-drawer-prev]").disabled = bhAvaliacoesDrawerState.page === 0;
+  drawer.querySelector("[data-reviews-drawer-next]").disabled = !bhAvaliacoesDrawerState.hasMore;
+  drawer.querySelectorAll("[data-reviews-filter]").forEach(button => {
+    const active = button.dataset.reviewsFilter === bhAvaliacoesDrawerState.source;
+    button.classList.toggle("ativo", active); button.setAttribute("aria-pressed", String(active));
+  });
 }
 
-function bhAbrirDrawerAvaliacoes(trigger) {
-  const drawer = bhGarantirDrawerAvaliacoes(); bhRenderDrawerAvaliacoes(); drawer.dataset.returnFocus = trigger?.id || "";
+async function bhCarregarDrawerAvaliacoes(page = 0, source = "all", trigger = null) {
+  const drawer = bhGarantirDrawerAvaliacoes();
+  const button = trigger instanceof HTMLElement ? trigger : null;
+  bhSetButtonLoading(button, true, "Carregando...");
+  try {
+    const result = await bhBuscarAvaliacoesPublicasPagina(page * bhAvaliacoesDrawerState.limit, bhAvaliacoesDrawerState.limit, source);
+    bhAvaliacoesDrawer = result.items;
+    bhAvaliacoesDrawerState = { ...bhAvaliacoesDrawerState, page, source, total:result.total, hasMore:result.hasMore };
+    bhRenderDrawerAvaliacoes();
+  } catch (error) { mostrarToast("erro", "Não foi possível carregar as avaliações", bhErroMensagem(error)); }
+  finally { bhSetButtonLoading(button, false); }
+}
+
+async function bhAbrirDrawerAvaliacoes(trigger) {
+  const drawer = bhGarantirDrawerAvaliacoes(); drawer.dataset.returnFocus = trigger?.id || "";
   if (drawer.classList.contains("is-open")) return;
   drawer.classList.add("is-open"); const panel = drawer.querySelector(".reviews-drawer111-panel"); panel.removeAttribute("inert"); panel.setAttribute("aria-hidden", "false"); panel.setAttribute("tabindex", "-1"); document.body.classList.add("reviews-drawer-open111"); bhAvaliacoesFundoInativo(drawer, true); history.pushState({ ...(history.state || {}), bhReviewsDrawer111:true }, "", location.href); drawer.dataset.historyEntry = "1"; requestAnimationFrame(() => panel.querySelector("[data-reviews-close]")?.focus());
+  await bhCarregarDrawerAvaliacoes(0, bhAvaliacoesDrawerState.source);
 }
 
 function bhFecharDrawerAvaliacoes({ fromHistory = false } = {}) {
@@ -291,7 +310,7 @@ async function bhRecarregarReputacaoPublica() {
   bhAvaliacoesPublicasResumo = page.summary;
   bhEstabelecimentoPortfolio.avaliacao = Number(page.summary?.average ?? page.summary?.media ?? (bhAvaliacoesPublicas.length ? bhAvaliacoesPublicas.reduce((soma,item)=>soma+Number(item.nota||0),0)/bhAvaliacoesPublicas.length : 0));
   bhRenderDetalheEstabelecimento(bhEstabelecimentoPortfolio);
-  if (document.getElementById("reviewsDrawer111")?.classList.contains("is-open")) bhRenderDrawerAvaliacoes();
+  if (document.getElementById("reviewsDrawer111")?.classList.contains("is-open")) await bhCarregarDrawerAvaliacoes(0, bhAvaliacoesDrawerState.source);
   requestAnimationFrame(() => window.scrollTo({ top: posicao, behavior: "instant" }));
 }
 
@@ -519,7 +538,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       location.href=loginAction.href; return;
     }
     const reviewsOpen = evento.target.closest("[data-reviews-open]");
-    if (reviewsOpen) { bhAbrirDrawerAvaliacoes(reviewsOpen); return; }
+    if (reviewsOpen) { await bhAbrirDrawerAvaliacoes(reviewsOpen); return; }
     const morePortfolio = evento.target.closest("[data-portfolio-more]");
     if (morePortfolio) {
       try {

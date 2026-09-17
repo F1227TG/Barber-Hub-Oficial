@@ -767,6 +767,22 @@ class SecurityAndLifecycleRegressionTests(IsolatedAsyncioTestCase):
         self.assertNotIn("email", selected)
         self.assertNotIn("telefone", selected)
 
+    async def test_reviews_filter_verified_and_community_at_the_query_boundary(self) -> None:
+        import httpx
+
+        response = httpx.Response(200, json=[], headers={"content-range": "*/0"})
+        request = AsyncMock(return_value=response)
+        with patch("backend.services.catalog.gateway.request", request), patch(
+            "backend.services.catalog.gateway.rest", AsyncMock(return_value=[{"avaliacao": 0}])
+        ):
+            await catalog_service.reviews("establishment-1", source="verified")
+            verified = request.await_args.kwargs["params"]
+            await catalog_service.reviews("establishment-1", source="community")
+            community = request.await_args.kwargs["params"]
+        self.assertEqual(verified["or"], "(verificada.is.true,origem.eq.agendamento)")
+        self.assertEqual(community["verificada"], "is.false")
+        self.assertEqual(community["origem"], "neq.agendamento")
+
     async def test_public_establishment_uses_a_filtered_server_projection(self) -> None:
         row = {
             "id": "5022cf83-66c9-47ad-a8af-8590b20b6c18",

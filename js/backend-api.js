@@ -152,8 +152,8 @@
       body: data,
       idempotencyKey: data.chave_idempotencia || null
     }),
-    publicReviews: (establishmentId, offset = 0, limit = 10) => request(
-      `establishments/${encodeURIComponent(establishmentId)}/reviews?offset=${encodeURIComponent(offset)}&limit=${encodeURIComponent(limit)}`,
+    publicReviews: (establishmentId, offset = 0, limit = 10, source = "all") => request(
+      `establishments/${encodeURIComponent(establishmentId)}/reviews?offset=${encodeURIComponent(offset)}&limit=${encodeURIComponent(limit)}&source=${encodeURIComponent(source)}`,
       { auth: false }
     ),
     publicEstablishment: reference => request(
