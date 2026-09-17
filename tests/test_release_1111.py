@@ -90,3 +90,33 @@ class FinancialIdempotencyMigrationTests(TestCase):
         self.assertIn("form.dataset.idempotencyKey ||= `finance-closing:${crypto.randomUUID()}`", operation)
         self.assertIn("createFinancialAdjustment", api)
         self.assertIn("idempotencyKey: data?.chave_idempotencia || null", api)
+
+
+class AccountDeletionRecoveryMigrationTests(TestCase):
+    def test_deletion_keeps_a_private_retry_identity_only_until_conclusion(self) -> None:
+        migration = (ROOT / "supabase/migrations/20260917133000_exclusao_conta_recuperavel.sql").read_text(
+            encoding="utf-8"
+        ).lower()
+
+        self.assertIn("add column if not exists user_id_tecnico uuid", migration)
+        self.assertIn("user_id,user_id_tecnico,user_hash", migration)
+        self.assertIn("where s.user_id_tecnico is not null", migration)
+        self.assertIn("returning s.id,s.user_id_tecnico", migration)
+        self.assertIn("user_id=null,user_id_tecnico=null", migration)
+
+    def test_deletion_cancels_future_client_and_professional_appointments_before_anonymization(self) -> None:
+        migration = (ROOT / "supabase/migrations/20260917133000_exclusao_conta_recuperavel.sql").read_text(
+            encoding="utf-8"
+        ).lower()
+
+        self.assertIn("conta do cliente removida", migration)
+        self.assertIn("profissional indisponivel por exclusao de conta", migration)
+        self.assertIn("p.user_id=p_user", migration)
+        self.assertIn("permite_email_marketing=false,data_nascimento=null", migration)
+
+    def test_deletion_verifier_covers_retry_and_privacy_boundaries(self) -> None:
+        verifier = (ROOT / "sql/verificar_37_exclusao_conta_recuperavel.sql").read_text(encoding="utf-8").lower()
+
+        self.assertIn("exclusao_recuperavel_ok", verifier)
+        self.assertIn("user_id_tecnico is not null", verifier)
+        self.assertIn("user_id_tecnico=null", verifier)

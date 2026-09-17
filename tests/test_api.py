@@ -701,6 +701,21 @@ class SecurityAndLifecycleRegressionTests(IsolatedAsyncioTestCase):
         self.assertLess(called_rpcs.index("listar_arquivos_conta_exclusao_111"), called_rpcs.index("anonimizar_conta_exclusao_111"))
         self.assertLess(called_rpcs.index("anonimizar_conta_exclusao_111"), called_rpcs.index("concluir_exclusao_conta_111"))
 
+    async def test_account_deletion_worker_concludes_when_auth_was_already_removed(self) -> None:
+        rpc = AsyncMock(side_effect=[
+            [{"solicitacao_id": "request-1", "user_id": "user-1"}],
+            [],
+            {"anonimizada": True},
+            {"status": "concluida"},
+        ])
+        delete_user = AsyncMock(side_effect=ApiError(404, "AUTH_USER_NOT_FOUND", "Usuário já removido."))
+        with patch("backend.services.maintenance._rpc", rpc), patch(
+            "backend.services.maintenance.gateway.admin_delete_user", delete_user
+        ):
+            result = await maintenance_service.process_account_deletions(5)
+        self.assertEqual(result, {"claimed": 1, "completed": 1, "failed": 0, "files_removed": 0})
+        self.assertEqual([call.args[0] for call in rpc.await_args_list][-1], "concluir_exclusao_conta_111")
+
     async def test_reviews_are_paginated_and_hide_private_profile_fields(self) -> None:
         import httpx
 
