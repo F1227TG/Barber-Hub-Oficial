@@ -159,3 +159,27 @@ class InternalNotificationPilotTests(TestCase):
         self.assertIn("EXTERNAL_NOTIFICATIONS_DISABLED", push)
         self.assertIn("external_notifications_enabled", email)
         self.assertNotIn('"path": "/api/v1/jobs/push/deliver?limit=50"', vercel)
+
+
+class AccountExportMigrationTests(TestCase):
+    def test_export_covers_own_retention_relationships_without_exporting_secrets(self) -> None:
+        migration = (ROOT / "supabase/migrations/20260917150000_exportacao_dados_conta_ampliada.sql").read_text(
+            encoding="utf-8"
+        ).lower()
+
+        self.assertIn("'lista_espera'", migration)
+        self.assertIn("'recorrencias'", migration)
+        self.assertIn("'fidelidade_saldos'", migration)
+        self.assertIn("'fidelidade_movimentos'", migration)
+        self.assertIn("'notificacoes'", migration)
+        self.assertIn("'dispositivos_push'", migration)
+        self.assertIn("'exclusoes_justificadas'", migration)
+        self.assertNotIn("to_jsonb(p) from public.push_assinaturas", migration)
+
+    def test_export_verifier_protects_the_own_data_boundary(self) -> None:
+        verifier = (ROOT / "sql/verificar_39_exportacao_dados_conta_ampliada.sql").read_text(encoding="utf-8").lower()
+        documentation = (ROOT / "docs/release-1.11/EXPORTACAO_DE_DADOS_1_11_1.md").read_text(encoding="utf-8").lower()
+
+        self.assertIn("exportacao_dados_conta_ampliada_ok", verifier)
+        self.assertIn("endpoint", verifier)
+        self.assertIn("não inclui crm", documentation)
