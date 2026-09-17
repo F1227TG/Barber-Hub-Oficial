@@ -31,8 +31,9 @@ Relatórios de versões anteriores servem como histórico, mas não aprovam a 1.
 10. [Credenciais e senhas](CREDENCIAIS_E_SENHAS.md)
 11. [Retenção controlada e simulação 1.11.1](RETENCAO_SIMULACAO_1_11_1.md)
 12. [Exportação de dados da conta 1.11.1](EXPORTACAO_DE_DADOS_1_11_1.md)
-13. [Advisors do Supabase — 11/09/2026](ADVISORS_SUPABASE_2026_09_11.md)
-14. [Relatório final da implementação 1.11.0](RELATORIO_FINAL_1_11_0.md)
+13. [Diagnóstico comercial de assinaturas — setembro de 2026](DIAGNOSTICO_COMERCIAL_ASSINATURAS_2026-09.md)
+14. [Advisors do Supabase — 11/09/2026](ADVISORS_SUPABASE_2026_09_11.md)
+15. [Relatório final da implementação 1.11.0](RELATORIO_FINAL_1_11_0.md)
 
 ## Convenções de evidência
 
