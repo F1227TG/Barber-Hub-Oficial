@@ -4,6 +4,7 @@ import asyncio
 import json
 import time
 from datetime import date, datetime, timedelta, timezone
+from pathlib import Path
 from unittest import IsolatedAsyncioTestCase, TestCase
 from unittest.mock import AsyncMock, patch
 
@@ -57,6 +58,15 @@ class ApiSmokeTests(TestCase):
         payload = response.json()
         self.assertTrue(payload["success"])
         self.assertEqual(payload["data"]["runtime"], "python-fastapi")
+
+    def test_establishment_audit_migration_uses_a_dedicated_row_id_trigger(self) -> None:
+        migration = Path("supabase/migrations/20260918114943_fix_establishment_audit_trigger.sql").read_text(
+            encoding="utf-8",
+        )
+        self.assertIn("private.auditar_estabelecimento_configuracao_1112", migration)
+        self.assertIn("new.id, (select auth.uid()), 'configuracao', 'update'", migration)
+        self.assertIn("execute function private.auditar_estabelecimento_configuracao_1112()", migration)
+        self.assertNotIn("new.estabelecimento_id", migration)
 
     def test_health_reports_api_version(self) -> None:
         response = self.client.get("/api/v1/health")

@@ -55,7 +55,12 @@ check(migration.includes("revoke execute on function public.buscar_marketplace_r
 check(verifier.includes("has_function_privilege") && verifier.includes("planos"), "verificador 32 precisa testar privilégios e plano");
 check(api.includes('@app.get("/api/v1/jobs/push/deliver")') && api.includes("Bearer "), "Cron precisa usar GET e autenticação Bearer");
 check(push.includes("webpush_async") && push.includes("reivindicar_entregas_push_1101") && push.includes("attempts >= 5") && push.includes("horario_silencioso"), "worker push precisa reivindicar, enviar, limitar tentativas e respeitar silêncio");
-check(Array.isArray(vercel.crons) && vercel.crons.some(item => item.path.includes("jobs/push/deliver")), "Vercel precisa registrar o agendador de push");
+check(
+  Array.isArray(vercel.crons)
+    && vercel.crons.some(item => item.path.includes("jobs/maintenance/run"))
+    && !vercel.crons.some(item => item.path.includes("jobs/push/deliver")),
+  "Vercel precisa agendar a manutenção; push externo permanece desativado até a aprovação operacional",
+);
 check(portal.includes("filtroServico") && portal.includes("filtroPrecoMin") && portal.includes("filtroAvaliacao"), "portal precisa expor serviço, preço e avaliação");
 check(portalApi.includes("Nenhum resultado diferente do filtro foi exibido"), "fallback não pode exibir resultados incompatíveis com filtros avançados");
 check(registration.includes("coverLibrary") && registration.includes("data-onboarding-cover"), "cadastro precisa oferecer biblioteca oficial de capas");

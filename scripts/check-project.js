@@ -101,6 +101,10 @@ function walk(directory, extension) {
   for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
     if ([".git", "node_modules", ".venv", "__pycache__"].includes(entry.name)) continue;
     const full = path.join(directory, entry.name);
+    // Uma cópia de repositório dentro do workspace é material externo, não
+    // parte da aplicação publicada. Não devemos auditá-la como se fosse uma
+    // página do Barber Hub nem seguir seus próprios artefatos de Git.
+    if (entry.isDirectory() && fs.existsSync(path.join(full, ".git"))) continue;
     if (entry.isDirectory()) output.push(...walk(full, extension));
     else if (!extension || entry.name.endsWith(extension)) output.push(full);
   }

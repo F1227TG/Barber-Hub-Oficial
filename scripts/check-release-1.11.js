@@ -99,7 +99,15 @@ check(portal.includes("marketplace-card-primary") && portal.includes("&agendar=1
 check(portal.includes("URLSearchParams") && portal.includes("bhBuscarMarketplaceRegional"), "Explorar precisa persistir filtros e usar busca regional");
 check(portal.includes("bhMarketplaceState.items.filter(item => item?.destaque)") && !portal.includes("bhMarketplaceCarregarDestaques"), "destaques precisam respeitar o resultado regional atual");
 check(booking.includes("openstreetmap.org") || read("js/barbearia.js").includes("openstreetmap.org"), "vitrine precisa oferecer mapa/rota");
-check(read("js/barbearia.js").includes("data-reviews-drawer-more") && read("js/barbearia.js").includes("reviews-drawer111"), "avaliações públicas precisam paginar em drawer");
+const publicReviews = read("js/barbearia.js");
+check(
+  publicReviews.includes("reviews-drawer111")
+    && publicReviews.includes("bhBuscarAvaliacoesPublicasPagina")
+    && publicReviews.includes("data-reviews-drawer-prev")
+    && publicReviews.includes("data-reviews-drawer-next")
+    && publicReviews.includes("data-reviews-filter"),
+  "avaliações públicas precisam paginar e filtrar no drawer",
+);
 
 check(notifications.includes("data-notification-read-all") && (notifications.includes("snapshot") || notifications.includes("previous")), "notificações precisam suportar leitura e reversão segura");
 check(notifications.includes("aria-modal=\"true\"") && notifications.includes("inert"), "central de notificações precisa ser contextual e acessível");

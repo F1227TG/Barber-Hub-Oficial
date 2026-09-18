@@ -56,7 +56,13 @@ for (const marker of ["replaceOpeningPeriods", "createManualService", "createExp
 check(operation.includes("data-period-copy") && operation.includes("data-period-copy-apply"), "horários precisam copiar períodos entre dias");
 check(panel.includes("finance-presets110") && panel.includes('data-operation110="expense"'), "financeiro mobile precisa oferecer períodos rápidos e gasto");
 check(panelOperation.includes("financeMore110") && panelOperation.includes("data-crm-more"), "financeiro e CRM precisam de carregamento progressivo");
-check(publicPage.includes("data-portfolio-more") && publicPage.includes("data-reviews-drawer-more"), "portfólio e avaliações públicas precisam de carregamento progressivo");
+check(
+  publicPage.includes("data-portfolio-more")
+    && publicPage.includes("bhBuscarAvaliacoesPublicasPagina")
+    && publicPage.includes("data-reviews-drawer-prev")
+    && publicPage.includes("data-reviews-drawer-next"),
+  "portfólio e avaliações públicas precisam de carregamento progressivo ou paginação",
+);
 check(portal.includes("bhBuscarMarketplaceRegional") && portal.includes("navigator.geolocation"), "marketplace precisa oferecer filtros regionais e perto de mim");
 check(publicPage.includes("openstreetmap.org") && publicPage.includes("Como chegar"), "página pública precisa oferecer mapa e rota");
 check(admin.includes("adminReleaseGrid110") && admin.includes("bhAdminRenderRelease110"), "administração precisa mostrar prontidão do lançamento");
