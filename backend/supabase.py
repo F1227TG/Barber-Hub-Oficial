@@ -7,7 +7,7 @@ errors.
 """
 
 import asyncio
-import json
+import json as json_module
 import unicodedata
 from typing import Any
 from urllib.parse import quote
@@ -119,7 +119,7 @@ class SupabaseGateway:
             # in server logs without recording payloads, bearer tokens, row data
             # or provider messages that may contain internal details.
             provider_code = str(details.get("code") or "") if isinstance(details, dict) else ""
-            print(json.dumps({
+            print(json_module.dumps({
                 "event": "supabase_upstream_error",
                 "method": method,
                 "path": path.split("?", 1)[0],

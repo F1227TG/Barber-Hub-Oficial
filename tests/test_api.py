@@ -552,6 +552,25 @@ class SecurityAndLifecycleRegressionTests(IsolatedAsyncioTestCase):
         })
         self.assertEqual((missing_rpc.status_code, missing_rpc.code), (503, "DATABASE_SCHEMA_OUTDATED"))
 
+    async def test_gateway_logs_a_rejected_write_without_masking_the_provider_error(self) -> None:
+        import httpx
+
+        gateway = SupabaseGateway()
+        client = AsyncMock()
+        client.request.return_value = httpx.Response(400, json={
+            "code": "P0001", "message": "Sua conta não pode alterar a localização.",
+        })
+        with patch.object(gateway, "_ensure_configured"), patch.object(
+            gateway, "_get_client", AsyncMock(return_value=client),
+        ), self.assertRaises(ApiError) as caught:
+            await gateway.request(
+                "/rest/v1/rpc/atualizar_localizacao_estabelecimento_110",
+                method="POST",
+                token="test-token",
+                json={"p_estabelecimento_id": "00000000-0000-0000-0000-000000000010"},
+            )
+        self.assertEqual((caught.exception.status_code, caught.exception.code), (403, "ESTABLISHMENT_LOCATION_FORBIDDEN"))
+
     async def test_owner_update_forwards_the_callers_token_to_rls(self) -> None:
         payload = EstablishmentUpdate(nome="Barbearia do dono", descricao="Atualização autorizada.")
         rest = AsyncMock(return_value=[{"id": "00000000-0000-0000-0000-000000000010", "nome": payload.nome}])
