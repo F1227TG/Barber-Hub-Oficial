@@ -7,6 +7,7 @@ errors.
 """
 
 import asyncio
+import json
 import unicodedata
 from typing import Any
 from urllib.parse import quote
@@ -113,7 +114,20 @@ class SupabaseGateway:
                     "Os serviços do Barber Hub estão temporariamente indisponíveis. Tente novamente em instantes.",
                 )
 
-            raise self._safe_error(response.status_code, details)
+            safe_error = self._safe_error(response.status_code, details)
+            # Keep enough context to diagnose a PostgREST/RPC contract problem
+            # in server logs without recording payloads, bearer tokens, row data
+            # or provider messages that may contain internal details.
+            provider_code = str(details.get("code") or "") if isinstance(details, dict) else ""
+            print(json.dumps({
+                "event": "supabase_upstream_error",
+                "method": method,
+                "path": path.split("?", 1)[0],
+                "upstream_status": response.status_code,
+                "provider_code": provider_code or None,
+                "safe_code": safe_error.code,
+            }, ensure_ascii=False))
+            raise safe_error
         return response
 
     @staticmethod
@@ -125,6 +139,30 @@ class SupabaseGateway:
         normalized = unicodedata.normalize("NFKD", provider_message).encode("ascii", "ignore").decode().lower()
         stable_code = normalized.strip().upper()
 
+        if "nao pode alterar a localizacao" in normalized or "sem permissao para alterar a localizacao" in normalized:
+            return ApiError(
+                403,
+                "ESTABLISHMENT_LOCATION_FORBIDDEN",
+                "Sua conta não tem permissão para alterar a localização deste estabelecimento.",
+            )
+        if provider_code in {"42501", "PGRST301"} or any(term in normalized for term in (
+            "nao pode", "sem permissao", "permission denied", "row-level security", "conta nao pertence",
+        )):
+            return ApiError(
+                403,
+                "UPSTREAM_PERMISSION_DENIED",
+                "Sua conta não tem permissão para concluir esta alteração.",
+            )
+        if provider_code in {"PGRST202", "PGRST204", "42703", "42883", "42P01"} or any(term in normalized for term in (
+            "schema cache", "could not find the function", "could not find the table", "column",
+        )):
+            return ApiError(
+                503,
+                "DATABASE_SCHEMA_OUTDATED",
+                "O banco de dados ainda está recebendo uma atualização necessária. Tente novamente em instantes.",
+            )
+        if "autenticacao obrigatoria" in normalized or "authentication required" in normalized:
+            return ApiError(401, "INVALID_SESSION", "Sua sessão expirou. Entre novamente.")
         if provider_code == "23505" or "idempot" in normalized or stable_code in {
             "IDEMPOTENCY_KEY_REUSED", "IDEMPOTENCY_HASH_MISMATCH",
         }:
@@ -147,12 +185,6 @@ class SupabaseGateway:
             return ApiError(403, "RECENT_AUTH_REQUIRED", "Confirme novamente sua identidade para continuar.")
         if stable_code == "LAST_ACTIVE_ADMIN":
             return ApiError(409, "LAST_ACTIVE_ADMIN", "Defina outro administrador antes de solicitar a exclusão desta conta.")
-        if "nao pode alterar a localizacao" in normalized or "sem permissao para alterar a localizacao" in normalized:
-            return ApiError(
-                403,
-                "ESTABLISHMENT_LOCATION_FORBIDDEN",
-                "Sua conta não tem permissão para alterar a localização deste estabelecimento.",
-            )
         if "endereco" in normalized and any(term in normalized for term in ("invalido", "obrigatorio", "informe", "revise")):
             return ApiError(
                 422,

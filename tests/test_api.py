@@ -41,6 +41,7 @@ from backend.services import catalog as catalog_service
 from backend.services import email_delivery as email_service
 from backend.services import admin as admin_service
 from backend.services import maintenance as maintenance_service
+from backend.services import management as management_service
 from backend.services import push as push_service
 from backend.services import retention as retention_service
 
@@ -279,6 +280,17 @@ class ApiSmokeTests(TestCase):
         )
         self.assertEqual(payload.cep, "39930-000")
         self.assertEqual(payload.estado, "MG")
+
+    def test_establishment_contract_accepts_the_panel_configuration_format(self) -> None:
+        payload = EstablishmentUpdate(
+            nome="Barbearia Teste", cnpj="04.252.011/0001-10", telefone="(33) 99999-0000",
+            whatsapp="5533999990000", instagram="barbearia.teste", tiktok="barbearia.teste",
+            endereco="Avenida Defensor Público Fabio Ruas", descricao="Atendimento com hora marcada.",
+            status_manual="automatico", motivo_status=None, aceita_agendamento=True,
+            foto_url="https://example.com/foto.webp", capa_url="https://example.com/capa.webp",
+        )
+        self.assertEqual(payload.cnpj, "04252011000110")
+        self.assertTrue(payload.aceita_agendamento)
 
     def test_opening_period_contract_rejects_overlap(self) -> None:
         with self.assertRaises(ValidationError):
@@ -525,6 +537,68 @@ class SecurityAndLifecycleRegressionTests(IsolatedAsyncioTestCase):
         self.assertIsNone(error.details)
         slot = SupabaseGateway._safe_error(400, {"code": "P0001", "message": "SLOT_CONFLICT"})
         self.assertEqual((slot.status_code, slot.code), (409, "APPOINTMENT_CONFLICT"))
+
+    async def test_gateway_keeps_permission_and_schema_errors_out_of_422(self) -> None:
+        denied = SupabaseGateway._safe_error(400, {
+            "code": "P0001", "message": "Sua conta não pode alterar a localização.",
+        })
+        self.assertEqual((denied.status_code, denied.code), (403, "ESTABLISHMENT_LOCATION_FORBIDDEN"))
+        rls = SupabaseGateway._safe_error(401, {
+            "code": "42501", "message": "new row violates row-level security policy",
+        })
+        self.assertEqual((rls.status_code, rls.code), (403, "UPSTREAM_PERMISSION_DENIED"))
+        missing_rpc = SupabaseGateway._safe_error(404, {
+            "code": "PGRST202", "message": "Could not find the function in the schema cache",
+        })
+        self.assertEqual((missing_rpc.status_code, missing_rpc.code), (503, "DATABASE_SCHEMA_OUTDATED"))
+
+    async def test_owner_update_forwards_the_callers_token_to_rls(self) -> None:
+        payload = EstablishmentUpdate(nome="Barbearia do dono", descricao="Atualização autorizada.")
+        rest = AsyncMock(return_value=[{"id": "00000000-0000-0000-0000-000000000010", "nome": payload.nome}])
+        with patch("backend.services.management.gateway.rest", rest):
+            result = await management_service.update_establishment(
+                "00000000-0000-0000-0000-000000000010", payload, self.auth,
+            )
+        self.assertEqual(result["nome"], "Barbearia do dono")
+        self.assertEqual(rest.await_args.kwargs["token"], self.auth.token)
+        self.assertEqual(rest.await_args.kwargs["method"], "PATCH")
+        self.assertEqual(rest.await_args.kwargs["params"]["id"], "eq.00000000-0000-0000-0000-000000000010")
+
+    async def test_owner_configuration_with_online_agenda_checks_entitlement_then_updates(self) -> None:
+        payload = EstablishmentUpdate(
+            nome="Barbearia do dono", descricao="Atualização autorizada.", aceita_agendamento=True,
+        )
+        rest = AsyncMock(side_effect=[
+            {"permite_agenda": True},
+            [{"id": "00000000-0000-0000-0000-000000000010", "aceita_agendamento": True}],
+        ])
+        with patch("backend.services.management.gateway.rest", rest):
+            result = await management_service.update_establishment(
+                "00000000-0000-0000-0000-000000000010", payload, self.auth,
+            )
+        self.assertTrue(result["aceita_agendamento"])
+        self.assertEqual(rest.await_args_list[0].args[0], "obter_meus_entitlements")
+        self.assertEqual(rest.await_args_list[1].args[0], "estabelecimentos")
+        self.assertEqual(rest.await_args_list[1].kwargs["token"], self.auth.token)
+
+    async def test_owner_location_update_serializes_the_panel_payload(self) -> None:
+        payload = EstablishmentLocationUpdate(
+            logradouro="Avenida Defensor Público Fabio Ruas", numero="523", complemento="Estabelecimento",
+            bairro="Centro", cidade="Jacinto", estado="MG", cep="39930-000", precisao_localizacao="endereco",
+        )
+        rest = AsyncMock(return_value={"id": "00000000-0000-0000-0000-000000000010"})
+        with patch("backend.services.management.gateway.rest", rest):
+            result = await management_service.update_location(
+                "00000000-0000-0000-0000-000000000010", payload, self.auth,
+            )
+        self.assertEqual(result["id"], "00000000-0000-0000-0000-000000000010")
+        self.assertEqual(rest.await_args.kwargs["token"], self.auth.token)
+        self.assertTrue(rest.await_args.kwargs["rpc"])
+        sent = rest.await_args.kwargs["json"]
+        self.assertEqual(sent["p_cep"], "39930-000")
+        self.assertEqual(sent["p_estado"], "MG")
+        self.assertIsNone(sent["p_latitude"])
+        self.assertNotIn("pais", sent)
 
     async def test_recent_authentication_uses_strong_amr_timestamp(self) -> None:
         age = recent_authentication_age(self.auth, now=time.time() + 25)
