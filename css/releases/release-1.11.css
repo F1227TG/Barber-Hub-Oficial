@@ -397,6 +397,27 @@ body.reviews-drawer-open111 { overflow: hidden; }
 .reviews-public-preview111 { margin-top: 16px; }
 .own-business-notice { display: inline-flex; max-width: 420px; align-items: center; gap: 8px; padding: 10px 12px; border: 1px solid var(--gold-border); border-radius: 13px; background: var(--gold-soft); color: var(--text); font-size: .72rem; font-weight: 750; }
 
+/* Painel profissional: o menu lateral reduz a área útil em notebooks. Os
+   botões precisam encolher e quebrar texto dentro do card, nunca alargar a
+   grade ou ultrapassar a borda do comando rápido. */
+.page-painel .professional-command-center,
+.page-painel .professional-command-center > * { min-width: 0; }
+.page-painel .command-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.page-painel .command-actions .btn {
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 1300px) and (min-width: 701px) {
+  .page-painel .professional-command-center { grid-template-columns: minmax(0, 1fr); }
+  .page-painel .professional-command-center .command-actions { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+@media (max-width: 980px) and (min-width: 701px) {
+  .page-painel .professional-command-center .command-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
 /* --------------------------------------------------------------------------
    Planos, painel profissional, cliente e administração
    -------------------------------------------------------------------------- */

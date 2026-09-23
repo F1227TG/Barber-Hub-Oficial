@@ -123,6 +123,23 @@ class FinancialIdempotencyMigrationTests(TestCase):
         self.assertIn("idempotencyKey: data?.chave_idempotencia || null", api)
 
 
+class OperationalComposerRegressionTests(TestCase):
+    def test_finance_expense_uses_the_visible_finance_composer(self) -> None:
+        operation = (ROOT / "js/features/operation-real-1.10.js").read_text(encoding="utf-8")
+
+        self.assertIn('function composerHost(kind, trigger = null)', operation)
+        self.assertIn('kind === "expense" && trigger?.closest("#secFinanceiro")', operation)
+        self.assertIn('return $("#financeComposer19")', operation)
+        self.assertIn('openComposer(target.dataset.operation110, target)', operation)
+
+    def test_professional_shortcuts_can_shrink_inside_the_dashboard(self) -> None:
+        styles = (ROOT / "css/releases/release-1.11.css").read_text(encoding="utf-8")
+
+        self.assertIn('.page-painel .professional-command-center > * { min-width: 0; }', styles)
+        self.assertIn('.page-painel .command-actions .btn {', styles)
+        self.assertIn('overflow-wrap: anywhere;', styles)
+
+
 class AccountDeletionRecoveryMigrationTests(TestCase):
     def test_deletion_keeps_a_private_retry_identity_only_until_conclusion(self) -> None:
         migration = (ROOT / "supabase/migrations/20260917133000_exclusao_conta_recuperavel.sql").read_text(

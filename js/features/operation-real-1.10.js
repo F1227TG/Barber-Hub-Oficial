@@ -187,8 +187,16 @@
     return date.toISOString().slice(0, 16);
   }
 
-  function openComposer(kind) {
-    const host = $("#operation110Composer");
+  function composerHost(kind, trigger = null) {
+    // The finance shortcut is rendered inside its own section.  Rendering its
+    // form in the dashboard composer makes a perfectly valid form invisible
+    // while Finance is active, which looks like a failed save to the operator.
+    if (kind === "expense" && trigger?.closest("#secFinanceiro")) return $("#financeComposer19");
+    return $("#operation110Composer");
+  }
+
+  function openComposer(kind, trigger = null) {
+    const host = composerHost(kind, trigger);
     if (!host) return;
     host.hidden = false;
     const close = `<button class="icon-btn" data-operation110-close type="button" aria-label="Fechar"><i class="bi bi-x-lg"></i></button>`;
@@ -458,7 +466,7 @@
     document.addEventListener("click", event => {
       const target = event.target.closest("[data-operation110],[data-operation110-close],[data-period-add],[data-period-remove],[data-period-copy],[data-period-copy-apply],[data-import-commit110],[data-import-retry110],[data-push-enable110],[data-push-retry110],[data-audit-retry110],[data-cover110]");
       if (!target) return;
-      if (target.dataset.operation110) openComposer(target.dataset.operation110);
+      if (target.dataset.operation110) openComposer(target.dataset.operation110, target);
       if (target.dataset.operation110Close !== undefined) { const host = target.closest(".operation-composer"); host.hidden = true; host.innerHTML = ""; }
       if (target.dataset.periodAdd !== undefined) {
         const day = Number(target.dataset.periodAdd); const container = target.closest("[data-opening-day]").querySelector(".opening-day-periods110");
