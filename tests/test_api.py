@@ -29,7 +29,7 @@ from api.index import (
 from backend.domain.identity import cnpj_is_valid, normalize_cnpj
 from backend.models import (
     AdminSubscriptionUpdate, AppointmentCreate, DeleteAccountRequest, EstablishmentLocationUpdate,
-    EstablishmentUpdate, FinancialAdjustmentCreate, DayClosingCreate, ManualServiceCreate, OpeningPeriodsReplace,
+    EstablishmentUpdate, FinancialAdjustmentCreate, DayClosingCreate, ManualServiceCreate, OpeningPeriodsReplace, WalkInCreate,
     PromotionCreate, ServiceCreate, RecurrenceUpdate, WaitlistCreate,
     PushSubscriptionCreate,
 )
@@ -43,8 +43,10 @@ from backend.services import email_delivery as email_service
 from backend.services import admin as admin_service
 from backend.services import maintenance as maintenance_service
 from backend.services import management as management_service
+from backend.services import finance as finance_service
 from backend.services import push as push_service
 from backend.services import retention as retention_service
+from backend.services import schedule as schedule_service
 
 
 class ApiSmokeTests(TestCase):
@@ -974,3 +976,85 @@ class SecurityAndLifecycleRegressionTests(IsolatedAsyncioTestCase):
         finalized = rest.await_args_list[-1].kwargs["json"]
         self.assertEqual(finalized["p_provedor_id"], "provider-message-1")
         self.assertNotIn("private-test-key", json.dumps(finalized))
+
+
+class OperationalWriteContractTests(IsolatedAsyncioTestCase):
+    """Local contract tests for the two reported operational write flows."""
+
+    establishment_id = "00000000-0000-0000-0000-000000000001"
+    professional_id = "00000000-0000-0000-0000-000000000002"
+    service_id = "00000000-0000-0000-0000-000000000003"
+
+    def setUp(self) -> None:
+        self.auth = AuthContext(
+            token="local-test-token",
+            user_id="00000000-0000-0000-0000-000000000004",
+            user={"id": "00000000-0000-0000-0000-000000000004"},
+        )
+
+    async def test_walk_in_payload_reaches_the_expected_rpc_contract(self) -> None:
+        payload = WalkInCreate(
+            estabelecimento_id=self.establishment_id,
+            profissional_id=self.professional_id,
+            servicos_ids=[self.service_id],
+            cliente_nome="Cliente de teste",
+            cliente_telefone="33900000000",
+            data=date(2026, 9, 24),
+            hora_inicio="10:00",
+            observacao="Teste local",
+        )
+        rpc = AsyncMock(return_value="00000000-0000-0000-0000-000000000099")
+
+        with patch("backend.services.schedule.require_feature", AsyncMock()), patch(
+            "backend.services.schedule.gateway.rest", rpc
+        ):
+            result = await schedule_service.create_walk_in(payload, self.auth)
+
+        self.assertEqual(result, {"id": "00000000-0000-0000-0000-000000000099"})
+        self.assertEqual(rpc.await_args.args[0], "criar_encaixe_operacional_19")
+        self.assertTrue(rpc.await_args.kwargs["rpc"])
+        self.assertEqual(rpc.await_args.kwargs["token"], self.auth.token)
+        self.assertEqual(
+            rpc.await_args.kwargs["json"],
+            {
+                "p_estabelecimento_id": self.establishment_id,
+                "p_profissional_id": self.professional_id,
+                "p_servicos_ids": [self.service_id],
+                "p_cliente_nome": "Cliente de teste",
+                "p_cliente_email": None,
+                "p_cliente_telefone": "33900000000",
+                "p_data": "2026-09-24",
+                "p_hora_inicio": "10:00:00",
+                "p_observacao": "Teste local",
+            },
+        )
+
+    async def test_financial_closing_reuses_the_same_validated_key_at_the_rpc(self) -> None:
+        key = "finance-closing.local-test-0001"
+        payload = DayClosingCreate(
+            estabelecimento_id=self.establishment_id,
+            data=date(2026, 9, 23),
+            observacao="Teste local",
+            chave_idempotencia=key,
+        )
+        rpc = AsyncMock(return_value={"id": "00000000-0000-0000-0000-000000000099", "status": "fechado", "reutilizado": False, "revisao": 1})
+
+        with patch("backend.services.finance.require_feature", AsyncMock()), patch(
+            "backend.services.finance.gateway.rest", rpc
+        ):
+            result = await finance_service.close_day(payload, self.auth, idempotency_key=key)
+
+        self.assertEqual(result, {"id": "00000000-0000-0000-0000-000000000099", "status": "fechado", "replayed": False, "revision": 1})
+        self.assertEqual(rpc.await_args.args[0], "fechar_dia_financeiro_idempotente_1111")
+        self.assertTrue(rpc.await_args.kwargs["rpc"])
+        self.assertEqual(rpc.await_args.kwargs["token"], self.auth.token)
+        self.assertEqual(
+            rpc.await_args.kwargs["json"],
+            {
+                "p_estabelecimento_id": self.establishment_id,
+                "p_data": "2026-09-23",
+                "p_observacao": "Teste local",
+                "p_chave_idempotencia": key,
+                "p_idempotencia_hash": None,
+            },
+        )
