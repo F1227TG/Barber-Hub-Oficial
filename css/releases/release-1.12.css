@@ -1,0 +1,245 @@
+/*
+ * Barber Hub 1.12 — primeira etapa da atualização visual.
+ * Escopo inicial: operação profissional. A paleta reduz o contraste duro e
+ * o dourado contínuo; o mobile prioriza a rotina antes de métricas auxiliares.
+ */
+
+body.page-painel:not(.claro) {
+  --bg: #0d0e0d;
+  --bg-2: #141510;
+  --surface: #1a1b17;
+  --surface-2: #22221d;
+  --surface-soft: rgba(239, 229, 204, .045);
+  --surface-hover: rgba(239, 229, 204, .075);
+  --text: #f2efe8;
+  --muted: #b8b1a3;
+  --muted-2: #90897c;
+  --border: rgba(239, 229, 204, .12);
+  --gold: #b99858;
+  --gold-2: #dec27e;
+  --gold-soft: rgba(185, 152, 88, .11);
+  --gold-border: rgba(185, 152, 88, .32);
+  --shadow: 0 22px 54px rgba(0, 0, 0, .28);
+  --shadow-soft: 0 12px 28px rgba(0, 0, 0, .17);
+}
+
+body.page-painel .dashboard .sidebar {
+  width: 224px;
+  padding: 18px 12px;
+  background: color-mix(in srgb, var(--surface) 93%, var(--bg));
+}
+
+body.page-painel .dashboard .sidebar .btn {
+  min-height: 43px;
+  border-radius: 14px;
+}
+
+body.page-painel .painel-content {
+  padding: 24px 26px 56px;
+}
+
+body.page-painel .panel-section {
+  border-radius: 22px;
+  box-shadow: none;
+}
+
+body.page-painel .professional-command-center {
+  gap: 14px;
+  border-color: var(--border);
+  box-shadow: none;
+}
+
+body.page-painel .professional-command-center .command-primary,
+body.page-painel .professional-command-center .command-actions,
+body.page-painel .quick-status-card,
+body.page-painel .panel-plan-overview {
+  background: color-mix(in srgb, var(--surface) 97%, transparent);
+  box-shadow: none;
+}
+
+body.page-painel .command-actions {
+  gap: 8px;
+}
+
+body.page-painel .command-actions .btn {
+  min-height: 46px;
+}
+
+body.page-painel .dashboard-detail-card::after {
+  width: 58px;
+  height: 58px;
+  opacity: .48;
+}
+
+body.page-painel .quick-status-card {
+  gap: 16px;
+}
+
+@media (min-width: 961px) {
+  body.page-painel .professional-command-center {
+    grid-template-columns: minmax(0, 1.05fr) minmax(360px, .95fr);
+    padding: 18px;
+  }
+
+  body.page-painel .command-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  body.page-painel .kpis,
+  body.page-painel .professional-detail-grid {
+    gap: 10px;
+  }
+}
+
+@media (max-width: 760px) {
+  body.mobile-native.page-painel .mobile-app-dock {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  body.mobile-native.page-painel .mobile-app-dock a,
+  body.mobile-native.page-painel .mobile-app-dock .mobile-dock-action {
+    min-height: 52px;
+  }
+
+  body.mobile-native.page-painel .toast {
+    top: auto !important;
+    right: 12px;
+    bottom: calc(var(--mobile-dock-h) + env(safe-area-inset-bottom) + 16px);
+    left: 12px;
+    min-width: 0;
+    max-width: none;
+    padding: 13px 14px;
+    transform: translateY(150%);
+  }
+
+  body.mobile-native.page-painel .toast.ativo {
+    transform: translateY(0);
+  }
+
+  body.mobile-native.page-painel .painel-content {
+    padding: 12px 12px calc(var(--mobile-dock-h) + env(safe-area-inset-bottom) + 22px) !important;
+  }
+
+  body.mobile-native.page-painel #secDashboard {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+  }
+
+  body.mobile-native.page-painel #secDashboard > .section-top { order: 0; padding: 4px 2px 0; }
+  body.mobile-native.page-painel #secDashboard > .professional-command-center { order: 1; }
+  body.mobile-native.page-painel #secDashboard > .quick-status-card { order: 2; }
+  body.mobile-native.page-painel #secDashboard > .kpis { order: 3; }
+  body.mobile-native.page-painel #secDashboard > .professional-detail-grid { order: 4; }
+  body.mobile-native.page-painel #secDashboard > .panel-plan-overview { order: 5; }
+  body.mobile-native.page-painel #secDashboard > .operation-composer { order: 6; }
+
+  body.mobile-native.page-painel #secDashboard .section-top > a.btn,
+  body.mobile-native.page-painel #secDashboard .command-actions [data-panel="secClientes"] {
+    display: none;
+  }
+
+  body.mobile-native.page-painel .professional-command-center {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 16px;
+    border-radius: 20px;
+  }
+
+  body.mobile-native.page-painel .command-primary h2 {
+    font-size: 1.35rem;
+    line-height: 1.12;
+  }
+
+  body.mobile-native.page-painel .command-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  body.mobile-native.page-painel .command-actions .btn {
+    min-width: 0;
+    min-height: 48px;
+    padding: 9px 8px;
+    font-size: .72rem;
+    line-height: 1.25;
+  }
+
+  body.mobile-native.page-painel .quick-status-card {
+    padding: 16px;
+    border-radius: 20px;
+  }
+
+  body.mobile-native.page-painel .status-segment {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 7px;
+  }
+
+  body.mobile-native.page-painel .status-segment button {
+    min-height: 72px;
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto auto !important;
+    justify-items: center;
+    align-content: center;
+    gap: 5px;
+    padding: 9px 5px !important;
+    text-align: center;
+  }
+
+  body.mobile-native.page-painel .status-segment button i,
+  body.mobile-native.page-painel .status-segment button span {
+    grid-column: auto;
+    grid-row: auto;
+    text-align: center;
+  }
+
+  body.mobile-native.page-painel .status-segment button span {
+    font-size: .66rem;
+  }
+
+  body.mobile-native.page-painel .kpis,
+  body.mobile-native.page-painel .professional-detail-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px;
+    margin: 0;
+  }
+
+  body.mobile-native.page-painel .kpis .kpi:nth-child(n + 3),
+  body.mobile-native.page-painel .professional-detail-grid .dashboard-detail-card:nth-child(n + 3) {
+    display: none;
+  }
+
+  body.mobile-native.page-painel .kpis .kpi,
+  body.mobile-native.page-painel .dashboard-detail-card {
+    min-height: 92px;
+    padding: 12px;
+  }
+
+  body.mobile-native.page-painel .panel-plan-overview {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 16px;
+    border-radius: 20px;
+  }
+
+  body.mobile-native.page-painel .panel-plan-features {
+    display: none;
+  }
+
+  body.mobile-native.page-painel .panel-plan-usage {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  body.mobile-native.page-painel .panel-plan-usage > div {
+    min-width: 0;
+    padding: 10px 8px;
+  }
+
+  body.mobile-native.page-painel .panel-plan-usage > a {
+    grid-column: 1 / -1;
+  }
+}

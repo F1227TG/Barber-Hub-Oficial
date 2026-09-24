@@ -89,6 +89,7 @@
     const can = key => !entitlements || Boolean(entitlements[key]);
     const allowed = capability => !capability || !permissions || Boolean(permissions[capability]);
     return [
+      { group:"Gestão", path:"painel.html#financeiro", icon:"bi-wallet2", label:"Financeiro", detail:"Resumo, lançamentos e fechamento", capability:"financeiro", show:can("permite_financeiro") },
       { group:"Gestão", path:"painel.html#servicos", icon:"bi-scissors", label:"Serviços", detail:"Catálogo e preços", capability:"configuracoes" },
       { group:"Gestão", path:"painel.html#equipe", icon:"bi-people", label:"Equipe", detail:"Profissionais e acessos", capability:"equipe" },
       { group:"Gestão", path:"painel.html#galeria", icon:"bi-images", label:"Portfólio", detail:"Trabalhos publicados" },
@@ -227,14 +228,13 @@
     dock.setAttribute("aria-label", "Navegação principal do aplicativo");
 
     if (profile?.tipo === "barbeiro") {
-      const secondaryHashes = ["relacionamento", "crescimento", "promocoes", "servicos", "equipe", "relatorios", "galeria", "avaliacoes", "ferramentas", "configuracoes", "pagina"];
+      const secondaryHashes = ["financeiro", "relacionamento", "crescimento", "promocoes", "servicos", "equipe", "relatorios", "galeria", "avaliacoes", "ferramentas", "configuracoes", "pagina"];
       const currentHash = location.hash.replace("#", "");
       const moreActive = pageName === "conta" || (pageName === "painel" && secondaryHashes.includes(currentHash));
       dock.innerHTML = [
         link("painel.html", "bi-grid", "Painel", pageName === "painel" && !currentHash),
         link("painel.html#agenda", "bi-calendar-week", "Agenda", pageName === "painel" && currentHash === "agenda"),
         link("painel.html#clientes", "bi-person-lines-fill", "Clientes", pageName === "painel" && currentHash === "clientes"),
-        link("painel.html#financeiro", "bi-wallet2", "Financeiro", pageName === "painel" && currentHash === "financeiro"),
         moreButton(moreActive)
       ].join("");
     } else if (profile?.tipo === "admin") {
@@ -268,7 +268,7 @@
       const moreSheet = createProfessionalMoreSheet(profile);
       const syncProfessionalDock = () => {
         const hash = location.hash.replace("#", "");
-        const primary = { agenda:"agenda", clientes:"clientes", financeiro:"financeiro" };
+        const primary = { agenda:"agenda", clientes:"clientes" };
         dock.querySelectorAll("a").forEach(item => {
           const itemHash = new URL(item.href, location.href).hash.replace("#", "");
           const active = pageName === "painel" && (itemHash ? itemHash === hash : !hash);
@@ -292,7 +292,7 @@
             } catch (_) { /* A API continua sendo a barreira de autorização. */ }
             moreSheet.update(summary, permissions);
             if (permissions) {
-              const capabilityByHash = { agenda:"agenda", clientes:"crm", financeiro:"financeiro" };
+              const capabilityByHash = { agenda:"agenda", clientes:"crm" };
               dock.querySelectorAll("a").forEach(item => {
                 const hash = new URL(item.href, location.href).hash.replace("#", "");
                 const capability = capabilityByHash[hash];

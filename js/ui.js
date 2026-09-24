@@ -590,12 +590,10 @@ function bhCriarDockMobile(perfil, contadores = {}){
   if(perfil?.tipo === "barbeiro"){
     const permits = contadores.entitlements || {};
     const clients = permits.permite_clientes !== false;
-    const finance = permits.permite_financeiro !== false;
     links = [
       ["html/painel.html", "Painel", "bi-grid"],
       [contadores.aceitaAgendamento ? "html/painel.html#agenda" : "html/painel.html#configuracoes", contadores.aceitaAgendamento ? "Agenda" : "Ativar", "bi-calendar-week", "agenda"],
       [clients ? "html/painel.html#clientes" : "html/painel.html#servicos", clients ? "Clientes" : "Serviços", clients ? "bi-people" : "bi-scissors"],
-      [finance ? "html/painel.html#financeiro" : "html/notificacoes.html", finance ? "Financeiro" : "Avisos", finance ? "bi-wallet2" : "bi-bell", finance ? null : "notificacoes"],
       ["#menu", "Mais", "bi-grid-3x3-gap", null, "drawer"]
     ];
   } else if(perfil?.tipo === "admin"){

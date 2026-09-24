@@ -158,6 +158,23 @@ class OperationalComposerRegressionTests(TestCase):
         self.assertIn('"source": "/favicon.ico"', vercel)
         self.assertIn('"destination": "/img/favicon.ico"', vercel)
 
+    def test_professional_mobile_dock_keeps_finance_in_more_options(self) -> None:
+        shell = (ROOT / "js/mobile-shell-v1.7.js").read_text(encoding="utf-8")
+        fallback = (ROOT / "js/ui.js").read_text(encoding="utf-8")
+        styles = (ROOT / "css/releases/release-1.12.css").read_text(encoding="utf-8")
+
+        self.assertIn('path:"painel.html#financeiro"', shell)
+        self.assertNotIn('link("painel.html#financeiro", "bi-wallet2", "Financeiro"', shell)
+        self.assertIn('grid-template-columns: repeat(4, minmax(0, 1fr));', styles)
+        self.assertNotIn('finance ? "Financeiro"', fallback)
+
+    def test_professional_visual_layer_is_loaded_after_the_current_release(self) -> None:
+        panel = (ROOT / "html/painel.html").read_text(encoding="utf-8")
+        mobile_panel = (ROOT / "mobile/painel.html").read_text(encoding="utf-8")
+
+        self.assertIn('css/releases/release-1.12.css', panel)
+        self.assertIn('css/releases/release-1.12.css', mobile_panel)
+
 
 class AccountDeletionRecoveryMigrationTests(TestCase):
     def test_deletion_keeps_a_private_retry_identity_only_until_conclusion(self) -> None:
