@@ -183,11 +183,17 @@ class OperationalComposerRegressionTests(TestCase):
                 path,
             )
 
-    def test_global_palette_and_management_entry_points_use_the_visual_update(self) -> None:
+    def test_original_palette_and_all_entry_points_use_the_visual_update(self) -> None:
         global_styles = (ROOT / "css/global.css").read_text(encoding="utf-8")
-        self.assertIn("--gold:#b99858", global_styles)
-        self.assertIn("--surface:#1a1b17", global_styles)
-        for path in ("html/admin.html", "html/admin-assinaturas.html", "html/planos.html"):
+        self.assertIn("--gold:#d4af37", global_styles)
+        self.assertIn("--surface:#171717", global_styles)
+        for path in ("index.html", *[f"html/{name}" for name in (
+            "admin.html", "admin-assinaturas.html", "agendamento.html", "barbearia.html",
+            "beauty-hub.html", "cadastro.html", "cadastro-barbearia.html", "cliente.html",
+            "conta.html", "contato.html", "login.html", "mapa-sistema.html", "notificacoes.html",
+            "painel.html", "planos.html", "portal.html", "privacidade.html", "recuperar-senha.html",
+            "redefinir-senha.html", "servicos.html", "sobre.html", "termos.html",
+        )]):
             self.assertIn(
                 'css/releases/release-1.12.css',
                 (ROOT / path).read_text(encoding="utf-8"),

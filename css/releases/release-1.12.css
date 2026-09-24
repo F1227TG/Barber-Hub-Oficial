@@ -1,49 +1,110 @@
 /*
  * Barber Hub 1.12 — primeira etapa da atualização visual.
- * Escopo inicial: operação profissional. A paleta reduz o contraste duro e
- * o dourado contínuo; o mobile prioriza a rotina antes de métricas auxiliares.
+ * Escopo: estrutura, hierarquia e navegação. A identidade cromática original
+ * é preservada; o mobile prioriza a rotina antes de métricas auxiliares.
  */
 
-body.page-painel:not(.claro) {
-  --bg: #0d0e0d;
-  --bg-2: #141510;
-  --surface: #1a1b17;
-  --surface-2: #22221d;
-  --surface-soft: rgba(239, 229, 204, .045);
-  --surface-hover: rgba(239, 229, 204, .075);
-  --text: #f2efe8;
-  --muted: #b8b1a3;
-  --muted-2: #90897c;
-  --border: rgba(239, 229, 204, .12);
-  --gold: #b99858;
-  --gold-2: #dec27e;
-  --gold-soft: rgba(185, 152, 88, .11);
-  --gold-border: rgba(185, 152, 88, .32);
-  --shadow: 0 22px 54px rgba(0, 0, 0, .28);
-  --shadow-soft: 0 12px 28px rgba(0, 0, 0, .17);
+/* Sistema visual: menos caixas decorativas, mais hierarquia e áreas de toque
+ * previsíveis. As variáveis de cor continuam sendo as originais do produto. */
+body .page-hero {
+  padding: clamp(54px, 6vw, 76px) 0 clamp(36px, 4vw, 54px);
 }
 
-/* Descoberta e conta do cliente: a mesma identidade, com dourado reservado
- * para ações e estados importantes em vez de competir com toda a superfície. */
-body.home-redesign:not(.claro),
-body.page-portal:not(.claro),
-body.page-cliente:not(.claro) {
-  --bg: #0d0e0d;
-  --bg-2: #141510;
-  --surface: #1a1b17;
-  --surface-2: #22221d;
-  --surface-soft: rgba(239, 229, 204, .045);
-  --surface-hover: rgba(239, 229, 204, .075);
-  --text: #f2efe8;
-  --muted: #b8b1a3;
-  --muted-2: #90897c;
-  --border: rgba(239, 229, 204, .12);
-  --gold: #b99858;
-  --gold-2: #dec27e;
-  --gold-soft: rgba(185, 152, 88, .11);
-  --gold-border: rgba(185, 152, 88, .32);
-  --shadow: 0 22px 54px rgba(0, 0, 0, .28);
-  --shadow-soft: 0 12px 28px rgba(0, 0, 0, .17);
+body .section {
+  padding-block: clamp(52px, 6vw, 76px);
+}
+
+body .section-top {
+  gap: clamp(14px, 3vw, 24px);
+  margin-bottom: clamp(22px, 3vw, 32px);
+}
+
+body .card,
+body .form-card,
+body .feature,
+body .kpi,
+body .recommend-card,
+body .simple-item,
+body .ticket-card,
+body .review-card,
+body .review-manage-card,
+body .system-map-role,
+body .system-map-item {
+  box-shadow: none;
+  border-radius: 20px;
+}
+
+body .card-body,
+body .form-card {
+  padding: clamp(18px, 2.4vw, 26px);
+}
+
+body .btn {
+  min-height: 44px;
+  padding: 10px 16px;
+  border-radius: 13px;
+}
+
+body .btn-small {
+  min-height: 36px;
+  padding: 8px 11px;
+  border-radius: 11px;
+}
+
+body .btn:focus-visible,
+body a:focus-visible,
+body button:focus-visible,
+body input:focus-visible,
+body select:focus-visible,
+body textarea:focus-visible {
+  outline: 3px solid var(--gold-2);
+  outline-offset: 3px;
+}
+
+body .table-wrap {
+  border-radius: 18px;
+  box-shadow: none;
+}
+
+body .empty,
+body .operation-state {
+  border-radius: 18px;
+}
+
+body.page-barbearia .business-hero h1,
+body.page-barbearia .business-hero p {
+  max-width: 720px;
+}
+
+body.page-barbearia .business-hero .hero-actions {
+  gap: 9px;
+}
+
+body.page-barbearia .detail-grid {
+  grid-template-columns: minmax(280px, .72fr) minmax(0, 1.28fr);
+  gap: clamp(18px, 3vw, 30px);
+}
+
+body.page-barbearia .detail-grid > .grid {
+  gap: 18px !important;
+}
+
+body.page-conta .account-hub-layout111,
+body.page-cadastro-barbearia .onboarding-container,
+body.page-mapa-sistema .system-map-grid {
+  gap: clamp(14px, 2.4vw, 22px);
+}
+
+body.page-conta .account-hub-sidebar,
+body.page-cadastro .auth-card,
+body.page-login .auth-card,
+body.page-cadastro-barbearia .onboarding-card,
+body.page-mapa-sistema .system-map-role {
+  box-shadow: none;
+}
+
+body.page-notificacoes .notification-item {
+  border-radius: 16px;
 }
 
 body.home-redesign .home-hero-new {
@@ -210,19 +271,54 @@ body.page-painel .quick-status-card {
 }
 
 @media (max-width: 760px) {
-  body.mobile-native.page-home,
-  body.mobile-native.page-portal,
-  body.mobile-native.page-cliente {
-    --bg: #0d0e0d;
-    --bg-2: #141510;
-    --surface: #1a1b17;
-    --surface-2: #22221d;
-    --text: #f2efe8;
-    --muted: #b8b1a3;
-    --gold: #b99858;
-    --gold-2: #dec27e;
+  body .page-hero {
+    padding: 34px 0 26px;
   }
 
+  body .section {
+    padding-block: 30px;
+  }
+
+  body .section-top {
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  body .card,
+  body .form-card,
+  body .feature,
+  body .kpi,
+  body .recommend-card,
+  body .simple-item,
+  body .ticket-card,
+  body .review-card,
+  body .review-manage-card,
+  body .system-map-role,
+  body .system-map-item {
+    border-radius: 18px;
+  }
+
+  body .btn { min-height: 44px; }
+
+  body.page-barbearia .detail-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  body.page-barbearia .detail-panel {
+    position: static;
+    order: 2;
+  }
+
+  body.page-barbearia .detail-grid > .grid {
+    order: 1;
+  }
+
+  body.page-conta .account-hub-layout111,
+  body.page-cadastro-barbearia .onboarding-container,
+  body.page-mapa-sistema .system-map-grid {
+    gap: 12px;
+  }
   body.mobile-native.page-home .mobile-home-hero { padding-top: 20px; }
   body.mobile-native.page-home .mobile-home-actions-section { padding-top: 14px; }
   body.mobile-native.page-home .mobile-home-action-grid { gap: 8px; }

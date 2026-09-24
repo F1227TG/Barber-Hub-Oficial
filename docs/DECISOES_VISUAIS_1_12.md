@@ -5,9 +5,9 @@ Status: em homologação na branch `release/1.12-visual`
 
 ## Direção aprovada
 
-- A identidade permanece escura com dourado, mas o dourado passou de amarelo
-  intenso para um tom mais sóbrio. Ele fica reservado a chamadas, foco e
-  estados relevantes; não é usado como preenchimento predominante.
+- A identidade escura e dourada original é preservada, inclusive seus tokens
+  de cor. A modernização ocorre por hierarquia, espaçamento, navegação e
+  redução de superfícies concorrentes, sem rebrand visual.
 - A interface prioriza a próxima tarefa antes de indicadores. Métricas seguem
   disponíveis, porém ocupam menos espaço na primeira dobra mobile.
 - A mudança é somente visual e de navegação. Contratos de API, Supabase/RLS,
@@ -37,7 +37,8 @@ Status: em homologação na branch `release/1.12-visual`
 ## Administração e planos
 
 - Administração, assinaturas e planos usam superfícies menos elevadas,
-  bordas mais discretas e tamanhos de toque consistentes.
+  bordas mais discretas e tamanhos de toque consistentes, mantendo as cores
+  anteriores.
 - As informações de assinatura, plano e recursos continuam completas; a
   redução é de ruído visual, não de dados ou capacidades administrativas.
 
