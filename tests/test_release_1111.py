@@ -175,6 +175,23 @@ class OperationalComposerRegressionTests(TestCase):
         self.assertIn('css/releases/release-1.12.css', panel)
         self.assertIn('css/releases/release-1.12.css', mobile_panel)
 
+    def test_visual_layer_covers_public_and_client_entry_points(self) -> None:
+        for path in ("index.html", "html/portal.html", "html/cliente.html", "mobile/index.html"):
+            self.assertIn(
+                'css/releases/release-1.12.css',
+                (ROOT / path).read_text(encoding="utf-8"),
+                path,
+            )
+
+    def test_marketplace_cards_offer_one_clear_profile_entry_point(self) -> None:
+        portal = (ROOT / "js/portal.js").read_text(encoding="utf-8")
+        styles = (ROOT / "css/releases/release-1.12.css").read_text(encoding="utf-8")
+
+        self.assertIn('class="marketplace-card-hitarea"', portal)
+        self.assertNotIn('>Ver local</a>', portal)
+        self.assertIn('.marketplace-card-hitarea', styles)
+        self.assertIn('.marketplace-card-actions', styles)
+
 
 class AccountDeletionRecoveryMigrationTests(TestCase):
     def test_deletion_keeps_a_private_retry_identity_only_until_conclusion(self) -> None:

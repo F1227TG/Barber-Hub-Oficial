@@ -98,13 +98,14 @@ function bhMarketplaceCard(item, { destaque = false } = {}) {
   const proprio = bhMarketplaceState.operatedIds.has(String(item.id));
 
   return `<article class="marketplace-card" data-marketplace-card>
+    <a class="marketplace-card-hitarea" href="${detalheUrl}" aria-label="Abrir perfil de ${escapeHTML(item.nome)}"></a>
     <div class="marketplace-card-image" style="background-image:url('${escapeHTML(imagem)}')" aria-hidden="true">
       <span class="marketplace-type">${escapeHTML(tipo)}</span>
     </div>
     <div class="marketplace-card-body">
       ${destaque || item.destaque ? `<span class="marketplace-sponsored"><i class="bi bi-stars"></i> Destaque Barber Hub</span>` : ""}
       <div class="marketplace-card-title">
-        <h3><a class="marketplace-card-primary" href="${detalheUrl}" aria-label="Abrir perfil de ${escapeHTML(item.nome)}">${escapeHTML(item.nome)}</a></h3>
+        <h3>${escapeHTML(item.nome)}</h3>
         <span class="marketplace-rating"><i class="bi bi-star-fill"></i> ${avaliacao > 0 ? avaliacao.toFixed(1) : "Novo"}</span>
       </div>
       <p class="marketplace-location"><i class="bi bi-geo-alt"></i> ${escapeHTML([item.bairro, item.cidade].filter(Boolean).join(", "))}${item.distancia_km !== null && item.distancia_km !== undefined ? `<strong class="distance110">${Number(item.distancia_km).toFixed(1).replace(".", ",")} km</strong>` : ""}</p>
@@ -112,7 +113,6 @@ function bhMarketplaceCard(item, { destaque = false } = {}) {
       <div class="marketplace-card-bottom">
         <span class="marketplace-status ${status.classe}"><i class="bi ${status.aberta ? "bi-circle-fill" : "bi-moon"}"></i> ${escapeHTML(status.texto)}</span>
         <div class="marketplace-card-actions">
-          <a class="btn btn-outline btn-small" href="${detalheUrl}">Ver local</a>
           ${proprio
             ? `<a class="btn btn-primary btn-small" href="painel.html#agenda">Ver agenda</a>`
             : item.aceitaAgendamento
