@@ -38,6 +38,27 @@
     return `${year}-${month}-${day}`;
   }
 
+  function walkInEarliestDate() {
+    // A RPC aceita encaixes imediatos de até quinze minutos atrás. Usar o
+    // mesmo limite no formulário evita enviar uma data que já expirou.
+    return localIso(new Date(Date.now() - (15 * 60 * 1000)));
+  }
+
+  function walkInDateValue() {
+    const earliest = walkInEarliestDate();
+    return state.agendaDate && state.agendaDate >= earliest ? state.agendaDate : localIso();
+  }
+
+  function scheduleMomentError(dateValue, timeValue) {
+    if (!dateValue || !timeValue) return null;
+    const selected = new Date(`${dateValue}T${timeValue}:00`);
+    if (Number.isNaN(selected.getTime())) return "Informe uma data e um horário válidos.";
+    if (selected.getTime() <= Date.now() - (15 * 60 * 1000)) {
+      return "Para um encaixe imediato, escolha um horário de até 15 minutos atrás ou futuro.";
+    }
+    return null;
+  }
+
   function addDays(iso, amount) {
     const date = new Date(`${iso}T12:00:00`);
     date.setDate(date.getDate() + amount);
@@ -203,9 +224,13 @@
     if (!entitlement("permite_agenda_avancada")) return toast("aviso", "Recurso do Essencial", "Agenda avançada está bloqueada no plano atual.");
     const host = $("#agendaComposer19");
     host.hidden = false;
-    if (kind === "encaixe") host.innerHTML = `<div class="composer-header"><div><strong>Novo encaixe</strong><small>Inclua um atendimento presencial sem refazer o fluxo do cliente.</small></div><button class="icon-btn" data-composer-close type="button"><i class="bi bi-x-lg"></i></button></div><form class="composer-grid" id="formWalkIn19"><label class="campo span-2"><span>Cliente</span><input name="cliente_nome" minlength="2" required></label><label class="campo"><span>Telefone</span><input name="cliente_telefone" inputmode="tel"></label><label class="campo"><span>E-mail (opcional)</span><input name="cliente_email" type="email"></label><label class="campo"><span>Data</span><input name="data" type="date" value="${safe(state.agendaDate)}" required></label><label class="campo"><span>Hora</span><input name="hora_inicio" type="time" required></label><label class="campo span-2"><span>Profissional</span><select name="profissional_id" required>${professionalOptions(state.agendaProfessional)}</select></label><label class="campo span-2"><span>Serviços</span><select name="servicos_ids" multiple size="4" required>${serviceOptions()}</select><small>Use Ctrl/Cmd para selecionar mais de um.</small></label><label class="campo span-2"><span>Observação</span><textarea name="observacao" maxlength="800"></textarea></label><div class="composer-actions"><button class="btn btn-dark" data-composer-close type="button">Cancelar</button><button class="btn btn-primary" type="submit"><i class="bi bi-plus-lg"></i> Criar encaixe</button></div></form>`;
+    if (kind === "encaixe") {
+      const earliestDate = walkInEarliestDate();
+      const selectedDate = walkInDateValue();
+      host.innerHTML = `<div class="composer-header"><div><strong>Novo encaixe</strong><small>Inclua um atendimento presencial sem refazer o fluxo do cliente.</small></div><button class="icon-btn" data-composer-close type="button"><i class="bi bi-x-lg"></i></button></div><form class="composer-grid" id="formWalkIn19"><label class="campo span-2"><span>Cliente</span><input name="cliente_nome" minlength="2" required></label><label class="campo"><span>Telefone</span><input name="cliente_telefone" inputmode="tel"></label><label class="campo"><span>E-mail (opcional)</span><input name="cliente_email" type="email"></label><label class="campo"><span>Data</span><input name="data" type="date" value="${safe(selectedDate)}" min="${safe(earliestDate)}" required></label><label class="campo"><span>Hora</span><input name="hora_inicio" type="time" required></label><label class="campo span-2"><span>Profissional</span><select name="profissional_id" required>${professionalOptions(state.agendaProfessional)}</select></label><label class="campo span-2"><span>Serviços</span><select name="servicos_ids" multiple size="4" required>${serviceOptions()}</select><small>Use Ctrl/Cmd para selecionar mais de um.</small></label><label class="campo span-2"><span>Observação</span><textarea name="observacao" maxlength="800"></textarea></label><div class="composer-actions"><button class="btn btn-dark" data-composer-close type="button">Cancelar</button><button class="btn btn-primary" type="submit"><i class="bi bi-plus-lg"></i> Criar encaixe</button></div></form>`;
+    }
     if (kind === "bloqueio") host.innerHTML = `<div class="composer-header"><div><strong>Bloquear horário</strong><small>Reserve uma pausa ou marque uma indisponibilidade sem apagar horários.</small></div><button class="icon-btn" data-composer-close type="button"><i class="bi bi-x-lg"></i></button></div><form class="composer-grid" id="formBlock19"><label class="campo span-2"><span>Profissional</span><select name="profissional_id">${professionalOptions("", true)}</select></label><label class="campo"><span>Tipo</span><select name="tipo"><option value="bloqueio">Bloqueio</option><option value="pausa">Pausa</option><option value="indisponibilidade">Indisponibilidade</option></select></label><label class="campo"><span>Motivo</span><input name="motivo" maxlength="300"></label><label class="campo span-2"><span>Início</span><input name="inicio" type="datetime-local" required></label><label class="campo span-2"><span>Fim</span><input name="fim" type="datetime-local" required></label><div class="composer-actions"><button class="btn btn-dark" data-composer-close type="button">Cancelar</button><button class="btn btn-primary" type="submit"><i class="bi bi-slash-circle"></i> Salvar bloqueio</button></div></form>`;
-    if (kind === "reagendar" && appointment) host.innerHTML = `<div class="composer-header"><div><strong>Reagendar ${safe(appointment.cliente_nome)}</strong><small>O histórico da mudança será preservado.</small></div><button class="icon-btn" data-composer-close type="button"><i class="bi bi-x-lg"></i></button></div><form class="composer-grid" id="formReschedule19" data-id="${safe(appointment.id)}"><label class="campo"><span>Nova data</span><input name="data" type="date" value="${safe(appointment.data)}" required></label><label class="campo"><span>Novo horário</span><input name="hora_inicio" type="time" value="${safe(formatTime(appointment.hora_inicio))}" required></label><label class="campo span-2"><span>Profissional</span><select name="profissional_id" required>${professionalOptions(appointment.profissional_id)}</select></label><div class="composer-actions"><button class="btn btn-dark" data-composer-close type="button">Cancelar</button><button class="btn btn-primary" type="submit"><i class="bi bi-calendar2-range"></i> Confirmar reagendamento</button></div></form>`;
+    if (kind === "reagendar" && appointment) host.innerHTML = `<div class="composer-header"><div><strong>Reagendar ${safe(appointment.cliente_nome)}</strong><small>O histórico da mudança será preservado.</small></div><button class="icon-btn" data-composer-close type="button"><i class="bi bi-x-lg"></i></button></div><form class="composer-grid" id="formReschedule19" data-id="${safe(appointment.id)}"><label class="campo"><span>Nova data</span><input name="data" type="date" value="${safe(appointment.data)}" min="${safe(walkInEarliestDate())}" required></label><label class="campo"><span>Novo horário</span><input name="hora_inicio" type="time" value="${safe(formatTime(appointment.hora_inicio))}" required></label><label class="campo span-2"><span>Profissional</span><select name="profissional_id" required>${professionalOptions(appointment.profissional_id)}</select></label><div class="composer-actions"><button class="btn btn-dark" data-composer-close type="button">Cancelar</button><button class="btn btn-primary" type="submit"><i class="bi bi-calendar2-range"></i> Confirmar reagendamento</button></div></form>`;
     if (kind === "recorrencia" && appointment) host.innerHTML = `<div class="composer-header"><div><strong>Repetir atendimento de ${safe(appointment.cliente_nome)}</strong><small>Todos os horários são validados em uma única transação; se houver conflito, nada será criado.</small></div><button class="icon-btn" data-composer-close type="button"><i class="bi bi-x-lg"></i></button></div><form class="composer-grid" id="formRecurrence193" data-id="${safe(appointment.id)}"><label class="campo span-2"><span>Frequência</span><select name="frequencia"><option value="semanal">Toda semana</option><option value="quinzenal">A cada 15 dias</option><option value="mensal">Todo mês</option></select></label><label class="campo span-2"><span>Total de ocorrências</span><input name="total_ocorrencias" type="number" min="2" max="24" value="4" required><small>Inclui o atendimento atual.</small></label><div class="composer-actions"><button class="btn btn-dark" data-composer-close type="button">Cancelar</button><button class="btn btn-primary" type="submit"><i class="bi bi-arrow-repeat"></i> Criar série</button></div></form>`;
     host.scrollIntoView({ behavior:"smooth", block:"nearest" });
   }
@@ -405,6 +430,13 @@
     const data = new FormData(form);
     const button = form.querySelector("button[type='submit']");
     const close = () => { const host = form.closest(".operation-composer"); if (host) { host.hidden = true; host.innerHTML = ""; } };
+    if (["formWalkIn19", "formReschedule19"].includes(form.id)) {
+      const error = scheduleMomentError(data.get("data"), data.get("hora_inicio"));
+      if (error) {
+        toast("aviso", "Horário inválido", error);
+        return;
+      }
+    }
     await mutate(button, async () => {
       if (form.id === "formWalkIn19") await api().createWalkIn({ estabelecimento_id:establishment().id, profissional_id:data.get("profissional_id"), servicos_ids:data.getAll("servicos_ids"), cliente_nome:data.get("cliente_nome"), cliente_email:data.get("cliente_email") || null, cliente_telefone:data.get("cliente_telefone") || null, data:data.get("data"), hora_inicio:data.get("hora_inicio"), observacao:data.get("observacao") || null });
       if (form.id === "formBlock19") await api().createScheduleBlock({ estabelecimento_id:establishment().id, profissional_id:data.get("profissional_id") || null, inicio:new Date(data.get("inicio")).toISOString(), fim:new Date(data.get("fim")).toISOString(), tipo:data.get("tipo"), motivo:data.get("motivo") || null });

@@ -181,6 +181,18 @@ class SupabaseGateway:
             term in normalized for term in ("horario indisponivel", "conflito de horario", "ja existe agendamento")
         ):
             return ApiError(409, "APPOINTMENT_CONFLICT", "Esse horário acabou de ficar indisponível. Escolha outro horário.")
+        if "horario atual ou futuro" in normalized or "escolha um horario futuro" in normalized:
+            return ApiError(
+                422,
+                "SCHEDULE_TIME_INVALID",
+                "Escolha um horário futuro ou de até 15 minutos atrás para um encaixe imediato.",
+            )
+        if "fora do horario de funcionamento" in normalized or "ultrapassa o horario de funcionamento" in normalized:
+            return ApiError(
+                422,
+                "SCHEDULE_OUTSIDE_OPENING_HOURS",
+                "Escolha um horário dentro do funcionamento configurado para este estabelecimento.",
+            )
         if stable_code == "RECENT_AUTH_REQUIRED":
             return ApiError(403, "RECENT_AUTH_REQUIRED", "Confirme novamente sua identidade para continuar.")
         if stable_code == "LAST_ACTIVE_ADMIN":

@@ -139,6 +139,25 @@ class OperationalComposerRegressionTests(TestCase):
         self.assertIn('.page-painel .command-actions .btn {', styles)
         self.assertIn('overflow-wrap: anywhere;', styles)
 
+    def test_schedule_composers_do_not_submit_stale_dates(self) -> None:
+        operation = (ROOT / "js/features/professional-operation.js").read_text(encoding="utf-8")
+
+        self.assertIn("function walkInEarliestDate()", operation)
+        self.assertIn("function scheduleMomentError(dateValue, timeValue)", operation)
+        self.assertIn('min="${safe(earliestDate)}"', operation)
+        self.assertIn('min="${safe(walkInEarliestDate())}"', operation)
+        self.assertIn('["formWalkIn19", "formReschedule19"].includes(form.id)', operation)
+
+    def test_panel_pwa_assets_do_not_request_a_missing_root_favicon(self) -> None:
+        panel = (ROOT / "html/painel.html").read_text(encoding="utf-8")
+        pwa = (ROOT / "js/product-redesign.js").read_text(encoding="utf-8")
+        vercel = (ROOT / "vercel.json").read_text(encoding="utf-8")
+
+        self.assertIn('name="mobile-web-app-capable"', panel)
+        self.assertNotIn("event.preventDefault();\n      installPrompt = event;", pwa)
+        self.assertIn('"source": "/favicon.ico"', vercel)
+        self.assertIn('"destination": "/img/favicon.ico"', vercel)
+
 
 class AccountDeletionRecoveryMigrationTests(TestCase):
     def test_deletion_keeps_a_private_retry_identity_only_until_conclusion(self) -> None:

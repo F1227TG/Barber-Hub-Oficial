@@ -550,6 +550,18 @@ class SecurityAndLifecycleRegressionTests(IsolatedAsyncioTestCase):
         slot = SupabaseGateway._safe_error(400, {"code": "P0001", "message": "SLOT_CONFLICT"})
         self.assertEqual((slot.status_code, slot.code), (409, "APPOINTMENT_CONFLICT"))
 
+    async def test_gateway_exposes_safe_schedule_validation_messages(self) -> None:
+        past = SupabaseGateway._safe_error(400, {
+            "code": "P0001", "message": "Escolha um horário atual ou futuro.", "details": "private",
+        })
+        self.assertEqual((past.status_code, past.code), (422, "SCHEDULE_TIME_INVALID"))
+        self.assertNotIn("private", past.message)
+
+        outside_hours = SupabaseGateway._safe_error(400, {
+            "code": "P0001", "message": "O encaixe está fora do horário de funcionamento.",
+        })
+        self.assertEqual((outside_hours.status_code, outside_hours.code), (422, "SCHEDULE_OUTSIDE_OPENING_HOURS"))
+
     async def test_gateway_keeps_permission_and_schema_errors_out_of_422(self) -> None:
         denied = SupabaseGateway._safe_error(400, {
             "code": "P0001", "message": "Sua conta não pode alterar a localização.",

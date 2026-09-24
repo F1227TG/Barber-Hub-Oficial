@@ -83,7 +83,9 @@
       return;
     }
     window.addEventListener("beforeinstallprompt", event => {
-      event.preventDefault();
+      // Mantém o aviso nativo disponível e também permite que o botão do
+      // produto abra o prompt em um gesto explícito, sem o aviso do Chrome
+      // sobre um prompt que foi suprimido e nunca exibido.
       installPrompt = event;
       document.body.classList.add("pwa-install-available");
       updateInstallButtons();
