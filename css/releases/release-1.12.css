@@ -1149,3 +1149,15 @@ body.page-beauty-hub .beauty-roadmap-grid article > span { color: var(--gold-2);
   body.page-beauty-hub .beauty-roadmap-grid { grid-template-columns: 1fr; border-radius: 20px; }
   body.page-beauty-hub .beauty-roadmap-grid article { min-height: 0; padding: 20px; }
 }
+
+/* Ajustes encontrados na homologação visual. */
+html body.home-redesign .home-install-cta {
+  background: color-mix(in srgb, var(--gold-soft) 72%, rgba(0, 0, 0, .28));
+  color: var(--text);
+}
+html body.home-redesign .home-install-cta > i { color: var(--gold-2); }
+html body.home-redesign .home-install-cta strong { color: var(--text); }
+html body.home-redesign .home-install-cta span { color: var(--muted); }
+
+body.page-contato .support-hero-grid { grid-template-columns: minmax(0, 1fr); }
+body.page-contato .support-hero-copy { max-width: 760px; }
