@@ -183,6 +183,17 @@ class OperationalComposerRegressionTests(TestCase):
                 path,
             )
 
+    def test_global_palette_and_management_entry_points_use_the_visual_update(self) -> None:
+        global_styles = (ROOT / "css/global.css").read_text(encoding="utf-8")
+        self.assertIn("--gold:#b99858", global_styles)
+        self.assertIn("--surface:#1a1b17", global_styles)
+        for path in ("html/admin.html", "html/admin-assinaturas.html", "html/planos.html"):
+            self.assertIn(
+                'css/releases/release-1.12.css',
+                (ROOT / path).read_text(encoding="utf-8"),
+                path,
+            )
+
     def test_marketplace_cards_offer_one_clear_profile_entry_point(self) -> None:
         portal = (ROOT / "js/portal.js").read_text(encoding="utf-8")
         styles = (ROOT / "css/releases/release-1.12.css").read_text(encoding="utf-8")

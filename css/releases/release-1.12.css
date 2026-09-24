@@ -108,6 +108,39 @@ body.page-cliente .client-activity-grid { gap: 10px; }
 body.page-cliente .client-activity-card { padding: 18px; background: color-mix(in srgb, var(--surface) 97%, transparent); }
 body.page-cliente .client-activity-card dl { margin-top: 14px; }
 
+body.page-admin .admin-kpi,
+body.page-admin-subscriptions .admin-kpi,
+body.page-admin .admin-section,
+body.page-admin-subscriptions .subscription-catalog,
+body.page-admin-subscriptions .subscription-editor,
+body.page-admin-subscriptions .subscription-list-section,
+body.page-planos .plan-card {
+  box-shadow: none;
+}
+
+body.page-admin .admin-kpi,
+body.page-admin-subscriptions .admin-kpi {
+  border-radius: 18px;
+  border-color: var(--border);
+  background: color-mix(in srgb, var(--surface) 97%, transparent);
+}
+
+body.page-admin .admin-section,
+body.page-admin-subscriptions .subscription-catalog,
+body.page-admin-subscriptions .subscription-editor,
+body.page-admin-subscriptions .subscription-list-section {
+  border-radius: 20px;
+  border-color: var(--border);
+}
+
+body.page-admin .admin-toolbar > *,
+body.page-admin-subscriptions .admin-tools > * {
+  min-height: 44px;
+}
+
+body.page-planos .plan-card { border-color: var(--border); }
+body.page-planos .plan-card:hover { border-color: var(--gold-border); }
+
 body.page-painel .dashboard .sidebar {
   width: 224px;
   padding: 18px 12px;
@@ -222,6 +255,18 @@ body.page-painel .quick-status-card {
   body.mobile-native.page-cliente .client-activity-card dl { margin-top: 12px; gap: 7px; }
   body.mobile-native.page-cliente .client-activity-card dl > div { padding-left: 7px; }
   body.mobile-native.page-cliente .client-activity-card dd { font-size: 1.18rem; }
+
+  body.mobile-native.page-admin .admin-hero,
+  body.mobile-native.page-admin-subscriptions .admin-subscriptions-hero { padding-top: 18px; }
+  body.mobile-native.page-admin .admin-kpi,
+  body.mobile-native.page-admin-subscriptions .admin-kpi { min-height: 92px; box-shadow: none; }
+  body.mobile-native.page-admin .admin-section,
+  body.mobile-native.page-admin-subscriptions .subscription-catalog,
+  body.mobile-native.page-admin-subscriptions .subscription-editor,
+  body.mobile-native.page-admin-subscriptions .subscription-list-section { border-radius: 18px; }
+  body.mobile-native.page-admin .admin-toolbar,
+  body.mobile-native.page-admin-subscriptions .admin-tools { gap: 8px; }
+  body.mobile-native.page-planos .plan-card { box-shadow: none; }
 
   body.mobile-native.page-painel .mobile-app-dock {
     grid-template-columns: repeat(4, minmax(0, 1fr));
