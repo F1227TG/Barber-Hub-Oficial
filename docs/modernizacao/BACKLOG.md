@@ -1,0 +1,21 @@
+# Backlog da modernização
+
+Atualizado em 22/10/2026. Estado descreve a evidência local; nenhum item abaixo declara publicação remota.
+
+| ID | Problema / impacto | Gravidade | Evidência e causa | Correção / testes | Estado |
+| --- | --- | --- | --- | --- | --- |
+| MOD-001 | Rotas e contratos concentrados dificultam manutenção | Média | `api/index.py` tinha 1.352 linhas; `backend/models.py` concentrava modelos | Extração por domínio; comparação OpenAPI e regressões | Implementado e validado localmente |
+| SEC-001 | Administração de papel/status dependia de UPDATE do navegador | Alta | `bhAdminAtualizarPerfil` em `js/api.js` chamava `.from("perfis").update` | API + RPC exclusiva do backend + auditoria transacional; aplicar e homologar migration | Implementado localmente; migration remota pendente |
+| SEC-002 | Sessão válida no Auth não garantia conta ativa ou sessão não revogada | Alta | `backend/security.py` verificava perfil ativo somente para admin | Checar estado e sessão em toda rota protegida; RLS/pre-request; testar restauração | Implementado localmente; homologação integrada pendente |
+| SEC-003 | Admin podia abrir painel exclusivo de barbeiro | Média | `js/painel.js` e `js/onboarding.js` incluíam admin | Guardas visuais e testes de navegador | Implementado localmente; matriz completa de endpoints profissionais pendente |
+| SEC-004 | Ainda há escrita e leitura direta de dados em outros fluxos do navegador | Alta | `js/api.js` e atualização de dados pessoais em `js/auth.js`; inventário registra ocorrências | Mapear recurso/papel/propriedade; centralizar na API sem fallback sensível; testar IDOR | Identificado; não corrigido integralmente |
+| DB-001 | A nova política global de conta/sessão pode afetar fluxos fora dos testes isolados | Alta | Migration 41 usa RLS restritiva e hook PostgREST | Homologar schema completo, Auth, Storage, Realtime e RPCs com usuários de teste; testes concorrentes em PostgreSQL real | Pendente; impede declarar prontidão de produção |
+| CSS-001 | Estilos continuam acumulados por release | Média | `css/releases/` e arquivos `css/release-*.css` ainda são carregados | Baseline visual completa, consolidação por função e verificação de cascata | Parcial: Etapa 2 extraiu 9 fontes do release 1.11 e gerou bundle equivalente; outros releases e trecho legado pendentes |
+| VIS-001 | Cobertura visual ainda não abrange todos os fluxos | Média | 50 snapshots de login, portal, conta, admin, privacidade e filtros | Ampliar para agendamento, profissional, planos, assinaturas e demais modais; validar CI Windows remoto | Baseline inicial local criada; cobertura completa pendente |
+| VIS-002 | Marcador vermelho sem texto aparece nas capturas completas | Baixa | Observado antes da extração, inclusive no portal público; causa ainda desconhecida | Inspecionar elemento e estado responsável, corrigir e revisar diferença visual | Registrado; não corrigido nem ocultado nos testes |
+| ARCH-001 | Demais serviços ainda conhecem PostgREST/Supabase | Média | `backend/services/` ainda importa gateway diretamente | Ports/repositories/adapters por domínio, mantendo testes de integração | Contas/identidade iniciados; demais pendentes |
+| TEST-001 | Parte dos verificadores depende de marcadores estáticos de release | Média | `scripts/check-release-*` e auditorias legadas | Preservar cobertura enquanto substitui por testes de comportamento; comandos por responsabilidade já adicionados | Parcial |
+| OPS-001 | Eventos, workers e observabilidade precisam de auditoria funcional | Média | Já existem serviços de push, e-mail e manutenção; não houve medição de carga nesta etapa | Testar retries, idempotência, dead-letter, reprocessamento, correlação e falhas externas | Pendente |
+| PERF-001 | Novas consultas de estado/sessão adicionam trabalho a cada requisição privada | Média | `require_user` consulta identidade, perfil e sessão | Medir latência e concorrência; otimizar sem cache que permita acesso após revogação | Pendente de baseline de performance |
+
+Responsável pelos itens pendentes: a definir na retomada. Causas não comprovadas devem permanecer como hipóteses. Anexar evidências de teste e referência de entrega antes de marcar um item como concluído em produção.

@@ -14,6 +14,9 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 .ruff_cache/
+.tools/
+test-results/
+playwright-report/
 supabase/.temp/
 
 # Artefatos locais de empacotamento Python

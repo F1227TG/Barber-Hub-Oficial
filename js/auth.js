@@ -27,14 +27,8 @@ async function bhGetPerfil(force = false) {
   const session = await bhGetSession();
   if (!session?.user) return null;
 
-  const client = bhExigirSupabase();
-  const { data, error } = await client
-    .from("perfis")
-    .select("*")
-    .eq("id", session.user.id)
-    .maybeSingle();
-
-  if (error) throw error;
+  if (!window.bhBackendApi?.accountProfile) throw new Error("O serviço de contas está temporariamente indisponível.");
+  const data = await window.bhBackendApi.accountProfile();
   bhPerfilCache = data ? { ...data, authUser: session.user } : null;
   return bhPerfilCache;
 }
@@ -137,19 +131,24 @@ function bhDestinoPerfil(perfil, next = null) {
 
 async function bhRequireAuth(tiposPermitidos = null) {
   try {
-    const perfil = await bhGetPerfil();
+    const perfil = await bhGetPerfil(true);
     if (!perfil) {
       const next = encodeURIComponent(`${location.pathname}${location.search}${location.hash}`);
       location.href = `${bhUrl("html/login.html")}?next=${next}`;
       return null;
     }
-    if (tiposPermitidos && !tiposPermitidos.includes(perfil.tipo)) {
-      mostrarToast("erro", "Acesso restrito", "Sua conta não possui acesso a esta área.");
-      setTimeout(() => { location.href = bhDestinoPerfil(perfil); }, 700);
+    if (perfil.ativo !== true || (perfil.estado_conta && perfil.estado_conta !== "ativa") ||
+        (tiposPermitidos && !tiposPermitidos.includes(perfil.tipo))) {
+      location.replace(bhUrl("404.html"));
       return null;
     }
     return perfil;
   } catch (erro) {
+    if (erro.code === "ACCOUNT_INACTIVE") {
+      bhPerfilCache = null;
+      location.replace(bhUrl("404.html"));
+      return null;
+    }
     mostrarToast("erro", "Falha de autenticação", bhErroMensagem(erro));
     return null;
   }

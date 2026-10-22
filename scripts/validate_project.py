@@ -51,7 +51,7 @@ def main() -> int:
     pages = sorted(ROOT.rglob("*.html"))
 
     for page in pages:
-        if any(part in {".git", ".venv", "node_modules"} for part in page.parts):
+        if any(part in {".git", ".venv", ".tools", "node_modules", "test-results", "playwright-report"} for part in page.parts):
             continue
         parser = PageParser()
         content = page.read_text(encoding="utf-8")

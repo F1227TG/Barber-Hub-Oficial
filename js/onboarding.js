@@ -63,7 +63,7 @@ function bhConfigurarPreview(inputId, previewId) {
 
 document.addEventListener("DOMContentLoaded", async () => {
   marcarMenuAtivo("cadastro");
-  const perfil = await bhRequireAuth(["barbeiro", "admin"]);
+  const perfil = await bhRequireAuth(["barbeiro"]);
   if (!perfil) return;
   if (perfil.tipo === "barbeiro" && perfil.onboarding_concluido) {
     location.href = bhUrl("html/painel.html");

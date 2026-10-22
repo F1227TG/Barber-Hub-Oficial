@@ -10,7 +10,8 @@ from typing import Any
 
 from backend.config import settings
 from backend.errors import ApiError
-from backend.models import PushPreferencesUpdate, PushSubscriptionCreate
+from backend.schemas.notifications import PushPreferencesUpdate
+from backend.schemas.notifications import PushSubscriptionCreate
 from backend.security import AuthContext
 from backend.services.access import model_payload, rows_payload
 from backend.supabase import gateway

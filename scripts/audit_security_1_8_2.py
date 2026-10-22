@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from source_files import read_api_source
 import sys
 
 
@@ -10,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 MIGRATION = (ROOT / "sql/17_correcao_auditoria_seguranca.sql").read_text(encoding="utf-8")
 ADMIN = (ROOT / "js/admin.js").read_text(encoding="utf-8")
 API_JS = (ROOT / "js/api.js").read_text(encoding="utf-8")
-PYTHON_API = (ROOT / "api/index.py").read_text(encoding="utf-8")
+PYTHON_API = read_api_source(ROOT)
 SECURITY_JS = (ROOT / "js/security.js").read_text(encoding="utf-8")
 SUPABASE_CONFIG = (ROOT / "js/supabase-config.js").read_text(encoding="utf-8")
 

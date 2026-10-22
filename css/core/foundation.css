@@ -1,0 +1,13 @@
+/**
+ * Barber Hub 1.11 — acabamento de produção, continuidade e privacidade.
+ * Mantém a linguagem premium escura/quente/dourada já estabelecida.
+ */
+
+/* Base resiliente: nenhum filho de grid/flex deve forçar a página para os lados. */
+html { overflow-x: clip; }
+body { min-width: 280px; overflow-x: clip; }
+main, section, article, form, fieldset, .container, .card, .form-card,
+.dashboard, .painel-content, .panel-section, .table-wrap { min-width: 0; }
+img, video, iframe, canvas { max-width: 100%; }
+[hidden] { display: none !important; }
+

@@ -170,13 +170,13 @@ function bhRenderAdminUsuarios() {
         </div>
       </td>
       <td>
-        <select data-admin-role="${item.id}" ${proprio ? "disabled" : ""}>
+        <select aria-label="Papel de ${escapeHTML(item.nome)}" data-admin-role="${item.id}" ${proprio || item.estado_conta === "excluida" ? "disabled" : ""}>
           <option value="cliente" ${item.tipo === "cliente" ? "selected" : ""}>Cliente</option>
           <option value="barbeiro" ${item.tipo === "barbeiro" ? "selected" : ""}>Barbeiro</option>
           <option value="admin" ${item.tipo === "admin" ? "selected" : ""}>Administrador</option>
         </select>
       </td>
-      <td><span class="status ${item.ativo ? "concluido" : "cancelado"}">${item.ativo ? "Ativo" : "Inativo"}</span></td>
+      <td><span class="status ${item.ativo ? "concluido" : "cancelado"}">${escapeHTML(({ativa:"Ativa",desativada:"Desativada",suspensa:"Suspensa",excluida:"Excluída"})[item.estado_conta] || (item.ativo ? "Ativa" : "Desativada"))}</span></td>
       <td>${new Date(item.created_at).toLocaleDateString("pt-BR")}</td>
       <td>
         <div class="admin-user-actions">
@@ -185,9 +185,11 @@ function bhRenderAdminUsuarios() {
           </button>
           <button class="btn ${item.ativo ? "btn-danger" : "btn-outline"} btn-small"
             data-admin-ativo="${item.id}" data-valor="${item.ativo}"
-            ${proprio ? "disabled title='Sua conta é protegida nesta tela'" : ""}>
+            ${proprio || item.estado_conta === "excluida" ? "disabled title='Use a ação específica de restauração para contas excluídas'" : ""}>
             ${item.ativo ? "Desativar" : "Ativar"}
           </button>
+          <button class="btn btn-outline btn-small" data-admin-account-state="${item.id}" data-state="suspensa" ${proprio || item.estado_conta === "excluida" || item.estado_conta === "suspensa" ? "disabled" : ""}>Suspender</button>
+          <button class="btn btn-danger btn-small" data-admin-account-state="${item.id}" data-state="${item.estado_conta === "excluida" ? "ativa" : "excluida"}" ${proprio ? "disabled" : ""}>${item.estado_conta === "excluida" ? "Restaurar" : "Excluir conta"}</button>
         </div>
       </td>
     </tr>`;
@@ -291,6 +293,22 @@ document.addEventListener("DOMContentLoaded", async () => {
     const av = evento.target.closest("[data-admin-avaliacao-status]");
     const recovery = evento.target.closest("[data-admin-password-recovery]");
     try {
+      const accountState = evento.target.closest("[data-admin-account-state]");
+      if (accountState) {
+        const state = accountState.dataset.state;
+        const action = ({ ativa: "Restaurar", suspensa: "Suspender", excluida: "Excluir" })[state];
+        if (!await bhConfirmar({ titulo: `${action} conta`, mensagem: state === "ativa"
+          ? "A conta voltará a ter acesso com o papel atual."
+          : "O acesso será bloqueado. O histórico será preservado e a conta poderá ser restaurada.",
+          confirmarTexto: action, perigo: state !== "ativa", trigger: accountState })) return;
+        await bhAdminExecutar(accountState, async () => {
+          const id = accountState.dataset.adminAccountState;
+          if (state === "excluida") await window.bhBackendApi.adminDeleteAccount(id);
+          else if (state === "ativa") await window.bhBackendApi.adminRestoreAccount(id);
+          else await bhAdminAtualizarPerfil(id, { estado_conta: state });
+        });
+        return;
+      }
       if (recovery) {
         if (!window.bhBackendApi) throw new Error("O serviço de recuperação ainda não está disponível neste ambiente.");
         const email = recovery.dataset.userEmail || "esta conta";

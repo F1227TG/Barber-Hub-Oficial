@@ -1577,12 +1577,12 @@ async function bhExcluirMinhaConta(senhaAtual) {
 }
 
 async function bhAdminAtualizarPerfil(id, dados) {
-  const client = bhExigirSupabase();
+  if (!window.bhBackendApi?.adminUpdateAccount) throw new Error("A administração de contas está temporariamente indisponível.");
   const permitido = {};
-  ["tipo", "ativo"].forEach(chave => { if (dados[chave] !== undefined) permitido[chave] = dados[chave]; });
-  const { data, error } = await client.from("perfis").update(permitido).eq("id", id).select().single();
-  if (error) throw error;
-  return data;
+  if (dados.tipo !== undefined) permitido.tipo = dados.tipo;
+  if (dados.estado_conta !== undefined) permitido.estado_conta = dados.estado_conta;
+  else if (dados.ativo !== undefined) permitido.estado_conta = dados.ativo ? "ativa" : "desativada";
+  return window.bhBackendApi.adminUpdateAccount(id, permitido);
 }
 
 async function bhAdminAtualizarEstabelecimento(id, dados) {

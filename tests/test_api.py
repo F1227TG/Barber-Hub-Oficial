@@ -12,20 +12,18 @@ from fastapi.testclient import TestClient
 from pydantic import ValidationError
 from starlette.requests import Request
 
-from api.index import (
-    admin_health,
-    admin_assign_subscription,
-    admin_overview,
-    admin_subscriptions,
-    app,
-    client_loyalty,
-    establishment_entitlements,
-    list_support_tickets,
-    navigation_audit,
-    public_config,
-    create_appointment,
-    create_support_ticket,
-)
+from api.routers.admin import admin_health
+from api.routers.admin import admin_assign_subscription
+from api.routers.admin import admin_overview
+from api.routers.admin import admin_subscriptions
+from api.index import app
+from api.routers.retention import client_loyalty
+from api.routers.establishments import establishment_entitlements
+from api.routers.support import list_support_tickets
+from api.routers.admin import navigation_audit
+from api.routers.public import public_config
+from api.routers.appointments import create_appointment
+from api.routers.support import create_support_ticket
 from backend.domain.identity import cnpj_is_valid, normalize_cnpj
 from backend.models import (
     AdminSubscriptionUpdate, AppointmentCreate, DeleteAccountRequest, EstablishmentLocationUpdate,
@@ -239,10 +237,10 @@ class ApiSmokeTests(TestCase):
 
     def test_job_auth_accepts_vercel_and_external_secrets_independently(self) -> None:
         from types import SimpleNamespace
-        from api.index import _valid_job_secret
+        from api.routers.jobs import _valid_job_secret
 
         configured = SimpleNamespace(cron_secret="vercel-secret", jobs_secret="external-secret")
-        with patch("api.index.settings", configured):
+        with patch("api.routers.jobs.settings", configured):
             self.assertTrue(_valid_job_secret("vercel-secret"))
             self.assertTrue(_valid_job_secret("external-secret"))
             self.assertFalse(_valid_job_secret("wrong-secret"))
@@ -420,7 +418,7 @@ class RateLimitRegressionTests(IsolatedAsyncioTestCase):
     async def _assert_limited(self, route, service_path: str, service_result) -> None:
         limiter = AsyncMock(return_value={"allowed": True, "remaining": 59, "retry_after": 0})
         service = AsyncMock(return_value=service_result)
-        with patch("api.index.enforce_rate_limit", limiter), patch(service_path, service):
+        with patch(f"{route.__module__}.enforce_rate_limit", limiter), patch(service_path, service):
             response = await route(self.request, self.auth)
         self.assertEqual(response.status_code, 200)
         limiter.assert_awaited_once()
@@ -430,28 +428,28 @@ class RateLimitRegressionTests(IsolatedAsyncioTestCase):
     async def test_support_listing_is_rate_limited(self) -> None:
         await self._assert_limited(
             list_support_tickets,
-            "api.index.support_service.list_for_user",
+            "backend.services.support.list_for_user",
             [],
         )
 
     async def test_admin_overview_is_rate_limited(self) -> None:
-        await self._assert_limited(admin_overview, "api.index.admin_service.overview", {})
+        await self._assert_limited(admin_overview, "backend.services.admin.overview", {})
 
     async def test_admin_health_is_rate_limited(self) -> None:
-        await self._assert_limited(admin_health, "api.index.admin_service.health_details", {})
+        await self._assert_limited(admin_health, "backend.services.admin.health_details", {})
 
     async def test_admin_navigation_audit_is_rate_limited(self) -> None:
-        await self._assert_limited(navigation_audit, "api.index.admin_service.navigation_audit", {})
+        await self._assert_limited(navigation_audit, "backend.services.admin.navigation_audit", {})
 
     async def test_post_audit_subscriptions_route_is_rate_limited(self) -> None:
-        await self._assert_limited(admin_subscriptions, "api.index.admin_service.list_subscriptions", [])
+        await self._assert_limited(admin_subscriptions, "backend.services.admin.list_subscriptions", [])
 
     async def test_entitlements_route_is_rate_limited(self) -> None:
         limiter = AsyncMock(return_value={"allowed": True, "remaining": 59, "retry_after": 0})
         service = AsyncMock(return_value={"plano_slug": "gratuito"})
         establishment_id = "00000000-0000-0000-0000-000000000002"
-        with patch("api.index.enforce_rate_limit", limiter), patch(
-            "api.index.management_service.get_entitlements", service
+        with patch("api.routers.establishments.enforce_rate_limit", limiter), patch(
+            "backend.services.management.get_entitlements", service
         ):
             response = await establishment_entitlements(establishment_id, self.request, self.auth)
         self.assertEqual(response.status_code, 200)
@@ -462,7 +460,7 @@ class RateLimitRegressionTests(IsolatedAsyncioTestCase):
     async def test_client_loyalty_is_rate_limited(self) -> None:
         await self._assert_limited(
             client_loyalty,
-            "api.index.retention_service.client_loyalty",
+            "backend.services.retention.client_loyalty",
             [],
         )
 
@@ -474,7 +472,7 @@ class RateLimitRegressionTests(IsolatedAsyncioTestCase):
             nome="Conta de teste", email="outro@example.com", assunto="Problema na agenda",
             mensagem="A agenda não confirmou o atendimento de teste.",
         )
-        with patch("api.index.enforce_rate_limit", limiter), patch("api.index.support_service.create", service):
+        with patch("api.routers.support.enforce_rate_limit", limiter), patch("backend.services.support.create", service):
             response = await create_support_ticket(self.request, payload, self.auth)
         self.assertEqual(response.status_code, 201)
         self.assertEqual(limiter.await_args.kwargs["identity"], self.auth.user_id)
@@ -482,7 +480,7 @@ class RateLimitRegressionTests(IsolatedAsyncioTestCase):
 
     async def test_public_config_never_exposes_a_secret(self) -> None:
         limiter = AsyncMock(return_value={"allowed": True, "remaining": 119, "retry_after": 0})
-        with patch("api.index.enforce_rate_limit", limiter):
+        with patch("api.routers.public.enforce_rate_limit", limiter):
             response = await public_config(self.request)
         payload = json.loads(response.body)
         self.assertEqual(response.status_code, 200)
@@ -531,7 +529,7 @@ class SecurityAndLifecycleRegressionTests(IsolatedAsyncioTestCase):
             plano_slug="elite",
             chave_idempotencia="admin-subscription-body-0001",
         )
-        with patch("api.index.enforce_rate_limit", AsyncMock()), self.assertRaises(ApiError) as caught:
+        with patch("api.routers.admin.enforce_rate_limit", AsyncMock()), self.assertRaises(ApiError) as caught:
             await admin_assign_subscription(
                 "00000000-0000-0000-0000-000000000010",
                 request,
@@ -713,7 +711,7 @@ class SecurityAndLifecycleRegressionTests(IsolatedAsyncioTestCase):
             servicos_ids=["00000000-0000-0000-0000-000000000012"],
             data="2026-09-15", hora_inicio="10:00", chave_idempotencia="booking-body-key-0001",
         )
-        with patch("api.index.enforce_rate_limit", AsyncMock()), self.assertRaises(ApiError) as caught:
+        with patch("api.routers.appointments.enforce_rate_limit", AsyncMock()), self.assertRaises(ApiError) as caught:
             await create_appointment(request, payload, "booking-header-key-1", self.auth)
         self.assertEqual(caught.exception.status_code, 409)
         self.assertEqual(caught.exception.code, "IDEMPOTENCY_KEY_MISMATCH")

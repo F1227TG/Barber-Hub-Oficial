@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from source_files import read_api_source
 import sys
 
 
@@ -19,7 +20,7 @@ def check(label: str, condition: bool) -> None:
 
 
 package = json.loads(read("package.json"))
-api = read("api/index.py")
+api = read_api_source(ROOT)
 client = read("js/backend-api.js")
 panel_html = read("html/painel.html")
 panel_js = read("js/features/professional-operation.js")

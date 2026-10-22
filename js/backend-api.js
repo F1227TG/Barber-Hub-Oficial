@@ -49,7 +49,8 @@
 
     const liveServerLocal = ["localhost", "127.0.0.1", "::1"].includes(location.hostname)
       && ["5500", "5501", "5502"].includes(location.port);
-    if (liveServerLocal || location.protocol === "file:") {
+    const baseUrl = String(global.BARBER_HUB_API_BASE_URL || "/api/v1").replace(/\/+$/, "");
+    if ((liveServerLocal && !global.BARBER_HUB_API_BASE_URL) || location.protocol === "file:") {
       const error = new Error("Este serviço está temporariamente indisponível neste ambiente.");
       error.code = "BACKEND_NOT_CONFIGURED";
       error.status = 503;
@@ -61,11 +62,12 @@
     global.dispatchEvent(new CustomEvent("bh:network-state", { detail:{ state:"loading", path, method } }));
 
     try {
-      const response = await fetch(`/api/v1/${String(path).replace(/^\/+/, "")}`, {
+      const response = await fetch(`${baseUrl}/${String(path).replace(/^\/+/, "")}`, {
         method,
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json",
+          "X-Request-ID": global.crypto?.randomUUID?.() || `web-${Date.now()}-${Math.random().toString(16).slice(2)}`,
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
           ...(idempotencyKey ? { "Idempotency-Key": String(idempotencyKey) } : {})
         },
@@ -85,6 +87,7 @@
         error.code = payload?.error?.code || "API_ERROR";
         error.status = response.status;
         error.details = details || null;
+        error.requestId = response.headers.get("X-Request-ID");
         throw error;
       }
 
@@ -307,6 +310,10 @@
     accountSessions: () => request("account/sessions", { auth: true }),
     revokeOtherSessions: () => request("account/sessions/others", { method: "DELETE", auth: true }),
     revokeAllSessions: () => request("account/sessions", { method: "DELETE", auth: true }),
+    accountProfile: () => request("account/profile", { auth: true }),
+    adminUpdateAccount: (id, data) => request(`admin/users/${encodeURIComponent(id)}`, { method: "PATCH", body: data, auth: true }),
+    adminDeleteAccount: id => request(`admin/users/${encodeURIComponent(id)}`, { method: "DELETE", auth: true }),
+    adminRestoreAccount: id => request(`admin/users/${encodeURIComponent(id)}/restore`, { method: "POST", auth: true }),
     adminOverview: () => request("admin/overview", { auth: true }),
     adminRecords: (resource, options = {}) => {
       const params = new URLSearchParams();

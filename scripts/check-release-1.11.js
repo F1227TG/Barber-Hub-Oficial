@@ -3,7 +3,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const root = path.resolve(__dirname, "..");
-const read = relative => fs.readFileSync(path.join(root, relative), "utf8");
+const read = relative => require("./source-files").read(root, relative);
 const exists = relative => fs.existsSync(path.join(root, relative));
 const errors = [];
 const check = (condition, message) => { if (!condition) errors.push(message); };
@@ -66,7 +66,7 @@ check(verifier.includes("assinatura_admin_rpc_ok") && verifier.includes("assinat
 check(verifier.includes("onboarding_agenda_entitlement_ok"), "verificador 33 precisa cobrir a proteção da agenda no onboarding");
 
 check(api.includes('Idempotency-Key') && api.includes("choose_idempotency_key"), "API precisa validar chaves de idempotência");
-check(api.includes('@app.patch("/api/v1/admin/establishments/{establishment_id}/subscription")'), "rota administrativa de assinatura ausente");
+check(api.includes('@router.patch("/api/v1/admin/establishments/{establishment_id}/subscription")'), "rota administrativa de assinatura ausente");
 check(models.includes("class AdminSubscriptionUpdate") && models.includes("validate_effective_period"), "schema de assinatura precisa validar período efetivo");
 check(adminService.includes('"admin_atribuir_plano_111"') && adminService.includes('"p_chave_idempotencia"'), "serviço administrativo precisa usar RPC idempotente");
 check(gateway.includes("httpx.AsyncClient") && gateway.includes("_safe_error"), "gateway precisa reutilizar conexão e sanitizar erros");

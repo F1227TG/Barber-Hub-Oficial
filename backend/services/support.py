@@ -6,7 +6,7 @@ from uuid import uuid4
 from fastapi import Request
 
 from backend.errors import ApiError
-from backend.models import SupportTicketCreate
+from backend.schemas.support import SupportTicketCreate
 from backend.security import AuthContext
 from backend.services.access import rows_payload
 from backend.supabase import gateway

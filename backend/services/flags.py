@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from backend.models import FeatureFlagEvaluationRequest
+from backend.schemas.flags import FeatureFlagEvaluationRequest
 from backend.errors import ApiError
 from backend.security import AuthContext
 from backend.supabase import gateway

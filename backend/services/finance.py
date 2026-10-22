@@ -7,13 +7,11 @@ from typing import Any
 
 from backend.errors import ApiError
 from backend.domain.operations import normalize_idempotency_key
-from backend.models import (
-    CommissionRuleCreate,
-    CommissionRuleUpdate,
-    DayClosingCreate,
-    FinancialAdjustmentCreate,
-    ExpenseCreate,
-)
+from backend.schemas.finance import CommissionRuleCreate
+from backend.schemas.finance import CommissionRuleUpdate
+from backend.schemas.finance import DayClosingCreate
+from backend.schemas.finance import FinancialAdjustmentCreate
+from backend.schemas.finance import ExpenseCreate
 from backend.security import AuthContext
 from backend.services.access import first_visible, model_payload, require_feature, rows_payload
 from backend.supabase import gateway

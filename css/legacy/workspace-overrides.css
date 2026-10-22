@@ -1,0 +1,256 @@
+/* --------------------------------------------------------------------------
+   Ajuste de densidade: planos e resumo do cliente
+   -------------------------------------------------------------------------- */
+.page-planos .plan-ribbon {
+  position: static;
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 6px;
+  max-width: 100%;
+  white-space: nowrap;
+}
+.page-planos .pricing-grid-monthly .plan-card { padding-top: 26px; }
+.page-planos .plan-price .plan-status-price {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.08rem;
+  line-height: 1.25;
+  letter-spacing: 0;
+}
+.page-planos .plan-price .plan-status-price i { font-size: .9rem; }
+
+.page-cliente .client-command-center { grid-template-columns: minmax(0, 1fr); }
+.page-cliente .command-primary { padding: 24px; }
+.client-command-footer { display: flex; align-items: center; flex-wrap: wrap; gap: 14px; margin-top: 16px; }
+.client-quick-links { display: flex; flex-wrap: wrap; gap: 12px; }
+.client-quick-links a { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: .78rem; font-weight: 800; }
+.client-quick-links a:hover { color: var(--gold-2); }
+.client-activity-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.client-activity-card { min-width: 0; padding: 20px; border: 1px solid var(--border); border-radius: 20px; background: var(--surface); }
+.client-activity-card > header { display: flex; align-items: center; gap: 11px; }
+.client-activity-card > header > i { display: grid; width: 40px; height: 40px; flex: 0 0 40px; place-items: center; border-radius: 13px; background: var(--gold-soft); color: var(--gold-2); }
+.client-activity-card header span,.client-activity-card header small { display: block; }
+.client-activity-card header span { font-size: .9rem; font-weight: 900; }
+.client-activity-card header small { margin-top: 2px; color: var(--muted); font-size: .7rem; }
+.client-activity-card dl { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 18px 0 0; }
+.client-activity-card dl > div { min-width: 0; padding-left: 10px; border-left: 1px solid var(--border); }
+.client-activity-card dt { color: var(--muted); font-size: .68rem; font-weight: 750; }
+.client-activity-card dd { margin: 4px 0 0; font-size: 1.35rem; font-weight: 900; line-height: 1; overflow-wrap: anywhere; }
+.client-activity-note { display: flex; align-items: baseline; gap: 6px; margin: 16px 0 0; color: var(--muted); font-size: .72rem; }
+.client-activity-note i { color: var(--gold-2); }
+.client-activity-note strong { color: var(--text); overflow-wrap: anywhere; }
+
+@media (max-width: 700px) {
+  .client-activity-grid { grid-template-columns: 1fr; }
+  .page-cliente .command-primary { padding: 18px; }
+  .client-activity-card { padding: 17px; }
+}
+.reviews-drawer111-list .review-public-item { margin-bottom: 10px; }
+.reviews-public-preview111 { margin-top: 16px; }
+.own-business-notice { display: inline-flex; max-width: 420px; align-items: center; gap: 8px; padding: 10px 12px; border: 1px solid var(--gold-border); border-radius: 13px; background: var(--gold-soft); color: var(--text); font-size: .72rem; font-weight: 750; }
+
+/* Painel profissional: o menu lateral reduz a área útil em notebooks. Os
+   botões precisam encolher e quebrar texto dentro do card, nunca alargar a
+   grade ou ultrapassar a borda do comando rápido. */
+.page-painel .professional-command-center,
+.page-painel .professional-command-center > * { min-width: 0; }
+.page-painel .command-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.page-painel .command-actions .btn {
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 1300px) and (min-width: 701px) {
+  .page-painel .professional-command-center { grid-template-columns: minmax(0, 1fr); }
+  .page-painel .professional-command-center .command-actions { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+@media (max-width: 980px) and (min-width: 701px) {
+  .page-painel .professional-command-center .command-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* --------------------------------------------------------------------------
+   Planos, painel profissional, cliente e administração
+   -------------------------------------------------------------------------- */
+.page-planos .plan-card.is-current-plan111 { border-color: var(--gold-2); box-shadow: 0 0 0 1px var(--gold-2), var(--shadow-soft); }
+.page-planos .current-plan-label111 { display: inline-flex; align-items: center; gap: 5px; margin-bottom: 8px; color: var(--gold-2); font-size: .64rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+.page-planos .plan-current-more111 { display: inline-flex; align-items: center; min-height: 34px; padding: 7px 11px; border: 1px solid rgba(218, 174, 72, .34); border-radius: 999px; color: var(--gold-2); font-size: .76rem; font-weight: 800; text-decoration: none; }
+.page-planos .plan-current-more111:hover,
+.page-planos .plan-current-more111:focus-visible { border-color: var(--gold-2); background: rgba(218, 174, 72, .08); }
+.page-planos .plan-current-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.page-cliente .client-local-grid111 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.page-cliente .client-local-grid111 > .operation-state,
+.page-cliente .client-local-grid111 > .empty { grid-column: 1 / -1; }
+.page-cliente .client-local-card111 { display: grid; min-width: 0; grid-template-columns: 132px minmax(0, 1fr); overflow: hidden; border: 1px solid var(--border); border-radius: 18px; background: var(--surface-soft); }
+.page-cliente .client-local-cover111 { position: relative; display: block; min-height: 152px; background: linear-gradient(180deg, transparent, rgba(0, 0, 0, .3)), var(--client-local-cover) center/cover no-repeat; }
+.page-cliente .client-local-cover111 .marketplace-status { position: absolute; right: 8px; bottom: 8px; }
+.page-cliente .client-local-card111 > div { min-width: 0; padding: 13px; }
+.page-cliente .client-local-type111 { color: var(--gold-2); font-size: .58rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+.page-cliente .client-local-card111 h3 { margin: 5px 0 4px; font-size: .9rem; }
+.page-cliente .client-local-card111 h3 a { color: inherit; text-decoration: none; }
+.page-cliente .client-local-card111 p { margin: 0; color: var(--muted); font-size: .66rem; line-height: 1.45; overflow-wrap: anywhere; }
+.page-cliente .client-local-actions111 { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 11px; }
+.page-cliente .client-relation-error111 { gap: 6px; padding: 14px; }
+.page-cliente .client-relation-error111 small { color: var(--muted); }
+.page-cliente .client-retention-row > .btn { align-self: center; }
+.page-painel .painel-content { min-width: 0; overflow: clip; }
+.page-painel .panel-section > * { min-width: 0; }
+.page-painel .status-segment button { min-width: 0; word-break: normal; overflow-wrap: normal; }
+.page-painel .status-segment button span,
+.page-painel .status-segment button small { min-width: 0; word-break: normal; overflow-wrap: normal; white-space: normal; }
+.page-painel .crm-toolbar { align-items: stretch; }
+.page-painel .crm-toolbar .search-field { min-width: 240px; }
+.page-painel .crm-search-feedback { display: block; min-height: 1.2em; color: var(--muted); }
+.page-painel .push-device-status111 { display: grid; grid-template-columns: 42px minmax(0, 1fr); gap: 11px; align-items: center; margin-bottom: 12px; padding: 12px; border: 1px solid var(--border); border-radius: 15px; background: var(--surface-soft); }
+.page-painel .push-device-status111 > span { display: grid; width: 42px; height: 42px; place-items: center; border-radius: 13px; background: var(--gold-soft); color: var(--gold-2); }
+.page-painel .push-device-status111 small,
+.page-painel .push-device-status111 strong,
+.page-painel .push-device-status111 p { display: block; }
+.page-painel .push-device-status111 small { color: var(--muted-2); font-size: .58rem; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; }
+.page-painel .push-device-status111 strong { margin-top: 2px; font-size: .78rem; }
+.page-painel .push-device-status111 p { margin-top: 3px; font-size: .68rem; line-height: 1.45; }
+.page-painel .push-device-status111.is-denied { border-color: rgba(217, 79, 72, .35); }
+.page-painel .quiet-hours110 label { min-width: 0; }
+.page-painel .quiet-hours110 input { width: 100%; min-width: 0; }
+.page-painel .crm-roster,
+.page-painel .crm-profile { min-width: 0; }
+.page-painel .crm-client { width: 100%; min-width: 0; }
+.page-painel .crm-client-copy,
+.page-painel .crm-client-meta { min-width: 0; }
+.page-painel .crm-client-copy span { overflow-wrap: anywhere; }
+.page-cliente .dashboard-detail-grid,
+.page-cliente .client-overview-grid { align-items: stretch; }
+.page-admin .admin-toolbar,
+.page-admin-subscriptions .admin-tools { gap: 9px; }
+.page-admin .admin-section,
+.page-admin-subscriptions .subscription-list-section { scroll-margin-top: 92px; }
+.page-admin .admin-search input,
+.page-admin-subscriptions .admin-tools input { min-width: 0; }
+
+/* Assinaturas administrativas: edição clara no desktop e cartões sem rolagem lateral no mobile. */
+.page-admin-subscriptions .subscription-workspace {
+  display: grid;
+  grid-template-columns: minmax(250px, .8fr) minmax(0, 1.2fr);
+  gap: 16px;
+  margin: 22px 0 28px;
+  align-items: start;
+}
+.page-admin-subscriptions .subscription-editor { top: 96px; }
+.page-admin-subscriptions .subscription-editor .section-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.page-admin-subscriptions .subscription-editor .section-top > div { min-width: 0; }
+.page-admin-subscriptions .subscription-editor textarea { min-height: 92px; resize: vertical; }
+.page-admin-subscriptions .subscription-date-presets {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 5px;
+  margin-top: 7px;
+}
+.page-admin-subscriptions .subscription-date-presets button {
+  min-height: 34px;
+  padding: 5px 7px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-soft);
+  color: var(--muted);
+  font: inherit;
+  font-size: .62rem;
+  font-weight: 800;
+}
+.page-admin-subscriptions .subscription-date-presets button:hover,
+.page-admin-subscriptions .subscription-date-presets button:focus-visible {
+  border-color: var(--gold-border);
+  background: var(--gold-soft);
+  color: var(--gold-2);
+}
+.page-admin-subscriptions .subscription-current-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 24px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 13px;
+  border: 1px solid var(--gold-border);
+  border-radius: 15px;
+  background: linear-gradient(135deg, var(--gold-soft), var(--surface-soft));
+}
+.page-admin-subscriptions .subscription-current-summary > div { min-width: 0; }
+.page-admin-subscriptions .subscription-current-summary span,
+.page-admin-subscriptions .subscription-current-summary strong,
+.page-admin-subscriptions .subscription-current-summary small { display: block; overflow-wrap: anywhere; }
+.page-admin-subscriptions .subscription-current-summary span { color: var(--muted-2); font-size: .58rem; font-weight: 900; letter-spacing: .07em; text-transform: uppercase; }
+.page-admin-subscriptions .subscription-current-summary strong { margin-top: 3px; font-size: .78rem; }
+.page-admin-subscriptions .subscription-current-summary small { margin-top: 2px; color: var(--muted); font-size: .64rem; }
+.page-admin-subscriptions .subscription-current-summary > i { color: var(--gold-2); text-align: center; }
+.page-admin-subscriptions .subscription-current-summary > p { grid-column: 1 / -1; margin: 2px 0 0; color: var(--muted); font-size: .68rem; line-height: 1.45; }
+.page-admin-subscriptions .subscription-editor-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 15px;
+}
+.page-admin-subscriptions .subscription-editor-actions .btn { min-width: 128px; }
+.page-admin-subscriptions .subscription-results-count { display: block; margin-top: 5px; color: var(--muted); }
+.page-admin-subscriptions .subscription-effective-note { display: block; margin-top: 5px; color: var(--muted); }
+.page-admin-subscriptions .subscription-mobile-list { display: none; }
+.page-admin-subscriptions .subscription-account-card {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--surface);
+}
+.page-admin-subscriptions .subscription-account-card > header {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 11px;
+  border-bottom: 1px solid var(--border);
+}
+.page-admin-subscriptions .subscription-account-card > header strong,
+.page-admin-subscriptions .subscription-account-card > header span { display: block; overflow-wrap: anywhere; }
+.page-admin-subscriptions .subscription-account-card > header span { margin-top: 2px; color: var(--muted); font-size: .67rem; }
+.page-admin-subscriptions .subscription-account-card dl { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0; }
+.page-admin-subscriptions .subscription-account-card dl > div { min-width: 0; }
+.page-admin-subscriptions .subscription-account-card dt { margin-bottom: 4px; color: var(--muted-2); font-size: .57rem; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; }
+.page-admin-subscriptions .subscription-account-card dd { margin: 0; overflow-wrap: anywhere; font-size: .72rem; font-weight: 750; }
+
+/* Conteúdo jurídico claro e legível. */
+.page-termos .legal-document111,
+.page-privacidade .legal-document111 { display: grid; gap: 0; max-width: 860px; }
+.legal-document111 .legal-intro111 { margin: -4px 0 18px; padding: 15px 17px; border-left: 3px solid var(--gold-2); border-radius: 0 14px 14px 0; background: var(--gold-soft); }
+.legal-document111 h2 { margin: 22px 0 6px; font-size: 1.13rem; }
+.legal-document111 h2:first-of-type { margin-top: 0; }
+.legal-document111 ul { display: grid; gap: 7px; margin: 6px 0 2px; padding-left: 20px; color: var(--muted); line-height: 1.6; }
+.legal-document111 .legal-meta111 { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); color: var(--muted); font-size: .72rem; }
+
+/* Suporte curto, Sobre sem sobreposição e Beauty viva sem mudar sua identidade. */
+.page-contato .support-hero { min-height: auto; }
+.page-contato .support-topics-section,
+.page-contato .support-workspace,
+.page-contato .support-history-section,
+.page-contato .support-faq-section { padding-block: 26px; }
+.page-contato .support-topic-card { min-height: 92px; }
+.page-sobre .about-final-section { overflow: clip; }
+.page-sobre .about-cta-shell { isolation: isolate; overflow: hidden; }
+.page-sobre .about-cta-shell::after { z-index: -1; pointer-events: none; }
+.page-sobre .about-cta-action { position: relative; z-index: 1; min-width: 0; }
+.page-beauty-hub .beauty-hero,
+.page-beauty-hub .beauty-section { overflow: clip; }
+.page-barbearia .business-hero { position: relative; isolation: isolate; overflow: clip; }
+.page-barbearia .brand-barber-pole-business {
+  right: -2px;
+  bottom: 50%;
+  height: min(88%, 410px);
+  transform: translateY(50%);
+  filter: drop-shadow(-16px 22px 26px rgba(0, 0, 0, .55));
+}
+

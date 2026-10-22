@@ -1,0 +1,18 @@
+{
+  "bundles": [
+    {
+      "output": "css/releases/release-1.11.css",
+      "sources": [
+        "css/core/foundation.css",
+        "css/components/controls.css",
+        "css/features/marketplace-cards.css",
+        "css/pages/account.css",
+        "css/components/activity-drawers.css",
+        "css/legacy/workspace-overrides.css",
+        "css/mobile/workspaces.css",
+        "css/features/onboarding.css",
+        "css/core/accessibility.css"
+      ]
+    }
+  ]
+}

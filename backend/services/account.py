@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from backend.errors import ApiError
-from backend.models import DeleteAccountRequest
+from backend.schemas.account import DeleteAccountRequest
 from backend.security import AuthContext
 from backend.services.access import object_payload, rows_payload
 from backend.supabase import gateway

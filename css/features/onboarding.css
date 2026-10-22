@@ -1,0 +1,41 @@
+/* Cadastro profissional: a agenda é apresentada como próximo passo, sem
+   oferecer um controle incompatível com o plano inicial. */
+.page-cadastro-barbearia .onboarding-feature-note111 {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  align-items: start;
+  gap: 12px;
+  margin: 0 0 18px;
+  padding: 15px;
+  border: 1px solid color-mix(in srgb, var(--gold, #e5bc45) 38%, var(--border));
+  border-radius: 17px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--gold, #e5bc45) 9%, var(--surface)) 0%, var(--surface) 72%);
+  color: var(--text);
+}
+.page-cadastro-barbearia .onboarding-feature-note111-icon {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--gold, #e5bc45) 15%, transparent);
+  color: var(--gold, #e5bc45);
+  font-size: 1.05rem;
+}
+.page-cadastro-barbearia .onboarding-feature-note111 strong,
+.page-cadastro-barbearia .onboarding-feature-note111 small { display: block; }
+.page-cadastro-barbearia .onboarding-feature-note111 strong { margin: 1px 0 4px; }
+.page-cadastro-barbearia .onboarding-feature-note111 small {
+  color: var(--muted);
+  line-height: 1.52;
+}
+
+@media (max-width: 480px) {
+  .page-cadastro-barbearia .onboarding-feature-note111 {
+    grid-template-columns: 38px minmax(0, 1fr);
+    gap: 10px;
+    padding: 13px;
+  }
+  .page-cadastro-barbearia .onboarding-feature-note111-icon { width: 38px; height: 38px; }
+}
+

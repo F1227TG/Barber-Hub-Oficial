@@ -6,19 +6,17 @@ from datetime import date
 from typing import Any
 
 from backend.errors import ApiError
-from backend.models import (
-    CampaignCreate,
-    CouponCreate,
-    CouponUpdate,
-    LoyaltyProgramUpsert,
-    LoyaltyRedeem,
-    LoyaltyRewardCreate,
-    LoyaltyRewardUpdate,
-    RecurrenceCreate,
-    RecurrenceUpdate,
-    WaitlistCreate,
-    WaitlistUpdate,
-)
+from backend.schemas.retention import CampaignCreate
+from backend.schemas.retention import CouponCreate
+from backend.schemas.retention import CouponUpdate
+from backend.schemas.retention import LoyaltyProgramUpsert
+from backend.schemas.retention import LoyaltyRedeem
+from backend.schemas.retention import LoyaltyRewardCreate
+from backend.schemas.retention import LoyaltyRewardUpdate
+from backend.schemas.retention import RecurrenceCreate
+from backend.schemas.retention import RecurrenceUpdate
+from backend.schemas.retention import WaitlistCreate
+from backend.schemas.retention import WaitlistUpdate
 from backend.security import AuthContext
 from backend.services.access import first_visible, model_payload, require_feature, rows_payload
 from backend.supabase import gateway

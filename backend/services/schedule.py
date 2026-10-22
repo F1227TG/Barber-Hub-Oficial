@@ -6,14 +6,12 @@ from datetime import date, timedelta
 from typing import Any
 
 from backend.errors import ApiError
-from backend.models import (
-    AppointmentConfirmation,
-    AppointmentReschedule,
-    ManualServiceCreate,
-    OpeningPeriodsReplace,
-    ScheduleBlockCreate,
-    WalkInCreate,
-)
+from backend.schemas.appointments import AppointmentConfirmation
+from backend.schemas.appointments import AppointmentReschedule
+from backend.schemas.schedule import ManualServiceCreate
+from backend.schemas.schedule import OpeningPeriodsReplace
+from backend.schemas.schedule import ScheduleBlockCreate
+from backend.schemas.schedule import WalkInCreate
 from backend.security import AuthContext
 from backend.domain.operations import normalize_origin_channel, normalize_payment_method
 from backend.services.access import first_visible, model_payload, require_feature, rows_payload

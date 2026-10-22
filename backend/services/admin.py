@@ -5,7 +5,8 @@ import re
 
 from backend.config import settings
 from backend.errors import ApiError
-from backend.models import AdminSubscriptionUpdate, PasswordRecoveryRequest
+from backend.schemas.admin import AdminSubscriptionUpdate
+from backend.schemas.admin import PasswordRecoveryRequest
 from backend.security import AuthContext
 from backend.services.access import object_payload, rows_payload
 from backend.supabase import gateway

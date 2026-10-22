@@ -99,7 +99,7 @@ if (missing.length) errors.push(`Arquivos ausentes:\n- ${missing.join("\n- ")}`)
 function walk(directory, extension) {
   const output = [];
   for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
-    if ([".git", "node_modules", ".venv", "__pycache__"].includes(entry.name)) continue;
+    if ([".git", ".tools", "node_modules", ".venv", "__pycache__", "test-results", "playwright-report"].includes(entry.name)) continue;
     const full = path.join(directory, entry.name);
     // Uma cópia de repositório dentro do workspace é material externo, não
     // parte da aplicação publicada. Não devemos auditá-la como se fosse uma

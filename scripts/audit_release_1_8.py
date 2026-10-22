@@ -1,6 +1,7 @@
 """Auditoria estática dos invariantes de planos/benefícios da release 1.8."""
 from __future__ import annotations
 from pathlib import Path
+from source_files import read_api_source
 import json
 import re
 import sys
@@ -14,7 +15,7 @@ def check(label: str, condition: bool) -> None:
 migration = (ROOT / "sql/16_assinaturas_entitlements_beneficios.sql").read_text(encoding="utf-8")
 panel = (ROOT / "js/painel.js").read_text(encoding="utf-8")
 admin = (ROOT / "js/admin-assinaturas.js").read_text(encoding="utf-8")
-api = (ROOT / "api/index.py").read_text(encoding="utf-8")
+api = read_api_source(ROOT)
 backend_api = (ROOT / "js/backend-api.js").read_text(encoding="utf-8")
 plans = (ROOT / "html/planos.html").read_text(encoding="utf-8")
 package = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))

@@ -5,7 +5,7 @@
   "description": "Portal, gestão, PWA e API própria em Python do Barber Hub.",
   "scripts": {
     "dev": "vercel dev",
-    "check": "python scripts/sync_mobile_pages.py --check && node scripts/check-mobile-routing.js && node scripts/check-interface-responsiveness.js && node scripts/check-project.js && node scripts/check-release-1.9.3.js && node scripts/check-release-1.10.js && node scripts/check-release-1.10.1.js && node scripts/check-release-1.11.js && python scripts/validate_project.py && python scripts/audit_security_1_8_2.py && python scripts/audit_release_1_9.py && python -m compileall -q api backend && python -m unittest discover -s tests -v",
+    "check": "python scripts/check.py",
     "api:dev": "fastapi dev api/index.py",
     "check:python": "python -m compileall -q api backend",
     "check:offline": "python scripts/audit_security_1_8_2.py && python -m unittest discover -s tests -p test_domain.py -v && python -m compileall -q backend/domain",
@@ -15,9 +15,31 @@
     "check:release-1.9.3": "node scripts/check-release-1.9.3.js",
     "check:release-1.10": "node scripts/check-release-1.10.js",
     "check:release-1.10.1": "node scripts/check-release-1.10.1.js",
-    "check:release-1.11": "node scripts/check-release-1.11.js"
+    "check:release-1.11": "node scripts/check-release-1.11.js",
+    "check:mobile": "python scripts/check.py mobile",
+    "check:routing": "python scripts/check.py routing",
+    "check:css": "python scripts/check.py css",
+    "check:frontend": "python scripts/check.py frontend",
+    "check:legacy": "python scripts/check.py legacy",
+    "check:security": "python scripts/check.py security",
+    "check:api": "python scripts/check.py api",
+    "check:database": "python scripts/check.py database",
+    "check:auth": "python scripts/check.py auth",
+    "check:contracts": "python scripts/check.py contracts",
+    "check:admin": "python scripts/check.py auth",
+    "check:browser": "playwright test account-access.spec.js",
+    "check:visual": "playwright test visual.spec.js",
+    "visual:update": "playwright test visual.spec.js --update-snapshots",
+    "build:css": "python scripts/build_css.py",
+    "inventory": "python scripts/inventory_project.py"
   },
   "engines": {
     "node": ">=20"
-  }
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.11",
+    "@playwright/test": "1.64.1",
+    "supabase": "2.121.0"
+  },
+  "packageManager": "pnpm@10.11.0"
 }

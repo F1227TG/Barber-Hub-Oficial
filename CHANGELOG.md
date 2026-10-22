@@ -2,6 +2,24 @@
 
 Este arquivo resume entregas. Os critérios de publicação e as evidências completas ficam em `docs/release-1.11/`.
 
+## Em desenvolvimento — modernização, etapa 2 — 2026-10-22
+
+- registra 50 snapshots das páginas completas em cinco larguras, com temas claro/escuro e painéis de privacidade/filtros;
+- adiciona fixtures locais de dados, fontes e ícones, com bloqueio de chamadas inesperadas nos testes;
+- extrai nove fontes CSS por responsabilidade, preservando conteúdo/cascata e a URL do bundle 1.11;
+- verifica a geração do CSS no pipeline e prepara comparação visual Windows/Chromium no CI;
+- documenta evidências, cobertura parcial e retomada em `docs/modernizacao/ETAPA_2.md`; homologação da migration permanece pendente.
+
+## Em desenvolvimento — modernização, etapa 1 — 2026-10-22
+
+- extrai 95 handlers para rotas por domínio e separa contratos Pydantic, preservando os contratos HTTP anteriores;
+- introduz ports e adapters para contas e identidade, valida conta ativa e sessão não revogada;
+- centraliza mudanças administrativas de perfil na API, com exclusão lógica, restauração e auditoria transacional;
+- prepara a migration 20261022155131 e seu verificador, ainda não aplicados no banco remoto;
+- adiciona testes de contratos, contas, cliente JavaScript, PostgreSQL em memória e acesso no navegador;
+- organiza os comandos de verificação por responsabilidade e registra o ponto de retomada em `docs/modernizacao/ETAPA_1.md`;
+- atualiza o identificador de cache PWA para a entrega futura; esta etapa não declara deploy.
+
 ## 1.11.0 — 2026-09-14
 
 - conclui conta, privacidade, sessões, exportação e exclusão com prazo de segurança;

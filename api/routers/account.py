@@ -12,6 +12,11 @@ from backend.services import account as account_service
 router = APIRouter(prefix="/api/v1/account", tags=["account"])
 
 
+@router.get("/profile")
+async def account_profile(auth: AuthContext = Depends(require_user)) -> JSONResponse:
+    return ok(auth.profile)
+
+
 async def _schedule(request: Request, payload: DeleteAccountRequest, auth: AuthContext) -> JSONResponse:
     await enforce_rate_limit(request, "account-delete", limit=3, window_seconds=900, identity=auth.user_id)
     return ok(await account_service.request_deletion(payload, auth), status.HTTP_202_ACCEPTED)

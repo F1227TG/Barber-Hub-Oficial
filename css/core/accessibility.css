@@ -1,0 +1,9 @@
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+
+@media (forced-colors: active) {
+  .notification-center111-trigger,
+  .account-verified111,
+  .own-business-notice { forced-color-adjust: auto; }
+}

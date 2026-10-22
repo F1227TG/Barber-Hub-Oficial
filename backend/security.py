@@ -5,11 +5,13 @@ import json
 import time
 from dataclasses import dataclass
 from typing import Any
+from uuid import UUID
 
 from fastapi import Header
 
 from backend.errors import ApiError
-from backend.supabase import gateway
+from backend.core import dependencies
+from backend.domain.accounts import is_active
 
 
 @dataclass(frozen=True)
@@ -33,12 +35,22 @@ def _bearer(authorization: str | None) -> str:
 async def require_user(authorization: str | None = Header(default=None)) -> AuthContext:
     token = _bearer(authorization)
     try:
-        user = await gateway.auth_user(token)
+        user = await dependencies.identity.verify(token)
     except ApiError as exc:
         raise ApiError(401, "INVALID_SESSION", "Sua sessão expirou. Entre novamente.") from exc
     if user.get("email") and not user.get("email_confirmed_at"):
         raise ApiError(403, "EMAIL_NOT_CONFIRMED", "Confirme seu e-mail antes de continuar.")
-    return AuthContext(token=token, user_id=str(user["id"]), user=user, claims=_verified_claims(token))
+    profile = await dependencies.accounts.profile(str(user["id"]))
+    if not is_active(profile):
+        raise ApiError(403, "ACCOUNT_INACTIVE", "Esta conta não possui acesso às áreas privadas.")
+    claims = _verified_claims(token)
+    try:
+        session_id = str(UUID(str(claims.get("session_id", ""))))
+    except ValueError as exc:
+        raise ApiError(401, "INVALID_SESSION", "Sua sessão expirou. Entre novamente.") from exc
+    if not await dependencies.accounts.session_active(str(user["id"]), session_id):
+        raise ApiError(401, "INVALID_SESSION", "Sua sessão expirou. Entre novamente.")
+    return AuthContext(token=token, user_id=str(user["id"]), user=user, profile=profile, claims=claims)
 
 
 def _verified_claims(token: str) -> dict[str, Any]:
@@ -91,13 +103,8 @@ async def require_recent_user(authorization: str | None = Header(default=None)) 
 
 async def require_admin(authorization: str | None = Header(default=None)) -> AuthContext:
     context = await require_user(authorization)
-    rows = await gateway.rest(
-        "perfis",
-        admin=True,
-        params={"id": f"eq.{context.user_id}", "select": "id,nome,email,tipo,ativo", "limit": "1"},
-    )
-    profile = rows[0] if isinstance(rows, list) and rows else None
-    if not profile or not profile.get("ativo") or profile.get("tipo") != "admin":
+    profile = context.profile
+    if not is_active(profile) or profile.get("tipo") != "admin":
         raise ApiError(403, "FORBIDDEN", "Esta operação exige uma conta administrativa ativa.")
     return AuthContext(
         token=context.token,

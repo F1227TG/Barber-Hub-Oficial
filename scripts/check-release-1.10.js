@@ -4,7 +4,7 @@ const path = require("node:path");
 const vm = require("node:vm");
 
 const root = path.resolve(__dirname, "..");
-const read = relative => fs.readFileSync(path.join(root, relative), "utf8");
+const read = relative => require("./source-files").read(root, relative);
 const errors = [];
 const check = (condition, message) => { if (!condition) errors.push(message); };
 

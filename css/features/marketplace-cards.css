@@ -1,0 +1,21 @@
+/* O perfil principal cobre o card; as ações continuam independentes. */
+.page-portal .marketplace-card {
+  position: relative;
+  isolation: isolate;
+  cursor: pointer;
+}
+.page-portal .marketplace-card-primary::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+.page-portal .marketplace-card-actions {
+  position: relative;
+  z-index: 2;
+}
+.page-portal .marketplace-card:focus-within {
+  border-color: var(--gold-border);
+  box-shadow: var(--shadow-soft);
+}
+

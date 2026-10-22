@@ -701,7 +701,7 @@ async function bhRecarregarPainel() {
 
 document.addEventListener("DOMContentLoaded", async () => {
   marcarMenuAtivo("painel");
-  bhPainelPerfil = await bhRequireAuth(["barbeiro", "admin"]);
+  bhPainelPerfil = await bhRequireAuth(["barbeiro"]);
   if (!bhPainelPerfil) return;
   if (bhPainelPerfil.tipo === "barbeiro" && !bhPainelPerfil.onboarding_concluido) {
     location.href = bhUrl("html/cadastro-barbearia.html");

@@ -6,7 +6,10 @@ from datetime import date, timedelta
 from typing import Any
 
 from backend.errors import ApiError
-from backend.models import GoalCreate, GoalUpdate, OpportunityUpdate, TeamPermissionsUpdate
+from backend.schemas.growth import GoalCreate
+from backend.schemas.growth import GoalUpdate
+from backend.schemas.growth import OpportunityUpdate
+from backend.schemas.team import TeamPermissionsUpdate
 from backend.security import AuthContext
 from backend.services.access import first_visible, model_payload, require_feature, rows_payload
 from backend.supabase import gateway

@@ -5,7 +5,8 @@ from __future__ import annotations
 from typing import Any
 
 from backend.errors import ApiError
-from backend.models import TeamMemberLink, TeamMemberUpdate
+from backend.schemas.team import TeamMemberLink
+from backend.schemas.team import TeamMemberUpdate
 from backend.security import AuthContext
 from backend.services.access import first_visible, model_payload, require_feature, rows_payload
 from backend.supabase import gateway

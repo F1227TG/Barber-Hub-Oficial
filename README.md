@@ -4,6 +4,8 @@ Marketplace de serviços e sistema de gestão para barbearias, desenvolvido por 
 
 ## Estado desta entrega
 
+A modernização local está documentada nas [etapas 1](docs/modernizacao/ETAPA_1.md) e [2](docs/modernizacao/ETAPA_2.md). O ponto atual de retomada é a Etapa 2: baseline visual e primeira extração do CSS concluídas localmente; homologação da migration de contas ainda pendente. Essas alterações ainda não foram publicadas.
+
 A versão 1.11.0 reúne a conclusão do Planejamento Pós-31, o acabamento da operação diária e as correções finais de continuidade, conta, mobile, administração e privacidade. As duas migrations gerenciadas desta candidata já foram aplicadas no projeto Supabase conectado e o verificador 33 retornou todos os controles como verdadeiros. A publicação comercial ainda depende das configurações externas e da homologação com contas reais.
 
 Principais avanços:
@@ -21,6 +23,8 @@ Principais avanços:
 
 ## Comece pela documentação
 
+- [Plano oficial de modernização e evolução](docs/PLANO_MODERNIZACAO_BARBER_HUB.md) — direção futura, etapas e critérios de conclusão; execução local iniciada.
+- [Primeira etapa e ponto de retomada](docs/modernizacao/ETAPA_1.md) — alterações locais, testes, migration pendente e próximos passos.
 - [Histórico de versões](CHANGELOG.md)
 - [Guia completo do projeto](docs/GUIA_COMPLETO_DO_PROJETO.md)
 - [Relatório final da versão 1.11.0](docs/release-1.11/RELATORIO_FINAL_1_11_0.md)
@@ -63,6 +67,8 @@ Consulte [ARCHITECTURE.md](ARCHITECTURE.md) para as fronteiras completas.
 ## Desenvolvimento
 
 Requisitos: Node.js 20+ e Python 3.13.
+
+Instale as dependências bloqueadas com `uv sync --locked` e `pnpm install --frozen-lockfile` (pnpm 10.11.0). Use `uv run npm run check` para executar as verificações por responsabilidade, incluindo testes PostgreSQL em memória. `npm run check:browser` executa os testes de navegador após `pnpm exec playwright install chromium`; no Windows com Chrome instalado, pode-se definir `PLAYWRIGHT_CHANNEL=chrome`.
 
 ```bash
 vercel dev

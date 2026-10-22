@@ -28,6 +28,32 @@ paths:
           content:
             application/json:
               schema: {}
+  /api/v1/establishments/{reference}/public:
+    get:
+      tags:
+      - catalog
+      summary: Public Establishment
+      description: Public, read-only business profile for visitors and signed-in users.
+      operationId: public_establishment_api_v1_establishments__reference__public_get
+      parameters:
+      - name: reference
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Reference
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /api/v1/establishments/{establishment_id}/reviews:
     get:
       tags:
@@ -60,6 +86,41 @@ paths:
           minimum: 1
           default: 10
           title: Limit
+      - name: source
+        in: query
+        required: false
+        schema:
+          type: string
+          pattern: ^(all|verified|community)$
+          default: all
+          title: Source
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/account/profile:
+    get:
+      tags:
+      - account
+      summary: Account Profile
+      operationId: account_profile_api_v1_account_profile_get
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
       responses:
         '200':
           description: Successful Response
@@ -609,6 +670,104 @@ paths:
           content:
             application/json:
               schema: {}
+  /api/v1/promotions:
+    post:
+      summary: Create Promotion
+      operationId: create_promotion_api_v1_promotions_post
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PromotionCreate'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/promotions/{promotion_id}:
+    patch:
+      summary: Update Promotion
+      operationId: update_promotion_api_v1_promotions__promotion_id__patch
+      parameters:
+      - name: promotion_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Promotion Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PromotionUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      summary: Delete Promotion
+      operationId: delete_promotion_api_v1_promotions__promotion_id__delete
+      parameters:
+      - name: promotion_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Promotion Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /api/v1/appointments:
     post:
       summary: Create Appointment
@@ -712,6 +871,148 @@ paths:
               $ref: '#/components/schemas/AppointmentCancelRequest'
       responses:
         '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/appointments/{appointment_id}/reschedule:
+    patch:
+      summary: Reschedule Appointment
+      operationId: reschedule_appointment_api_v1_appointments__appointment_id__reschedule_patch
+      parameters:
+      - name: appointment_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Appointment Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppointmentReschedule'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/appointments/{appointment_id}/confirmation:
+    patch:
+      summary: Confirm Appointment
+      operationId: confirm_appointment_api_v1_appointments__appointment_id__confirmation_patch
+      parameters:
+      - name: appointment_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Appointment Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppointmentConfirmation'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/appointments/{appointment_id}/no-show:
+    patch:
+      summary: Mark Appointment No Show
+      operationId: mark_appointment_no_show_api_v1_appointments__appointment_id__no_show_patch
+      parameters:
+      - name: appointment_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Appointment Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/appointments/{appointment_id}/recurrence:
+    post:
+      summary: Create Appointment Recurrence
+      operationId: create_appointment_recurrence_api_v1_appointments__appointment_id__recurrence_post
+      parameters:
+      - name: appointment_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Appointment Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecurrenceCreate'
+      responses:
+        '201':
           description: Successful Response
           content:
             application/json:
@@ -993,111 +1294,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
-  /api/v1/appointments/{appointment_id}/reschedule:
-    patch:
-      summary: Reschedule Appointment
-      operationId: reschedule_appointment_api_v1_appointments__appointment_id__reschedule_patch
-      parameters:
-      - name: appointment_id
-        in: path
-        required: true
-        schema:
-          type: string
-          title: Appointment Id
-      - name: authorization
-        in: header
-        required: false
-        schema:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Authorization
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AppointmentReschedule'
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /api/v1/appointments/{appointment_id}/confirmation:
-    patch:
-      summary: Confirm Appointment
-      operationId: confirm_appointment_api_v1_appointments__appointment_id__confirmation_patch
-      parameters:
-      - name: appointment_id
-        in: path
-        required: true
-        schema:
-          type: string
-          title: Appointment Id
-      - name: authorization
-        in: header
-        required: false
-        schema:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Authorization
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AppointmentConfirmation'
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /api/v1/appointments/{appointment_id}/no-show:
-    patch:
-      summary: Mark Appointment No Show
-      operationId: mark_appointment_no_show_api_v1_appointments__appointment_id__no_show_patch
-      parameters:
-      - name: appointment_id
-        in: path
-        required: true
-        schema:
-          type: string
-          title: Appointment Id
-      - name: authorization
-        in: header
-        required: false
-        schema:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Authorization
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
   /api/v1/retention/waitlist:
     get:
       summary: Retention Waitlist
@@ -1208,43 +1404,6 @@ paths:
               $ref: '#/components/schemas/WaitlistUpdate'
       responses:
         '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /api/v1/appointments/{appointment_id}/recurrence:
-    post:
-      summary: Create Appointment Recurrence
-      operationId: create_appointment_recurrence_api_v1_appointments__appointment_id__recurrence_post
-      parameters:
-      - name: appointment_id
-        in: path
-        required: true
-        schema:
-          type: string
-          title: Appointment Id
-      - name: authorization
-        in: header
-        required: false
-        schema:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Authorization
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RecurrenceCreate'
-      responses:
-        '201':
           description: Successful Response
           content:
             application/json:
@@ -2976,104 +3135,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
-  /api/v1/promotions:
-    post:
-      summary: Create Promotion
-      operationId: create_promotion_api_v1_promotions_post
-      parameters:
-      - name: authorization
-        in: header
-        required: false
-        schema:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Authorization
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PromotionCreate'
-      responses:
-        '201':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /api/v1/promotions/{promotion_id}:
-    patch:
-      summary: Update Promotion
-      operationId: update_promotion_api_v1_promotions__promotion_id__patch
-      parameters:
-      - name: promotion_id
-        in: path
-        required: true
-        schema:
-          type: string
-          title: Promotion Id
-      - name: authorization
-        in: header
-        required: false
-        schema:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Authorization
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PromotionUpdate'
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-    delete:
-      summary: Delete Promotion
-      operationId: delete_promotion_api_v1_promotions__promotion_id__delete
-      parameters:
-      - name: promotion_id
-        in: path
-        required: true
-        schema:
-          type: string
-          title: Promotion Id
-      - name: authorization
-        in: header
-        required: false
-        schema:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Authorization
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
   /api/v1/support/tickets:
     get:
       summary: List Support Tickets
@@ -3743,6 +3804,107 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/admin/users/{user_id}:
+    patch:
+      summary: Admin Update Account
+      operationId: admin_update_account_api_v1_admin_users__user_id__patch
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: User Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminAccountUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      summary: Admin Delete Account
+      operationId: admin_delete_account_api_v1_admin_users__user_id__delete
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: User Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/admin/users/{user_id}/restore:
+    post:
+      summary: Admin Restore Account
+      operationId: admin_restore_account_api_v1_admin_users__user_id__restore_post
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: User Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /api/v1/admin/overview:
     get:
       summary: Admin Overview
@@ -3994,6 +4156,30 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
 components:
   schemas:
+    AdminAccountUpdate:
+      properties:
+        tipo:
+          anyOf:
+          - type: string
+            enum:
+            - admin
+            - barbeiro
+            - cliente
+          - type: 'null'
+          title: Tipo
+        estado_conta:
+          anyOf:
+          - type: string
+            enum:
+            - ativa
+            - desativada
+            - suspensa
+            - excluida
+          - type: 'null'
+          title: Estado Conta
+      additionalProperties: false
+      type: object
+      title: AdminAccountUpdate
     AdminSubscriptionUpdate:
       properties:
         plano_slug:

@@ -1,0 +1,199 @@
+/* --------------------------------------------------------------------------
+   Conta contextual
+   -------------------------------------------------------------------------- */
+.page-conta .page-hero { padding-block: 34px 28px; }
+.page-conta .page-hero h1 { margin-bottom: 6px; }
+.page-conta .account-hub-container { width: min(100% - 40px, 1160px); }
+.page-conta .account-hub-layout111 {
+  display: grid;
+  grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+.page-conta .account-hub-sidebar {
+  top: 92px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 100% 0, color-mix(in srgb, var(--gold) 10%, transparent), transparent 42%),
+    var(--surface);
+}
+.page-conta .account-hub-menu { gap: 6px; }
+.page-conta .account-hub-menu button,
+.page-conta .account-hub-menu a {
+  display: grid;
+  min-height: 48px;
+  grid-template-columns: 25px minmax(0, 1fr) 16px;
+  align-items: center;
+  gap: 9px;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: .78rem;
+  font-weight: 800;
+  text-align: left;
+}
+.page-conta .account-hub-menu button:hover,
+.page-conta .account-hub-menu a:hover,
+.page-conta .account-hub-menu button.ativo {
+  border-color: var(--gold-border);
+  background: var(--gold-soft);
+  color: var(--text);
+}
+.page-conta .account-hub-menu button > i:first-child,
+.page-conta .account-hub-menu a > i:first-child { color: var(--gold-2); text-align: center; }
+.page-conta .account-menu-arrow { justify-self: end; color: var(--muted-2); font-size: .7rem; }
+.page-conta .account-verified111 {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 12px;
+  padding: 9px 11px;
+  border: 1px solid color-mix(in srgb, #efb45b 28%, var(--border));
+  border-radius: 12px;
+  color: #efb45b;
+  background: color-mix(in srgb, #efb45b 7%, transparent);
+  font-size: .7rem;
+  font-weight: 800;
+}
+.page-conta .account-verified111.is-verified {
+  border-color: color-mix(in srgb, #55cf91 28%, var(--border));
+  color: #55cf91;
+  background: color-mix(in srgb, #55cf91 7%, transparent);
+}
+.page-conta .account-hub-workspace { min-height: 480px; }
+.page-conta .account-hub-workspace .account-hub-panel { scroll-margin-top: 100px; }
+.page-conta .account-sheet-close { display: none; }
+.page-conta .account-overview111 { display: grid; gap: 18px; }
+.page-conta .account-overview111-profile {
+  display: grid;
+  gap: 4px;
+  padding: 18px;
+  border: 1px solid var(--gold-border);
+  border-radius: 18px;
+  background: linear-gradient(135deg, var(--gold-soft), var(--surface-soft));
+}
+.page-conta .account-overview111-profile > span,
+.page-conta .account-plan111 > span {
+  color: var(--gold-2);
+  font-size: .65rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.page-conta .account-overview111-profile > strong { font-size: clamp(1.2rem, 3vw, 1.7rem); }
+.page-conta .account-overview111-profile > small { color: var(--muted); }
+.page-conta .account-overview111-actions,
+.page-conta .account-support111 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.page-conta .account-overview111-actions a,
+.page-conta .account-support111 a {
+  display: grid;
+  min-height: 82px;
+  grid-template-columns: 40px minmax(0, 1fr);
+  align-items: center;
+  gap: 11px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 17px;
+  background: var(--surface-soft);
+  color: var(--text);
+}
+.page-conta .account-overview111-actions a:hover,
+.page-conta .account-support111 a:hover { border-color: var(--gold-border); transform: translateY(-1px); }
+.page-conta .account-overview111-actions a > i,
+.page-conta .account-support111 a > i {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 13px;
+  background: var(--gold-soft);
+  color: var(--gold-2);
+}
+.page-conta .account-overview111-actions strong,
+.page-conta .account-overview111-actions small,
+.page-conta .account-support111 strong,
+.page-conta .account-support111 small { display: block; min-width: 0; }
+.page-conta .account-overview111-actions small,
+.page-conta .account-support111 small { margin-top: 3px; color: var(--muted); font-size: .68rem; line-height: 1.35; }
+.page-conta .account-data-actions111,
+.page-conta .account-session-actions111 { display: flex; flex-wrap: wrap; gap: 8px; }
+.page-conta .account-sessions111,
+.page-conta .account-consents111 {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+.page-conta .account-sessions111 h3,
+.page-conta .account-consents111 h3 { margin: 0; font-size: 1rem; }
+.page-conta .account-sessions111 .section-top p { margin: 3px 0 0; color: var(--muted); font-size: .72rem; }
+.page-conta .account-session111,
+.page-conta .account-consent111 {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  margin: 9px 0;
+  padding: 11px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface-soft);
+}
+.page-conta .account-session111 > i,
+.page-conta .account-consent111 > i { color: var(--gold-2); text-align: center; font-size: 1rem; }
+.page-conta .account-session111 strong,
+.page-conta .account-session111 span,
+.page-conta .account-consent111 strong,
+.page-conta .account-consent111 small { display: block; overflow-wrap: anywhere; }
+.page-conta .account-session111 span,
+.page-conta .account-consent111 small { margin-top: 3px; color: var(--muted); font-size: .68rem; }
+.page-conta .account-session111.is-current { border-color: color-mix(in srgb, #55cf91 30%, var(--border)); }
+.page-conta .account-plan111 { display: grid; gap: 5px; margin-bottom: 16px; padding: 18px; border: 1px solid var(--gold-border); border-radius: 18px; background: var(--gold-soft); }
+.page-conta .account-plan111 > strong { font-size: 1.55rem; }
+.page-conta .account-plan111 > small,
+.page-conta .account-plan111 > div { color: var(--muted); font-size: .74rem; }
+.page-conta .account-deletion-pending111 {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, #efb45b 32%, var(--border));
+  border-radius: 14px;
+  background: color-mix(in srgb, #efb45b 7%, transparent);
+}
+.page-conta .account-deletion-impact111 { margin: 14px 0; padding: 13px 14px; border: 1px solid color-mix(in srgb, #d85b55 30%, var(--border)); border-radius: 15px; background: color-mix(in srgb, #d85b55 7%, var(--surface-soft)); }
+.page-conta .account-deletion-impact111:empty { display: none; }
+.page-conta .account-deletion-impact111 strong { display: flex; align-items: center; gap: 7px; color: var(--text); }
+.page-conta .account-deletion-impact111 p,
+.page-conta .account-deletion-impact111 ul { margin: 7px 0 0; color: var(--muted); font-size: .72rem; line-height: 1.55; }
+.page-conta .account-deletion-impact111 ul { padding-left: 19px; }
+.page-conta .account-deletion-pending111 > i { color: #efb45b; text-align: center; }
+.page-conta .account-deletion-pending111 strong,
+.page-conta .account-deletion-pending111 span { display: block; }
+.page-conta .account-deletion-pending111 span { margin-top: 2px; color: var(--muted); font-size: .7rem; }
+.account-reauth-dialog111 {
+  width: min(calc(100% - 24px), 430px);
+  padding: 0;
+  border: 1px solid var(--gold-border);
+  border-radius: 22px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, .52);
+}
+.account-reauth-dialog111::backdrop { background: rgba(4, 4, 4, .72); backdrop-filter: blur(5px); }
+.account-reauth-dialog111 form { display: grid; gap: 14px; padding: 18px; }
+.account-reauth-dialog111 header,
+.account-reauth-dialog111 footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.account-reauth-dialog111 header span { color: var(--gold-2); font-size: .62rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+.account-reauth-dialog111 header h2 { margin: 3px 0 0; font-size: 1.2rem; }
+.account-reauth-dialog111 p { margin: 0; color: var(--muted); font-size: .78rem; line-height: 1.5; }
+.account-reauth-dialog111 footer { justify-content: flex-end; }
+

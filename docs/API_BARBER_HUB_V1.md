@@ -239,3 +239,20 @@ Os módulos `backend/domain/appointments.py`, `plans.py`, `schedule.py`, `crm.py
 ## Escritas de gestão e dupla validação
 
 As rotas de estabelecimento, serviços, profissionais e promoções usam o **token do usuário** ao falar com o PostgREST. Assim, a entrada é validada em Python/Pydantic e o PostgreSQL RLS continua sendo uma segunda barreira de autorização de propriedade. A `SUPABASE_SECRET_KEY` não é usada para contornar RLS nessas rotas. Exclusões de serviço/profissional são arquivamentos lógicos para preservar agendamentos históricos.
+
+## Modernização — adições locais da etapa 1 (22/10/2026)
+
+A entrada ASGI continua em `api/index.py`; rotas ficam em `api/routers/` e schemas em `backend/schemas/`. Os contratos anteriores são protegidos por `tests/contracts/openapi-baseline.json`. O OpenAPI executável continua sendo a fonte dos contratos.
+
+| Método e rota | Autorização | Resultado |
+| --- | --- | --- |
+| `GET /api/v1/account/profile` | Sessão válida e conta ativa | Perfil do próprio usuário |
+| `PATCH /api/v1/admin/users/{user_id}` | Administrador ativo | Altera `tipo` e/ou `estado_conta` |
+| `DELETE /api/v1/admin/users/{user_id}` | Administrador ativo | Exclusão lógica (`estado_conta=excluida`) |
+| `POST /api/v1/admin/users/{user_id}/restore` | Administrador ativo | Restaura o estado ativo, exigindo novo login do titular |
+
+O PATCH aceita apenas `tipo` (`admin`, `barbeiro`, `cliente`) e `estado_conta` (`ativa`, `desativada`, `suspensa`, `excluida`). Campos desconhecidos, payload vazio e valores nulos são rejeitados. A própria conta administrativa é protegida. Estado, papel e auditoria mudam atomicamente; a sessão do alvo é revogada quando há mudança efetiva. O banco protege o último administrador ativo.
+
+Erros relevantes: `ACCOUNT_INACTIVE` (403), `INVALID_SESSION` (401), `SELF_ACCOUNT_CHANGE` (409), `LAST_ACTIVE_ADMIN` (409), `ACCOUNT_NOT_FOUND` (404). As rotas administrativas têm cota de 30 alterações por minuto por administrador.
+
+Esta implementação depende da migration `20261022155131_modernizacao_contas_administrativas.sql`, ainda pendente de homologação e aplicação remota. Consulte [o relatório da etapa](modernizacao/ETAPA_1.md) antes de publicar.

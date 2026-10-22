@@ -7,7 +7,9 @@ import asyncio
 from backend.domain.appointments import can_transition
 from backend.domain.operations import normalize_idempotency_key
 from backend.errors import ApiError
-from backend.models import AppointmentCancelRequest, AppointmentCreate, AppointmentStatusUpdate
+from backend.schemas.appointments import AppointmentCancelRequest
+from backend.schemas.appointments import AppointmentCreate
+from backend.schemas.appointments import AppointmentStatusUpdate
 from backend.security import AuthContext
 from backend.services.access import rows_payload
 from backend.supabase import gateway

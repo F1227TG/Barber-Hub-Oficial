@@ -9,7 +9,7 @@ from typing import Any
 
 from backend.domain.imports import normalize_import_rows, parse_import_file
 from backend.errors import ApiError
-from backend.models import ImportPreviewRequest
+from backend.schemas.imports import ImportPreviewRequest
 from backend.security import AuthContext
 from backend.supabase import gateway
 from backend.services.flags import require_enabled

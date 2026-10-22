@@ -1,0 +1,74 @@
+{
+  "captured_on": "2026-10-22",
+  "platform": "win32",
+  "playwright": "1.64.1",
+  "chromium_revision": "1248",
+  "chromium_version": "156.0.8078.4",
+  "widths": [
+    360,
+    390,
+    412,
+    768,
+    1440
+  ],
+  "height": 900,
+  "themes": [
+    "escuro",
+    "claro"
+  ],
+  "pages": [
+    "login",
+    "portal",
+    "conta",
+    "admin"
+  ],
+  "snapshots": 50,
+  "before_extraction_sha256_utf8_lf": "276f8dcb6ed0709e5c3009f3a0ab9474d58dc2d179dbafa6e2ada229e472dd10",
+  "extraction": [
+    {
+      "source": "css/core/foundation.css",
+      "original_start": 1,
+      "original_end": 13
+    },
+    {
+      "source": "css/components/controls.css",
+      "original_start": 14,
+      "original_end": 21
+    },
+    {
+      "source": "css/features/marketplace-cards.css",
+      "original_start": 22,
+      "original_end": 42
+    },
+    {
+      "source": "css/pages/account.css",
+      "original_start": 43,
+      "original_end": 241
+    },
+    {
+      "source": "css/components/activity-drawers.css",
+      "original_start": 242,
+      "original_end": 346
+    },
+    {
+      "source": "css/legacy/workspace-overrides.css",
+      "original_start": 347,
+      "original_end": 602
+    },
+    {
+      "source": "css/mobile/workspaces.css",
+      "original_start": 603,
+      "original_end": 835
+    },
+    {
+      "source": "css/features/onboarding.css",
+      "original_start": 836,
+      "original_end": 876
+    },
+    {
+      "source": "css/core/accessibility.css",
+      "original_start": 877,
+      "original_end": 885
+    }
+  ]
+}

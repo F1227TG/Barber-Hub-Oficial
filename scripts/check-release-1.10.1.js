@@ -4,7 +4,7 @@ const path = require("node:path");
 const vm = require("node:vm");
 
 const root = path.resolve(__dirname, "..");
-const read = file => fs.readFileSync(path.join(root, file), "utf8");
+const read = file => require("./source-files").read(root, file);
 const errors = [];
 const check = (condition, message) => { if (!condition) errors.push(message); };
 
@@ -53,7 +53,7 @@ for (const marker of ["funcionalidade_habilitada_1101", "metas_crescimento", "bu
 check(!migration.includes("metas_operacionais"), "migration 32 usa nome inexistente para a tabela de metas");
 check(migration.includes("revoke execute on function public.buscar_marketplace_regional_110"), "RPC regional antigo precisa ser revogado");
 check(verifier.includes("has_function_privilege") && verifier.includes("planos"), "verificador 32 precisa testar privilégios e plano");
-check(api.includes('@app.get("/api/v1/jobs/push/deliver")') && api.includes("Bearer "), "Cron precisa usar GET e autenticação Bearer");
+check(api.includes('@router.get("/api/v1/jobs/push/deliver")') && api.includes("Bearer "), "Cron precisa usar GET e autenticação Bearer");
 check(push.includes("webpush_async") && push.includes("reivindicar_entregas_push_1101") && push.includes("attempts >= 5") && push.includes("horario_silencioso"), "worker push precisa reivindicar, enviar, limitar tentativas e respeitar silêncio");
 check(
   Array.isArray(vercel.crons)

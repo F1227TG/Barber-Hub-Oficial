@@ -4,6 +4,9 @@ Este é o índice canônico da versão **1.11.0**. Documentos de versões anteri
 
 ## Comece por aqui
 
+- [`PLANO_MODERNIZACAO_BARBER_HUB.md`](PLANO_MODERNIZACAO_BARBER_HUB.md): base oficial do planejamento da modernização, registrada em 22/10/2026; define a direção futura, etapas e critérios de conclusão, sem declarar implementação concluída.
+- [`modernizacao/ETAPA_1.md`](modernizacao/ETAPA_1.md): execução local da primeira etapa, evidências, limitações e instruções para continuar.
+- [`modernizacao/ETAPA_2.md`](modernizacao/ETAPA_2.md): baseline visual, fontes CSS por responsabilidade e ponto atual de retomada.
 - [`GUIA_COMPLETO_DO_PROJETO.md`](GUIA_COMPLETO_DO_PROJETO.md): produto, arquitetura, pastas, funcionamento, segurança, testes e publicação.
 - [`GUIA_COMPLETO_BARBER_HUB_1_11_0.docx`](GUIA_COMPLETO_BARBER_HUB_1_11_0.docx): edição Word do guia completo da versão atual.
 - [`../README.md`](../README.md): visão curta para desenvolver e publicar.
@@ -57,7 +60,9 @@ O estado atual está consolidado em `release-1.11/RELATORIO_FINAL_1_11_0.md`. Re
 
 ## Regra de organização
 
-1. código de entrada da API em `api/`, regras em `backend/domain/` e integrações em `backend/services/`;
+As regras abaixo descrevem a estrutura anterior à modernização. Para a evolução planejada, siga o [plano oficial](PLANO_MODERNIZACAO_BARBER_HUB.md): CSS por responsabilidade, API modular e migração gradual, condicionada ao inventário e à baseline. A lista não implica que a migração já ocorreu.
+
+1. entrada da API em `api/index.py`, rotas em `api/routers/`, contratos em `backend/schemas/`, regras em `backend/domain/`, serviços em `backend/services/` e novos adapters em `backend/integrations/`;
 2. páginas canônicas em `html/` e espelhos gerados em `mobile/`;
 3. estilos novos em `css/releases/`, infraestrutura web em `js/core/` e recursos em `js/features/`;
 4. migration/verificador em `sql/`, testes em `tests/` e manutenção em `scripts/`;

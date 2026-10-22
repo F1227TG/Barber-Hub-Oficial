@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from source_files import read_api_source
 import re
 import sys
 
@@ -81,10 +82,10 @@ def main() -> int:
     check("Exclusão com frase forte", all(phrase in text(p) for p in ["html/conta.html", "js/conta.js", "backend/services/admin.py"]), "UI + JS + Python")
 
     # 6. Python API and operations
-    api = text("api/index.py")
+    api = read_api_source(ROOT)
     check("API 1.2", 'API_VERSION = "1.2.0"' in api, "FastAPI")
     check("Marketplace na API", all(x in api for x in ["/api/v1/marketplace/search", "/api/v1/marketplace/featured"]), "search/featured")
-    check("Status/cancelamento na API", all(x in api for x in ["@app.patch(\"/api/v1/appointments/{appointment_id}/status\")", "@app.delete(\"/api/v1/appointments/{appointment_id}\")"]), "fluxo pós-criação")
+    check("Status/cancelamento na API", all(x in api for x in ["@router.patch(\"/api/v1/appointments/{appointment_id}/status\")", "@router.delete(\"/api/v1/appointments/{appointment_id}\")"]), "fluxo pós-criação")
     management = text("backend/services/management.py")
     check("Gestão validada na API", all(x in api for x in ["/api/v1/establishments/{establishment_id}", "/api/v1/services", "/api/v1/professionals"]) and all(x in text("js/backend-api.js") for x in ["updateEstablishment", "createService", "createProfessional"]) and "token=auth.token" in management and "admin=True" not in management, "Pydantic + token do usuário + RLS")
     check("Health admin", all(x in api for x in ["/api/v1/admin/health"]) and "adminHealth" in text("js/backend-api.js") and all(x in text("html/admin.html") for x in ["adminHealthServices", "adminHealthMarketplace"]) and "buscar_marketplace" in text("backend/services/admin.py"), "API/DB/Auth/FTS no painel")

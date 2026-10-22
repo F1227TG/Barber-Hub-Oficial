@@ -1,5 +1,7 @@
 # Mapa de navegação do Barber Hub 1.11.0
 
+Na implementação local da modernização (etapa 1), `painel.html` e `cadastro-barbearia.html` são exclusivos de `barbeiro`, inclusive em `/mobile`. Cliente/barbeiro não entram na administração; administrador não entra no painel profissional exclusivo. A tentativa por outro papel ou por conta inativa leva à 404 compartilhada. Visitantes sem sessão seguem para login com continuação. API e banco fazem suas próprias verificações; o redirecionamento não é a barreira de segurança. Nenhuma página foi criada ou removida nesta etapa.
+
 O Barber Hub possui duas apresentações da mesma plataforma: web (`/html`) e app mobile (`/mobile`). Regras de negócio, API e scripts de domínio são compartilhados. Na 1.11, 22 páginas funcionais mobile são sincronizadas a partir das equivalentes web para impedir deriva de recursos e de CSS.
 
 ## Cliente — fluxo principal

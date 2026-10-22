@@ -139,6 +139,17 @@ class SupabaseGateway:
         normalized = unicodedata.normalize("NFKD", provider_message).encode("ascii", "ignore").decode().lower()
         stable_code = normalized.strip().upper()
 
+        account_errors = {
+            "SELF_ACCOUNT_CHANGE": (409, "Sua conta é protegida nesta operação administrativa."),
+            "ACCOUNT_NOT_FOUND": (404, "A conta solicitada não foi encontrada."),
+            "ACCOUNT_INACTIVE": (403, "Esta conta não possui acesso às áreas privadas."),
+            "ADMIN_REQUIRED": (403, "Esta operação exige uma conta administrativa ativa."),
+            "INVALID_ACCOUNT_CHANGE": (422, "Informe uma alteração de conta válida."),
+        }
+        if stable_code in account_errors:
+            code, message = account_errors[stable_code]
+            return ApiError(code, stable_code, message)
+
         if "nao pode alterar a localizacao" in normalized or "sem permissao para alterar a localizacao" in normalized:
             return ApiError(
                 403,

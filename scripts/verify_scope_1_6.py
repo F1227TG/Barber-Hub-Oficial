@@ -5,6 +5,7 @@ script follows the product request itself: marketplace, booking UX, dedicated
 mobile, themes, panels, account safety, Python API and production protections.
 """
 from pathlib import Path
+from source_files import read_api_source
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -24,7 +25,7 @@ def main() -> int:
     portal_js = read("js/portal.js")
     sql = read("sql/15_marketplace_fts_api_seguranca.sql").lower()
     booking = read("js/features/booking.js")
-    api = read("api/index.py")
+    api = read_api_source(ROOT)
     backend_client = read("js/backend-api.js")
     css = read("css/release-1.6.css")
     prd = read("docs/PRD_BARBER_HUB.md")
@@ -53,7 +54,7 @@ def main() -> int:
     require("Profissional: painel orientado à operação", "painelCommandCenter" in read("html/painel.html") and "data-status-quick" in read("html/painel.html"))
     require("Conta: exclusão por frase forte", all("EXCLUIR MINHA CONTA" in read(p) for p in ["html/conta.html", "js/conta.js", "backend/services/admin.py"]))
 
-    require("API: busca/cancelamento/status", all(x in api for x in ["/api/v1/marketplace/search", "/api/v1/appointments/{appointment_id}/status", "@app.delete(\"/api/v1/appointments/{appointment_id}\")"]))
+    require("API: busca/cancelamento/status", all(x in api for x in ["/api/v1/marketplace/search", "/api/v1/appointments/{appointment_id}/status", "@router.delete(\"/api/v1/appointments/{appointment_id}\")"]))
     require("API: gestão de estabelecimento/serviço/profissional", all(x in api for x in ["/api/v1/establishments/{establishment_id}", "/api/v1/services", "/api/v1/professionals"]))
     require("API: frontend consome gestão Python", all(x in backend_client for x in ["updateEstablishment", "createService", "createProfessional"]))
     require("API: painel admin mostra saúde", "/api/v1/admin/health" in api and "adminHealth" in backend_client)

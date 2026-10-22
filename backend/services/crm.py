@@ -7,7 +7,8 @@ from typing import Any
 
 from backend.domain.crm import normalize_tags
 from backend.errors import ApiError
-from backend.models import CRMClientUpdate, CRMNoteCreate
+from backend.schemas.crm import CRMClientUpdate
+from backend.schemas.crm import CRMNoteCreate
 from backend.security import AuthContext
 from backend.services.access import first_visible, model_payload, require_feature, rows_payload
 from backend.supabase import gateway

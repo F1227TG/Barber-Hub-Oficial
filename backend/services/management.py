@@ -14,17 +14,15 @@ from uuid import UUID
 
 from backend.domain.plans import normalized_limit, plan_limit_reached
 from backend.errors import ApiError
-from backend.models import (
-    EstablishmentStatusUpdate,
-    EstablishmentUpdate,
-    EstablishmentLocationUpdate,
-    ProfessionalCreate,
-    ProfessionalUpdate,
-    PromotionCreate,
-    PromotionUpdate,
-    ServiceCreate,
-    ServiceUpdate,
-)
+from backend.schemas.establishments import EstablishmentStatusUpdate
+from backend.schemas.establishments import EstablishmentUpdate
+from backend.schemas.establishments import EstablishmentLocationUpdate
+from backend.schemas.professionals import ProfessionalCreate
+from backend.schemas.professionals import ProfessionalUpdate
+from backend.schemas.marketplace import PromotionCreate
+from backend.schemas.marketplace import PromotionUpdate
+from backend.schemas.establishments import ServiceCreate
+from backend.schemas.establishments import ServiceUpdate
 from backend.security import AuthContext
 from backend.services.access import object_payload, rows_payload
 from backend.supabase import gateway
