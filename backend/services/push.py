@@ -14,7 +14,7 @@ from backend.schemas.notifications import PushPreferencesUpdate
 from backend.schemas.notifications import PushSubscriptionCreate
 from backend.security import AuthContext
 from backend.services.access import model_payload, rows_payload
-from backend.supabase import gateway
+from backend.integrations.gateway import gateway
 from backend.services.flags import require_enabled
 
 

@@ -1,6 +1,6 @@
 # Arquitetura do Barber Hub 1.11.0
 
-Este documento descreve a base 1.11 e as alterações locais das [etapas 1](docs/modernizacao/ETAPA_1.md) e [2](docs/modernizacao/ETAPA_2.md), ainda sem publicação. A direção completa está no [plano oficial](docs/PLANO_MODERNIZACAO_BARBER_HUB.md). A [organização do CSS](css/README.md) começou por nove fontes que geram o bundle 1.11 sem alterar a cascata. Os demais releases, o desacoplamento dos demais domínios e a extração física da API continuam pendentes.
+Este documento descreve a base 1.11 e as alterações locais das [etapas 1](docs/modernizacao/ETAPA_1.md) e [2](docs/modernizacao/ETAPA_2.md), ainda sem publicação. A direção completa está no [plano oficial](docs/PLANO_MODERNIZACAO_BARBER_HUB.md). A [organização do CSS](css/README.md) começou por nove fontes que geram o bundle 1.11 sem alterar a cascata. Os demais releases, repositories específicos por domínio, a homologação do banco e a extração física da API continuam pendentes.
 
 ## Visão geral
 
@@ -52,11 +52,11 @@ Novos módulos ficam em:
 - `backend/security.py`: identidade e autorização base;
 - `backend/rate_limit.py`: cotas por rota/identidade;
 - `backend/domain/`: funções puras testáveis sem internet;
-- `backend/services/`: orquestração; os serviços anteriores ainda acessam o gateway diretamente;
-- `backend/ports/`: contratos independentes de provedor, iniciados por contas e identidade;
-- `backend/integrations/`: adapters de contas e identidade;
-- `backend/core/dependencies.py`: composição dos adapters;
-- `backend/supabase.py`: gateway HTTP centralizado.
+- `backend/services/`: orquestração pelo gateway configurado na aplicação;
+- `backend/ports/`: contratos de gateway, contas e identidade;
+- `backend/integrations/`: fachada do gateway e adapters específicos de Supabase;
+- `backend/core/dependencies.py`: composição do gateway e dos adapters de conta/identidade;
+- `backend/supabase.py`: implementação HTTP Supabase do contrato de gateway.
 
 As regras puras cobrem agenda, planos, CRM, finanças, retenção, crescimento, permissões, importação e normalização operacional. Assim, parte relevante da API pode ser validada mesmo sem Supabase disponível.
 

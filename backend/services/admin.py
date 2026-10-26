@@ -9,7 +9,7 @@ from backend.schemas.admin import AdminSubscriptionUpdate
 from backend.schemas.admin import PasswordRecoveryRequest
 from backend.security import AuthContext
 from backend.services.access import object_payload, rows_payload
-from backend.supabase import gateway
+from backend.integrations.gateway import gateway
 from backend.version import API_VERSION, RELEASE_VERSION
 
 

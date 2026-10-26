@@ -25,7 +25,7 @@ from backend.schemas.establishments import ServiceCreate
 from backend.schemas.establishments import ServiceUpdate
 from backend.security import AuthContext
 from backend.services.access import object_payload, rows_payload
-from backend.supabase import gateway
+from backend.integrations.gateway import gateway
 
 
 def _json_value(value: Any) -> Any:

@@ -10,7 +10,7 @@ from backend.errors import ApiError
 from backend.schemas.account import DeleteAccountRequest
 from backend.security import AuthContext
 from backend.services.access import object_payload, rows_payload
-from backend.supabase import gateway
+from backend.integrations.gateway import gateway
 
 
 def _one(value: Any) -> dict[str, Any]:

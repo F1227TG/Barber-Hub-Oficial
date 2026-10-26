@@ -11,7 +11,7 @@ import hashlib
 from fastapi import Request
 
 from backend.errors import ApiError
-from backend.supabase import gateway
+from backend.integrations.gateway import gateway
 
 
 def _client_key(request: Request, scope: str, identity: str | None = None) -> str:

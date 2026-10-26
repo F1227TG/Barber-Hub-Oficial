@@ -9,7 +9,7 @@ from backend.config import settings
 from backend.errors import ApiError
 from backend.services import email_delivery
 from backend.services.access import rows_payload
-from backend.supabase import gateway
+from backend.integrations.gateway import gateway
 
 
 async def _rpc(name: str, payload: dict[str, Any]) -> Any:

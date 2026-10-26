@@ -6,7 +6,7 @@ from typing import Any
 
 from backend.security import AuthContext
 from backend.services.access import rows_payload
-from backend.supabase import gateway
+from backend.integrations.gateway import gateway
 
 
 async def list_events(establishment_id: str, resource: str | None, offset: int, limit: int, auth: AuthContext) -> dict[str, Any]:

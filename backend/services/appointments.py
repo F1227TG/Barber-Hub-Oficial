@@ -12,7 +12,7 @@ from backend.schemas.appointments import AppointmentCreate
 from backend.schemas.appointments import AppointmentStatusUpdate
 from backend.security import AuthContext
 from backend.services.access import rows_payload
-from backend.supabase import gateway
+from backend.integrations.gateway import gateway
 
 
 async def _assert_not_own_establishment(establishment_id: str, auth: AuthContext) -> None:

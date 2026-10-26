@@ -11,7 +11,7 @@ from backend.domain.imports import normalize_import_rows, parse_import_file
 from backend.errors import ApiError
 from backend.schemas.imports import ImportPreviewRequest
 from backend.security import AuthContext
-from backend.supabase import gateway
+from backend.integrations.gateway import gateway
 from backend.services.flags import require_enabled
 from backend.services.access import first_visible, rows_payload
 

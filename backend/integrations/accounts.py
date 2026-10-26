@@ -1,6 +1,6 @@
 """Supabase implementation of the account repository contract."""
 from backend.errors import ApiError
-from backend.supabase import gateway
+from backend.integrations.gateway import gateway
 
 
 class SupabaseAccountRepository:

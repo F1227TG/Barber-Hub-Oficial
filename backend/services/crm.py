@@ -11,7 +11,7 @@ from backend.schemas.crm import CRMClientUpdate
 from backend.schemas.crm import CRMNoteCreate
 from backend.security import AuthContext
 from backend.services.access import first_visible, model_payload, require_feature, rows_payload
-from backend.supabase import gateway
+from backend.integrations.gateway import gateway
 
 
 async def list_clients(

@@ -12,7 +12,7 @@ from backend.schemas.growth import OpportunityUpdate
 from backend.schemas.team import TeamPermissionsUpdate
 from backend.security import AuthContext
 from backend.services.access import first_visible, model_payload, require_feature, rows_payload
-from backend.supabase import gateway
+from backend.integrations.gateway import gateway
 
 
 async def permissions(establishment_id: str, auth: AuthContext) -> dict[str, Any]:

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from backend.config import settings
 from backend.errors import ApiError
-from backend.supabase import gateway
+from backend.integrations.gateway import gateway
 
 
 async def readiness() -> dict[str, str]:

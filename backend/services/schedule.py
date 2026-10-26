@@ -15,7 +15,7 @@ from backend.schemas.schedule import WalkInCreate
 from backend.security import AuthContext
 from backend.domain.operations import normalize_origin_channel, normalize_payment_method
 from backend.services.access import first_visible, model_payload, require_feature, rows_payload
-from backend.supabase import gateway
+from backend.integrations.gateway import gateway
 from backend.services.flags import require_enabled
 
 

@@ -7,7 +7,7 @@ from typing import Any
 from backend.schemas.flags import FeatureFlagEvaluationRequest
 from backend.errors import ApiError
 from backend.security import AuthContext
-from backend.supabase import gateway
+from backend.integrations.gateway import gateway
 
 
 async def evaluate(payload: FeatureFlagEvaluationRequest, auth: AuthContext) -> dict[str, bool]:

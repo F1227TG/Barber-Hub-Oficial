@@ -11,7 +11,7 @@ from typing import Any
 from backend.config import settings
 from backend.errors import ApiError
 from backend.services.access import rows_payload
-from backend.supabase import gateway
+from backend.integrations.gateway import gateway
 
 
 async def _finish(

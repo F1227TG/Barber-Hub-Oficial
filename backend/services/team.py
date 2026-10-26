@@ -9,7 +9,7 @@ from backend.schemas.team import TeamMemberLink
 from backend.schemas.team import TeamMemberUpdate
 from backend.security import AuthContext
 from backend.services.access import first_visible, model_payload, require_feature, rows_payload
-from backend.supabase import gateway
+from backend.integrations.gateway import gateway
 
 
 async def list_members(establishment_id: str, auth: AuthContext) -> list[dict[str, Any]]:

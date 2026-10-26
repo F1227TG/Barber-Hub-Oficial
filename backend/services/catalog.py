@@ -11,7 +11,7 @@ from uuid import UUID
 
 from backend.errors import ApiError
 from backend.services.access import object_payload, rows_payload
-from backend.supabase import gateway
+from backend.integrations.gateway import gateway
 
 CATALOG_SELECT = (
     "id,tipo_estabelecimento,nome,slug,descricao,email_publico,telefone,whatsapp,"

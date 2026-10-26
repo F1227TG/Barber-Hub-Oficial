@@ -1,5 +1,5 @@
 """Supabase Auth adapter. Only this boundary knows how tokens are verified."""
-from backend.supabase import gateway
+from backend.integrations.gateway import gateway
 
 
 class SupabaseIdentityProvider:

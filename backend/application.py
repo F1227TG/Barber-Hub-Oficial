@@ -6,7 +6,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from backend.config import settings
 from backend.errors import ApiError
-from backend.supabase import gateway
+from backend.integrations.gateway import gateway
 from backend.version import API_VERSION
 from backend.core.http import request_context, api_error_handler, validation_error_handler, unexpected_error_handler
 from api.routers.registry import register_routers

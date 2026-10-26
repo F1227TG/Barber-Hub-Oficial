@@ -9,7 +9,7 @@ from backend.errors import ApiError
 from backend.schemas.support import SupportTicketCreate
 from backend.security import AuthContext
 from backend.services.access import rows_payload
-from backend.supabase import gateway
+from backend.integrations.gateway import gateway
 
 
 async def list_for_user(auth: AuthContext) -> list[dict]:

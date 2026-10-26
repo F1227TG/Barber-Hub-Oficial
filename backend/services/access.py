@@ -9,7 +9,7 @@ from uuid import UUID
 
 from backend.errors import ApiError
 from backend.security import AuthContext
-from backend.supabase import gateway
+from backend.integrations.gateway import gateway
 
 
 def json_value(value: Any) -> Any:

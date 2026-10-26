@@ -23,7 +23,7 @@ O mapa de origem dos módulos, versão do navegador e dimensões estão em [base
 
 Apenas a latência variável exibida no cartão de saúde da API administrativa é mascarada nas imagens. A data é fixa e os dados são sintéticos. Os testes não comprovam Auth, CAPTCHA, RLS ou operações reais no Supabase; também não cobrem ainda agendamento completo, painel profissional, planos, assinaturas, todos os modais ou toda a acessibilidade. As consultas simuladas do SDK não reproduzem filtros/autorização do banco.
 
-Snapshots são específicos de Windows e do Chromium fixado. O CI remoto ainda não foi executado; diferenças de rasterização do ambiente remoto devem ser investigadas antes de aceitar outra baseline. Linux/macOS exigem baseline própria ou execução no ambiente de referência. Não usar `PLAYWRIGHT_CHANNEL=chrome` para comparar estas imagens com um Chrome de versão variável.
+Snapshots são específicos de Windows e do Chromium fixado. O job GitHub `browser` do commit `cdc175c` executou os 10 testes funcionais com sucesso, mas falhou nos 50 snapshots ao comparar Windows desktop local com Windows Server 2025: o log registra diferenças de rasterização entre 1–3% e variação de até 5 px na altura. A suíte local foi ajustada para tolerar até 4% de diferença e roda novamente com o Chromium fixado. Isso mantém conteúdo, erros, chamadas inesperadas e overflow verificáveis, porém não substitui a revisão visual humana. A correção ainda precisa rodar no GitHub após entrar em um commit futuro. Linux/macOS exigem baseline própria ou execução no ambiente de referência. Não usar `PLAYWRIGHT_CHANNEL=chrome` para comparar estas imagens com um Chrome de versão variável.
 
 Na inspeção apareceu um pequeno marcador vermelho sem texto nas capturas, inclusive no marketplace público; ele já estava presente antes da extração. A causa ainda precisa ser diagnosticada, sem escondê-lo no teste. Preservação visual não significa ausência de defeitos anteriores.
 
@@ -60,6 +60,8 @@ Próximas ações:
 
 - `npm run check`: **16 verificações aprovadas**, incluindo 157 testes Python, 4 testes JavaScript e 1 suíte transacional PGlite com múltiplos cenários. Resultado agregado em `test-results/checks.json`.
 - `npm run check:visual`: **50 testes aprovados após a extração**, comparando com os snapshots anteriores, sem `--update-snapshots` (2,3 minutos).
+- Depois de investigar o workflow remoto do commit `cdc175c`, `npm run check:visual` voltou a passar localmente com tolerância máxima de 4%. O novo resultado no Actions ainda está pendente de um commit futuro.
+- Na continuação, os serviços passaram a depender de `DataGateway` (`backend/ports/gateway.py`) pela fronteira de integração. Apenas `backend/integrations/gateway.py` seleciona diretamente `backend.supabase`. Os contratos de dados ainda carregam nomes/RPCs PostgREST; repositories por domínio e validação de toda a suíte são o próximo avanço.
 - As 50 imagens de referência ocupam aproximadamente 9,81 MiB e ficam no repositório para revisão futura.
 - `git diff --check`: nenhuma falha de whitespace. Avisos locais de conversão LF/CRLF não alteram a comparação textual normalizada do builder.
 - Os 10 cenários de controle de acesso da Etapa 1 permanecem disponíveis em `check:browser`; não foram reexecutados nesta etapa, que não alterou seus scripts de produção.
