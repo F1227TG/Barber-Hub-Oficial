@@ -35,7 +35,7 @@ function bhRenderFavoritosCliente() {
     return;
   }
   lista.innerHTML = bhClienteFavoritos.map(item => {
-    const imagem = item.capaUrl || item.fotoUrl || "../img/placeholders/barbearia-02.webp";
+    const imagem = item.capaUrl || item.fotoUrl || "../img/placeholders/barber-editorial.svg";
     return `<article class="favorite-card">
       <a class="favorite-cover" href="barbearia.html?id=${item.id}" style="--favorite-cover:url('${escapeHTML(imagem)}')"><span class="status ${bhCalcularStatus(item).classe}">${escapeHTML(bhCalcularStatus(item).texto)}</span>${item.verificado ? `<span class="verified-mini"><i class="bi bi-patch-check-fill"></i> Verificado</span>` : ""}</a>
       <div class="favorite-body"><div><h3>${escapeHTML(item.nome)}</h3><p><i class="bi bi-geo-alt"></i> ${escapeHTML([item.bairro,item.cidade].filter(Boolean).join(", "))}</p></div><div class="favorite-actions"><a class="btn btn-primary btn-small" href="barbearia.html?id=${item.id}&agendar=1"><i class="bi bi-calendar2-plus"></i> Agendar</a><button class="icon-btn danger" type="button" data-remover-favorito="${item.id}" title="Remover dos favoritos"><i class="bi bi-heart-fill"></i></button></div></div>
@@ -107,7 +107,7 @@ function bhRenderRecomendacoesCliente(contexto = "") {
   }
   host.innerHTML = bhClienteRecomendacoes.map(item => {
     const status = item.aberto_agora === undefined ? bhCalcularStatus(item) : { aberta:Boolean(item.aberto_agora), classe:item.aberto_agora ? "aberto" : "fechado", texto:item.aberto_agora ? "Aberto agora" : "Fechado agora" };
-    const imagem = item.capaUrl || item.fotoUrl || "../img/placeholders/barbearia-01.webp";
+    const imagem = item.capaUrl || item.fotoUrl || "../img/placeholders/barber-editorial.svg";
     const url = `barbearia.html?id=${encodeURIComponent(item.id)}`;
     const distancia = item.distancia_km !== null && item.distancia_km !== undefined ? `${Number(item.distancia_km).toFixed(1).replace(".", ",")} km` : [item.bairro, item.cidade].filter(Boolean).join(", ");
     return `<article class="client-local-card111"><a class="client-local-cover111" href="${url}" style="--client-local-cover:url('${escapeHTML(imagem)}')"><span class="marketplace-status ${status.classe}">${escapeHTML(status.texto)}</span></a><div><span class="client-local-type111">${item.tipoEstabelecimento === "salao" ? "Salão" : "Barbearia"}</span><h3><a href="${url}">${escapeHTML(item.nome || "Estabelecimento")}</a></h3><p><i class="bi bi-geo-alt"></i> ${escapeHTML(distancia || "Veja a localização no perfil")}</p><div class="client-local-actions111"><a class="btn btn-outline btn-small" href="${url}">Ver local</a>${item.aceitaAgendamento ? `<a class="btn btn-primary btn-small" href="${url}&agendar=1">Agendar</a>` : ""}</div></div></article>`;

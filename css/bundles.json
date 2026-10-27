@@ -11,7 +11,9 @@
         "css/legacy/workspace-overrides.css",
         "css/mobile/workspaces.css",
         "css/features/onboarding.css",
-        "css/core/accessibility.css"
+        "css/core/accessibility.css",
+        "css/core/editorial.css",
+        "css/pages/editorial-public.css"
       ]
     }
   ]

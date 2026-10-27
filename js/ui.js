@@ -526,9 +526,9 @@ function bhMelhorarFormularios(){
 
 function bhAnimarConteudo(){
   const itens=document.querySelectorAll('.feature,.card,.form-card,.kpi,.recommend-card,.simple-item,.section-top');
-  if(document.body.classList.contains('reduzir-movimento')) return;
-  itens.forEach((el,i)=>{el.classList.add('reveal-ready');el.style.transitionDelay=`${Math.min(i%6,5)*55}ms`});
-  const obs=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('reveal-in');obs.unobserve(e.target)}}),{threshold:.08});itens.forEach(el=>obs.observe(el));
+  if(document.body.classList.contains('reduzir-movimento') || matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) return;
+  // Content stays readable before intersection, including keyboard navigation and print.
+  const obs=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('bh-reveal');obs.unobserve(e.target)}}),{threshold:.08});itens.forEach(el=>obs.observe(el));
 }
 
 function bhAdicionarIdentidadePagina(){

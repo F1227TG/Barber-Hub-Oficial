@@ -116,6 +116,7 @@ Páginas administrativas relacionadas
 | Destino | Arquivo | Estado 1.11 | Papel |
 |---|---|---|---|
 | Início | `index.html` | ✅ | Landing e instalação PWA |
+| Vizu | `vizu.html` | ✅ | Apresentação institucional das plataformas irmãs |
 | Explorar | `html/portal.html` | ✅ | Marketplace FTS/paginado |
 | Estabelecimento | `html/barbearia.html` | ✅ | Página pública + modal de agendamento |
 | Agendamento legado | `html/agendamento.html` | ✅ Compatibilidade | Redireciona para estabelecimento + modal |

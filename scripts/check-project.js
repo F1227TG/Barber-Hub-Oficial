@@ -12,6 +12,10 @@ const { spawnSync } = require("node:child_process");
 const root = path.resolve(__dirname, "..");
 const required = [
   "index.html",
+  "vizu.html",
+  "css/vizu.css",
+  "js/vizu.js",
+  "img/branding/vizu-mark.svg",
   "html/portal.html",
   "html/barbearia.html",
   "html/agendamento.html",
@@ -141,16 +145,17 @@ for (const file of htmlFiles) {
 
   const rel = path.relative(root, file).replaceAll("\\", "/");
   const minimalPages = new Set(["offline.html", "html/agendamento.html", "mobile/agendamento.html", "mobile/index.html"]);
-  if (!html.includes("product-redesign.css") && !minimalPages.has(rel)) {
+  const standalonePages = new Set(["vizu.html"]);
+  if (!html.includes("product-redesign.css") && !minimalPages.has(rel) && !standalonePages.has(rel)) {
     warnings.push(`${rel} não carrega product-redesign.css.`);
   }
-  if (!html.includes("release-1.6.css") && !rel.endsWith("offline.html")) {
+  if (!html.includes("release-1.6.css") && !rel.endsWith("offline.html") && !standalonePages.has(rel)) {
     errors.push(`${rel} não carrega release-1.6.css.`);
   }
-  if (!html.includes("release-1.7.css") && !rel.endsWith("offline.html") && !["cadastro.html","listagem.html"].includes(rel)) {
+  if (!html.includes("release-1.7.css") && !rel.endsWith("offline.html") && !["cadastro.html","listagem.html"].includes(rel) && !standalonePages.has(rel)) {
     errors.push(`${rel} não carrega release-1.7.css.`);
   }
-  if (!html.includes("release-1.7.1.css") && !rel.endsWith("offline.html") && !["cadastro.html","listagem.html"].includes(rel)) {
+  if (!html.includes("release-1.7.1.css") && !rel.endsWith("offline.html") && !["cadastro.html","listagem.html"].includes(rel) && !standalonePages.has(rel)) {
     errors.push(`${rel} não carrega release-1.7.1.css.`);
   }
 }

@@ -4,6 +4,8 @@ Este é o índice canônico da versão **1.11.0**. Documentos de versões anteri
 
 ## Comece por aqui
 
+- [`REDESIGN-BARBER-HUB-2026-10-26.md`](REDESIGN-BARBER-HUB-2026-10-26.md): atualização visual compartilhada, home interativa, fontes CSS e limites da validação local.
+
 - [`PLANO_MODERNIZACAO_BARBER_HUB.md`](PLANO_MODERNIZACAO_BARBER_HUB.md): base oficial do planejamento da modernização, registrada em 22/10/2026; define a direção futura, etapas e critérios de conclusão, sem declarar implementação concluída.
 - [`modernizacao/ETAPA_1.md`](modernizacao/ETAPA_1.md): execução local da primeira etapa, evidências, limitações e instruções para continuar.
 - [`modernizacao/ETAPA_2.md`](modernizacao/ETAPA_2.md): baseline visual, fontes CSS por responsabilidade e ponto atual de retomada.
@@ -13,6 +15,7 @@ Este é o índice canônico da versão **1.11.0**. Documentos de versões anteri
 - [`../ARCHITECTURE.md`](../ARCHITECTURE.md): fronteiras entre interface, API e banco.
 - [`MAPA_DE_NAVEGACAO.md`](MAPA_DE_NAVEGACAO.md): rotas e áreas da plataforma.
 - [`GUIA_DE_CODIGO.md`](GUIA_DE_CODIGO.md): convenções de manutenção.
+- [`HANDOFF-CODEX-2026-10-26.md`](HANDOFF-CODEX-2026-10-26.md): contexto completo, estado do Git, validações e próximos passos para retomar o trabalho em outra conta.
 
 ## Versão 1.11.0
 
@@ -48,6 +51,8 @@ Este é o índice canônico da versão **1.11.0**. Documentos de versões anteri
 - [`MIGRATIONS_DEPLOY_1_9.md`](MIGRATIONS_DEPLOY_1_9.md): histórico aplicado até a migration 28.
 
 ## Produto e pesquisa
+
+- [`DIAGNOSTICO-FEIRA.md`](DIAGNOSTICO-FEIRA.md): diagnóstico inicial, evidências locais, riscos e plano de quatro dias para a feira.
 
 - [`PRD_BARBER_HUB.md`](PRD_BARBER_HUB.md): requisitos funcionais e direção de produto.
 - [`MATRIZ_PLANOS_1_9.md`](MATRIZ_PLANOS_1_9.md): base de recursos por plano.

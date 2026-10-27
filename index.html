@@ -45,6 +45,7 @@
 <a data-page="sobre" href="./html/sobre.html">
       Sobre
      </a>
+<a href="./vizu.html">Vizu</a>
 <a data-page="contato" href="./html/contato.html">
       Suporte
      </a>
@@ -106,96 +107,20 @@
        </span>
 </div>
 </div>
-<div aria-label="Prévia da experiência Barber Hub" class="home-experience-preview">
-<div class="preview-glow">
-</div>
-<div class="app-preview-shell">
-<div class="app-preview-top">
-<img alt="" src="./img/logomarcaTRANSPARENTE.png"/>
-<div>
-<strong>
-          Barber Hub
-         </strong>
-<span>
-          Explore perto de você
-         </span>
-</div>
-<i class="bi bi-bell">
-</i>
-</div>
-<div class="app-search">
-<i class="bi bi-search">
-</i>
-<span>
-         Barbearia, bairro ou cidade
-        </span>
-</div>
-<article class="app-business-card">
-<div class="app-business-image">
-<span class="status aberta">
-          Aberto agora
-         </span>
-<span class="verified-mini">
-<i class="bi bi-patch-check-fill">
-</i>
-          Verificado
-         </span>
-</div>
-<div>
-<div class="app-business-title">
-<strong>
-           Seu estilo, seu horário
-          </strong>
-<span>
-           4,9 ★
-          </span>
-</div>
-<p>
-          Serviços, equipe, trabalhos e redes sociais em um só lugar.
-         </p>
-<button>
-          Agendar horário
-         </button>
-</div>
-</article>
-<div class="app-bottom-nav">
-<i class="bi bi-house-door-fill">
-</i>
-<i class="bi bi-shop">
-</i>
-<i class="bi bi-calendar2-plus">
-</i>
-<i class="bi bi-heart">
-</i>
-<i class="bi bi-person">
-</i>
-</div>
-</div>
-<div class="floating-proof proof-one">
-<i class="bi bi-heart-fill">
-</i>
-<div>
-<strong>
-         Favoritos
-        </strong>
-<span>
-         Volte em poucos toques
-        </span>
-</div>
-</div>
-<div class="floating-proof proof-two">
-<i class="bi bi-arrow-repeat">
-</i>
-<div>
-<strong>
-         Agendar novamente
-        </strong>
-<span>
-         Mesmo serviço e profissional
-        </span>
-</div>
-</div>
-</div>
+<div class="home-experience-preview"><div class="bh-preview" data-bh-preview>
+<div class="bh-preview-heading"><strong>BARBER HUB /</strong><span>Uma plataforma. Dois caminhos.</span></div>
+<div class="bh-switch" role="group" aria-label="Conheça os caminhos do Barber Hub">
+<button type="button" data-preview-target="preview-cliente" aria-controls="preview-cliente" aria-pressed="true">Para o seu estilo</button>
+<button type="button" data-preview-target="preview-negocio" aria-controls="preview-negocio" aria-pressed="false">Para o seu negócio</button></div>
+<div id="preview-cliente" data-preview-panel>
+<small>Seu próximo atendimento</small><h2>Do encontro ao<br>horário marcado.</h2>
+<ol class="bh-steps"><li><span>01</span><div><strong>Encontre seu lugar</strong><p>Compare serviços, localização e avaliações.</p></div></li><li><span>02</span><div><strong>Escolha o seu momento</strong><p>Veja a disponibilidade e reserve seu horário.</p></div></li><li><span>03</span><div><strong>Volte quando quiser</strong><p>Seus favoritos e agendamentos em um só lugar.</p></div></li></ol>
+<a href="./html/portal.html">Encontrar uma barbearia <span aria-hidden="true">↗</span></a></div>
+<div id="preview-negocio" data-preview-panel>
+<small>Seu negócio, bem organizado</small><h2>Mais presença.<br>Uma rotina mais leve.</h2>
+<ol class="bh-steps"><li><span>01</span><div><strong>Apresente seu trabalho</strong><p>Seu perfil, serviços e equipe no marketplace.</p></div></li><li><span>02</span><div><strong>Organize a agenda</strong><p>Horários e atendimentos conectados à operação.</p></div></li><li><span>03</span><div><strong>Acompanhe o negócio</strong><p>Clientes e gestão em uma visão integrada.</p></div></li></ol>
+<a href="./html/cadastro.html">Começar meu cadastro <span aria-hidden="true">↗</span></a></div>
+<span class="bh-demo-note">Conheça o fluxo da plataforma. Sem dados de clientes nesta prévia.</span></div></div>
 </div>
 </section>
 <section aria-label="Indicadores atualizados da plataforma" class="home-metrics-strip">
@@ -358,7 +283,7 @@
 </section>
 <section class="section home-business-showcase">
 <div class="container business-showcase-grid">
-<div class="showcase-dashboard">
+<div class="showcase-dashboard"><span class="bh-demo-note">Exemplo ilustrativo de gestão</span>
 <div class="dashboard-top">
 <span>
         Visão da semana
@@ -553,6 +478,7 @@
 <p><a href="./html/cadastro.html">Cadastrar negócio</a></p>
 <p><a href="./html/login.html">Entrar no painel</a></p>
 <p><a href="./html/contato.html">Central de suporte</a></p>
+<p><a href="./vizu.html">Ecossistema Vizu</a></p>
 <p><a href="./html/beauty-hub.html">Beauty Hub</a></p>
 </div>
 <div>
@@ -598,5 +524,6 @@
 <script src="./js/home.js">
 </script>
 <script src="./js/mobile-app.js"></script>
-<script src="./js/product-redesign.js"></script></body>
+<script src="./js/product-redesign.js"></script><script src="./js/core/experience.js"></script>
+</body>
 </html>

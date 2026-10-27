@@ -436,7 +436,7 @@ function bhRenderConfiguracoesPainel() {
   document.getElementById("configAgenda").value = b.aceitaAgendamento ? "sim" : "nao";
   bhSincronizarControlesPainel();
   document.getElementById("configFotoPreview").src = b.fotoUrl || "../img/logomarcaTRANSPARENTE.png";
-  document.getElementById("configCapaPreview").src = b.capaUrl || "../img/backgrounds/barbearia-hero-default.webp";
+  document.getElementById("configCapaPreview").src = b.capaUrl || "../img/placeholders/barber-editorial.svg";
 
   document.querySelectorAll(".horario-config-painel").forEach(row => {
     const dia = Number(row.dataset.dia);

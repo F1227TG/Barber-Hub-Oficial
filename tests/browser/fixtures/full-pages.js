@@ -52,9 +52,10 @@ async function mountFullPage(page, { name, width, theme = 'escuro' }) {
     capaUrl: '/img/placeholders/barbearia-01.webp',
     servicos: [{ nome: 'Corte completo', ativo: true, publico: true, preco: 45 }],
   }));
-  const tables = { notificacoes: [], agendamentos: [], tickets_suporte: [], portfolio_denuncias: [],
+  const tables = { estabelecimentos: [], notificacoes: [], agendamentos: [], tickets_suporte: [], portfolio_denuncias: [],
     consentimentos_usuario: [{ documento: 'Política de privacidade', versao: '1.0', acao: 'aceito', created_at: now }] };
   const endpoints = {
+    '/api/v1/catalog/summary': { estabelecimentos: 3, agendamentos: 2 },
     '/api/v1/public-config': { turnstile_site_key: '' },
     '/api/v1/account/profile': profile,
     '/api/v1/account/sessions': { items: [{ current: true, user_agent: 'Chrome Windows', ip_masked: '192.0.*.*', updated_at: now }], can_revoke_others: false },
@@ -84,7 +85,7 @@ async function mountFullPage(page, { name, width, theme = 'escuro' }) {
     if (url.hostname === 'barberhub.test' && request.method() === 'GET') {
       if (Object.hasOwn(endpoints, url.pathname)) return route.fulfill({ json: { success: true, data: endpoints[url.pathname] } });
       // Resolve only public assets. Tests must never serve config/secrets from the repository.
-      if (/^\/(html|mobile|css|js|vendor|img|assets)\//.test(url.pathname) || url.pathname === '/manifest.webmanifest') {
+      if (/^\/(html|mobile|css|js|vendor|img|assets)\//.test(url.pathname) || ['/index.html', '/manifest.webmanifest'].includes(url.pathname)) {
         const target = path.resolve(root, '.' + decodeURIComponent(url.pathname));
         if (target.startsWith(root + path.sep) && fs.existsSync(target) && fs.statSync(target).isFile()) {
           return route.fulfill({ path: target });
@@ -94,8 +95,8 @@ async function mountFullPage(page, { name, width, theme = 'escuro' }) {
     errors.push(`Unmocked request: ${request.method()} ${url.href}`);
     return route.abort();
   });
-  await page.goto(`http://barberhub.test/${width < 768 ? 'mobile' : 'html'}/${name}.html`);
-  await expect(page.locator('#menuPrincipal')).not.toBeEmpty();
+  await page.goto(name === 'home' ? `http://barberhub.test/${width < 768 ? 'mobile/' : ''}index.html` : `http://barberhub.test/${width < 768 ? 'mobile' : 'html'}/${name}.html`);
+  if (!['privacidade', 'termos', 'recuperar-senha'].includes(name) && (name !== 'home' || width >= 768)) await expect(page.locator('#menuPrincipal')).not.toBeEmpty();
   if (name === 'login') await expect(page.locator('#formLogin')).toBeVisible();
   if (name === 'portal') await expect(page.locator('#gridBarbearias [data-marketplace-card]')).toHaveCount(3);
   if (name === 'conta') {

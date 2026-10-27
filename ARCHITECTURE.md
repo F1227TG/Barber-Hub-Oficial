@@ -1,6 +1,4 @@
-# Arquitetura do Barber Hub 1.11.0
-
-Este documento descreve a base 1.11 e as alterações locais das [etapas 1](docs/modernizacao/ETAPA_1.md) e [2](docs/modernizacao/ETAPA_2.md), ainda sem publicação. A direção completa está no [plano oficial](docs/PLANO_MODERNIZACAO_BARBER_HUB.md). A [organização do CSS](css/README.md) começou por nove fontes que geram o bundle 1.11 sem alterar a cascata. Os demais releases, repositories específicos por domínio, a homologação do banco e a extração física da API continuam pendentes.
+ Arquitetura do Barber Hub 1.11.0
 
 ## Visão geral
 
@@ -37,30 +35,20 @@ Novos módulos ficam em:
 
 - `js/core/`: conectividade, repetição segura e infraestrutura de navegador;
 - `js/features/`: recursos funcionais isolados por domínio;
-- `css/releases/`: camadas visuais legadas ainda carregadas. Sua consolidação por responsabilidade depende da baseline visual da próxima etapa.
+- `css/releases/`: camadas visuais versionadas sem romper o tema premium escuro/quente e dourado.
 
 ### API
 
-`api/index.py` apenas cria a aplicação. A regra crítica não deve viver dentro do handler:
+`api/index.py` declara as rotas. A regra crítica não deve viver dentro do handler:
 
-- `backend/application.py`: composição da aplicação, CORS, ciclo de vida e registro dos handlers;
-- `api/routers/registry.py`: registro explícito dos módulos;
-- `api/routers/<dominio>.py`: rotas de cada domínio;
-- `backend/schemas/<dominio>.py`: contratos de entrada;
-- `backend/models.py`: fachada de compatibilidade para imports anteriores;
-- `backend/core/http.py`: erros padronizados, logs e request ID;
+- `backend/models.py`: contratos de entrada;
 - `backend/security.py`: identidade e autorização base;
 - `backend/rate_limit.py`: cotas por rota/identidade;
 - `backend/domain/`: funções puras testáveis sem internet;
-- `backend/services/`: orquestração pelo gateway configurado na aplicação;
-- `backend/ports/`: contratos de gateway, contas e identidade;
-- `backend/integrations/`: fachada do gateway e adapters específicos de Supabase;
-- `backend/core/dependencies.py`: composição do gateway e dos adapters de conta/identidade;
-- `backend/supabase.py`: implementação HTTP Supabase do contrato de gateway.
+- `backend/services/`: orquestração e acesso ao Supabase;
+- `backend/supabase.py`: gateway HTTP centralizado.
 
 As regras puras cobrem agenda, planos, CRM, finanças, retenção, crescimento, permissões, importação e normalização operacional. Assim, parte relevante da API pode ser validada mesmo sem Supabase disponível.
-
-Na etapa 1, a leitura do próprio perfil e as alterações administrativas de conta passam pela API. A identidade é verificada pelo adapter de Auth; o estado do perfil e a existência da sessão são consultados novamente no banco. Alteração administrativa, proteção do último administrador e auditoria são transacionais. A migration 20261022155131 precisa ser homologada e aplicada junto dessa entrega; não está aplicada pelo trabalho local.
 
 ### Banco
 

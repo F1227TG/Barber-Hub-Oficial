@@ -83,7 +83,7 @@ function bhMarketplaceCard(item, { destaque = false } = {}) {
   const status = item.aberto_agora === undefined
     ? bhCalcularStatus(item)
     : { aberta:Boolean(item.aberto_agora), classe:item.aberto_agora ? "aberto" : "fechado", texto:item.aberto_agora ? "Aberto agora" : "Fechado agora" };
-  const imagem = item.capaUrl || item.fotoUrl || "../img/placeholders/barbearia-01.webp";
+  const imagem = item.capaUrl || item.fotoUrl || "../img/placeholders/barber-editorial.svg";
   const tipo = item.tipoEstabelecimento === "salao" ? "Salão" : "Barbearia";
   const avaliacao = Number(item.avaliacao || 0);
   const servicosAtivos = bhMarketplaceLista(item?.servicos).filter(servico => servico?.ativo && servico?.publico);
