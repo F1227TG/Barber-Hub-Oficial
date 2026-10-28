@@ -2,6 +2,16 @@
 
 Este arquivo resume entregas. Os critérios de publicação e as evidências completas ficam em `docs/release-1.11/`.
 
+## 1.11.1 — preparação de API independente e autenticação — 2026-10-27
+
+- extrai API, migrations e testes para Barber-Hub-API; troca de tráfego ainda pendente;
+- permite gerar distribuição exclusivamente estática com proxy para o backend independente;
+- corrige cache de perfil entre contas, continuidade anônima, tratamento de cadastro sem perfil e falhas transitórias;
+- impede atualização antecipada do e-mail confirmado e falso sucesso em respostas inválidas da API;
+- corrige recuperação padrão para o domínio atual e repetição da configuração CAPTCHA após falha;
+- separa atualização dos dados do painel do horário da consulta de saúde, eliminando uma corrida;
+- acrescenta regressões de login, cadastro, recuperação e distribuição; detalhes e limites no relatório da etapa.
+
 ## Em desenvolvimento — modernização, etapa 2 — 2026-10-22
 
 - registra 50 snapshots das páginas completas em cinco larguras, com temas claro/escuro e painéis de privacidade/filtros;

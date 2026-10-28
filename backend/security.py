@@ -37,6 +37,8 @@ async def require_user(authorization: str | None = Header(default=None)) -> Auth
     try:
         user = await dependencies.identity.verify(token)
     except ApiError as exc:
+        if exc.status_code >= 500 or exc.status_code == 429:
+            raise
         raise ApiError(401, "INVALID_SESSION", "Sua sessão expirou. Entre novamente.") from exc
     if user.get("email") and not user.get("email_confirmed_at"):
         raise ApiError(403, "EMAIL_NOT_CONFIRMED", "Confirme seu e-mail antes de continuar.")

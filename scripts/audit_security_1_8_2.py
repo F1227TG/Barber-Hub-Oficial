@@ -55,7 +55,7 @@ check("V05 also covers subscriptions added after the audit", '"admin-subscriptio
 check("V05 covers entitlement reads added after the audit", '"establishment-entitlements"' in PYTHON_API)
 
 check("V06 exposes browser-safe runtime config", '/api/v1/public-config' in PYTHON_API and "turnstile_site_key" in PYTHON_API)
-check("V06 fetches the public site key at runtime", '/api/v1/public-config' in SECURITY_JS and "resolveSiteKey" in SECURITY_JS)
+check("V06 fetches the public site key at runtime", '${base}/public-config' in SECURITY_JS and 'BARBER_HUB_API_BASE_URL' in SECURITY_JS and "resolveSiteKey" in SECURITY_JS)
 check("V06 does not hardcode a production key", 'const BH_TURNSTILE_SITE_KEY = ""' not in SUPABASE_CONFIG)
 
 failed = [label for label, ok in checks if not ok]

@@ -34,6 +34,18 @@ test('sensitive account writes fail without a session before making any request'
   assert.equal(calls,0);
 });
 
+test('a proxy HTML response cannot become a successful empty operation', async () => {
+  const api = client(async () => ({ok:true, status:200, json:async()=>{throw new Error('HTML')}}));
+  await assert.rejects(api.adminDeleteAccount('user'), error => error.code === 'API_INVALID_RESPONSE');
+});
+
+test('session refresh errors are preserved before calling the backend', async () => {
+  const api = client(async()=>{throw new Error('Unexpected request')}, {
+    supabaseClient:{auth:{getSession:async()=>({data:{session:null},error:new Error('Refresh failed')})}}
+  });
+  await assert.rejects(api.accountProfile(), /Refresh failed/);
+});
+
 test('administrative mutations are not retried after an ambiguous failure', async () => {
   let calls=0;
   const api=client(async()=>{calls++;return {ok:false,status:503,headers:{get:()=> 'trace-1'},json:async()=>({error:{code:'UNAVAILABLE',message:'Indisponível'}})};});

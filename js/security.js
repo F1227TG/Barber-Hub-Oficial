@@ -23,17 +23,23 @@
   async function resolveSiteKey() {
     if (siteKey) return siteKey;
     if (configPromise) return configPromise;
-    configPromise = fetch("/api/v1/public-config", {
+    const base = String(global.BARBER_HUB_API_BASE_URL || "/api/v1").replace(/\/+$/, "");
+    configPromise = fetch(`${base}/public-config`, {
       headers: { Accept: "application/json" },
-      cache: "no-store"
+      cache: "no-store",
+      signal: AbortSignal.timeout(10000)
     })
       .then(async response => {
-        if (!response.ok) return "";
+        if (!response.ok) throw new Error("Não foi possível verificar a proteção de acesso. Tente novamente.");
         const payload = await response.json();
+        if (payload?.success !== true || typeof payload.data?.captcha_required !== "boolean") {
+          throw new Error("Não foi possível verificar a proteção de acesso. Tente novamente.");
+        }
         siteKey = String(payload?.data?.turnstile_site_key || "").trim();
+        if (payload.data.captcha_required && !siteKey) throw new Error("A proteção de acesso está temporariamente indisponível.");
         return siteKey;
       })
-      .catch(() => "");
+      .catch(error => { configPromise = null; throw error; });
     return configPromise;
   }
 
@@ -47,7 +53,11 @@
       script.async = true;
       script.defer = true;
       script.onload = () => resolve(true);
-      script.onerror = () => reject(new Error("Não foi possível carregar a proteção anti-robô."));
+      script.onerror = () => {
+        scriptPromise = null;
+        script.remove();
+        reject(new Error("Não foi possível carregar a proteção anti-robô. Tente novamente."));
+      };
       document.head.appendChild(script);
     });
     return scriptPromise;

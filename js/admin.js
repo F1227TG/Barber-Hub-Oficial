@@ -375,8 +375,11 @@ async function bhAdminCarregarSaudeApi() {
     set("Auth", data?.auth?.status === "online" ? "Online" : "Indisponível", data?.auth?.status === "online");
     const marketplaceOk = data?.marketplace?.status === "online";
     set("Marketplace", marketplaceOk ? "Online" : "Busca indisponível", marketplaceOk);
-    const updated = document.getElementById("adminUltimaAtualizacao");
-    if (updated) updated.textContent = `Serviços verificados às ${new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" }).format(new Date())}`;
+    const health = document.getElementById("adminHealthServices");
+    if (health) {
+      health.dataset.checkedAt = new Date().toISOString();
+      health.title = `Serviços verificados às ${new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" }).format(new Date())}`;
+    }
     bhAdminRenderRelease110(data);
   } catch (error) {
     set("Api", "Indisponível", false);

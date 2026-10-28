@@ -38,6 +38,14 @@ class AccountAuthorizationTests(TestCase):
     def test_no_token_is_rejected(self):
         self.assertEqual(self.client.delete(f'/api/v1/admin/users/{TARGET}').status_code, 401)
 
+    def test_identity_outage_is_not_reported_as_expired_session(self):
+        for status in [429, 503]:
+            with self.subTest(status=status), patch('backend.security.dependencies.identity.verify',
+                    AsyncMock(side_effect=ApiError(status, 'UPSTREAM_UNAVAILABLE', 'Tente novamente.'))):
+                response = self.client.get('/api/v1/account/profile', headers={'Authorization': f'Bearer {TOKEN}'})
+                self.assertEqual(response.status_code, status)
+                self.assertEqual(response.json()['error']['code'], 'UPSTREAM_UNAVAILABLE')
+
     def test_user_metadata_cannot_grant_admin(self):
         for role in ['cliente', 'barbeiro']:
             with self.subTest(role=role):
