@@ -96,7 +96,7 @@ class AccountAuthorizationTests(TestCase):
 class AccountServiceTests(IsolatedAsyncioTestCase):
     def test_numbered_sql_matches_managed_migration(self):
         from pathlib import Path
-        source = Path('supabase/migrations/20261022155131_modernizacao_contas_administrativas.sql').read_text(encoding='utf-8')
+        source = Path('supabase/migrations/20261028151359_modernizacao_contas_administrativas.sql').read_text(encoding='utf-8')
         self.assertEqual(source, Path('sql/41_modernizacao_contas_administrativas.sql').read_text(encoding='utf-8'))
 
     async def test_self_change_stops_before_repository_write(self):

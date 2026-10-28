@@ -165,8 +165,8 @@ for (const file of [
   "TESTES_NAVEGADOR_DISPOSITIVO_E_CARGA.md", "CREDENCIAIS_E_SENHAS.md"
 ]) check(exists(`docs/release-1.11/${file}`), `documentação operacional ausente: ${file}`);
 check(exists("docs/GUIA_COMPLETO_BARBER_HUB_1_11_0.docx"), "guia Word final da versão 1.11 ausente");
-check(read("README.md").startsWith("# Barber Hub 1.11.0"), "README principal precisa identificar a versão atual");
-check(read("docs/README.md").includes("versão **1.11.0**"), "índice de documentação precisa apontar para a versão atual");
+check(read("README.md").startsWith(`# Barber Hub ${JSON.parse(read("package.json")).version}`), "README principal precisa identificar a versão atual");
+check(read("docs/README.md").includes(`versão **${JSON.parse(read("package.json")).version}**`), "índice de documentação precisa apontar para a versão atual");
 check(read("CHANGELOG.md").includes("## 1.11.0"), "histórico de versões precisa registrar a 1.11.0");
 
 if (errors.length) {

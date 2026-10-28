@@ -4,7 +4,13 @@
 
 Repositório independente privado: [F1227TG/Barber-Hub-API](https://github.com/F1227TG/Barber-Hub-API). Cópia local: `.tools/barber-hub-api`. Contém FastAPI, domínio, serviços, integração Supabase, SQL histórico, migrations gerenciadas, contrato OpenAPI, testes e pipeline próprio. Não contém interface nem credenciais de produção.
 
-A API foi instalada em ambiente próprio, com importação isolada comprovando que o pacote vem do novo repositório. As correções da interface estão neste checkout. A cópia antiga de backend permanece temporariamente para manter o deploy existente: **a troca de tráfego e a remoção dessa compatibilidade ainda não aconteceram**. Não há migração aplicada ao banco nesta etapa.
+A API foi instalada em ambiente próprio, com importação isolada comprovando que o pacote vem do novo repositório. As correções da interface estão neste checkout. A cópia antiga de backend permanece temporariamente para manter o deploy existente: **a troca de tráfego e a remoção dessa compatibilidade ainda não aconteceram**.
+
+Atualização em 28/10: migração de contas aplicada em produção após autorização explícita. O Supabase atribuiu a versão `20261028151359_modernizacao_contas_administrativas`; os arquivos locais foram reconciliados com esse identificador, sem alterar o SQL anteriormente testado (`20261022155131`). O verificador 41 retornou os 12 controles verdadeiros e nenhuma tabela ficou sem a proteção de estado de conta. A CI da API independente passou.
+
+A CI web apontou verificações de versão antigas e diferenças visuais entre Windows desktop e Windows Server; a aprovação local anterior não representa aprovação dessa execução remota. O CAPTCHA do navegador automatizado permanece pendente; não houve envio de recuperação nem comprovação de login real após a atualização da chave informada pelo usuário.
+
+As verificações de versão foram corrigidas e as 16 verificações gerais passaram novamente, incluindo 19 testes JavaScript, 160 testes Python e o cenário transacional PostgreSQL/PGlite. Um único teste negativo de CAPTCHA, com desafio deliberadamente inválido e endereço reservado `.test`, retornou HTTP 400 `captcha_failed` / `invalid-input-response`, em lugar do antigo `invalid-input-secret`. Isso indica que a chave passou a ser aceita, mas não comprova o fluxo com desafio válido. Nenhum cadastro ou e-mail foi gerado por esse teste.
 
 ## Correções
 
@@ -36,8 +42,8 @@ Os testes de formulários usam identidades sintéticas e respostas controladas p
 
 ## Próxima publicação
 
-1. Conectar/autenticar Vercel e Supabase nesta sessão. Plugins aparecem instalados, mas suas ferramentas de conta não estavam disponíveis. Sessões abertas no navegador pessoal não dão acesso ao navegador de teste.
-2. Inspecionar o projeto Supabase atual e seu histórico. A autenticação privada depende de `sessao_conta_ativa`, presente na migration `20261022155131_modernizacao_contas_administrativas`; aplicação remota ainda precisa ser confirmada.
+1. Integrações Vercel e Supabase disponíveis. A criação do projeto Vercel da API retornou HTTP 403 pela integração; importar o repositório no painel e configurar a chave privada diretamente no ambiente do backend. Não enviar segredos pelo chat.
+2. Migração de contas aplicada e verificada. A autenticação privada já dispõe de `sessao_conta_ativa`; concluir o teste real com CAPTCHA, sem reaplicar a migração antiga.
 3. Importar Barber-Hub-API na Vercel, configurar variáveis somente no backend e validar perfil autenticado e operações. Preservar o mesmo banco.
 4. Gerar o frontend com `python scripts/build_frontend.py --api-origin https://DOMINIO-REAL-DA-API --output CAMINHO-NOVO`. O comando exige uma URL real HTTPS; não há destino fictício ativado no site.
 5. O artefato contém somente web/PWA e proxy de mesma origem para `/api/*`, sem Python, SQL ou segredos. Fazer preview e testar leitura, POST/PATCH, bearer token, CAPTCHA e cache. Transferir o cron somente na troca para evitar duplicação.

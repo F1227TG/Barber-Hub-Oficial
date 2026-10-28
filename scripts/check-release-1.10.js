@@ -82,7 +82,7 @@ for (const [name, sql, markers] of [
 check(migration31.includes("revoke all on function public.confirmar_importacao_110"), "confirmação de importação precisa revogar execução pública");
 check(migration29.includes("p_servico_nome text") && migration29.includes("p_duracao_min integer"), "atendimento manual precisa aceitar serviço avulso com duração validada");
 check(migration31.includes("única mutação permitida: anonimização"), "auditoria imutável precisa permitir apenas anonimização de vínculos excluídos");
-check(read("package.json").includes('"version": "1.11.0"'), "package precisa preservar e avançar a série validada");
+check(/^1\.11\.\d+$/.test(JSON.parse(read("package.json")).version), "package precisa preservar e avançar a série validada");
 
 if (errors.length) {
   console.error(`Regressões 1.10 reprovadas:\n- ${errors.join("\n- ")}`);

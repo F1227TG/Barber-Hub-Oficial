@@ -30,7 +30,7 @@ test('account migration: permissions, soft deletion, audit, rollback and last ad
         ('00000000-0000-0000-0000-000000000002','cliente',true),
         ('00000000-0000-0000-0000-000000000003','admin',true);
     `);
-    const migration = fs.readFileSync('supabase/migrations/20261022155131_modernizacao_contas_administrativas.sql', 'utf8');
+    const migration = fs.readFileSync('supabase/migrations/20261028151359_modernizacao_contas_administrativas.sql', 'utf8');
     await db.exec(migration);
     await db.exec(migration); // Idempotence matters for recovery/review tooling.
     const actor = '00000000-0000-0000-0000-000000000001';

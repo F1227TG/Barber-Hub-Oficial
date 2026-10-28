@@ -1,6 +1,6 @@
 # Central de documentação do Barber Hub
 
-Este é o índice canônico da versão **1.11.0**. Documentos de versões anteriores permanecem como histórico; quando houver divergência sobre o estado atual, use primeiro o guia e o diretório `release-1.11/`.
+Este é o índice canônico da versão **1.11.1**. Documentos de versões anteriores permanecem como histórico; quando houver divergência sobre o estado atual, use primeiro o guia e o diretório `release-1.11/`.
 
 ## Comece por aqui
 
