@@ -1,8 +1,10 @@
 # Central de documentação do Barber Hub
 
-Este é o índice canônico da versão **1.11.1**. Documentos de versões anteriores permanecem como histórico; quando houver divergência sobre o estado atual, use primeiro o guia e o diretório `release-1.11/`.
+Este é o índice canônico da versão **1.11.2**. Documentos de versões anteriores permanecem como histórico; quando houver divergência sobre o estado atual, use primeiro o guia e o diretório `release-1.11/`.
 
 ## Comece por aqui
+
+- [Explorar e experiência mobile — 29/10/2026](EXPLORAR-ECOSSISTEMA-2026-10-29.md): recursos compartilhados, filtros Beauty, navegação mobile, testes e limites.
 
 - [`SUPABASE-GOOGLE-2026-10-27.md`](SUPABASE-GOOGLE-2026-10-27.md): preparação do Supabase Beauty e do acesso Google independente nas duas plataformas; configuração externa ainda pendente.
 

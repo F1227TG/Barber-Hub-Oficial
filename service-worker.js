@@ -3,7 +3,7 @@
  * Network-first para conteúdo; API nunca é armazenada. A experiência instalada
  * inicia na interface HTML dedicada em /mobile.
  */
-const CACHE = 'barberhub-v1.11.0-mobile-r2-modernizacao-e1-vizu-r2-editorial-r1-google-prep-auth-fixes-1.11.1';
+const CACHE = 'barberhub-v1.11.0-mobile-r2-modernizacao-e1-vizu-r2-editorial-r1-google-prep-auth-fixes-1.11.1-explorar-1.11.2';
 const CORE_SOURCE = [
   './js/core/google-login.js',
   './js/core/experience.js', './img/placeholders/barber-editorial.svg',

@@ -1,3 +1,7 @@
+# 1.11.2 — 29/10/2026
+
+Explorar renovado: busca por cidade, categorias interativas, filtros removíveis, imagens WebP e seções de descoberta. Preserva API e agendamento existentes. Consulte docs/EXPLORAR-ECOSSISTEMA-2026-10-29.md.
+
 # Histórico de versões
 
 Este arquivo resume entregas. Os critérios de publicação e as evidências completas ficam em `docs/release-1.11/`.

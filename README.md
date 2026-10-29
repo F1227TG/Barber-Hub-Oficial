@@ -1,4 +1,4 @@
-# Barber Hub 1.11.1
+# Barber Hub 1.11.2
 
 Marketplace de serviços e sistema de gestão para barbearias, desenvolvido por **The Gamers Tech**. O cliente encontra estabelecimentos, compara serviços e agenda. Profissionais e proprietários administram agenda, clientes, equipe, dinheiro e retenção em uma experiência web/PWA responsiva.
 
