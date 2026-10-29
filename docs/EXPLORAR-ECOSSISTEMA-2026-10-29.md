@@ -19,7 +19,11 @@ Os filtros abrem em diálogo nativo abaixo de 1024px, com foco contido, Escape, 
 
 As imagens fornecidas nos ZIPs são ilustrativas e usadas nas seções editoriais. Cartões de negócios usam sua própria foto pública ou monograma; não recebem avaliações, preços ou fotos fictícias. Fotografias WebP reduzem o peso em relação aos PNGs anteriores.
 
-Sem migração de banco ou nova variável de ambiente. Google e CAPTCHA da Beauty continuam dependendo da ativação externa registrada anteriormente. Esta entrega não altera a autenticação nem a arquitetura da API do Barber.
+A parte visual não exige nova variável de ambiente. Google e CAPTCHA da Beauty continuam dependendo da ativação externa registrada anteriormente. A arquitetura da API do Barber foi preservada.
+
+Durante a verificação pública foi identificado um erro no hook `validar_acesso_conta`: a expressão SQL com `AND` resolvia a referência ao schema privado mesmo para visitantes. A migração corretiva `public_account_hook` separa o retorno anônimo em outro comando, sem conceder acesso ao schema privado nem alterar a validação de contas autenticadas. Foi aplicada após teste PGlite com verificação de privilégios, contas inativas e idempotência. A busca pública voltou a responder HTTP 200.
+
+A API independente `barberhubapi.vercel.app` ainda respondeu `BACKEND_NOT_CONFIGURED` na rota de catálogo; o frontend publicado continua usando a API do próprio domínio. Não houve troca de tráfego para essa API nesta entrega.
 
 ## Validação
 
@@ -33,5 +37,9 @@ Sem migração de banco ou nova variável de ambiente. Google e CAPTCHA da Beaut
 - Beauty: commit `a56df20`, deployment `dpl_3tgQVQL5ZPgLugsx2wr2A8xXt6ki`, promovido em `https://beautyhuboficial.vercel.app`. Catálogo real, imagens, menu e filtros conferidos no navegador em 390, 768, 1024 e 1440px. PR 2 aberta para revisão.
 - Barber: commit `f715e66`, deployment `dpl_JAaMXEw6PyYM2UCsVyYTtadddLdo`, promovido no projeto existente. API `/api/v1/health` respondeu pronta antes da promoção. PR 1 permanece em revisão.
 - VIZU: commit `5a4f207`, deployment `dpl_3pww5DCxN3uU7vZqmweZCgMDbrPo`, promovido em `https://vizu-oficial.vercel.app`. PR 1 criada em rascunho.
+
+O endereço `vizu-oficial.vercel.app` foi associado novamente ao projeto como domínio público. VIZU e Barber foram conferidos no navegador público em 390 e 1440px. Uma correção adicional de carregamento enfileira a última busca do Barber quando a cidade muda durante uma requisição; o teste reproduz duas cidades em sequência.
+
+O deployment final do Barber, incluindo essa correção, é `dpl_3ELypysGuGMVWrxU6ymnu2TAmu2P`. A migração aplicada foi registrada no Supabase como `20261029213446_public_account_hook`. O pipeline completo foi repetido após a correção e manteve os 16 checks aprovados.
 
 Nenhuma PR foi mesclada nesta entrega. O ZIP local `.tools/releases/Barber-Hub-Oficial-1.11.2.zip` preserva a pasta raiz e contém somente a distribuição pública e o backend necessário, sem credenciais ou ferramentas locais.

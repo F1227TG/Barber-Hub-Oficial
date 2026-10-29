@@ -154,7 +154,10 @@ function bhMarketplaceRender({ append = false } = {}) {
 }
 
 async function bhMarketplaceCarregar({ reset = false } = {}) {
-  if (bhMarketplaceState.loading) return;
+  if (bhMarketplaceState.loading) {
+    if (reset) bhMarketplaceState.pendingReset = true;
+    return;
+  }
   const grid = document.getElementById("gridBarbearias");
   bhMarketplaceState.loading = true;
   if (reset) {
@@ -185,6 +188,7 @@ async function bhMarketplaceCarregar({ reset = false } = {}) {
       offset:bhMarketplaceState.offset,
       limit:BH_MARKETPLACE_PAGE_SIZE
     });
+    if (bhMarketplaceState.pendingReset) return;
     const novos = bhMarketplaceLista(result?.items);
     const append = !reset && bhMarketplaceState.offset > 0;
     bhMarketplaceState.items = append ? [...bhMarketplaceState.items, ...novos] : novos;
@@ -197,6 +201,10 @@ async function bhMarketplaceCarregar({ reset = false } = {}) {
   } finally {
     bhMarketplaceState.loading = false;
     bhSetButtonLoading(more, false);
+    if (bhMarketplaceState.pendingReset) {
+      bhMarketplaceState.pendingReset = false;
+      bhMarketplaceCarregar({ reset: true });
+    }
   }
 }
 

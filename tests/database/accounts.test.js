@@ -33,6 +33,12 @@ test('account migration: permissions, soft deletion, audit, rollback and last ad
     const migration = fs.readFileSync('supabase/migrations/20261028151359_modernizacao_contas_administrativas.sql', 'utf8');
     await db.exec(migration);
     await db.exec(migration); // Idempotence matters for recovery/review tooling.
+    const hookFix = fs.readFileSync('supabase/migrations/20261029213446_public_account_hook.sql', 'utf8');
+    await db.exec(hookFix);
+    await db.exec(hookFix);
+    await db.exec('set role anon; select public.validar_acesso_conta(); reset role;');
+    const anonymousPrivileges = await db.query("select has_schema_privilege('anon','private','usage') as allowed");
+    assert.equal(anonymousPrivileges.rows[0].allowed, false);
     const actor = '00000000-0000-0000-0000-000000000001';
     const target = '00000000-0000-0000-0000-000000000002';
     const other = '00000000-0000-0000-0000-000000000003';
