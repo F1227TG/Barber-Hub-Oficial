@@ -63,11 +63,11 @@ function bhUrlRedeSocial(valor, rede) {
 }
 
 function bhRenderRedesSociais(item) {
-  const instagram = bhUrlRedeSocial(item.instagram, "instagram");
+  const instagram = String(item.instagram || '').split(/[\s,;]+/).filter(Boolean).map(handle => bhUrlRedeSocial(handle, "instagram"));
   const tiktok = bhUrlRedeSocial(item.tiktok, "tiktok");
-  if (!instagram && !tiktok) return "";
+  if (!instagram.length && !tiktok) return "";
   return `<div class="business-socials" aria-label="Redes sociais do estabelecimento">
-    ${instagram ? `<a href="${escapeHTML(instagram)}" target="_blank" rel="noopener noreferrer" class="social-chip instagram"><i class="bi bi-instagram"></i><span>Instagram</span></a>` : ""}
+    ${instagram.map(url => `<a href="${escapeHTML(url)}" target="_blank" rel="noopener noreferrer" class="social-chip instagram"><i class="bi bi-instagram"></i><span>Instagram · ${escapeHTML(url.split('/').filter(Boolean).pop())}</span></a>`).join('')}
     ${tiktok ? `<a href="${escapeHTML(tiktok)}" target="_blank" rel="noopener noreferrer" class="social-chip tiktok"><i class="bi bi-tiktok"></i><span>TikTok</span></a>` : ""}
   </div>`;
 }
@@ -347,7 +347,7 @@ function bhRenderDetalheEstabelecimento(item) {
   `).join("");
   const servicos = item.servicos.filter(s => s.ativo && s.publico).map(s => `
     <div class="simple-item">
-      <div><strong>${escapeHTML(s.nome)}</strong><span>${escapeHTML(s.descricao)} • ${s.duracao_min} min</span></div>
+      <div><strong>${escapeHTML(s.nome)}</strong><span>${escapeHTML(s.descricao)} • ${s.duracao_min?`${s.duracao_min} min`:'Duração a combinar'}</span></div>
       <div class="price">${bhMoeda(s.preco)}</div>
     </div>
   `).join("") || `<div class="empty">Nenhum serviço publicado.</div>`;
@@ -374,7 +374,7 @@ function bhRenderDetalheEstabelecimento(item) {
   if (document.body.classList.contains("mobile-native")) {
     const servicosMobile = item.servicos.filter(s => s.ativo && s.publico).map(s => `
       <div class="mobile-business-service">
-        <div><strong>${escapeHTML(s.nome)}</strong><small>${s.duracao_min} min${s.categoria ? ` · ${escapeHTML(s.categoria)}` : ""}</small></div>
+        <div><strong>${escapeHTML(s.nome)}</strong><small>${s.duracao_min?`${s.duracao_min} min`:'Duração a combinar'}${s.categoria ? ` · ${escapeHTML(s.categoria)}` : ""}</small></div>
         <b>${bhMoeda(s.preco)}</b>
       </div>`).join("") || `<div class="empty compact">Nenhum serviço publicado.</div>`;
     const profissionaisMobile = item.barbeiros.filter(p => p.ativo).map(p => `
