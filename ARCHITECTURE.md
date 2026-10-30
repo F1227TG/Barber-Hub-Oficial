@@ -136,6 +136,10 @@ Arquivos históricos numerados permanecem em `sql/`; migrations gerenciadas fica
 
 API, frontend e PWA devem ser publicados juntos depois do banco e da homologação. Reversão de código promove o commit anterior; banco com dados reais nunca recebe `DROP` improvisado. Uma correção de banco ganha uma nova migration.
 
-## Decisão de monorepo
+## Separação da API — 27/10/2026
 
-Barber Hub web, PWA/mobile e API permanecem no mesmo repositório até existirem ciclos de release ou equipes independentes. Beauty Hub é um produto irmão em repositório próprio. A integração futura ocorre por contrato/pacote versionado, sem copiar segredos ou compartilhar tabelas de produção por conveniência.
+A API foi extraída para `https://github.com/F1227TG/Barber-Hub-API`, com FastAPI, domínio, serviços, migrations, contratos e testes próprios. O banco do Barber Hub permanece o mesmo; Beauty Hub possui infraestrutura independente.
+
+A troca do deploy ainda está pendente. A cópia de API neste checkout mantém compatibilidade com o site publicado até a validação do novo servidor. Não remover essa cópia nem o cron do deploy ativo antes de concluir a troca. Novas alterações de backend devem ser coordenadas com o repositório independente.
+
+`scripts/build_frontend.py --api-origin https://DOMINIO-REAL-DA-API --output CAMINHO-NOVO` gera uma distribuição exclusivamente web/PWA, sem código Python, banco ou segredos. As rotas `/api/*` tornam-se proxies de mesma origem; métodos, caminhos e autenticação continuam usando os contratos existentes. O cron fica apenas na API. O procedimento e os limites verificados estão em `docs/API-SEPARADA-E-TESTES-2026-10-27.md`.

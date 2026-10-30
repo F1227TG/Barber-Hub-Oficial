@@ -1,10 +1,10 @@
-# Barber Hub 1.11.0
+# Barber Hub 1.11.2
 
 Marketplace de serviços e sistema de gestão para barbearias, desenvolvido por **The Gamers Tech**. O cliente encontra estabelecimentos, compara serviços e agenda. Profissionais e proprietários administram agenda, clientes, equipe, dinheiro e retenção em uma experiência web/PWA responsiva.
 
 ## Estado desta entrega
 
-A modernização local está documentada nas [etapas 1](docs/modernizacao/ETAPA_1.md) e [2](docs/modernizacao/ETAPA_2.md). O ponto atual de retomada é a Etapa 2: baseline visual e primeira extração do CSS concluídas localmente; homologação da migration de contas ainda pendente. Essas alterações ainda não foram publicadas.
+A retomada atual está em [API independente e testes](docs/API-SEPARADA-E-TESTES-2026-10-27.md). A migração de contas foi aplicada em produção em 28/10/2026, após autorização explícita, com os 12 controles do verificador aprovados. A API tem repositório próprio; a troca de tráfego e a publicação das correções da interface ainda estão pendentes.
 
 A versão 1.11.0 reúne a conclusão do Planejamento Pós-31, o acabamento da operação diária e as correções finais de continuidade, conta, mobile, administração e privacidade. As duas migrations gerenciadas desta candidata já foram aplicadas no projeto Supabase conectado e o verificador 33 retornou todos os controles como verdadeiros. A publicação comercial ainda depende das configurações externas e da homologação com contas reais.
 
@@ -114,6 +114,6 @@ O Barber Hub nunca exibe nem duplica a senha do usuário. O Supabase Auth guarda
 
 ## Repositórios
 
-Web, PWA/mobile e API continuam juntos durante a finalização porque compartilham modelo, autenticação, release e testes. A separação será reavaliada quando existir aplicativo nativo, equipe ou deploy independentes. O **Beauty Hub permanece em repositório próprio**, sem compartilhar credenciais ou banco de produção.
+O código da API está no repositório privado [Barber-Hub-API](https://github.com/F1227TG/Barber-Hub-API), com pipeline próprio. Este checkout mantém temporariamente a API para compatibilidade com o deploy atual; o gerador `scripts/build_frontend.py` produz a distribuição web/PWA com proxy para a API independente. O **Beauty Hub permanece em repositório próprio**, sem compartilhar credenciais ou banco de produção.
 
 Veja [a decisão completa](docs/DECISAO_REPOSITORIOS_1_10.md).

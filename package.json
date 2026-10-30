@@ -1,6 +1,6 @@
 {
   "name": "barber-hub-oficial",
-  "version": "1.11.0",
+  "version": "1.11.3",
   "private": true,
   "description": "Portal, gestão, PWA e API própria em Python do Barber Hub.",
   "scripts": {
@@ -27,7 +27,7 @@
     "check:auth": "python scripts/check.py auth",
     "check:contracts": "python scripts/check.py contracts",
     "check:admin": "python scripts/check.py auth",
-    "check:browser": "playwright test account-access.spec.js vizu.spec.js editorial.spec.js",
+    "check:browser": "playwright test account-access.spec.js auth-flow.spec.js vizu.spec.js editorial.spec.js",
     "check:visual": "playwright test visual.spec.js",
     "visual:update": "playwright test visual.spec.js --update-snapshots",
     "build:css": "python scripts/build_css.py",

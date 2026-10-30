@@ -296,3 +296,8 @@ A navegação admin global aponta para **Assinaturas** como página real, não c
 - a camada CSS 1.11 é a última nas páginas mobile e elimina as barras horizontais das tarefas principais;
 - o mapa interno usa `noindex`, foi removido do sitemap e exige conta administrativa;
 - a API está na versão 1.7.0 e o produto/PWA na versão 1.11.0.
+
+
+## Explorar — atualização de 29/10/2026
+
+`html/portal.html` e `mobile/portal.html` compartilham categorias, cidade, filtros ativos e atalhos para profissionais. A versão mobile é gerada pelo sincronizador existente. Beauty e VIZU mantêm `explorar.html` em repositórios independentes; veja [a documentação da entrega](EXPLORAR-ECOSSISTEMA-2026-10-29.md).

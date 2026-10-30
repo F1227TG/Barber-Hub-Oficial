@@ -6,7 +6,7 @@
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
 <meta content="Barber Hub — plataforma de gestão, agenda e divulgação para barbearias e futuros salões de beleza." name="description"/>
 <title>
-   Portal | Barber Hub
+   Explorar | Barber Hub
   </title>
 <link href="../img/favicon.ico" rel="shortcut icon" type="image/x-icon"/>
 <link href="../img/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
@@ -24,6 +24,7 @@
 <link href="../css/product-redesign.css" rel="stylesheet"/><link href="../css/release-1.6.css" rel="stylesheet"/><link href="../css/release-1.7.css" rel="stylesheet"/><link href="../css/release-1.7.1.css" rel="stylesheet"/><link href="../css/brand-assets-1.8.css" rel="stylesheet"/>
 <link href="../css/releases/release-1.10.css" rel="stylesheet"/>
 <link href="../css/releases/release-1.11.css" rel="stylesheet"/>
+<link rel="stylesheet" href="../css/releases/marketplace-2026.css"/>
 </head>
 <body class="page-portal"><script src="../js/device-router.js"></script>
 <!-- Cabeçalho e navegação principal -->
@@ -77,10 +78,10 @@
 <div class="marketplace-hero-copy">
 <div class="breadcrumb">Início / Explorar</div>
 <span class="tag"><i class="bi bi-compass"></i> Marketplace Barber Hub</span>
-<h1>Encontre um bom atendimento sem complicação.</h1>
-<p>Pesquise pelo local, bairro, cidade ou serviço. O Barber Hub organiza os resultados para você decidir rápido.</p>
+<h1>Seu estilo começa aqui.</h1>
+<p>Encontre barbearias, conheça profissionais, compare serviços e agende seu próximo atendimento com praticidade.</p>
 </div>
-<div aria-label="Fluxo rápido" class="marketplace-mini-guide">
+<p class="marketplace-image-note">Imagem conceitual do universo Barber Hub</p><div aria-label="Fluxo rápido" class="marketplace-mini-guide">
 <i class="bi bi-search"></i><span>Pesquisar</span><i class="bi bi-chevron-right"></i>
 <span>Escolher</span><i class="bi bi-chevron-right"></i><span>Agendar</span>
 </div>
@@ -88,14 +89,14 @@
 </section>
 <section class="marketplace-search-zone">
 <div class="container">
-<div class="marketplace-searchbar">
+<div class="marketplace-searchbar"><div class="marketplace-city-field"><label for="marketplace-city">Sua cidade</label><input id="marketplace-city" type="search" maxlength="120" placeholder="Cidade ou região" autocomplete="address-level2"/></div>
 <div class="marketplace-search-input">
 <i aria-hidden="true" class="bi bi-search"></i>
 <label class="sr-only" for="pesquisa">Pesquisar estabelecimento ou serviço</label>
-<input autocomplete="off" id="pesquisa" placeholder="Barbearia, serviço, bairro ou cidade" type="search"/>
+<input autocomplete="off" id="pesquisa" placeholder="Serviço, profissional ou barbearia" type="search"/>
 <button aria-label="Limpar busca" data-portal-search-clear="" type="button"><i class="bi bi-x-lg"></i></button>
 </div>
-<button class="btn btn-outline marketplace-filter-button" id="abrirFiltrosMarketplace" type="button">
+<button class="btn btn-primary" id="marketplace-search-submit" type="button">Pesquisar <i class="bi bi-arrow-up-right" aria-hidden="true"></i></button><button class="btn btn-outline marketplace-filter-button" id="abrirFiltrosMarketplace" type="button">
 <i class="bi bi-sliders"></i><span>Filtros</span><span class="marketplace-filter-count" id="contadorFiltrosMarketplace"></span>
 </button>
 </div>
@@ -107,10 +108,10 @@
 </div>
 </div>
 </section>
-<section class="marketplace-section" id="secDestaquesMarketplace">
+<section class="container marketplace-categories" aria-labelledby="marketplace-categories-title"><div class="marketplace-section-head"><div><span class="tag compact">Encontre seu próximo cuidado</span><h2 id="marketplace-categories-title">Explore por categoria</h2></div></div><div class="marketplace-category-grid"><button type="button" data-explore-service="corte" data-explore-kind="todos" aria-pressed="false"><i class="bi bi-scissors" aria-hidden="true"></i><span>Corte masculino</span></button><button type="button" data-explore-service="barba" data-explore-kind="todos" aria-pressed="false"><i class="bi bi-person" aria-hidden="true"></i><span>Barba</span></button><button type="button" data-explore-service="corte barba" data-explore-kind="todos" aria-pressed="false"><i class="bi bi-stars" aria-hidden="true"></i><span>Corte + barba</span></button><button type="button" data-explore-service="sobrancelha" data-explore-kind="todos" aria-pressed="false"><i class="bi bi-eye" aria-hidden="true"></i><span>Sobrancelha</span></button><button type="button" data-explore-service="pigmentação" data-explore-kind="todos" aria-pressed="false"><i class="bi bi-palette" aria-hidden="true"></i><span>Pigmentação</span></button><button type="button" data-explore-service="tratamento" data-explore-kind="todos" aria-pressed="false"><i class="bi bi-droplet" aria-hidden="true"></i><span>Tratamentos capilares</span></button><button type="button" data-explore-service="" data-explore-kind="barbearia" aria-pressed="false"><i class="bi bi-shop" aria-hidden="true"></i><span>Barbearias</span></button><button type="button" data-explore-service="" data-explore-kind="todos" aria-pressed="false"><i class="bi bi-grid" aria-hidden="true"></i><span>Outros serviços</span></button></div></section><section class="marketplace-section" id="secDestaquesMarketplace">
 <div class="container">
 <div class="marketplace-section-head">
-<div><span class="tag compact">Destaques</span><h2>Recomendados pelo Barber Hub</h2><p>Perfis selecionados para facilitar sua descoberta.</p></div>
+<div><span class="tag compact">Destaques</span><h2>Barbearias e profissionais em destaque</h2><p>Perfis selecionados para facilitar sua descoberta.</p></div>
 </div>
 <div class="marketplace-featured-grid" id="gridDestaquesMarketplace"></div>
 </div>
@@ -121,7 +122,7 @@
 <div><span class="tag compact">Explorar</span><h2 id="tituloResultadosMarketplace">Locais disponíveis</h2><p>Resultados objetivos, com status e serviços principais.</p></div>
 <div aria-live="polite" class="marketplace-result-meta" id="resumoPortal"></div>
 </div>
-<div class="marketplace-grid" id="gridBarbearias"><div class="marketplace-loading"><i class="bi bi-arrow-repeat spin"></i> Carregando locais...</div></div>
+<div id="marketplace-active-filters" class="marketplace-active-filters" aria-label="Filtros selecionados"></div><div class="marketplace-grid" id="gridBarbearias"><div class="marketplace-loading"><i class="bi bi-arrow-repeat spin"></i> Carregando locais...</div></div>
 <div class="marketplace-load-more"><button class="btn btn-outline" hidden="" id="carregarMaisMarketplace" type="button"><i class="bi bi-plus-lg"></i> Carregar mais</button></div>
 </div>
 </section>
@@ -145,7 +146,9 @@
 <div class="marketplace-filter-actions"><button class="btn btn-outline" id="limparFiltrosMarketplace" type="button">Limpar</button><button class="btn btn-primary" id="aplicarFiltrosMarketplace" type="button">Ver resultados</button></div>
 </section>
 </div>
-</main>
+<section class="container marketplace-local" aria-labelledby="marketplace-local-title"><div><span class="tag compact">Sua região, seu estilo</span><h2 id="marketplace-local-title">Encontre profissionais perto de você</h2><p>Informe sua cidade na busca ou use sua localização para consultar a distância dos estabelecimentos.</p><button type="button" class="btn btn-outline" id="marketplace-local-city">Escolher cidade</button><button type="button" class="btn btn-primary" id="marketplace-local-location">Usar minha localização</button></div><img src="../img/marketplace/07-ambiente.webp" alt="Ambiente conceitual de barbearia" loading="lazy" width="1672" height="941"/></section>
+<section class="container marketplace-services-discovery" id="explore-services"><span class="tag compact">Seu próximo atendimento</span><h2>Explore os serviços</h2><div class="marketplace-service-grid"><button type="button" data-explore-service="corte" class="marketplace-service-tile"><img src="../img/marketplace/02-corte-de-cabelo.webp" width="1254" height="1254" alt="" loading="lazy"/><span>Corte masculino<small>Ver profissionais e valores →</small></span></button><button type="button" data-explore-service="barba" class="marketplace-service-tile"><img src="../img/marketplace/03-barba.webp" width="1254" height="1254" alt="" loading="lazy"/><span>Barba e acabamento<small>Ver profissionais e valores →</small></span></button><button type="button" data-explore-service="sobrancelha" class="marketplace-service-tile"><img src="../img/marketplace/04-sobrancelhas.webp" width="1254" height="1254" alt="" loading="lazy"/><span>Sobrancelhas<small>Ver profissionais e valores →</small></span></button></div><p class="marketplace-image-note">Imagens ilustrativas. Valores e horários estão nos perfis dos estabelecimentos.</p></section>
+<section class="container marketplace-professional"><span class="tag compact">Seu talento merece ser encontrado</span><h2>Você é profissional?<br>Faça parte do nosso ecossistema.</h2><p>Apresente seus serviços, alcance novos clientes e organize seus atendimentos em um só lugar.</p><a class="btn btn-primary" href="planos.html">Conhecer recursos para profissionais</a></section></main>
 <!-- Rodapé institucional -->
 <footer class="footer">
 <div class="container">
@@ -214,5 +217,6 @@
 </script>
 <script src="../js/mobile-app.js"></script>
 <script src="../js/product-redesign.js"></script><script src="../js/core/experience.js"></script>
+<script src="../js/features/explore-marketplace.js"></script>
 </body>
 </html>

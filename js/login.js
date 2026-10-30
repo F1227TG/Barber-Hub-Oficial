@@ -11,6 +11,19 @@ document.addEventListener("DOMContentLoaded", async () => {
   const form = document.getElementById("formLogin");
   const next = window.bhContinuation?.nextFromLocation?.();
   const cadastroLink = document.querySelector("[data-auth-signup]");
+  if (window.setupGoogleLogin && bhSupabasePronto()) {
+    window.setupGoogleLogin({
+      enabled: window.BH_GOOGLE_LOGIN_ENABLED === true,
+      button: document.querySelector('[data-google-login]'),
+      client: bhExigirSupabase(), next,
+      finish: async destination => {
+        const perfil = await bhAguardarPerfil();
+        if (!perfil || perfil.ativo === false || perfil.estado_conta === 'suspensa' || perfil.estado_conta === 'excluida') throw new Error('Conta indisponível');
+        return bhDestinoPerfil(perfil, destination);
+      },
+      report: message => mostrarToast('erro', 'Acesso com Google', message)
+    });
+  }
   if (cadastroLink && next) cadastroLink.href = `cadastro.html?next=${encodeURIComponent(next)}`;
   if (bhQueryParam("confirmado") === "1") {
     mostrarToast("sucesso", "E-mail confirmado", "Sua conta está pronta para entrar.");

@@ -123,7 +123,7 @@
 
   function renderServices() {
     const container = ensureModal().querySelector("#bookingModalServices");
-    const items = (state.establishment?.servicos || []).filter(item => item.ativo && item.publico);
+    const items = (state.establishment?.servicos || []).filter(item => item.ativo && item.publico && Number(item.duracao_min)>0);
     container.innerHTML = items.length ? items.map(item => {
       const active = state.services.has(item.id);
       return `<button class="booking-service-choice${active ? " ativo" : ""}" type="button" data-booking-service="${item.id}" aria-pressed="${active}">
@@ -131,10 +131,11 @@
         <span><strong>${escapeHTML(item.nome)}</strong><small>${Number(item.duracao_min || 0)} min · ${escapeHTML(item.categoria || "Serviço")}</small></span>
         <b>${bhMoeda(item.preco)}</b>
       </button>`;
-    }).join("") : `<div class="empty compact">Nenhum serviço disponível para agendamento.</div>`;
+    }).join("") : `<div class="empty compact">A duração depende do procedimento. Solicite seu agendamento pelo WhatsApp do estabelecimento para confirmar dia, horário e duração.</div>`;
   }
 
   function toggleService(id) {
+    if(!(state.establishment?.servicos||[]).some(s=>s.id===id&&s.ativo&&s.publico&&Number(s.duracao_min)>0))return;
     if (state.services.has(id)) state.services.delete(id); else state.services.add(id);
     state.slot = null;
     renderServices();
@@ -365,7 +366,7 @@
         modal.querySelector("#bookingModalNote").value = pending.observacao || "";
       }
       modal.querySelector("#bookingModalBusiness").textContent = state.establishment.nome;
-      const validServices = new Set((state.establishment.servicos || []).map(item => item.id));
+      const validServices = new Set((state.establishment.servicos || []).filter(item => item.ativo && item.publico && Number(item.duracao_min)>0).map(item => item.id));
       state.services = new Set([...state.services].filter(id => validServices.has(id)));
       renderServices();
       setStep(state.services.size && state.professionalId && state.date ? 3 : 1);

@@ -277,7 +277,7 @@ function bhRenderServicosPainel() {
   const itens = bhPainelEstabelecimento.servicos.filter(item => item.ativo || item.publico);
   lista.innerHTML = itens.length ? itens.map(item => `
     <div class="simple-item">
-      <div><strong>${escapeHTML(item.nome)}</strong><span>${bhMoeda(item.preco)} • ${item.duracao_min} min • ${item.ativo ? "Ativo" : "Inativo"}</span></div>
+      <div><strong>${escapeHTML(item.nome)}</strong><span>${bhMoeda(item.preco)} • ${item.duracao_min?`${item.duracao_min} min`:'Duração a combinar'} • ${item.ativo ? "Ativo" : "Inativo"}</span></div>
       <div class="item-actions">
         <button class="icon-btn" data-servico-toggle="${item.id}" data-ativo="${item.ativo}" title="Ativar/inativar"><i class="bi ${item.ativo ? "bi-toggle-on" : "bi-toggle-off"}"></i></button>
         <button class="icon-btn danger" data-servico-delete="${item.id}" title="Excluir"><i class="bi bi-trash"></i></button>

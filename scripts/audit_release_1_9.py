@@ -41,7 +41,7 @@ migrations = {number: read(f"sql/{name}") for number, name in {
     28: "28_hardening_objetos_1_9_3.sql",
 }.items()}
 
-check("frontend preserves release 1.9.3 or newer", package.get("version") in {"1.9.3", "1.10.0", "1.10.1", "1.11.0"})
+check("frontend preserves release 1.9.3 or newer", tuple(int(part) for part in package.get("version", "0.0.0").split(".")) >= (1, 9, 3))
 version_module = read("backend/version.py")
 check("API preserves version 1.5.0 or newer", 'API_VERSION = "1.7.0"' in version_module)
 check("all operational migrations exist", all(migrations.values()))

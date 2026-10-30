@@ -10,6 +10,9 @@ const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_idNGCP5OcCJQOL3rzkRVLw_nw-d3FJm
 // pública própria para navegador; nunca substitua por sb_secret/service_role.
 const SUPABASE_ANON_KEY = SUPABASE_PUBLISHABLE_KEY;
 
+// Enable only after configuring Google in this project's Supabase Auth panel.
+window.BH_GOOGLE_LOGIN_ENABLED = false;
+
 /*
  * Cloudflare Turnstile. Em produção, security.js carrega a site key pública de
  * /api/v1/public-config, alimentada por BARBER_HUB_TURNSTILE_SITE_KEY no Vercel.

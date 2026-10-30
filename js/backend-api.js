@@ -17,7 +17,8 @@
   /** Retorna o access token atual sem armazená-lo em outra variável global. */
   async function sessionToken() {
     if (!global.supabaseClient?.auth) return null;
-    const { data } = await global.supabaseClient.auth.getSession();
+    const { data, error } = await global.supabaseClient.auth.getSession();
+    if (error) throw error;
     return data?.session?.access_token || null;
   }
 
@@ -76,6 +77,12 @@
       });
 
       const payload = await response.json().catch(() => null);
+      if (response.ok && (payload?.success !== true || !Object.hasOwn(payload, "data"))) {
+        const error = new Error("O serviço retornou uma resposta inválida. Tente novamente em instantes.");
+        error.code = "API_INVALID_RESPONSE";
+        error.status = 502;
+        throw error;
+      }
       if (!response.ok || payload?.success === false) {
         const details = payload?.error?.details;
         const validationMessage = Array.isArray(details)

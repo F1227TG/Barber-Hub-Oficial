@@ -1,8 +1,12 @@
 # Central de documentação do Barber Hub
 
-Este é o índice canônico da versão **1.11.0**. Documentos de versões anteriores permanecem como histórico; quando houver divergência sobre o estado atual, use primeiro o guia e o diretório `release-1.11/`.
+Este é o índice canônico da versão **1.11.2**. Documentos de versões anteriores permanecem como histórico; quando houver divergência sobre o estado atual, use primeiro o guia e o diretório `release-1.11/`.
 
 ## Comece por aqui
+
+- [Explorar e experiência mobile — 29/10/2026](EXPLORAR-ECOSSISTEMA-2026-10-29.md): recursos compartilhados, filtros Beauty, navegação mobile, testes e limites.
+
+- [`SUPABASE-GOOGLE-2026-10-27.md`](SUPABASE-GOOGLE-2026-10-27.md): preparação do Supabase Beauty e do acesso Google independente nas duas plataformas; configuração externa ainda pendente.
 
 - [`REDESIGN-BARBER-HUB-2026-10-26.md`](REDESIGN-BARBER-HUB-2026-10-26.md): atualização visual compartilhada, home interativa, fontes CSS e limites da validação local.
 
@@ -18,6 +22,8 @@ Este é o índice canônico da versão **1.11.0**. Documentos de versões anteri
 - [`HANDOFF-CODEX-2026-10-26.md`](HANDOFF-CODEX-2026-10-26.md): contexto completo, estado do Git, validações e próximos passos para retomar o trabalho em outra conta.
 
 ## Versão 1.11.0
+
+- [`API-SEPARADA-E-TESTES-2026-10-27.md`](API-SEPARADA-E-TESTES-2026-10-27.md): extração da API, correções de autenticação, testes gerais e pendências de produção.
 
 - [`release-1.11/README.md`](release-1.11/README.md): estado verificado, regras de decisão e índice operacional.
 - [`release-1.11/RELATORIO_FINAL_1_11_0.md`](release-1.11/RELATORIO_FINAL_1_11_0.md): tudo que foi implementado, corrigido, testado e o que ainda é externo.

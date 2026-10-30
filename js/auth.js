@@ -23,9 +23,9 @@ async function bhGetAuthUser() {
 }
 
 async function bhGetPerfil(force = false) {
-  if (bhPerfilCache && !force) return bhPerfilCache;
   const session = await bhGetSession();
-  if (!session?.user) return null;
+  if (!session?.user) { bhPerfilCache = null; return null; }
+  if (bhPerfilCache?.id === session.user.id && !force) return bhPerfilCache;
 
   if (!window.bhBackendApi?.accountProfile) throw new Error("O serviço de contas está temporariamente indisponível.");
   const data = await window.bhBackendApi.accountProfile();
@@ -35,9 +35,14 @@ async function bhGetPerfil(force = false) {
 
 async function bhAguardarPerfil(tentativas = 5) {
   for (let i = 0; i < tentativas; i += 1) {
-    const perfil = await bhGetPerfil(true);
-    if (perfil) return perfil;
-    await new Promise(resolve => setTimeout(resolve, 350));
+    try {
+      const perfil = await bhGetPerfil(true);
+      if (perfil) return perfil;
+    } catch (erro) {
+      // Retry only a transient service failure, never an authorization denial.
+      if (![502, 503, 504].includes(erro.status) || i === tentativas - 1) throw erro;
+    }
+    if (i < tentativas - 1) await new Promise(resolve => setTimeout(resolve, 350));
   }
   return null;
 }
@@ -80,7 +85,18 @@ async function bhRegistrar({ nome, email, telefone, senha, tipo, next = null, ca
   });
   if (error) throw error;
   bhPerfilCache = null;
-  const perfil = data.session ? await bhAguardarPerfil() : null;
+  let perfil = null;
+  if (data.session) {
+    try { perfil = await bhAguardarPerfil(); }
+    catch (cause) {
+      const erro = new Error("Sua conta foi criada, mas não foi possível abrir seu perfil. Tente entrar novamente em instantes; não repita o cadastro.", { cause });
+      erro.code = "ACCOUNT_PROFILE_PENDING";
+      throw erro;
+    }
+  }
+  if (data.session && !perfil) {
+    throw new Error("Sua conta foi criada, mas não foi possível carregar seu perfil. Entre novamente em instantes; não é necessário repetir o cadastro.");
+  }
   return {
     session: data.session,
     user: data.user,
@@ -180,17 +196,16 @@ async function bhAtualizarEmail(email) {
   const client = bhExigirSupabase();
   const { data, error } = await client.auth.updateUser({ email: email.trim() });
   if (error) throw error;
-  if (data.user) {
-    await client.from("perfis").update({ email: email.trim() }).eq("id", data.user.id);
-  }
+  // Auth owns the confirmed email. Never publish a pending email as confirmed.
   bhPerfilCache = null;
   return data.user;
 }
 
 if (bhSupabasePronto()) {
-  supabaseClient.auth.onAuthStateChange((_evento, session) => {
-    if (!session) {
-      bhPerfilCache = null;
+  supabaseClient.auth.onAuthStateChange((evento, session) => {
+    if (!session || bhPerfilCache?.id !== session.user.id || evento === "USER_UPDATED") bhPerfilCache = null;
+    // INITIAL_SESSION without a user is normal on public booking pages.
+    if (evento === "SIGNED_OUT") {
       window.bhViewState?.clearAll?.();
       window.bhOperationDraft?.clearAll?.();
       window.bhContinuation?.clear?.();

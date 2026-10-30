@@ -56,7 +56,7 @@ async function mountFullPage(page, { name, width, theme = 'escuro' }) {
     consentimentos_usuario: [{ documento: 'Política de privacidade', versao: '1.0', acao: 'aceito', created_at: now }] };
   const endpoints = {
     '/api/v1/catalog/summary': { estabelecimentos: 3, agendamentos: 2 },
-    '/api/v1/public-config': { turnstile_site_key: '' },
+    '/api/v1/public-config': { turnstile_site_key: '', captcha_required: false },
     '/api/v1/account/profile': profile,
     '/api/v1/account/sessions': { items: [{ current: true, user_agent: 'Chrome Windows', ip_masked: '192.0.*.*', updated_at: now }], can_revoke_others: false },
     '/api/v1/account/deletion': { status: 'none', can_cancel: false },
@@ -105,7 +105,8 @@ async function mountFullPage(page, { name, width, theme = 'escuro' }) {
   }
   if (name === 'admin') {
     await expect(page.locator('#adminNome')).toHaveText('Alex Exemplo');
-    await expect(page.locator('#adminUltimaAtualizacao')).toContainText('Serviços verificados');
+    await expect(page.locator('#adminUltimaAtualizacao')).toContainText('Atualizado às');
+    await expect(page.locator('#adminHealthServices')).toHaveAttribute('data-checked-at', /T/);
     await expect(page.getByText('Marina Cliente', { exact: true })).toHaveCount(1);
   }
   await page.evaluate(async () => {
